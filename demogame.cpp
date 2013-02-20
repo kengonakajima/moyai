@@ -574,7 +574,7 @@ int main(int argc, char **argv )
     TextBox *t3 = new TextBox();
     t3->setFont(font);
     t3->setString( L"ABC012ほげ。\nふがふがふがの。" );
-    t3->setLoc(-100,-100);
+    t3->setLoc(-100,-50);
     g_main_layer->insertProp(t3);
     
 

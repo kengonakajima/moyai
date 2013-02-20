@@ -1,30 +1,45 @@
-LIBFLAGS=-framework OpenGL -framework GLUT  -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
-CFLAGS=-Ifreetype-2.4.10/include -g  -I./freetype-gl -Wall -m64  -Ilibpng-1.5.13/ -DUSE_FMOD
+
 
 
 
 MOYAISRCS=moyai.cpp cumino.cpp
-TESTSRCS=test.cpp 
-TESTOBJS=$(TESTSRCS:.cpp=.o)
+DEMOGAMESRCS=demogame.cpp 
+DEMOGAMEOBJS=$(DEMOGAMESRCS:.cpp=.o)
 MOYAIOBJS=$(MOYAISRCS:.cpp=.o)
-FTLIB=freetype-2.4.10/objs/.libs/libfreetype.a  # ビルドしたらできるよ
-BZ2LIB=bzip2-1.0.6/libbz2.a # ビルドしたらできるよ
-ZLIB=zlib-1.2.7/libz.a
+
+FREETYPE=freetype-2.4.10
+FREETYPELIB=$(FREETYPE)/objs/.libs/libfreetype.a  # build product of freetype source
+
+BZ2=bzip2-1.0.6
+BZ2LIB=$(BZ2)/libbz2.a # build product of bz2 source
+
+ZLIB=zlib-1.2.7
+ZLIBLIB=$(ZLIB)/libz.a
+
+LIBPNG=libpng-1.5.13
+LIBPNGLIB=$(LIBPNG)/.libs/libpng15.a
+
+
 FTGLOBJS=vertex-attribute.o vertex-buffer.o vector.o texture-atlas.o texture-font.o
 SOILOBJS=SOIL.o stb_image_aug.o image_DXT.o image_helper.o 
 SOILLIB=libsoil.a
 FTGLLIB=libftgl.a
-LIBPNGLIB=libpng-1.5.13/.libs/libpng15.a
 OUTLIB=libmoyai.a
 
+LIBFLAGS=-framework OpenGL -framework GLUT  -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
+CFLAGS=-I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I$(LIBPNG) -DUSE_FMOD
 
-all : test
 
-test : $(TESTOBJS) $(OUTLIB) $(SOILLIB) $(FTGLLIB) $(FTLIB) $(ZLIB) $(BZ2LIB)
-	g++ $(CFLAGS) $(LIBFLAGS) $(TESTOBJS) -o test $(OUTLIB) $(SOILLIB) $(FTGLLIB) $(FTLIB) $(ZLIB) $(BZ2LIB) $(LIBPNGLIB)
+DEMOGAME=demogame
 
-test.o : test.cpp
-	g++ -c test.cpp $(CFLAGS)
+all : $(DEMOGAME)
+
+
+$(DEMOGAME) : $(DEMOGAMEOBJS) $(OUTLIB) $(SOILLIB) $(FTGLLIB) $(FREETYPELIB) $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB)
+	g++ $(CFLAGS) $(LIBFLAGS) $(DEMOGAMEOBJS) -o $(DEMOGAME) $(OUTLIB) $(SOILLIB) $(FTGLLIB) $(FREETYPELIB) $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB)
+
+demogame.o : demogame.cpp
+	g++ -c demogame.cpp $(CFLAGS)
 
 
 $(OUTLIB) : $(MOYAIOBJS)
@@ -67,18 +82,34 @@ image_DXT.o:
 image_helper.o:
 	g++ -c soil/src/image_helper.c $(CFLAGS)
 
+$(FREETYPELIB):
+	rm -rf $(FREETYPE)
+	tar zxf $(FREETYPE).tar.bz2
+	cd $(FREETYPE); ./configure; make
+
+$(BZ2LIB):
+	rm -rf $(BZ2)
+	tar zxf $(BZ2).tar.gz
+	cd $(BZ2); make
+
+$(ZLIBLIB):
+	rm -rf $(ZLIB)
+	tar zxf $(ZLIB).tar.gz
+	cd $(ZLIB); ./configure; make
+
+$(LIBPNGLIB):
+	rm -rf $(LIBPNG)
+	tar zxf $(LIBPNG).tar.gz
+	cd $(LIBPNG); ./configure; make
+
 
 clean:
-	rm -f *.o deps.make test $(OUTLIB) *.o *.a
+	rm -r $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG)
+	rm -f *.o deps.make demogame $(OUTLIB) *.o *.a
 	make depend
 
 depend: 
 	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAISRCS) > deps.make
 
-
-
-
-auto:
-	ruby auto.rb
 
 -include deps.make
