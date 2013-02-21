@@ -94,11 +94,6 @@ public:
                      x * sin(v) + y * cos(v) );
     }
 };
-class Vec3 {
-    float x,y,z;
-    inline Vec3(float xx, float yy, float zz) : x(xx),y(yy),z(zz){}
-    inline Vec3() : x(0), y(0), z(0) {   }
-};
 
 
 class Viewport {
