@@ -54,6 +54,10 @@ int main()
 
   Layer *l = new Layer();
   lay->setViewport(v);
+  
+  Camera *c = new Camera();
+  c->setLoc(0,0);
+  lay->setCamera©;
 
   g_moyai->insertLayer(lay);
 
@@ -150,3 +154,35 @@ $ cd moyai
 $ make
 </pre>
 
+Classes
+=====
+List of classes defined in moyai.h :
+
+- Basic types
+  - <code>Vec2</code>
+  - <code>Color</code>
+  - <code>Moyai</code>
+  - <code>Layer</code>
+  - <code>Viewport</code>
+  - <code>Camera</code> 
+  - <code>Prop</code> : a sprite 
+  
+- Rendering and Graphics
+  - <code>Image</code>  : image in memory
+  - <code>Texture</code> : opengl texture
+  - <code>TileDeck</code> : sprite sheet
+  - <code>ColorReplacerShader</code> : replace pixel color of given texture 
+  - <code>Grid</code> : m x n grid
+  - <code>CharGrid</code> : for simple ascii bitmap fonts
+  - <code>Prim</code> : draw lines and rectangles
+- Text and fonts  
+  - <code>Font</code> : truetype font
+  - <code>TextBox</code>
+ 
+- Animation
+  - <code>AnimCurve</code>
+
+- Audio
+  - <code>SoundSystem</code>
+  - <code>Sound</code>
+ 
