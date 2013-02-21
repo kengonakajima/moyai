@@ -840,6 +840,8 @@ public:
     
 };
 
+#ifdef USE_FMOD
+
 class SoundSystem;
 
 class Sound {
@@ -862,7 +864,7 @@ public:
     Sound *newSound( const char *path, float vol );
     Sound *newSound( const char *path );
 };
-
+#endif
 
 
 class Pad {
