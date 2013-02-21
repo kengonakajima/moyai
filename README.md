@@ -137,7 +137,8 @@ layer->insertProp(tb);
 </code></pre>
 
 Build
-====
+=====
+
 Tested only on MacOS X 10.8. After installing Xcode and command line tools, just do:
  
 <pre>
