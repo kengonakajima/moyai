@@ -152,6 +152,7 @@ Tested only on MacOS X 10.8. After installing Xcode and command line tools, just
 $ git clone https://github.com/kengonakajima/moyai
 $ cd moyai
 $ make
+$ ./demogame
 </pre>
 
 Classes
