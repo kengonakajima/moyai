@@ -1,5 +1,4 @@
-moyai
-=====
+# moyai
 
 An experimental simple 2D game engine for native C++, strongly inspired by MoaiSDK API structure.
 
@@ -17,8 +16,7 @@ Moai SDK: https://github.com/moai/moai-dev
   - FreeType2 based, reads TTF files, multi-byte chars
   
 
-Small
-=====
+# Small
 Moyai is just combining good existing stable libs so itself has only 2K lines of C++ code.
 
 <pre>
@@ -29,8 +27,8 @@ Moyai is just combining good existing stable libs so itself has only 2K lines of
     1976    6260   55187 total
 </pre>
 
-Example
-=====
+# Example
+
 All of its class names are from MoaiSDK's, 
 and the order of API calls is also completely same as MoaiSDK's.
 
@@ -38,11 +36,12 @@ Some arguments are modified to achieve even simpler usage.
 
 
 
-Sprite basics
-----
+## Sprite basics
+
 To show a sprite on your screen, just:
 
-<pre lang="c"><code>
+<pre lang="c++">
+<code>
 Moyai *g_moyai;
 
 int main() 
@@ -99,21 +98,23 @@ void display_callback()
   g_moyai->renderAll();
 }
 
-</code></pre>
+</code>
+</pre>
+ 
 
+## Audio
 
-Audio
-----
-To use sound effects or background music, just use 
-SoundSystem and Sound.
+To use sound effects or background music, just use SoundSystem and Sound.
 
 It is simply based on FMOD: stable, small and lightweight.
 
-<pre lang="c"><code>
+<pre lang="c">
+<code>
 SoundSystem *ss = new SoundSystem();
 Sound *s = ss->newSound( "explode.wav" );
 s->play();
-</code></pre>
+</code>
+</pre>
 
 Fonts
 ----
@@ -122,7 +123,8 @@ Pass wchar_t string to prepare glyphs in texture buffer.
 Moyai only supports pre-loaded fonts.
 
 
-<pre lang="c"><code>
+<pre lang="c">
+<code>
 wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえおぁぃぅぇぉかきくけこがぎぐげごさしすせそざじずぜぞたちつてとだぢづでどなにぬねのはひふへほばびぶべぼぱぴぷぺぽまみむめもやゆよゃゅょらりるれろわをん";    
  
 Font *f = new Font();
@@ -134,7 +136,8 @@ tb->setString("こんにちはABC");
 
 layer->insertProp(tb);
 
-</code></pre>
+</code>
+</pre>
 
 Build
 =====
