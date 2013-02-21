@@ -38,7 +38,7 @@ all : $(DEMOGAME)
 $(DEMOGAME) : $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(OUTLIB) $(DEMOGAMEOBJS)
 	g++ $(CFLAGS) $(LIBFLAGS) $(DEMOGAMEOBJS) -o $(DEMOGAME) $(OUTLIB) $(SOILLIB) $(FTGLLIB) $(FREETYPELIB) $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB)
 
-demogame.o : demogame.cpp
+demogame.o : demogame.cpp moyai.h
 	g++ -c demogame.cpp $(CFLAGS)
 
 

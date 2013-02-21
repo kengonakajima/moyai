@@ -826,12 +826,10 @@ public:
         }
     }
     
-    Layer* newLayer() {
+    void insertLayer( Layer *l ) {
         int freei = findFreeLayerIndex(); // 後から追加したレイヤの描画順が後ろ
         assert(freei>=0);
-        Layer *l = new Layer();
         layers[freei] = l;
-        return l;
     }
 
     int renderAll();

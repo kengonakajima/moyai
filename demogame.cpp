@@ -449,7 +449,8 @@ int main(int argc, char **argv )
     g_viewport->setSize(SCRW,SCRH);
     g_viewport->setScale(SCRW,SCRH);
 
-    Layer *l = g_moyai->newLayer();
+    Layer *l = new Layer();
+    g_moyai->insertLayer(l);
     l->setViewport(g_viewport);
 
     Texture *t = new Texture();
@@ -533,7 +534,8 @@ int main(int argc, char **argv )
         l->insertProp(p2);
     }
     
-    g_main_layer = g_moyai->newLayer();
+    g_main_layer = new Layer();
+    g_moyai->insertLayer(g_main_layer);
     g_main_layer->setViewport(g_viewport);
 
     g_base_atlas = new Texture();
