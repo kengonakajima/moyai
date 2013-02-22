@@ -739,6 +739,31 @@ void Image::setPixel( int x, int y, Color c ){
         buffer[index+3] = c.a*255;
     }
 }
+Color Image::getPixel( int x, int y ) {
+    assert( width > 0 && height > 0 );
+    assert(buffer);
+    if(x>=0&&y>=0&&x<width&&y<height){
+        int index = ( x + y * width ) * 4;
+        unsigned char r = buffer[index];
+        unsigned char g = buffer[index+1];
+        unsigned char b = buffer[index+2];
+        unsigned char a = buffer[index+3];
+        return Color( ((float)r)/255.0, ((float)g)/255.0, ((float)b)/255.0, ((float)a)/255.0 );
+    } else {
+        return Color( 0,0,0,1 );
+    }
+}
+void Image::getPixelRaw( int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a ) {
+    assert( width > 0 && height > 0 );
+    assert(buffer);
+    if(x>=0&&y>=0&&x<width&&y<height){
+        int index = ( x + y * width ) * 4;
+        *r = buffer[index];
+        *g = buffer[index+1];
+        *b = buffer[index+2];
+        *a = buffer[index+3];
+    }
+}
 void Texture::setImage( Image *img ) {
     assertmsg(tex!=0,"you must load an initializer image before setImage" );
     glBindTexture(GL_TEXTURE_2D, tex );

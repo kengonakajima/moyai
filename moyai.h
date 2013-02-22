@@ -144,6 +144,7 @@ public:
     void setSize(int w, int h ) { width = w; height = h; }
     void setPixel( int x, int y, Color c );
     Color getPixel( int x, int y );
+    void getPixelRaw( int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a );
     bool writePNG(const char *path);    
 };
 
