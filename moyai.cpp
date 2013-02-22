@@ -724,6 +724,7 @@ void PrimDrawer::getMinMax( Vec2 *minv, Vec2 *maxv ) {
     }
 }
 void Image::setPixel( int x, int y, Color c ){
+    assert( width > 0 && height > 0);
     if(!buffer){
         size_t sz = width*height*4;
         buffer = (unsigned char*) malloc(sz);
@@ -746,6 +747,7 @@ void Texture::setImage( Image *img ) {
 
 
 bool Image::writePNG(const char *path) {
+    assertmsg( buffer, "image not initialized?" );
     FILE *fp = fopen( path, "wb");
 
     png_structp png_ptr;
@@ -803,6 +805,20 @@ bool Image::writePNG(const char *path) {
     return true;
 }
 
+
+void Moyai::capture( Image *img ) {
+    float *buf = (float*)malloc( img->width * img->height * 3 * sizeof(float) );
+    glReadPixels( 0, 0, img->width, img->height, GL_RGB, GL_FLOAT, buf );
+    for(int y=0;y<img->height;y++){
+        for(int x=0;x<img->width;x++){
+            int ind = (x + y * img->width)*3;
+            float r = buf[ind+0], g = buf[ind+1], b = buf[ind+2];
+            Color c( r,g,b,1);
+            img->setPixel(x,img->height-1-y,c);
+        }
+    }    
+    free(buf);
+}
 
 /////////
 

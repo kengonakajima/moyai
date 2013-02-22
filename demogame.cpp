@@ -317,6 +317,17 @@ void idle(void) {
     g_dyn_texture->setImage(g_img);
     
     display();
+
+
+    if( frameCounter % 500 == 0 ) {
+        Image *img = new Image();
+        img->setSize( SCRW, SCRH );
+        g_moyai->capture(img);
+        bool ret = img->writePNG("_captured.png");
+        assert(ret);
+        print("captured in _captured.png");
+        delete img;
+    }
     
     lastPollAt = t;
 

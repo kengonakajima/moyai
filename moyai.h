@@ -836,7 +836,8 @@ public:
         out->y = scr_y - scrh/2;
         out->y *= -1;
     }
-    
+
+    void capture( Image *img );
     
 };
 
