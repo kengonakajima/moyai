@@ -143,6 +143,18 @@ layer->insertProp(tb);
 </code>
 </pre>
 
+Screen capture
+----
+<pre lang="c">
+<code>
+Image *img = new Image();
+img->setSize(1024,768);
+g_moyai->capture(img);
+img->writePNG("captured.png");
+delete img;
+</code>
+</pre>
+
 Build
 =====
 
