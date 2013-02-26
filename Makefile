@@ -27,7 +27,7 @@ FTGLLIB=libftgl.a
 OUTLIB=libmoyai.a
 
 LIBFLAGS=-framework OpenGL -framework GLUT  -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
-CFLAGS=-I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I$(LIBPNG) -DUSE_FMOD
+CFLAGS=-O6 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I$(LIBPNG) -DUSE_FMOD
 
 
 DEMOGAME=demogame
