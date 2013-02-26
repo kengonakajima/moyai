@@ -684,6 +684,9 @@ class Camera {
 public:
     Vec2 loc;
     Camera(){}
+    inline void setLoc(Vec2 lc) {
+        loc = lc;
+    }
     inline void setLoc(float x,float y){
         loc.x = x;
         loc.y = y;
