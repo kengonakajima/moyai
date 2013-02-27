@@ -194,6 +194,7 @@ List of classes defined in moyai.h :
  
 - Animation
   - <code>AnimCurve</code>
+  - <code>Animation</code>  
 
 - Audio
   - <code>SoundSystem</code>
