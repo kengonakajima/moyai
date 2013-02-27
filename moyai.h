@@ -341,14 +341,21 @@ public:
     }
 
     // t: アニメーション開始からの時間
-    inline int getIndex( double t ){
-        if(t<0) t=0; 
+    inline int getIndex( double t , bool *finished ){
+        if(t<0) t=0;
+        if( step_time == 0 ) {
+            assert( index_used >= 0 );
+            return index_table[0];
+        }
+        
         int ind = (int)(t / step_time);
         assert(ind>=0);
+        if(finished) *finished = false;
         if(loop){
             return index_table[ ind % index_used ];
         } else {
             if( ind >= index_used ){
+                if(finished) *finished = true;
                 return index_table[ index_used - 1];
             } else {
                 return index_table[ ind ];
@@ -356,6 +363,26 @@ public:
         }
     }
 };
+
+class Animation {
+public:
+    AnimCurve *curves[32];
+    Animation() {
+        memset( curves, 0, sizeof(curves));
+    }
+    void reg( int index, AnimCurve *cv ) {
+        assertmsg( curves[index] == NULL, "can't register anim curve twice" ); 
+        curves[index] = cv;
+    }
+    
+    int getIndex( int curve_ind, double start_at, double t, bool *finished  ) {
+        assert( curve_ind >= 0 && curve_ind < elementof(curves) ); 
+        AnimCurve *ac = curves[curve_ind];
+        if(!ac) return 0;
+        return ac->getIndex( t - start_at, finished );
+    }
+};
+
 
 typedef enum{
     PRIMTYPE_NONE = 0,
