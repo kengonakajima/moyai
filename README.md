@@ -76,30 +76,20 @@ int main()
 
   lay->insertProp℗;
 
-  // initialize glut
-  glutInit();
-  …
-  glutIdleFunc(idle_callback);        
-  glutDisplayFunc(display_callback);
-  
-  glutMainLoop();
-}
+  // initialize glfw
+  glfwInit();
+  glfwOpenWindow(1024,768, 0,0,0,0, 0,0, GLFW_WINDOW );
 
-void idle_callback() 
-{ 
-  static double last_poll_at = 0;
-  double t = now();
-  double dt = t - last_poll_at;
+  while(1) {
+    static double last_poll_at = 0;
+    double t = now();
+    double dt = t - last_poll_at;
   
-  g_moyai->pollAll(dt); // everything happens in 
-  
-  last_poll_at = t;
-
-  display();
-}
-void display_callback() 
-{
-  g_moyai->renderAll();
+    g_moyai->pollAll(dt); // everything happens in 
+    g_moyai->renderAll();
+    
+    last_poll_at = t;
+  }
 }
 
 </code>
