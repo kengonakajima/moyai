@@ -1,7 +1,4 @@
 
-
-
-
 MOYAISRCS=moyai.cpp cumino.cpp
 DEMOGAMESRCS=demogame.cpp 
 DEMOGAMEOBJS=$(DEMOGAMESRCS:.cpp=.o)
@@ -19,6 +16,8 @@ ZLIBLIB=$(ZLIB)/libz.a
 LIBPNG=libpng-1.5.13
 LIBPNGLIB=$(LIBPNG)/.libs/libpng15.a
 
+GLFW=glfw-2.7.7
+GLFWLIB=$(GLFW)/lib/cocoa/libglfw.a
 
 FTGLOBJS=vertex-attribute.o vertex-buffer.o vector.o texture-atlas.o texture-font.o
 SOILOBJS=SOIL.o stb_image_aug.o image_DXT.o image_helper.o 
@@ -26,8 +25,9 @@ SOILLIB=libsoil.a
 FTGLLIB=libftgl.a
 OUTLIB=libmoyai.a
 
-LIBFLAGS=-framework OpenGL -framework GLUT  -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
-CFLAGS=-I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I$(LIBPNG) -DUSE_FMOD
+EXTLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(GLFWLIB) 
+LIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
+CFLAGS=-I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I$(LIBPNG) -DUSE_FMOD -I$(GLFW)/include
 
 
 DEMOGAME=demogame
@@ -35,8 +35,8 @@ DEMOGAME=demogame
 all : $(DEMOGAME)
 
 
-$(DEMOGAME) : $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(OUTLIB) $(DEMOGAMEOBJS)
-	g++ $(CFLAGS) $(LIBFLAGS) $(DEMOGAMEOBJS) -o $(DEMOGAME) $(OUTLIB) $(SOILLIB) $(FTGLLIB) $(FREETYPELIB) $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB)
+$(DEMOGAME) : $(EXTLIBS) $(OUTLIB) $(DEMOGAMEOBJS)
+	g++ $(CFLAGS) $(LIBFLAGS) $(DEMOGAMEOBJS) -o $(DEMOGAME) $(OUTLIB) $(EXTLIBS)
 
 demogame.o : demogame.cpp moyai.h
 	g++ -c demogame.cpp $(CFLAGS)
@@ -101,6 +101,11 @@ $(LIBPNGLIB):
 	rm -rf $(LIBPNG)
 	tar zxf $(LIBPNG).tar.gz
 	cd $(LIBPNG); ./configure; make
+
+$(GLFWLIB):
+	rm -rf $(GLFW)
+	unzip $(GLFW).zip
+	cd $(GLFW); make cocoa
 
 
 clean:

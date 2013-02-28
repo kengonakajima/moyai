@@ -1,4 +1,5 @@
-#include <GLUT/glut.h>
+#include <GL/glfw.h>
+
 #include <stdio.h>
 #include <assert.h>
 #include <strings.h>
@@ -264,22 +265,6 @@ MyShip *createMyShip(float x, float y){
 
 
 
-void resize(int w, int h ) {
-    g_viewport->setSize(w,h);
-}
-void keyboard_down( unsigned char key, int x, int y ) {
-    g_pad->parseKey(true,key,x,y);
-}
-void keyboard_up( unsigned char key, int x, int y ) {
-    g_pad->parseKey(false,key,x,y);
-}
-
-void display(void) {
-    // replace white to random color
-    g_replacer_shader->setColor( Color(1,1,1,1), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
-    g_last_render_cnt = g_moyai->renderAll();
-}
-
 void idle(void) {
     static double lastPrintAt = 0;
     static int frameCounter = 0;
@@ -315,11 +300,9 @@ void idle(void) {
         g_img->setPixel( irange(0,256), irange(0,256), Color( range(0,1), range(0,1), range(0,1),1 ) );
     }
     g_dyn_texture->setImage(g_img);
-    
-    display();
 
 
-    if( frameCounter % 500 == 0 ) {
+    if( frameCounter % 1000 == 0 ) {
         Image *img = new Image();
         img->setSize( SCRW, SCRH );
         g_moyai->capture(img);
@@ -423,29 +406,31 @@ int main(int argc, char **argv )
     
 
     // gl 
-    glutInit(&argc, argv );
-    glutInitWindowSize(SCRW,SCRH);
-    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE );
-    glutCreateWindow(argv[0]);
-    glutDisplayFunc(display);
-    glutReshapeFunc(resize);
-    glutKeyboardFunc(keyboard_down);
-    glutKeyboardUpFunc(keyboard_up);
-    glutIdleFunc(idle);
+    if( !glfwInit() ) {
+        print("can't init glfw");
+        return 1;
+    }
+
+    if( !glfwOpenWindow( SCRW, SCRH, 0,0,0,0, 0,0, GLFW_WINDOW ) ) {
+        print("can't open glfw window");
+        glfwTerminate();
+        return 1;
+    }
+    glfwSetWindowTitle( "im2" );
+    glfwEnable( GLFW_STICKY_KEYS );
+    glfwSwapInterval(1); // vsync
 
     glClearColor(0,0,0,1);
     
     glEnable(GL_DEPTH_TEST);
-    glDepthMask(true );        
+    glDepthMask(true );
 
 
     // controls
     g_pad = new Pad();
 
 
-    ////////////////////
 
-    ////////////////////
     // shader
     
     g_replacer_shader = new ColorReplacerShader();
@@ -649,8 +634,32 @@ int main(int argc, char **argv )
     
     g_pc = createMyShip(0,0);
     assert(g_pc);
+
+
+    while(1){
+        int scrw, scrh;
+        glfwGetWindowSize( &scrw, &scrh );
+        glViewport( 0,0, scrw, scrh );
+
+        idle();
+
+        // replace white to random color
+        g_replacer_shader->setColor( Color(1,1,1,1), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
+        g_last_render_cnt = g_moyai->renderAll();
+
+        if( glfwGetKey('Q') ) {
+            print("Q pressed");
+            break;
+        }
+
+        g_pad->readGLFW();
+        
+    }
+
+
+    print("program finished");
     
-    glutMainLoop();
+
     return 0;
 }
 

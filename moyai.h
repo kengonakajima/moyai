@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <strings.h>
 
-#include <GLUT/glut.h>
+#include <GL/glfw.h>
 
 #include "soil/src/SOIL.h"
 
@@ -341,7 +341,7 @@ public:
     }
 
     // t: アニメーション開始からの時間
-    inline int getIndex( double t , bool *finished ){
+    inline int getIndex( double t , bool *finished = NULL ){
         if(t<0) t=0;
         if( step_time == 0 ) {
             assert( index_used >= 0 );
@@ -905,27 +905,7 @@ public:
     
     Pad() : up(false), down(false), left(false), right(false) {
     }
-    void parseKey( bool is_keydown, unsigned char key, int x, int y ) {
-        //    printf("keydown %d\n", key );
-        switch(key){
-        case 32: // space
-            break;
-        case 119: // w
-            up = is_keydown;
-            break;
-        case 97: // a
-            left = is_keydown;
-            break;
-        case 115: // s
-            down = is_keydown;
-            break;
-        case 100: // d
-            right = is_keydown;
-            break;
-        default:
-            break;
-        }    
-    }
+    void readGLFW();
     void getVec(float *dx, float *dy ){
         *dx = *dy = 0;
         if( up ) *dy=1.0;

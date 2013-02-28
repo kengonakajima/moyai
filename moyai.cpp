@@ -149,7 +149,7 @@ int Moyai::renderAll(){
         }
     }
 
-    glutSwapBuffers();
+    glfwSwapBuffers();
     glFlush();
     return cnt;
 }
@@ -845,6 +845,14 @@ void Moyai::capture( Image *img ) {
     free(buf);
 }
 
+void Pad::readGLFW() {
+    up = glfwGetKey('W');
+    left = glfwGetKey('A');
+    down = glfwGetKey('S');    
+    right = glfwGetKey('D');
+}
+
+
 /////////
 
 inline void FMOD_ERRCHECK(FMOD_RESULT result){
@@ -905,3 +913,4 @@ Sound *SoundSystem::newSound( const char *path ){
 }
 
 
+////////
