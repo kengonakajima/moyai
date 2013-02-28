@@ -5,7 +5,7 @@ An experimental simple 2D game engine for native C++, strongly inspired by MoaiS
 Moai SDK: https://github.com/moai/moai-dev
 
  - Rendering
-  - OpenGL 2.0 (ES2), GLUT
+  - OpenGL 2.0 (ES2), [GLFW http://www.glfw.org/]
  - Image
   - PNG read/write from file
   - dynamic texture
