@@ -15,8 +15,19 @@ Viewport *g_viewport3d;
 Viewport *g_viewport2d;
 TileDeck *g_deck;
 Layer *g_hud_layer;
+Layer *g_main_layer;
 
 Camera *g_hud_camera;
+Camera *g_main_camera;
+
+Mesh *g_colmesh;
+Mesh *g_texmesh;
+Mesh *g_texcolmesh;
+
+Prop *g_prop_col;
+Prop *g_prop_tex;
+Prop *g_prop_texcol;
+Prop *g_prop_billboard;
 
 void updateGame() {
     static double last_print_at = 0;
@@ -42,7 +53,204 @@ void updateGame() {
 
 
 }
+
+void setupCube() {
+    // 色つきcube
+    VertexFormat *colvf = new VertexFormat();
+    colvf->declareCoordVec3( 0 );
+    colvf->declareColor( 1 );
+
+
+    VertexBuffer *colvb = new VertexBuffer();
+    colvb->setFormat(colvf);
+    colvb->reserve(8);
+
+
+    // xz平面が底、赤色
+    //
+    //   +y
+    //    ^
+    //                     d,d,-d
+    //     H ------------- G
+    //    /|              /|
+    //   / |             / |
+    //  E ------------- F  |
+    //  |  |            |  |      -z               7   6
+    //  |  |            |  |      /               4   5
+    //  |  D -----------|- C
+    //  | /             | /
+    //  |/              |/                         3   2
+    //  A ------------- B     >   +x              0   1
+    //  -d,-d,d
+
+    // z方向はマイナスにする(奥へ)
+    float d = 0.2; 
+    colvb->setCoord( 0, Vec3(-d,-d,d) );  // A 赤
+    colvb->setCoord( 1, Vec3(d,-d,d) ); // B 青
+    colvb->setCoord( 2, Vec3(d,-d,-d) ); // C 黄色
+    colvb->setCoord( 3, Vec3(-d,-d,-d) ); // D 緑
+    colvb->setCoord( 4, Vec3(-d,d,d) ); // E 白    
+    colvb->setCoord( 5, Vec3(d,d,d) ); // F むらさき
+    colvb->setCoord( 6, Vec3(d,d,-d) ); // G しろ
+    colvb->setCoord( 7, Vec3(-d,d,-d) ); // H しろ    
     
+    colvb->setColor( 0, Color(1,0,0,1) );
+    colvb->setColor( 1, Color(0,0,1,1) );
+    colvb->setColor( 2, Color(1,1,0,1) );
+    colvb->setColor( 3, Color(0,1,0,1) );
+    colvb->setColor( 4, Color(1,1,1,1) );
+    colvb->setColor( 5, Color(1,0,1,1) );    
+    colvb->setColor( 6, Color(1,1,1,1) );    
+    colvb->setColor( 7, Color(1,1,1,1) );        
+
+    // texつき、色なしcube
+
+    VertexFormat *texvf = new VertexFormat();
+    texvf->declareCoordVec3(0);
+    texvf->declareUV(1);
+
+    VertexBuffer *texvb = new VertexBuffer();
+    texvb->setFormat(texvf);
+    texvb->reserve(8);
+
+    texvb->setCoord( 0, Vec3(-d,-d,d) );  // A 赤
+    texvb->setCoord( 1, Vec3(d,-d,d) ); // B 青
+    texvb->setCoord( 2, Vec3(d,-d,-d) ); // C 黄色
+    texvb->setCoord( 3, Vec3(-d,-d,-d) ); // D 緑
+    texvb->setCoord( 4, Vec3(-d,d,d) ); // E 白    
+    texvb->setCoord( 5, Vec3(d,d,d) ); // F むらさき
+    texvb->setCoord( 6, Vec3(d,d,-d) ); // G しろ
+    texvb->setCoord( 7, Vec3(-d,d,-d) ); // H しろ    
+    
+    texvb->setUV( 0, 0,0 );
+    texvb->setUV( 1, 1,0 );
+    texvb->setUV( 2, 1,1 );
+    texvb->setUV( 3, 0,1 );
+    texvb->setUV( 4, 0,0 );
+    texvb->setUV( 5, 1,0 );
+    texvb->setUV( 6, 1,1 );
+    texvb->setUV( 7, 0,1 );    
+
+    // tex + color cube
+    VertexFormat *texcolvf = new VertexFormat();
+    texcolvf->declareCoordVec3(0);
+    texcolvf->declareColor(1);
+    texcolvf->declareUV(2);
+
+
+    VertexBuffer *texcolvb = new VertexBuffer();
+    texcolvb->setFormat(texcolvf);
+    texcolvb->reserve(8);
+
+    texcolvb->setCoord( 0, Vec3(-d,-d,d) );  // A 赤
+    texcolvb->setCoord( 1, Vec3(d,-d,d) ); // B 青
+    texcolvb->setCoord( 2, Vec3(d,-d,-d) ); // C 黄色
+    texcolvb->setCoord( 3, Vec3(-d,-d,-d) ); // D 緑
+    texcolvb->setCoord( 4, Vec3(-d,d,d) ); // E 白    
+    texcolvb->setCoord( 5, Vec3(d,d,d) ); // F むらさき
+    texcolvb->setCoord( 6, Vec3(d,d,-d) ); // G しろ
+    texcolvb->setCoord( 7, Vec3(-d,d,-d) ); // H しろ    
+
+    texcolvb->setUV( 0, 0,0 );
+    texcolvb->setUV( 1, 1,0 );
+    texcolvb->setUV( 2, 1,1 );
+    texcolvb->setUV( 3, 0,1 );
+    texcolvb->setUV( 4, 0,0 );
+    texcolvb->setUV( 5, 1,0 );
+    texcolvb->setUV( 6, 1,1 );
+    texcolvb->setUV( 7, 0,1 );    
+
+    texcolvb->setColor( 0, Color(1,0,0,0.5) );
+    texcolvb->setColor( 1, Color(0,0,1,0.5) );
+    texcolvb->setColor( 2, Color(1,1,0,0.5) );
+    texcolvb->setColor( 3, Color(0,1,0,0.5) );
+    texcolvb->setColor( 4, Color(1,1,1,0.5) );
+    texcolvb->setColor( 5, Color(1,0,1,0.5) );    
+    texcolvb->setColor( 6, Color(1,1,1,0.5) );    
+    texcolvb->setColor( 7, Color(1,1,1,0.5) );        
+    
+
+    
+    // indexはどのcubeでも共通    
+    int indexes[36] = {
+        // bottom
+        0,1,3, // ABD
+        3,1,2, // DBC
+        // top
+        7,5,6, // HFG
+        4,5,7, // EFH
+
+
+        // left
+        4,0,3, // EAD
+        4,3,7, // EDH
+
+        // right
+        5,1,2, // FBC
+        5,2,6, // FCG
+
+        // front
+        4,0,1, // EAB
+        4,1,5, // EBF
+
+        // rear
+        7,3,2, // HDC
+        7,2,6, // HCG
+        
+    };
+
+    IndexBuffer *ib = new IndexBuffer();
+    ib->set(indexes,36);
+
+
+    g_colmesh = new Mesh();
+    g_colmesh->setVertexBuffer(colvb);
+    g_colmesh->setIndexBuffer(ib);
+    g_colmesh->setPrimType( GL_TRIANGLES );
+
+    g_texmesh = new Mesh();
+    g_texmesh->setVertexBuffer(texvb);
+    g_texmesh->setIndexBuffer(ib);
+    g_texmesh->setPrimType( GL_TRIANGLES );
+
+    g_texcolmesh = new Mesh();
+    g_texcolmesh->setVertexBuffer(texcolvb);
+    g_texcolmesh->setIndexBuffer(ib);
+    g_texcolmesh->setPrimType( GL_TRIANGLES );
+
+#if 0
+    g_prop_col = new Prop();
+    g_prop_col->setMesh(g_colmesh);
+    g_prop_col->setScl(Vec3(1,1,1));
+    g_prop_col->setLoc(Vec3(0,0,0));
+    g_main_layer->insertProp(g_prop_col);
+
+
+    g_prop_tex = new Prop();
+    g_prop_tex->setMesh(g_texmesh);
+    g_prop_tex->setScl(Vec3(1,1,1));
+    g_prop_tex->setLoc(Vec3(0,0,0));
+    g_prop_tex->setTexture( g_wood_tex);
+    g_main_layer->insertProp(g_prop_tex);
+
+    g_prop_texcol = new Prop();
+    g_prop_texcol->setMesh(g_texcolmesh );
+    g_prop_texcol->setScl(Vec3(1,1,1));
+    g_prop_texcol->setLoc(Vec3(0,0,0));
+    g_prop_texcol->setTexture(g_wood_tex);
+    g_main_layer->insertProp(g_prop_texcol);
+
+    g_prop_billboard = new Prop();
+    g_prop_billboard->setMesh( g_texmesh);
+    g_prop_billboard->setScl(Vec3(1,1,1));
+    g_prop_billboard->setLoc(Vec3(0,0,0));
+    g_prop_billboard->setTexture(g_wood_tex);
+    g_prop_billboard->billboard = true;
+    g_main_layer->insertProp(g_prop_billboard);
+#endif
+    
+}
+
 int main() {
     g_moyai = new Moyai();
 
@@ -84,6 +292,10 @@ int main() {
     p->setScl(32,32);
     g_hud_layer->insertProp(p);
 
+
+    setupCube();
+
+    
     while(1) {
         int scrw, scrh;
         glfwGetWindowSize( &scrw, &scrh );
