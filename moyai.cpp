@@ -146,7 +146,7 @@ bool Prop2D::propPoll(double dt) {
 }
 
 int Moyai::renderAll(){
-    glClear(GL_COLOR_BUFFER_BIT );    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );    
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -167,6 +167,13 @@ int Moyai::renderAll(){
 int Layer::renderAllProps(){
     assertmsg( viewport, "no viewport in a layer id:%d setViewport missed?", id );
     if( viewport->dimension == DIMENSION_2D ) {
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho( -viewport->scl.x/2, viewport->scl.x/2, -viewport->scl.y/2, viewport->scl.y/2,-100,100);  // center is always (0,0)
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();        
+
         static SorterEntry tosort[1024*8]; 
         int cnt = 0;
         int drawn = 0;
@@ -219,7 +226,6 @@ int Layer::renderAllProps(){
         glLoadIdentity();
 
         gluPerspective( 60, 1, viewport->near_clip, viewport->far_clip );
-            
         gluLookAt( camera->loc.x,camera->loc.y,camera->loc.z,
                    camera->look_at.x,camera->look_at.y,camera->look_at.z,
                    camera->look_up.x,camera->look_up.y,camera->look_up.z );
@@ -260,7 +266,7 @@ int Layer::renderAllProps(){
 
 
 #if 0
-                  print("draw mesh! %p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d vert_sz:%d array_len:%d",
+                print("draw mesh! %p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d vert_sz:%d array_len:%d",
                       cur3d->mesh,
                       cur3d->mesh->vb->gl_name,
                       cur3d->mesh->ib->gl_name,
@@ -272,9 +278,9 @@ int Layer::renderAllProps(){
                       );
 #endif
 
-                  glDisableClientState( GL_VERTEX_ARRAY );
-                  glDisableClientState( GL_COLOR_ARRAY );
-                  glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+                glDisableClientState( GL_VERTEX_ARRAY );
+                glDisableClientState( GL_COLOR_ARRAY );
+                glDisableClientState( GL_TEXTURE_COORD_ARRAY );
         
                 if( cur3d->mesh->vb->fmt->coord_offset >= 0 ){
                     glEnableClientState( GL_VERTEX_ARRAY );        
@@ -290,11 +296,8 @@ int Layer::renderAllProps(){
                 }
 
                 glLoadIdentity();
-
-
                     
                 if(cur3d->billboard){
-                    print("xx");
                     // [ a0 a4 a8 a12
                     //   a1 a5 a9 a13
                     //   a2 a6 a10 a14
@@ -311,8 +314,8 @@ int Layer::renderAllProps(){
                     mat[0] = mat[5] = mat[10] = 1;
                     mat[1] = mat[2] = mat[4] = mat[6] = mat[8] = mat[9] = 0;
                     glLoadMatrixf(mat);
-                } else {
 
+                } else {
                     glTranslatef( cur3d->loc.x, cur3d->loc.y, cur3d->loc.z );
                     glScalef( cur3d->scl.x, cur3d->scl.y, cur3d->scl.z );
 
@@ -776,13 +779,12 @@ void Layer::selectCenterInside( Vec2 minloc, Vec2 maxloc, Prop*out[], int *outle
 void Viewport::setSize(int scrw, int scrh ) {
     screen_width = scrw;
     screen_height = scrh;
-
-    takeEffect();
+    glViewport(0,0,screen_width,screen_height);
 }
 void Viewport::setScale2D( float sx, float sy ){
     dimension = DIMENSION_2D;
     scl = Vec3(sx,sy,1);
-    takeEffect();
+
 }
 void Viewport::setClip3D( float near, float far ) {        
     near_clip = near;
@@ -790,13 +792,6 @@ void Viewport::setClip3D( float near, float far ) {
     dimension = DIMENSION_3D;
 }
 
-void Viewport::takeEffect(){
-    glViewport(0,0,screen_width,screen_height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho( -scl.x/2, scl.x/2, -scl.y/2, scl.y/2,-100,100);  // center is always (0,0)
-    glMatrixMode(GL_MODELVIEW);
-}
 void Viewport::getMinMax( Vec2 *minv, Vec2 *maxv ){
     minv->x = -scl.x/2;
     maxv->x = scl.x/2;

@@ -20,14 +20,17 @@ Layer *g_main_layer;
 Camera *g_hud_camera;
 Camera *g_main_camera;
 
+Texture *g_wood_tex;
+
 Mesh *g_colmesh;
 Mesh *g_texmesh;
 Mesh *g_texcolmesh;
 
-Prop *g_prop_col;
-Prop *g_prop_tex;
-Prop *g_prop_texcol;
-Prop *g_prop_billboard;
+Prop3D *g_prop_col;
+Prop3D *g_prop_tex;
+Prop3D *g_prop_texcol;
+Prop3D *g_prop_billboard;
+
 
 void updateGame() {
     static double last_print_at = 0;
@@ -47,6 +50,36 @@ void updateGame() {
         last_print_at = t;
     }
 
+    // move camera
+    Vec3 campos = g_main_camera->loc;
+    g_main_camera->setLoc( campos + Vec3(0,0,dt));    
+
+    if( g_prop_col ){
+        g_prop_col->loc.x += dt/10;
+        g_prop_col->rot.z += dt*100;
+    }
+
+    if( g_prop_tex ){
+        g_prop_tex->loc.x -= dt/10;
+        g_prop_tex->rot.x -= dt*100;
+        g_prop_tex->rot.z -= dt*100;
+    }
+
+    if( g_prop_texcol ){
+        g_prop_texcol->loc.y += dt/10;
+        g_prop_texcol->rot.x -= dt*100;
+        g_prop_texcol->rot.z -= dt*100;        
+    }
+    if( g_prop_billboard ) {
+        g_prop_billboard->loc.y = range(-1,1);
+        g_prop_billboard->loc.x = range(-1,1);
+    }
+
+    
+    //    print("propx:%f r:%f", g_prop_0->loc.x, g_prop_0->rot3d.z );
+
+
+    
     g_moyai->renderAll();
     
     last_poll_at = t;
@@ -218,36 +251,41 @@ void setupCube() {
     g_texcolmesh->setIndexBuffer(ib);
     g_texcolmesh->setPrimType( GL_TRIANGLES );
 
-#if 0
-    g_prop_col = new Prop();
+
+    g_wood_tex = new Texture();
+    g_wood_tex->load( "assets/wood256.png" );
+    
+
+    g_prop_col = new Prop3D();
     g_prop_col->setMesh(g_colmesh);
     g_prop_col->setScl(Vec3(1,1,1));
     g_prop_col->setLoc(Vec3(0,0,0));
     g_main_layer->insertProp(g_prop_col);
 
 
-    g_prop_tex = new Prop();
+    g_prop_tex = new Prop3D();
     g_prop_tex->setMesh(g_texmesh);
     g_prop_tex->setScl(Vec3(1,1,1));
     g_prop_tex->setLoc(Vec3(0,0,0));
     g_prop_tex->setTexture( g_wood_tex);
     g_main_layer->insertProp(g_prop_tex);
 
-    g_prop_texcol = new Prop();
+    g_prop_texcol = new Prop3D();
     g_prop_texcol->setMesh(g_texcolmesh );
     g_prop_texcol->setScl(Vec3(1,1,1));
     g_prop_texcol->setLoc(Vec3(0,0,0));
     g_prop_texcol->setTexture(g_wood_tex);
     g_main_layer->insertProp(g_prop_texcol);
 
-    g_prop_billboard = new Prop();
+
+    g_prop_billboard = new Prop3D();
     g_prop_billboard->setMesh( g_texmesh);
     g_prop_billboard->setScl(Vec3(1,1,1));
     g_prop_billboard->setLoc(Vec3(0,0,0));
     g_prop_billboard->setTexture(g_wood_tex);
     g_prop_billboard->billboard = true;
     g_main_layer->insertProp(g_prop_billboard);
-#endif
+
     
 }
 
@@ -255,28 +293,49 @@ int main() {
     g_moyai = new Moyai();
 
     glfwInit();
-    glfwOpenWindow( SCRW,SCRH, 0,0,0,0, 0,0, GLFW_WINDOW );
+
+    
+    glfwOpenWindow( SCRW,SCRH, 8,8,8,8, 8,0, GLFW_WINDOW );
     glfwSetWindowTitle( "demo3d");
     glfwEnable( GLFW_STICKY_KEYS );
     glfwSwapInterval(1); // vsync
 
     glClearColor(0,0,0,1);
-    glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_DEPTH_TEST);    
+    glEnable(GL_DEPTH_BUFFER_BIT);    
     glDepthMask(true );
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
+    // 3d
+    g_viewport3d = new Viewport();
+    g_viewport3d->setSize(SCRW,SCRH);
+    g_viewport3d->setClip3D( 0.01, 100 );
+    g_main_layer = new Layer();
+    g_main_layer->setViewport(g_viewport3d);    
+    g_main_camera = new Camera();
+    g_main_camera->setLoc(0,0);
+    g_main_camera->setLookAt(Vec3(0,0,0), Vec3(0,1,0));    
+    g_main_layer->setCamera( g_main_camera );
+
+
+    // 2d
     g_viewport2d = new Viewport();
     g_viewport2d->setSize(SCRW,SCRH);
     g_viewport2d->setScale2D(SCRW,SCRH);
-
     g_hud_layer = new Layer();
     g_hud_layer->setViewport(g_viewport2d);
-
     g_hud_camera = new Camera();
     g_hud_camera->setLoc(0,0);
-
     g_hud_layer->setCamera( g_hud_camera );
 
+
+    // draw 2d after 3d
+    g_moyai->insertLayer( g_main_layer );    
     g_moyai->insertLayer( g_hud_layer );
+
     
     Texture *t = new Texture();
     t->load( "./assets/base.png" );
@@ -288,7 +347,7 @@ int main() {
     Prop2D *p = new Prop2D();
     p->setDeck( g_deck );
     p->setIndex(0);
-    p->setLoc(0,0);
+    p->setLoc(200,200);
     p->setScl(32,32);
     g_hud_layer->insertProp(p);
 
@@ -306,6 +365,7 @@ int main() {
             print("Q pressed");
             break;
         }
+
 
         
     }

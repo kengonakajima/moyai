@@ -193,7 +193,6 @@ public:
     void setSize(int scrw, int scrh );
     void setScale2D( float sx, float sy );
     void setClip3D( float near, float far ); 
-    void takeEffect();
     void getMinMax( Vec2 *minv, Vec2 *maxv );
 };
 
@@ -745,6 +744,16 @@ public:
         assert( d->cell_width > 0 );
         assert( d->cell_height > 0 );        
     }
+    inline void setTexture( Texture *t ){
+        assert(t->tex!=0);        
+        TileDeck *d = new TileDeck(); // TODO: d leaks
+        d->setTexture(t);
+        int w,h;
+        t->getSize(&w,&h);
+        d->setSize( 1,1, w, h, w,h );
+        deck = d;        
+    }
+    
     virtual void render(Camera *cam){};
     
 };
@@ -842,16 +851,6 @@ class Prop2D : public Prop {
     virtual bool prop2DPoll(double dt){ return true;}
     virtual bool propPoll(double dt);        
 
-    inline void setTexture( Texture *t ){
-        assert(t->tex!=0);        
-        TileDeck *d = new TileDeck(); // TODO: d leaks
-        d->setTexture(t);
-        int w,h;
-        t->getSize(&w,&h);
-        d->setSize( 1,1, w, h, w,h );
-        deck = d;
-        
-    }
     inline void setIndex( int ind){
         index = ind;
     }
@@ -980,16 +979,18 @@ public:
     Mesh *mesh;
     bool billboard;
     Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), billboard(false) {
-        
+        dimension = DIMENSION_3D;
     }
+    inline void setLoc(Vec3 l) { loc = l; }        
     inline void setScl(Vec3 s) { scl = s; }
-    inline void setRot(Vec3 r) { rot = r; }    
-    void setMesh( Mesh *m) { mesh = m; }
+    inline void setRot(Vec3 r) { rot = r; }
+    inline void setMesh( Mesh *m) { mesh = m; }
     virtual bool prop3DPoll(double dt) { return true; }
     virtual bool propPoll(double dt) {
         if( prop3DPoll(dt) == false ) return false;
         return true;
     }
+
 };
 
 class Camera {
