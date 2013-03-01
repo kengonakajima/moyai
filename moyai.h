@@ -95,6 +95,87 @@ public:
     }
 };
 
+class Vec3 {
+public:
+    float x,y,z;
+    inline Vec3(float xx, float yy, float zz ) : x(xx),y(yy),z(zz){}
+    inline Vec3(float xx, float yy ) : x(xx),y(yy),z(0){}
+    inline Vec3() : x(0), y(0), z(0) {}
+    inline Vec3 normalize(float l){
+        float xx = x, yy = y, zz = z;
+        ::normalize( &xx, &yy, &zz, l );
+        return Vec3(xx,yy,zz);
+    }
+    inline float len(){
+        return ::len( x,y,z,0,0,0 );
+    }
+    inline float len(Vec3 tgt){
+        return ::len( x,y,z,tgt.x,tgt.y,tgt.z);
+    }
+    inline DIR toDir() {
+        const float pi4 = M_PI / 4.0f;
+        float at = atan2( x,y );
+        if( at >= -pi4  && at <= pi4 ){
+            return DIR_UP;
+        } else if( at >= pi4 && at <= pi4*3){
+            return DIR_RIGHT;
+        } else if( at >= pi4*3 || at <= -pi4*3 ){
+            return DIR_DOWN;
+        } else if( at <= -pi4 && at >= -pi4*3 ){
+            return DIR_LEFT;
+        } else {
+            return DIR_NONE;
+        }
+    }
+    inline Vec3 mul(float val){ return Vec3( x*val, y*val, z*val); }
+    inline Vec3 add( Vec3 v){ return Vec3( x+v.x, y+v.y, z+v.z);}
+    inline Vec3 add( float xx, float yy, float zz ){ return Vec3( x+xx, y+yy,z+zz);}
+    inline Vec3 add( float xx, float yy ){ return Vec3( x+xx, y+yy,z);}    
+    inline Vec3 to( Vec3 v){ return Vec3( v.x - x, v.y - y, v.z - z ); }
+    inline Vec3 randomize(float r){ return Vec3( x + range(-r,r), y + range(-r,r), z + range(-r,r) ); }
+    static inline Vec3 angle(float rad){ return Vec3( cos(rad), sin(rad), 0 ); }
+    inline void toSign(int*xs,int*ys){ *xs = sign(x); *ys = sign(y); }
+    inline void toSign(int*xs,int*ys,int*zs){ *xs = sign(x); *ys = sign(y); *zs = sign(z); }
+    inline Vec3 operator+(Vec3 arg){ return Vec3(x+arg.x,y+arg.y,z+arg.z); }
+    inline Vec3 operator-(Vec3 arg){ return Vec3(x-arg.x,y-arg.y,z-arg.z); }
+    inline Vec3 operator*(float f){ return Vec3(x*f,y*f,z*f); }
+    inline Vec3 operator/(float f){ return Vec3(x/f,y/f,z/f); }    
+    inline Vec3 operator*=(float f){ x *= f; y *= f; z *= f; return Vec3(x,y,z); }
+    inline Vec3 operator/=(float f){ x /= f; y /= f; z /= f; return Vec3(x,y,z); }                
+    inline Vec3 operator+=(Vec3 arg){ x += arg.x; y += arg.y; z += arg.z; return Vec3(x,y,z); }
+    inline Vec3 operator-=(Vec3 arg){ x -= arg.x; y -= arg.y; z -= arg.z; return Vec3(x,y,z); }
+    inline bool operator==(Vec3 arg){ return (x==arg.x && y==arg.y && z==arg.z); }
+    inline bool operator!=(Vec3 arg){ return (x!=arg.x || y!=arg.y || z!=arg.z); }
+    inline bool operator>=(Vec3 arg){ return (x>=arg.x && y>=arg.y && z>=arg.z); }
+    inline bool operator>(Vec3 arg){ return (x>arg.x && y>arg.y && z>arg.z); }    
+    inline bool operator<=(Vec3 arg){ return (x<=arg.x && y<=arg.y && z <=arg.z); }
+    inline bool operator<(Vec3 arg){ return (x<arg.x && y<arg.y && z<arg.z); }        
+    inline bool isZero(){ return (x==0 && y==0 && z == 0 ); }
+    inline Vec3 friction( float diff ){
+        float l = len();
+        l -= diff;
+        Vec3 out = Vec3(x,y,z).normalize(l);
+        if( l < 0 ){
+            return Vec3(0,0,0);
+        } else {
+            return out;
+        }
+    }
+    static inline Vec3 random(float v) { return Vec3(0,0,0).randomize(v); }
+    static inline Vec3 random() { return random(1); }
+    static inline Vec3 fromDir(DIR d){
+        int dx,dy;
+        dirToDXDY(d,&dx,&dy);
+        return Vec3(dx,dy);
+    }
+    // clockwise, up=y+
+    inline Vec3 rot(float v) {
+        return Vec3( x * cos(v) - y * sin(v),
+                     x * sin(v) + y * cos(v),
+                     0 );
+    }
+};
+
 
 class Viewport {
 public:
@@ -134,6 +215,155 @@ public:
     }
     
 };
+
+
+class VertexFormat {
+public:
+    // float only
+    char types[4]; // 'v': {f,f,f} 'c':{f,f,f,f}  't':{f,f}, 'n':{f,f,f} normal
+    int types_used;
+    int num_float;
+    int coord_offset, color_offset, texture_offset, normal_offset; // -1:not used
+    VertexFormat() : types_used(0), num_float(0), coord_offset(-1), color_offset(-1), texture_offset(-1), normal_offset(-1) {
+        for(int i=0;i<elementof(types);i++){
+            types[i] = 0;
+        }
+    }
+    void declareCoordVec3(int index ){ addType('v'); }
+    void declareColor(int index ){ addType('c'); }
+    void declareUV(int index){ addType('t'); }
+    void addType(char t){
+        assertmsg( types_used < elementof(types), "too many types");
+        types[types_used++] = t;
+        updateSize();
+    }
+    void updateSize(){
+        num_float = 0;
+        for(int i=0;i<types_used;i++){
+            switch(types[i]){
+            case 'v':
+                coord_offset = num_float;
+                num_float += 3;
+                break;
+            case 'n':
+                normal_offset = num_float;
+                num_float += 3;
+                break;
+            case 'c':
+                color_offset = num_float;
+                num_float += 4;
+                break;
+            case 't':
+                texture_offset = num_float;
+                num_float += 2;
+                break;
+            default:
+                assertmsg( false, "vertexformat: updateSize: invalid type name: '%c'", types[i]);
+            }
+        }        
+    };
+    inline size_t getNumFloat() {
+        return num_float;
+    }
+};
+
+class VertexBuffer {
+public:
+    VertexFormat *fmt;
+    float *buf;
+    int array_len, total_num_float, unit_num_float;
+    GLuint gl_name;
+    VertexBuffer() : fmt(NULL), buf(NULL), array_len(0), total_num_float(0), unit_num_float(0), gl_name(0) {}
+    void setFormat( VertexFormat *f ) { fmt = f; }
+    void reserve(int cnt){
+        assertmsg(fmt, "vertex format is not set" );
+        array_len = cnt;
+        unit_num_float = fmt->getNumFloat();
+        total_num_float = array_len * unit_num_float;
+        buf = (float*)malloc( total_num_float * sizeof(float));
+        assert(buf);
+    }
+    void setCoord( int index, Vec3 v ) {
+        assertmsg(fmt, "vertex format is not set" );
+        assert( index < array_len );
+        int ofs = fmt->coord_offset;
+        assertmsg( ofs >= 0, "coord have not declared in vertex format" );
+        int index_in_array = index * unit_num_float + ofs;
+        buf[index_in_array] = v.x;
+        buf[index_in_array+1] = v.y;
+        buf[index_in_array+2] = v.z;
+    }
+    void setColor( int index, Color c ) {
+        assertmsg(fmt, "vertex format is not set");
+        assert( index < array_len );
+        int ofs = fmt->color_offset;
+        assertmsg( ofs >= 0, "color have not declared in vertex format");
+        int index_in_array = index * unit_num_float + ofs;
+        buf[index_in_array] = c.r;
+        buf[index_in_array+1] = c.g;
+        buf[index_in_array+2] = c.b;
+        buf[index_in_array+3] = c.a;        
+    }
+    void setUV( int index, float u, float v ) {
+        assertmsg(fmt, "vertex format is not set");
+        assert( index < array_len );
+        int ofs = fmt->texture_offset;
+        assertmsg( ofs >= 0, "texcoord have not declared in vertex format");
+        int index_in_array = index * unit_num_float + ofs;
+        buf[index_in_array] = u;
+        buf[index_in_array+1] = v;
+    }
+    
+    void bless(){
+        assert(fmt);
+        if( gl_name == 0 ){
+            glGenBuffers(1, &gl_name);
+            glBindBuffer( GL_ARRAY_BUFFER, gl_name );
+            glBufferData( GL_ARRAY_BUFFER, total_num_float * sizeof(float), buf, GL_STATIC_DRAW );
+            glBindBuffer( GL_ARRAY_BUFFER, 0 );
+            print("VB genbuffer ret name:%d", gl_name );
+        }
+    }
+
+};
+class IndexBuffer {
+public:
+    int *buf;
+    int array_len;
+    GLuint gl_name;
+    IndexBuffer() : buf(0), array_len(0), gl_name(0) {}
+    void set( int *in, int l ) {
+        if(buf)free(buf);
+        buf = (int*) malloc( sizeof(int) * l );
+        assert(buf);
+        for(int i=0;i<l;i++){
+            buf[i] = in[i];
+        }
+        array_len = l;
+    }
+    void bless(){
+        if( gl_name == 0 ){
+            glGenBuffers(1, &gl_name);
+            glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, gl_name );
+            // データがよく変わるときは GL_DYNAMIC_DRAWらしいけど、それはコンセプトから外れた使い方だからデフォルトはSTATICにしておく。
+            glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * array_len, buf, GL_STATIC_DRAW );
+            glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+        }
+    }
+    
+};
+class Mesh {
+public:
+    VertexBuffer * vb;
+    IndexBuffer *ib;
+    GLuint prim_type;
+    Mesh() : vb(0), ib(0) {
+    }
+    void setVertexBuffer(VertexBuffer *b) { vb = b; }
+    void setIndexBuffer(IndexBuffer *b ){ ib = b; }
+    void setPrimType( GLuint t) { prim_type = t; }
+};
+
 
 class Image {
 public:

@@ -16,7 +16,21 @@ inline double now() {
 }
 
 inline float len(float x0, float y0, float x1, float y1 ){
-    return sqrt( (x1-x0)*(x1-x0)+ (y1-y0)*(y1-y0));
+    return sqrt( (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));
+}
+inline float len(float x0, float y0, float z0, float x1, float y1, float z1 ){
+    return sqrt( (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0) + (z1-z0)*(z1-z0) );    
+}
+
+inline void normalize( float *x, float *y, float *z, float l ) {
+    float ll = len(0,0,0,*x,*y,*z);
+    if(ll==0){
+        *x=0; *y=0; *z=0;
+    } else {
+        *x = *x / ll * l;
+        *y = *y / ll * l;
+        *z = *z / ll * l;
+    }
 }
 
 inline void normalize( float *x, float *y, float l ) {

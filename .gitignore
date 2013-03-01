@@ -1,7 +1,8 @@
 deps.make
 *.o
 *.a
-demogame
+demo2d
+demo3d
 bzip2-1.0.6
 freetype-2.4.10
 libpng-1.5.13

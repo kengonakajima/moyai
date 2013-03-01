@@ -1,7 +1,9 @@
 
 MOYAISRCS=moyai.cpp cumino.cpp
-DEMOGAMESRCS=demogame.cpp 
-DEMOGAMEOBJS=$(DEMOGAMESRCS:.cpp=.o)
+DEMO2DSRCS=demo2d.cpp 
+DEMO2DOBJS=$(DEMO2DSRCS:.cpp=.o)
+DEMO3DSRCS=demo3d.cpp
+DEMO3DOBJS=$(DEMO3DSRCS:.cpp=.o)
 MOYAIOBJS=$(MOYAISRCS:.cpp=.o)
 
 FREETYPE=freetype-2.4.10
@@ -30,17 +32,23 @@ LIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoun
 CFLAGS=-I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I$(LIBPNG) -DUSE_FMOD -I$(GLFW)/include
 
 
-DEMOGAME=demogame
+DEMO2D=demo2d
+DEMO3D=demo3d
 
-all : $(DEMOGAME)
+
+all : $(DEMO2D) $(DEMO3D)
 
 
-$(DEMOGAME) : $(EXTLIBS) $(OUTLIB) $(DEMOGAMEOBJS)
-	g++ $(CFLAGS) $(LIBFLAGS) $(DEMOGAMEOBJS) -o $(DEMOGAME) $(OUTLIB) $(EXTLIBS)
+$(DEMO2D) : $(EXTLIBS) $(OUTLIB) $(DEMO2DOBJS)
+	g++ $(CFLAGS) $(LIBFLAGS) $(DEMO2DOBJS) -o $(DEMO2D) $(OUTLIB) $(EXTLIBS)
 
-demogame.o : demogame.cpp moyai.h
-	g++ -c demogame.cpp $(CFLAGS)
+$(DEMO3D) : $(EXTLIBS) $(OUTLIB) $(DEMO3DOBJS)
+	g++ $(CFLAGS) $(LIBFLAGS) $(DEMO3DOBJS) -o $(DEMO3D) $(OUTLIB) $(EXTLIBS)
 
+demo2d.o : demo2d.cpp moyai.h
+	g++ -c demo2d.cpp $(CFLAGS)
+demo3d.o : demo3d.cpp moyai.h
+	g++ -c demo3d.cpp $(CFLAGS)
 
 $(OUTLIB) : $(MOYAIOBJS)
 	ar cr $(OUTLIB) $(MOYAIOBJS)
@@ -110,7 +118,7 @@ $(GLFWLIB):
 
 clean:
 	rm -r $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG)
-	rm -f *.o deps.make demogame $(OUTLIB) *.o *.a
+	rm -f *.o deps.make $(DEMO2D) $(OUTLIB) *.o *.a
 	make depend
 
 depend: 

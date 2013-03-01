@@ -4,12 +4,8 @@
 #include <assert.h>
 #include <strings.h>
 #include <math.h>
-#include <unistd.h>
-
 
 #include "moyai.h"
-
-
 
 Moyai *g_moyai;
 Viewport *g_viewport;
@@ -41,10 +37,6 @@ Prop *g_linep;
 int g_last_render_cnt ;
 
 // data
-
-enum {
-    ANIMNAME_FLY = 0,
-};
 
 enum {
     ATLAS_TERAZI = 0,
@@ -265,30 +257,30 @@ MyShip *createMyShip(float x, float y){
 
 
 
-void idle(void) {
-    static double lastPrintAt = 0;
-    static int frameCounter = 0;
-    static double lastPollAt = now();
+void updateGame(void) {
+    static double last_print_at = 0;
+    static int frame_counter = 0;
+    static double last_poll_at = now();
 
     double t = now();
-    double dt = t - lastPollAt;
+    double dt = t - last_poll_at;
     
-    frameCounter ++;
+    frame_counter ++;
     
     int cnt;
     cnt = g_moyai->pollAll(dt);
 
-    if(lastPrintAt == 0){
-        lastPrintAt = t;
-    } else if( lastPrintAt < t-1 ){
-        fprintf(stderr,"FPS:%d prop:%d render:%d\n", frameCounter, cnt, g_last_render_cnt  );
-        frameCounter = 0;
-        lastPrintAt = t;
+    if(last_print_at == 0){
+        last_print_at = t;
+    } else if( last_print_at < t-1 ){
+        fprintf(stderr,"FPS:%d prop:%d render:%d\n", frame_counter, cnt, g_last_render_cnt  );
+        frame_counter = 0;
+        last_print_at = t;
     }
 
 
     char hoge[100];
-    snprintf(hoge,sizeof(hoge),"hoge:%d", frameCounter );
+    snprintf(hoge,sizeof(hoge),"hoge:%d", frame_counter );
     wchar_t whoge[100];
     mbstowcs(whoge,hoge,strlen(hoge));
     g_tb->setString(whoge);
@@ -302,7 +294,7 @@ void idle(void) {
     g_dyn_texture->setImage(g_img);
 
 
-    if( frameCounter % 1000 == 0 ) {
+    if( frame_counter % 1000 == 0 ) {
         Image *img = new Image();
         img->setSize( SCRW, SCRH );
         g_moyai->capture(img);
@@ -312,7 +304,7 @@ void idle(void) {
         delete img;
     }
     
-    lastPollAt = t;
+    last_poll_at = t;
 
 }
 
@@ -393,19 +385,15 @@ int main(int argc, char **argv )
 {
     qstest();
     optest();
-
     
     print("program start");
-    enablePrint(true);
-        
-    print("init");
 
     g_sound_system = new SoundSystem();
     g_explosion_sound = g_sound_system->newSound("./assets/blobloblll.wav" );
     g_explosion_sound->play();
     
 
-    // gl 
+    // glfw
     if( !glfwInit() ) {
         print("can't init glfw");
         return 1;
@@ -416,20 +404,16 @@ int main(int argc, char **argv )
         glfwTerminate();
         return 1;
     }
-    glfwSetWindowTitle( "im2" );
+    glfwSetWindowTitle( "demo2d" );
     glfwEnable( GLFW_STICKY_KEYS );
     glfwSwapInterval(1); // vsync
 
     glClearColor(0,0,0,1);
-    
     glEnable(GL_DEPTH_TEST);
     glDepthMask(true );
 
-
     // controls
     g_pad = new Pad();
-
-
 
     // shader
     
@@ -639,9 +623,8 @@ int main(int argc, char **argv )
     while(1){
         int scrw, scrh;
         glfwGetWindowSize( &scrw, &scrh );
-        glViewport( 0,0, scrw, scrh );
 
-        idle();
+        updateGame();
 
         // replace white to random color
         g_replacer_shader->setColor( Color(1,1,1,1), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
