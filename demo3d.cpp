@@ -57,12 +57,13 @@ void updateGame() {
     if( g_prop_col ){
         g_prop_col->loc.x += dt/10;
         g_prop_col->rot.z += dt*100;
+        g_prop_col->rot.y += dt*100;        
     }
 
     if( g_prop_tex ){
         g_prop_tex->loc.x -= dt/10;
-        g_prop_tex->rot.x -= dt*100;
-        g_prop_tex->rot.z -= dt*100;
+        g_prop_tex->rot.x -= dt*50;
+        g_prop_tex->rot.z -= dt*30;
     }
 
     if( g_prop_texcol ){
@@ -135,7 +136,7 @@ void setupCube() {
     colvb->setColor( 5, Color(1,0,1,1) );    
     colvb->setColor( 6, Color(1,1,1,1) );    
     colvb->setColor( 7, Color(1,1,1,1) );        
-
+    
     // texつき、色なしcube
 
     VertexFormat *texvf = new VertexFormat();
@@ -162,7 +163,9 @@ void setupCube() {
     texvb->setUV( 4, 0,0 );
     texvb->setUV( 5, 1,0 );
     texvb->setUV( 6, 1,1 );
-    texvb->setUV( 7, 0,1 );    
+    texvb->setUV( 7, 0,1 );
+
+
 
     // tex + color cube
     VertexFormat *texcolvf = new VertexFormat();
@@ -204,19 +207,19 @@ void setupCube() {
     
 
     
-    // indexはどのcubeでも共通    
+    // indexはどのcubeでも共通     (CCW)
     int indexes[36] = {
         // bottom
-        0,1,3, // ABD
-        3,1,2, // DBC
+        0,3,1, // ADB 
+        3,2,1, // DCB
         // top
         7,5,6, // HFG
         4,5,7, // EFH
 
 
         // left
-        4,0,3, // EAD
-        4,3,7, // EDH
+        4,3,0, // EDA
+        4,7,3, // EHD
 
         // right
         5,1,2, // FBC
@@ -227,8 +230,8 @@ void setupCube() {
         4,1,5, // EBF
 
         // rear
-        7,3,2, // HDC
-        7,2,6, // HCG
+        7,2,3, // HCD
+        7,6,2, // HGC
         
     };
 

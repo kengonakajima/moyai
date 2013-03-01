@@ -240,6 +240,7 @@ public:
     void declareCoordVec3(int index ){ addType('v'); }
     void declareColor(int index ){ addType('c'); }
     void declareUV(int index){ addType('t'); }
+    void declareNormal(int index){ addType('n'); }
     void addType(char t){
         assertmsg( types_used < elementof(types), "too many types");
         types[types_used++] = t;
@@ -320,6 +321,16 @@ public:
         int index_in_array = index * unit_num_float + ofs;
         buf[index_in_array] = u;
         buf[index_in_array+1] = v;
+    }
+    void setNormal( int index, float x, float y, float z ) { 
+        assertmsg(fmt, "vertex format is not set");
+        assert( index < array_len );
+        int ofs = fmt->normal_offset;
+        assertmsg( ofs >= 0, "normal have not declared in vertex format" );
+        int index_in_array = index * unit_num_float + ofs;
+        buf[index_in_array] = x;
+        buf[index_in_array+1] = y;
+        buf[index_in_array+2] = z;        
     }
     
     void bless(){

@@ -281,6 +281,7 @@ int Layer::renderAllProps(){
                 glDisableClientState( GL_VERTEX_ARRAY );
                 glDisableClientState( GL_COLOR_ARRAY );
                 glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+                glDisableClientState( GL_NORMAL_ARRAY );
         
                 if( cur3d->mesh->vb->fmt->coord_offset >= 0 ){
                     glEnableClientState( GL_VERTEX_ARRAY );        
@@ -293,6 +294,11 @@ int Layer::renderAllProps(){
                 if( cur3d->mesh->vb->fmt->texture_offset >= 0 ){
                     glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
                     glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->texture_offset * sizeof(float) );
+                }
+                if( cur3d->mesh->vb->fmt->normal_offset >= 0 ) {
+                    glEnableClientState( GL_NORMAL_ARRAY );
+                    glNormalPointer( 3, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->normal_offset * sizeof(float) );
+                    print("q:%d", cur3d->mesh->vb->fmt->normal_offset );
                 }
 
                 glLoadIdentity();
