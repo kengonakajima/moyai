@@ -70,12 +70,25 @@ int Layer::pollAllProps(double dt ){
     return cnt;
 }
 bool Prop::basePoll(double dt){
+
     if(to_clean){
         return false;
     }
 
     accum_time += dt;
     poll_count ++;
+
+    
+    if( propPoll(dt) == false ){
+        return false;
+    }
+
+    
+    return true;
+}
+
+bool Prop2D::propPoll(double dt) {
+    if( prop2DPoll(dt) == false ) return false;
     
     // animation of index
     if(anim_curve){
@@ -124,14 +137,11 @@ bool Prop::basePoll(double dt){
 
     // children
     for(int i=0;i<children_num;i++){
-        Prop *p = children[i];
+        Prop2D *p = children[i];
         p->loc = loc;
         p->basePoll(dt);
     }
     
-    if( propPoll(dt) == false ){
-        return false;
-    }
     return true;
 }
 
@@ -154,69 +164,187 @@ int Moyai::renderAll(){
     return cnt;
 }
 
-void Layer::dumpProps(){
-    Prop *cur=prop_top;
-    prt( "layer(%d) props: ", id );
-    while(cur){
-        if( cur->next){
-            prt("%d(%d)>%d ", cur->id, cur->index, cur->next->id );            
-        } else {        
-            prt("%d(%d)>END ", cur->id, cur->index );
-        }
-
-        cur = cur->next;
-    }
-    print("done");
-}
 int Layer::renderAllProps(){
     assertmsg( viewport, "no viewport in a layer id:%d setViewport missed?", id );
-    static SorterEntry tosort[1024*8]; 
-    int cnt = 0;
-    int drawn = 0;
-    Prop *cur = prop_top;
-    Vec2 minv, maxv;
-    viewport->getMinMax(&minv, &maxv);
-    while(cur){
-        assert( cur->id > 0 );
+    if( viewport->dimension == DIMENSION_2D ) {
+        static SorterEntry tosort[1024*8]; 
+        int cnt = 0;
+        int drawn = 0;
+        Prop *cur = prop_top;
 
-        // culling
-        float camx=0,camy=0;
-        if(camera){
-            camx = camera->loc.x;
-            camy = camera->loc.y;
-        }
-        float scr_maxx = cur->loc.x - camx + cur->scl.x/2 + cur->max_rt_cache.x;
-        float scr_minx = cur->loc.x - camx - cur->scl.x/2 + cur->min_lb_cache.x;
-        float scr_maxy = cur->loc.y - camy + cur->scl.y/2 + cur->max_rt_cache.y;
-        float scr_miny = cur->loc.y - camy - cur->scl.y/2 + cur->min_lb_cache.y;
-        
-        if( scr_maxx >= minv.x && scr_minx <= maxv.x && scr_maxy >= minv.y && scr_miny <= maxv.y ){
-            tosort[cnt].val = cur->id; 
-            tosort[cnt].ptr = cur;
-            cnt++;
-            if(cnt>= elementof(tosort)){
-                print("WARNING: too many props in a layer" );
-                break;
+        Vec2 minv, maxv;
+        viewport->getMinMax(&minv, &maxv);
+        while(cur){
+            assert( cur->id > 0 );
+            assert( cur->dimension == viewport->dimension );
+
+            // culling
+            float camx=0,camy=0;
+            if(camera){
+                camx = camera->loc.x;
+                camy = camera->loc.y;
             }
-            drawn ++;
-        } 
-        cur = cur->next;
-    }
-    
-    quickSortF( tosort, 0, cnt-1 );
-    for(int i=0;i<cnt;i++){
-        Prop *p = (Prop*) tosort[i].ptr;
-        if(p->visible){
-            //            print("torender:id:%d i:%d",p->id, i);
-            p->render(camera);
+            Prop2D *cur2d = (Prop2D*)cur;
+            float scr_maxx = cur2d->loc.x - camx + cur2d->scl.x/2 + cur2d->max_rt_cache.x;
+            float scr_minx = cur2d->loc.x - camx - cur2d->scl.x/2 + cur2d->min_lb_cache.x;
+            float scr_maxy = cur2d->loc.y - camy + cur2d->scl.y/2 + cur2d->max_rt_cache.y;
+            float scr_miny = cur2d->loc.y - camy - cur2d->scl.y/2 + cur2d->min_lb_cache.y;
+        
+            if( scr_maxx >= minv.x && scr_minx <= maxv.x && scr_maxy >= minv.y && scr_miny <= maxv.y ){
+                tosort[cnt].val = cur->id; 
+                tosort[cnt].ptr = cur;
+                cnt++;
+                if(cnt>= elementof(tosort)){
+                    print("WARNING: too many props in a layer" );
+                    break;
+                }
+                drawn ++;
+            } 
+            cur = cur->next;
         }
+    
+        quickSortF( tosort, 0, cnt-1 );
+        for(int i=0;i<cnt;i++){
+            Prop *p = (Prop*) tosort[i].ptr;
+            if(p->visible){
+                //            print("torender:id:%d i:%d",p->id, i);
+                p->render(camera);
+            }
+        }
+        return drawn;
+    } else { // 3D
+        assertmsg(camera, "3d render need camera.");
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+
+        gluPerspective( 60, 1, viewport->near_clip, viewport->far_clip );
+            
+        gluLookAt( camera->loc.x,camera->loc.y,camera->loc.z,
+                   camera->look_at.x,camera->look_at.y,camera->look_at.z,
+                   camera->look_up.x,camera->look_up.y,camera->look_up.z );
+        
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        int cnt=0;
+
+        GLuint last_tex_gl_id=0;
+        Prop *cur = prop_top;
+        while(cur){
+            assert(cur->id>0);
+            assert(cur->dimension == viewport->dimension );
+
+            Prop3D *cur3d = (Prop3D*)cur;
+            
+            if(cur3d->mesh){
+                cnt++;
+                //
+                if( cur3d->deck ){
+                    glEnable(GL_TEXTURE_2D);
+                    if( cur3d->deck->tex->tex != last_tex_gl_id ) {
+                        glBindTexture( GL_TEXTURE_2D, cur3d->deck->tex->tex );
+                        last_tex_gl_id = cur3d->deck->tex->tex;
+                    }
+                } else {
+                    glDisable(GL_TEXTURE_2D);            
+                }
+        
+                cur3d->mesh->vb->bless();
+                assert( cur3d->mesh->vb->gl_name > 0 );
+                cur3d->mesh->ib->bless();
+                assert( cur3d->mesh->ib->gl_name > 0 );
+                int vert_sz = cur3d->mesh->vb->fmt->getNumFloat() * sizeof(float);
+                glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, cur3d->mesh->ib->gl_name );
+                glBindBuffer( GL_ARRAY_BUFFER, cur3d->mesh->vb->gl_name );
+
+
+#if 0
+                  print("draw mesh! %p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d vert_sz:%d array_len:%d",
+                      cur3d->mesh,
+                      cur3d->mesh->vb->gl_name,
+                      cur3d->mesh->ib->gl_name,
+                      cur3d->mesh->vb->fmt->coord_offset,
+                      cur3d->mesh->vb->fmt->color_offset,
+                      cur3d->mesh->vb->fmt->texture_offset,                        
+                      vert_sz,
+                      cur3d->mesh->vb->array_len
+                      );
+#endif
+
+                  glDisableClientState( GL_VERTEX_ARRAY );
+                  glDisableClientState( GL_COLOR_ARRAY );
+                  glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+        
+                if( cur3d->mesh->vb->fmt->coord_offset >= 0 ){
+                    glEnableClientState( GL_VERTEX_ARRAY );        
+                    glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->coord_offset * sizeof(float) );
+                }
+                if( cur3d->mesh->vb->fmt->color_offset >= 0 ){
+                    glEnableClientState( GL_COLOR_ARRAY );
+                    glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->color_offset * sizeof(float));
+                }
+                if( cur3d->mesh->vb->fmt->texture_offset >= 0 ){
+                    glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
+                    glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->texture_offset * sizeof(float) );
+                }
+
+                glLoadIdentity();
+
+
+                    
+                if(cur3d->billboard){
+                    print("xx");
+                    // [ a0 a4 a8 a12
+                    //   a1 a5 a9 a13
+                    //   a2 a6 a10 a14
+                    //   a3 a7 a11 a15 ]
+                    // を
+                    // [ 1 0 0 a12
+                    //   0 1 0 a13
+                    //   0 0 1 a14
+                    //   a3 a7 a11 a15 ]
+                    // になおす。
+                    glPushMatrix();
+                    float mat[16];
+                    glGetFloatv(GL_MODELVIEW_MATRIX,mat);
+                    mat[0] = mat[5] = mat[10] = 1;
+                    mat[1] = mat[2] = mat[4] = mat[6] = mat[8] = mat[9] = 0;
+                    glLoadMatrixf(mat);
+                } else {
+
+                    glTranslatef( cur3d->loc.x, cur3d->loc.y, cur3d->loc.z );
+                    glScalef( cur3d->scl.x, cur3d->scl.y, cur3d->scl.z );
+
+                    if( cur3d->rot.x != 0 ){
+                        glRotatef( cur3d->rot.x, 1,0,0);     
+                    }
+                    if( cur3d->rot.y != 0 ){
+                        glRotatef( cur3d->rot.y, 0,1,0);     
+                    }
+                    if( cur3d->rot.z != 0 ){
+                        glRotatef( cur3d->rot.z, 0,0,1);
+                    }
+                }
+
+                glDrawElements( cur3d->mesh->prim_type, cur3d->mesh->ib->array_len, GL_UNSIGNED_INT, 0);
+                glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+                glBindBuffer( GL_ARRAY_BUFFER, 0 );
+
+                if( cur3d->billboard ){
+                    glPopMatrix();
+                }
+            }
+            cur = cur->next;
+        }
+        return cnt;        
+        
     }
-    return drawn;
 }
 
 
 // 注意!min,maxの中心に中心点があるような形状しか対応していない
-void Prop::drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot ) {
+void Prop2D::drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot ) {
     float uunit = (float) dk->cell_width / (float) dk->image_width;
     float vunit = (float) dk->cell_height / (float) dk->image_height;
     int start_x = dk->cell_width * (int)( ind % dk->tile_width );
@@ -292,7 +420,7 @@ void Prop::drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx,
 }
 
 
-void Prop::render(Camera *cam) {
+void Prop2D::render(Camera *cam) {
     assertmsg(deck || grid_used_num > 0 || children_num > 0 || prim_drawer , "no deck/grid/prim_drawer is set ");
     float camx=0.0f;
     float camy=0.0f;
@@ -473,15 +601,18 @@ void TextBox::render(Camera *cam ) {
 }
 
 
-Prop *Prop::getNearestProp(){
-    Prop *cur = parentLayer->prop_top;
+Prop *Prop2D::getNearestProp(){
+    Prop *cur = parent_layer->prop_top;
     float minlen = 999999999999999.0f;
     Prop *ans=0;
     while(cur){
-        float l = cur->loc.len(loc);
-        if(l<minlen && cur != this ){
-            ans = cur;
-            minlen = l;
+        if( cur->dimension == DIMENSION_2D ) {
+            Prop2D *cur2d = (Prop2D*)cur;
+            float l = cur2d->loc.len(loc);
+            if(l<minlen && cur != this ){
+                ans = cur;
+                minlen = l;
+            }
         }
         cur = cur->next;
     }
@@ -592,7 +723,7 @@ void ColorReplacerShader::updateUniforms(){
 Vec2 Camera::screenToWorld( int scr_x, int scr_y, int scr_w, int scr_h ) {
     Vec2 glpos;
     Moyai::screenToGL( scr_x, scr_y, scr_w, scr_h, & glpos );
-    return glpos + loc;
+    return glpos + Vec2(loc.x,loc.y);
 }
 
 
@@ -621,16 +752,20 @@ void Grid::clear(){
 }
 
 void Layer::selectCenterInside( Vec2 minloc, Vec2 maxloc, Prop*out[], int *outlen ){
+    assertmsg( viewport->dimension == DIMENSION_2D, "selectCenterInside isn't implemented for 3d viewport" );
+    
     Prop *cur = prop_top;
     int out_max = *outlen;
     int cnt=0;
     
     while(cur){
-        if( !cur->to_clean && cur->isCenterInside(minloc, maxloc) ){
-            if( cnt < out_max){
-                out[cnt] = cur;
-                cnt++;
-                if(cnt==out_max)break;
+        if( cur->dimension == DIMENSION_2D ){
+            if( !cur->to_clean && ((Prop2D*)cur)->isCenterInside(minloc, maxloc) ){
+                if( cnt < out_max){
+                    out[cnt] = cur;
+                    cnt++;
+                    if(cnt==out_max)break;
+                }
             }
         }
         cur = cur->next;
@@ -638,16 +773,23 @@ void Layer::selectCenterInside( Vec2 minloc, Vec2 maxloc, Prop*out[], int *outle
     *outlen = cnt;
 }
 
-void Viewport::setSize(int scrw, int scrh){
+void Viewport::setSize(int scrw, int scrh ) {
     screen_width = scrw;
     screen_height = scrh;
 
     takeEffect();
 }
-void Viewport::setScale( float sx, float sy ){
-    scl = Vec2(sx,sy);
+void Viewport::setScale2D( float sx, float sy ){
+    dimension = DIMENSION_2D;
+    scl = Vec3(sx,sy,1);
     takeEffect();
 }
+void Viewport::setClip3D( float near, float far ) {        
+    near_clip = near;
+    far_clip = far;
+    dimension = DIMENSION_3D;
+}
+
 void Viewport::takeEffect(){
     glViewport(0,0,screen_width,screen_height);
     glMatrixMode(GL_PROJECTION);
@@ -662,7 +804,7 @@ void Viewport::getMinMax( Vec2 *minv, Vec2 *maxv ){
     maxv->y = scl.y/2;
 }
 
-void Prop::updateMinMaxSizeCache(){
+void Prop2D::updateMinMaxSizeCache(){
     max_rt_cache.x=0;
     max_rt_cache.y=0;
     min_lb_cache.x=0;
@@ -687,8 +829,8 @@ void Prop::updateMinMaxSizeCache(){
     if( children_num > 0){
         for(int i=0;i<children_num;i++){
             Prop *p = children[i];
-            float maxx = p->scl.x/2;
-            float maxy = p->scl.y/2;
+            float maxx = ((Prop2D*)p)->scl.x/2;
+            float maxy = ((Prop2D*)p)->scl.y/2;
             if( maxx > child_max_x ) child_max_x = maxx;
             if( maxy > child_max_y ) child_max_y = maxy;
         }

@@ -266,7 +266,7 @@ int main() {
 
     g_viewport2d = new Viewport();
     g_viewport2d->setSize(SCRW,SCRH);
-    g_viewport2d->setScale(SCRW,SCRH);
+    g_viewport2d->setScale2D(SCRW,SCRH);
 
     g_hud_layer = new Layer();
     g_hud_layer->setViewport(g_viewport2d);
@@ -285,7 +285,7 @@ int main() {
     g_deck->setTexture(t);
     g_deck->setSize(16,16,16,16,256,256);
 
-    Prop *p = new Prop();
+    Prop2D *p = new Prop2D();
     p->setDeck( g_deck );
     p->setIndex(0);
     p->setLoc(0,0);

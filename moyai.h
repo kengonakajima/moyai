@@ -17,6 +17,12 @@
 #include "fmod/api/inc/fmod_errors.h"
 #endif
 
+typedef enum {
+    DIMENSION_INVAL = 0,
+    DIMENSION_2D = 2,    
+    DIMENSION_3D = 3,
+} DIMENSION;
+
 
 class Vec2 {
 public:
@@ -180,10 +186,13 @@ public:
 class Viewport {
 public:
     int screen_width, screen_height;
-    Vec2 scl;
-    Viewport() : screen_width(0), screen_height(0), scl(0,0) {}
+    DIMENSION dimension;
+    Vec3 scl;
+    float near_clip, far_clip;
+    Viewport() : screen_width(0), screen_height(0), dimension(DIMENSION_2D), scl(0,0,0), near_clip(0.01), far_clip(100) { }
     void setSize(int scrw, int scrh );
-    void setScale( float sx, float sy );
+    void setScale2D( float sx, float sy );
+    void setClip3D( float near, float far ); 
     void takeEffect();
     void getMinMax( Vec2 *minv, Vec2 *maxv );
 };
@@ -704,36 +713,68 @@ class Layer;
 class Camera;
 
 class Prop {
- public:
+public:
+    static int idgen;    
     int id;
     Prop *next;
     Prop *prev;
 
+    DIMENSION dimension;
+
+    Layer *parent_layer;
+    bool to_clean;
+    double accum_time;
+    unsigned int poll_count;
+    bool visible;
+    TileDeck *deck;
+    
+    inline Prop() : id(++idgen), next(NULL), prev(NULL), dimension(DIMENSION_INVAL), parent_layer(NULL), to_clean(false), accum_time(0),  poll_count(0), visible(true), deck(NULL) {
+    }
+    ~Prop() {
+
+    }
+
+    bool basePoll(double dt);
+    virtual bool propPoll(double dt){
+        return true;
+    }
+    virtual void onDelete(){}
+    inline void setVisible(bool flg){ visible = flg; }
+    inline void setDeck( TileDeck *d ){
+        deck = d;
+        assert( d->cell_width > 0 );
+        assert( d->cell_height > 0 );        
+    }
+    virtual void render(Camera *cam){};
+    
+};
+
+class Prop2D : public Prop {
+ public:
     
     Vec2 loc;
     Vec2 draw_offset;
+    Vec2 scl;
     
     static const int MAX_GRID = 8;
     Grid *grids[MAX_GRID];  // 頭から入れていってnullだったら終了
     int grid_used_num;
     
-    static const int MAX_CHILDREN = 8;
-    Prop *children[MAX_CHILDREN];
-    int children_num;
-    
-    TileDeck *deck;
+
     int index;
     Color color;
-    Vec2 scl;
-    Layer *parentLayer;
-    bool to_clean;
+
+    static const int MAX_CHILDREN = 8;
+    Prop2D *children[MAX_CHILDREN];
+    int children_num;
+
     AnimCurve *anim_curve;
     double anim_start_at; // from accum_time
-    double accum_time;
+
     bool xflip, yflip, uvrot;
-    unsigned int poll_count;
+
     FragmentShader *fragment_shader;
-    bool visible;
+
     // scale anim
     double seek_scl_time; // 0:not seeking
     double seek_scl_started_at; 
@@ -759,27 +800,26 @@ class Prop {
     // prop-size cache for fast culling
     Vec2 max_rt_cache, min_lb_cache;
     
-    static int idgen;
-    inline Prop(){
-        id = idgen++;
-        next = prev = NULL;
+
+    inline Prop2D() : Prop() {
+
+        dimension = DIMENSION_2D;
         
         //        print("newprop: id:%d", id );
-        deck = NULL;
         color = Color(1,1,1,1);
-        parentLayer = NULL;
-        to_clean = false;
+
+        children_num = 0;
+
         loc.x = loc.y = 0;
         draw_offset.x = draw_offset.y = 0;
         scl.x = scl.y = 32;
         anim_curve = NULL;
-        accum_time = 0;
+
         anim_start_at = 0;
         grid_used_num = 0;
-        children_num = 0;
+
         xflip = yflip = uvrot = false;
-        poll_count = 0;
-        visible = true;
+
         rot = 0;
         seek_scl_time = seek_scl_started_at = 0;
         seek_rot_time = seek_rot_started_at = 0;
@@ -790,20 +830,18 @@ class Prop {
         max_rt_cache = Vec2(0,0);
         min_lb_cache = Vec2(0,0);
     }
-    ~Prop(){
+    ~Prop2D(){
         for(int i=0;i<grid_used_num;i++){
             if(grids[i]) delete grids[i];
         }
         for(int i=0;i<children_num;i++){
             if(children[i]) delete children[i];
-        }
+        }        
         if(prim_drawer) delete prim_drawer;
     }
-    inline void setDeck( TileDeck *d ){
-        deck = d;
-        assert( d->cell_width > 0 );
-        assert( d->cell_height > 0 );        
-    }
+    virtual bool prop2DPoll(double dt){ return true;}
+    virtual bool propPoll(double dt);        
+
     inline void setTexture( Texture *t ){
         assert(t->tex!=0);        
         TileDeck *d = new TileDeck(); // TODO: d leaks
@@ -857,7 +895,7 @@ class Prop {
         updateMinMaxSizeCache();
         return true;
     }
-    inline bool addChild( Prop *p ){
+    inline bool addChild( Prop2D *p ){
         assert(p);
         if( children_num >= elementof(children) ) {
             assertmsg(false,"WARNING: too many children in a prop");
@@ -895,12 +933,8 @@ class Prop {
 
     void drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot );
     
-    virtual void render(Camera *cam);
-    bool basePoll(double dt);
-    virtual bool propPoll(double dt){
-        return true;
-    }
 
+    
     virtual void onIndexChanged(int previndex ){}
 
     inline void setFragmentShader( FragmentShader *fs ){
@@ -908,7 +942,7 @@ class Prop {
         fragment_shader = fs;
     }
     Prop *getNearestProp();
-    inline void setVisible(bool flg){ visible = flg; }
+
 
     inline void ensurePrimDrawer(){
         if(!prim_drawer ) prim_drawer = new PrimDrawer();
@@ -934,19 +968,53 @@ class Prop {
     inline bool hit( Vec2 at ){
         return ( at.x >= loc.x - scl.x/2 ) && ( at.x <= loc.x + scl.x/2 ) && ( at.y >= loc.y - scl.y/2 ) && ( at.y <= loc.y + scl.y/2 );
     }
-    virtual void onDelete(){}
+    virtual void render(Camera *cam);
+
+};
+
+class Prop3D : public Prop {
+public:
+    Vec3 loc;
+    Vec3 scl;
+    Vec3 rot;
+    Mesh *mesh;
+    bool billboard;
+    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), billboard(false) {
+        
+    }
+    inline void setScl(Vec3 s) { scl = s; }
+    inline void setRot(Vec3 r) { rot = r; }    
+    void setMesh( Mesh *m) { mesh = m; }
+    virtual bool prop3DPoll(double dt) { return true; }
+    virtual bool propPoll(double dt) {
+        if( prop3DPoll(dt) == false ) return false;
+        return true;
+    }
 };
 
 class Camera {
 public:
-    Vec2 loc;
+    Vec3 loc;
+    Vec3 look_at, look_up;
     Camera(){}
     inline void setLoc(Vec2 lc) {
+        loc.x = lc.x;
+        loc.y = lc.y;
+        loc.z = 0;
+    }
+    inline void setLoc(Vec3 lc) {
         loc = lc;
     }
     inline void setLoc(float x,float y){
         loc.x = x;
         loc.y = y;
+    }
+    inline void setLoc( float x, float y, float z ) {
+        loc.x = x; loc.y = y; loc.z = z;
+    }
+    inline void setLookAt( Vec3 at, Vec3 up ) {
+        look_at = at;
+        look_up = up;
     }
     Vec2 screenToWorld( int scr_x, int scr_y, int scr_w, int scr_h );
 
@@ -974,13 +1042,13 @@ class Layer {
 
     inline void insertProp(Prop*p){
         //        assert(p->deck);
-        assertmsg( !p->parentLayer, "inserting prop twice");
+        assertmsg( !p->parent_layer, "inserting prop twice");
         if(prop_top){
             p->next = prop_top;
             prop_top->prev = p;
         }
         prop_top = p;
-        p->parentLayer = this;
+        p->parent_layer = this;
         p->prev = NULL;
     }
 
@@ -992,7 +1060,7 @@ class Layer {
                             center + Vec2(dia,dia),
                             out, outlen );
     }
-    void dumpProps();
+
 };
 
 class Font {
@@ -1018,7 +1086,7 @@ public:
         
     }
 };
-class TextBox : public Prop {
+class TextBox : public Prop2D {
 public:
     vertex_buffer_t *vb;
     wchar_t *str;

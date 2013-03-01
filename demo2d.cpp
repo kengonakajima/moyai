@@ -30,7 +30,7 @@ Sound *g_explosion_sound;
 Image *g_img;
 Texture *g_dyn_texture;
 
-Prop *g_linep;
+Prop2D *g_linep;
 
 #define SCALE  2
 
@@ -56,7 +56,7 @@ enum {
 
 static const int SCRW=966, SCRH=544;
 
-class Char : public Prop {
+class Char : public Prop2D {
 public:
     Vec2 v;
     unsigned int cnt;
@@ -87,7 +87,7 @@ public:
         print("mover:onhit %p\n",ch);
     }
 
-    virtual bool propPoll(double dt){
+    virtual bool prop2DPoll(double dt){
         loc.x += v.x * dt * SCALE;
         loc.y += v.y * dt * SCALE;
 
@@ -427,7 +427,7 @@ int main(int argc, char **argv )
 
     g_viewport = new Viewport();
     g_viewport->setSize(SCRW,SCRH);
-    g_viewport->setScale(SCRW,SCRH);
+    g_viewport->setScale2D(SCRW,SCRH);
 
     Layer *l = new Layer();
     g_moyai->insertLayer(l);
@@ -447,7 +447,7 @@ int main(int argc, char **argv )
     d2->setSize(16,16, 16,16, 256,256 );
 
     for(int i=0;i<10;i++ ){
-        Prop *p = new Prop();
+        Prop2D *p = new Prop2D();
         p->setDeck(deck);
         int cands[] = { 0,1,2, 16,17,18, 24,25,26,27, 32,40,41 };
         p->setIndex( cands[ irange(0, elementof(cands)) ]);
@@ -456,7 +456,7 @@ int main(int argc, char **argv )
         p->setLoc(range(-100,100), range(-100,100));
         l->insertProp(p);
     }
-    Prop *sclp = new Prop();
+    Prop2D *sclp = new Prop2D();
     sclp->setDeck(deck);
     sclp->setIndex(1);
     sclp->setScl(16,16);
@@ -465,7 +465,7 @@ int main(int argc, char **argv )
     sclp->setRot( M_PI/8 );
     l->insertProp(sclp);
 
-    Prop *sclprot = new Prop();
+    Prop2D *sclprot = new Prop2D();
     sclprot->setDeck(deck);
     sclprot->setIndex(0);
     sclprot->setScl(16,16);
@@ -478,7 +478,7 @@ int main(int argc, char **argv )
 
 
     for(int i=0;i<10;i++){
-        Prop *p = new Prop();
+        Prop2D *p = new Prop2D();
         p->setColor(range(0,1),range(0,1),range(0,1),range(0,1));
         p->setDeck(d2);
         p->setIndex( 1 + (i%2) ); //irange(0,16) );
@@ -488,7 +488,7 @@ int main(int argc, char **argv )
     }
 
     {
-        Prop *p = new Prop();
+        Prop2D *p = new Prop2D();
         p->setDeck(d2);
         p->setScl(24,24);
         p->setLoc(-100,-300);
@@ -505,7 +505,7 @@ int main(int argc, char **argv )
         p->addGrid(g);
         l->insertProp(p);
 
-        Prop *p2 = new Prop();
+        Prop2D *p2 = new Prop2D();
         p2->setColor(1,1,0,0.5);
         p2->setDeck(d2);
         p2->setScl(12,12);
@@ -562,7 +562,7 @@ int main(int argc, char **argv )
 
 
     // bitmap font
-    Prop *scorep = new Prop();
+    Prop2D *scorep = new Prop2D();
     scorep->setLoc( -SCRW/2+32,SCRH/2-100 );
     CharGrid *scoregrid = new CharGrid(8,8);
     scoregrid->setDeck(g_bmpfont_deck );
@@ -574,14 +574,14 @@ int main(int argc, char **argv )
     g_main_layer->insertProp(scorep);
 
     // line prop
-    g_linep = new Prop();
+    g_linep = new Prop2D();
     g_linep->addLine( Vec2(0,0), Vec2(100,100), Color(1,0,0,1) );
     g_linep->addLine( Vec2(0,0), Vec2(100,-50), Color(0,1,0,1) );
     g_linep->addRect( Vec2(0,0), Vec2(-150,230), Color(0,0,1,0.5) );
     g_linep->setLoc(0,200);
     g_main_layer->insertProp(g_linep);
     // add child to line prop
-    Prop *childp = new Prop();
+    Prop2D *childp = new Prop2D();
     childp->setDeck(g_base_deck);
     childp->setScl(16,16);
     childp->seekRot( M_PI * 1000, 30 );
@@ -604,7 +604,7 @@ int main(int argc, char **argv )
 
         g_img->writePNG( "assets/dynamic_out.png");
     
-        Prop *p = new Prop();
+        Prop2D *p = new Prop2D();
         TileDeck *d = new TileDeck();
         d->setTexture(g_dyn_texture);
         d->setSize( 16,16,16,16,256,256);
