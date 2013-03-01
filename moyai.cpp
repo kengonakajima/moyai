@@ -304,6 +304,7 @@ int Layer::renderAllProps(){
                 glLoadIdentity();
                     
                 if(cur3d->billboard){
+                    
                     // [ a0 a4 a8 a12
                     //   a1 a5 a9 a13
                     //   a2 a6 a10 a14
@@ -317,6 +318,9 @@ int Layer::renderAllProps(){
                     glPushMatrix();
                     float mat[16];
                     glGetFloatv(GL_MODELVIEW_MATRIX,mat);
+                    mat[12] = cur3d->loc.x;
+                    mat[13] = cur3d->loc.y;
+                    mat[14] = cur3d->loc.z;                    
                     mat[0] = mat[5] = mat[10] = 1;
                     mat[1] = mat[2] = mat[4] = mat[6] = mat[8] = mat[9] = 0;
                     glLoadMatrixf(mat);
