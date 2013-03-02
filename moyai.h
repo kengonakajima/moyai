@@ -24,83 +24,6 @@ typedef enum {
 } DIMENSION;
 
 
-class Vec2 {
-public:
-    float x,y;
-    inline Vec2(float xx, float yy) : x(xx),y(yy){}
-    inline Vec2() : x(0), y(0) {}
-    inline Vec2 normalize(float l){
-        float xx = x, yy = y;
-        ::normalize( &xx, &yy, l );
-        return Vec2(xx,yy);
-    }
-    inline float len(){
-        return ::len( x,y,0,0 );
-    }
-    inline float len(Vec2 tgt){
-        return ::len( x,y,tgt.x,tgt.y);
-    }
-    inline DIR toDir() {
-        const float pi4 = M_PI / 4.0f;
-        float at = atan2( x,y );
-        if( at >= -pi4  && at <= pi4 ){
-            return DIR_UP;
-        } else if( at >= pi4 && at <= pi4*3){
-            return DIR_RIGHT;
-        } else if( at >= pi4*3 || at <= -pi4*3 ){
-            return DIR_DOWN;
-        } else if( at <= -pi4 && at >= -pi4*3 ){
-            return DIR_LEFT;
-        } else {
-            return DIR_NONE;
-        }
-    }
-    inline Vec2 mul(float val){ return Vec2( x*val, y*val); }
-    inline Vec2 add( Vec2 v){ return Vec2( x+v.x, y+v.y);}
-    inline Vec2 add( float xx, float yy ){ return Vec2( x+xx, y+yy);}
-    inline Vec2 to( Vec2 v){ return Vec2( v.x - x, v.y - y); }
-    inline Vec2 randomize(float r){ return Vec2( x + range(-r,r), y + range(-r,r) ); }
-    static inline Vec2 angle(float rad){ return Vec2( cos(rad), sin(rad) ); }
-    inline void toSign(int*xs,int*ys){ *xs = sign(x); *ys = sign(y); }
-    inline Vec2 operator+(Vec2 arg){ return Vec2(x+arg.x,y+arg.y); }
-    inline Vec2 operator-(Vec2 arg){ return Vec2(x-arg.x,y-arg.y); }
-    inline Vec2 operator*(float f){ return Vec2(x*f,y*f); }
-    inline Vec2 operator/(float f){ return Vec2(x/f,y/f); }    
-    inline Vec2 operator*=(float f){ x *= f; y *= f; return Vec2(x,y); }
-    inline Vec2 operator/=(float f){ x /= f; y /= f; return Vec2(x,y); }                
-    inline Vec2 operator+=(Vec2 arg){ x += arg.x; y += arg.y; return Vec2(x,y); }
-    inline Vec2 operator-=(Vec2 arg){ x -= arg.x; y -= arg.y; return Vec2(x,y); }
-    inline bool operator==(Vec2 arg){ return (x==arg.x && y==arg.y); }
-    inline bool operator!=(Vec2 arg){ return (x!=arg.x || y!=arg.y); }
-    inline bool operator>=(Vec2 arg){ return (x>=arg.x && y>=arg.y); }
-    inline bool operator>(Vec2 arg){ return (x>arg.x && y>arg.y); }    
-    inline bool operator<=(Vec2 arg){ return (x<=arg.x && y<=arg.y); }
-    inline bool operator<(Vec2 arg){ return (x<arg.x && y<arg.y); }        
-    inline bool isZero(){ return (x==0 && y==0 ); }
-    inline Vec2 friction( float diff ){
-        float l = len();
-        l -= diff;
-        Vec2 out = Vec2(x,y).normalize(l);
-        if( l < 0 ){
-            return Vec2(0,0);
-        } else {
-            return out;
-        }
-    }
-    static inline Vec2 random(float v) { return Vec2(0,0).randomize(v); }
-    static inline Vec2 random() { return random(1); }
-    static inline Vec2 fromDir(DIR d){
-        int dx,dy;
-        dirToDXDY(d,&dx,&dy);
-        return Vec2(dx,dy);
-    }
-    // clockwise, up=y+
-    inline Vec2 rot(float v) {
-        return Vec2( x * cos(v) - y * sin(v),
-                     x * sin(v) + y * cos(v) );
-    }
-};
-
 class Vec3 {
 public:
     float x,y,z;
@@ -181,6 +104,88 @@ public:
                      0 );
     }
 };
+
+
+
+class Vec2 {
+public:
+    float x,y;
+    inline Vec2(float xx, float yy) : x(xx),y(yy){}
+    inline Vec2() : x(0), y(0) {}
+    inline Vec2 normalize(float l){
+        float xx = x, yy = y;
+        ::normalize( &xx, &yy, l );
+        return Vec2(xx,yy);
+    }
+    inline float len(){
+        return ::len( x,y,0,0 );
+    }
+    inline float len(Vec2 tgt){
+        return ::len( x,y,tgt.x,tgt.y);
+    }
+    inline DIR toDir() {
+        const float pi4 = M_PI / 4.0f;
+        float at = atan2( x,y );
+        if( at >= -pi4  && at <= pi4 ){
+            return DIR_UP;
+        } else if( at >= pi4 && at <= pi4*3){
+            return DIR_RIGHT;
+        } else if( at >= pi4*3 || at <= -pi4*3 ){
+            return DIR_DOWN;
+        } else if( at <= -pi4 && at >= -pi4*3 ){
+            return DIR_LEFT;
+        } else {
+            return DIR_NONE;
+        }
+    }
+    inline Vec2 mul(float val){ return Vec2( x*val, y*val); }
+    inline Vec2 add( Vec2 v){ return Vec2( x+v.x, y+v.y);}
+    inline Vec2 add( float xx, float yy ){ return Vec2( x+xx, y+yy);}
+    inline Vec2 to( Vec2 v){ return Vec2( v.x - x, v.y - y); }
+    inline Vec2 randomize(float r){ return Vec2( x + range(-r,r), y + range(-r,r) ); }
+    static inline Vec2 angle(float rad){ return Vec2( cos(rad), sin(rad) ); }
+    inline void toSign(int*xs,int*ys){ *xs = sign(x); *ys = sign(y); }
+    inline Vec2 operator+(Vec2 arg){ return Vec2(x+arg.x,y+arg.y); }
+    inline Vec2 operator+(Vec3 arg){ return Vec2(x+arg.x,y+arg.y); }    
+    inline Vec2 operator-(Vec2 arg){ return Vec2(x-arg.x,y-arg.y); }
+    inline Vec2 operator-(Vec3 arg){ return Vec2(x-arg.x,y-arg.y); }    
+    inline Vec2 operator*(float f){ return Vec2(x*f,y*f); }
+    inline Vec2 operator/(float f){ return Vec2(x/f,y/f); }    
+    inline Vec2 operator*=(float f){ x *= f; y *= f; return Vec2(x,y); }
+    inline Vec2 operator/=(float f){ x /= f; y /= f; return Vec2(x,y); }                
+    inline Vec2 operator+=(Vec2 arg){ x += arg.x; y += arg.y; return Vec2(x,y); }
+    inline Vec2 operator-=(Vec2 arg){ x -= arg.x; y -= arg.y; return Vec2(x,y); }
+    inline bool operator==(Vec2 arg){ return (x==arg.x && y==arg.y); }
+    inline bool operator!=(Vec2 arg){ return (x!=arg.x || y!=arg.y); }
+    inline bool operator>=(Vec2 arg){ return (x>=arg.x && y>=arg.y); }
+    inline bool operator>(Vec2 arg){ return (x>arg.x && y>arg.y); }    
+    inline bool operator<=(Vec2 arg){ return (x<=arg.x && y<=arg.y); }
+    inline bool operator<(Vec2 arg){ return (x<arg.x && y<arg.y); }        
+    inline bool isZero(){ return (x==0 && y==0 ); }
+    inline Vec2 friction( float diff ){
+        float l = len();
+        l -= diff;
+        Vec2 out = Vec2(x,y).normalize(l);
+        if( l < 0 ){
+            return Vec2(0,0);
+        } else {
+            return out;
+        }
+    }
+    static inline Vec2 random(float v) { return Vec2(0,0).randomize(v); }
+    static inline Vec2 random() { return random(1); }
+    static inline Vec2 fromDir(DIR d){
+        int dx,dy;
+        dirToDXDY(d,&dx,&dy);
+        return Vec2(dx,dy);
+    }
+    // clockwise, up=y+
+    inline Vec2 rot(float v) {
+        return Vec2( x * cos(v) - y * sin(v),
+                     x * sin(v) + y * cos(v) );
+    }
+};
+
 
 
 class Viewport {
