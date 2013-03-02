@@ -308,9 +308,7 @@ int main() {
     g_moyai = new Moyai();
 
     glfwInit();
-
-    
-    glfwOpenWindow( SCRW,SCRH, 8,8,8,8, 8,0, GLFW_WINDOW );
+    glfwOpenWindow( SCRW,SCRH, 8,8,8,8, 16,0, GLFW_WINDOW );
     glfwSetWindowTitle( "demo3d");
     glfwEnable( GLFW_STICKY_KEYS );
     glfwSwapInterval(1); // vsync

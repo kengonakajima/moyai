@@ -1,10 +1,11 @@
 # moyai
 
-An experimental simple 2D game engine for native C++, strongly inspired by MoaiSDK API structure.
+An experimental simple 2D/3D game engine for native C++, strongly inspired by MoaiSDK API structure.
 
 Moai SDK: https://github.com/moai/moai-dev
 
  - Rendering
+  - 2D sprite + 3D mesh
   - OpenGL 2.0 (ES2), [GLFW http://www.glfw.org/]
  - Image
   - PNG read/write from file
@@ -94,7 +95,58 @@ int main()
 
 </code>
 </pre>
- 
+
+## 3D basics
+<pre lang="c++">
+<code>
+int main() {
+  g_moyai = new Moyai();
+
+  glfwInit();
+  glfwOpenWindow( SCRW,SCRH, 8,8,8,8, 8,0, GLFW_WINDOW );
+  glfwSetWindowTitle( "demo3d");
+  glfwEnable( GLFW_STICKY_KEYS );
+  glfwSwapInterval(1); // vsync
+
+  glClearColor(0,0,0,1);
+  glEnable(GL_DEPTH_TEST);    
+  glEnable(GL_DEPTH_BUFFER_BIT);    
+  glDepthMask(true );
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+    
+  Viewport *v = new Viewport();
+  v->setSize(1024,768);
+  v->setClip3D( 0.01, 100 ); // near and far clip
+  
+  Camera *cam = new Camera();
+  cam->setLoc( Vec3(0,0,10) );
+  
+  Layer *layer = new Layer();
+  layer->setCamera(cam);
+  layer->setViewport(v);
+
+  Texture *t = new Texture();
+  t->load("wood_surface.png");
+  Prop3d *p = new Prop3D();
+  p->setMesh(mesh); // prepare mesh before
+  p->setTexture(t);
+  p->setScl(Vec3(2,2,2));
+  p->setLoc(Vec3(1,0,0));
+  layer->insertProp(p);
+
+  while(1){
+    static double last_poll_at = now();
+    double t = now();
+    double dt = t - last_poll_at;
+    g_moyai->pollAll(dt);
+    g_moyai->renderAll();
+    last_poll_at = t;
+  }
+  
+}
+</code>
+</pre>
 
 ## Audio
 
@@ -169,7 +221,8 @@ List of classes defined in moyai.h :
   - <code>Layer</code>
   - <code>Viewport</code>
   - <code>Camera</code> 
-  - <code>Prop</code> : a sprite 
+  - <code>Prop2D</code> : simple sprite
+  - <code>Prop3D</code> 
   
 - Rendering and Graphics
   - <code>Image</code>  : image in memory
