@@ -242,112 +242,113 @@ int Layer::renderAllProps(){
             assert(cur->dimension == viewport->dimension );
 
             Prop3D *cur3d = (Prop3D*)cur;
-            
-            if(cur3d->mesh){
-                cnt++;
-                //
-                if( cur3d->deck ){
-                    glEnable(GL_TEXTURE_2D);
-                    if( cur3d->deck->tex->tex != last_tex_gl_id ) {
-                        glBindTexture( GL_TEXTURE_2D, cur3d->deck->tex->tex );
-                        last_tex_gl_id = cur3d->deck->tex->tex;
-                    }
-                } else {
-                    glDisable(GL_TEXTURE_2D);            
+
+            assertmsg( cur3d->mesh, "mesh is not set for prop %p", cur );            
+
+            cnt++;
+            //
+            if( cur3d->deck ){
+                glEnable(GL_TEXTURE_2D);
+                if( cur3d->deck->tex->tex != last_tex_gl_id ) {
+                    glBindTexture( GL_TEXTURE_2D, cur3d->deck->tex->tex );
+                    last_tex_gl_id = cur3d->deck->tex->tex;
                 }
+            } else {
+                glDisable(GL_TEXTURE_2D);            
+            }
         
-                cur3d->mesh->vb->bless();
-                assert( cur3d->mesh->vb->gl_name > 0 );
-                cur3d->mesh->ib->bless();
-                assert( cur3d->mesh->ib->gl_name > 0 );
-                int vert_sz = cur3d->mesh->vb->fmt->getNumFloat() * sizeof(float);
-                glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, cur3d->mesh->ib->gl_name );
-                glBindBuffer( GL_ARRAY_BUFFER, cur3d->mesh->vb->gl_name );
+            cur3d->mesh->vb->bless();
+            assert( cur3d->mesh->vb->gl_name > 0 );
+            cur3d->mesh->ib->bless();
+            assert( cur3d->mesh->ib->gl_name > 0 );
+            int vert_sz = cur3d->mesh->vb->fmt->getNumFloat() * sizeof(float);
+            glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, cur3d->mesh->ib->gl_name );
+            glBindBuffer( GL_ARRAY_BUFFER, cur3d->mesh->vb->gl_name );
 
 
 #if 0
-                print("draw mesh! %p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d vert_sz:%d array_len:%d",
-                      cur3d->mesh,
-                      cur3d->mesh->vb->gl_name,
-                      cur3d->mesh->ib->gl_name,
-                      cur3d->mesh->vb->fmt->coord_offset,
-                      cur3d->mesh->vb->fmt->color_offset,
-                      cur3d->mesh->vb->fmt->texture_offset,                        
-                      vert_sz,
-                      cur3d->mesh->vb->array_len
-                      );
+            print("draw mesh! %p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d vert_sz:%d array_len:%d",
+                  cur3d->mesh,
+                  cur3d->mesh->vb->gl_name,
+                  cur3d->mesh->ib->gl_name,
+                  cur3d->mesh->vb->fmt->coord_offset,
+                  cur3d->mesh->vb->fmt->color_offset,
+                  cur3d->mesh->vb->fmt->texture_offset,                        
+                  vert_sz,
+                  cur3d->mesh->vb->array_len
+                  );
 #endif
 
-                glDisableClientState( GL_VERTEX_ARRAY );
-                glDisableClientState( GL_COLOR_ARRAY );
-                glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-                glDisableClientState( GL_NORMAL_ARRAY );
+            glDisableClientState( GL_VERTEX_ARRAY );
+            glDisableClientState( GL_COLOR_ARRAY );
+            glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+            glDisableClientState( GL_NORMAL_ARRAY );
         
-                if( cur3d->mesh->vb->fmt->coord_offset >= 0 ){
-                    glEnableClientState( GL_VERTEX_ARRAY );        
-                    glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->coord_offset * sizeof(float) );
-                }
-                if( cur3d->mesh->vb->fmt->color_offset >= 0 ){
-                    glEnableClientState( GL_COLOR_ARRAY );
-                    glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->color_offset * sizeof(float));
-                }
-                if( cur3d->mesh->vb->fmt->texture_offset >= 0 ){
-                    glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
-                    glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->texture_offset * sizeof(float) );
-                }
-                if( cur3d->mesh->vb->fmt->normal_offset >= 0 ) {
-                    glEnableClientState( GL_NORMAL_ARRAY );
-                    glNormalPointer( 3, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->normal_offset * sizeof(float) );
-                    print("q:%d", cur3d->mesh->vb->fmt->normal_offset );
-                }
+            if( cur3d->mesh->vb->fmt->coord_offset >= 0 ){
+                glEnableClientState( GL_VERTEX_ARRAY );        
+                glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->coord_offset * sizeof(float) );
+            }
+            if( cur3d->mesh->vb->fmt->color_offset >= 0 ){
+                glEnableClientState( GL_COLOR_ARRAY );
+                glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->color_offset * sizeof(float));
+            }
+            if( cur3d->mesh->vb->fmt->texture_offset >= 0 ){
+                glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
+                glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->texture_offset * sizeof(float) );
+            }
+            if( cur3d->mesh->vb->fmt->normal_offset >= 0 ) {
+                glEnableClientState( GL_NORMAL_ARRAY );
+                glNormalPointer( 3, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->normal_offset * sizeof(float) );
+                print("q:%d", cur3d->mesh->vb->fmt->normal_offset );
+            }
 
-                glLoadIdentity();
+            glLoadIdentity();
                     
-                if(cur3d->billboard){
+            if(cur3d->billboard){
                     
-                    // [ a0 a4 a8 a12
-                    //   a1 a5 a9 a13
-                    //   a2 a6 a10 a14
-                    //   a3 a7 a11 a15 ]
-                    // を
-                    // [ 1 0 0 a12
-                    //   0 1 0 a13
-                    //   0 0 1 a14
-                    //   a3 a7 a11 a15 ]
-                    // になおす。
-                    glPushMatrix();
-                    float mat[16];
-                    glGetFloatv(GL_MODELVIEW_MATRIX,mat);
-                    mat[12] = cur3d->loc.x;
-                    mat[13] = cur3d->loc.y;
-                    mat[14] = cur3d->loc.z;                    
-                    mat[0] = mat[5] = mat[10] = 1;
-                    mat[1] = mat[2] = mat[4] = mat[6] = mat[8] = mat[9] = 0;
-                    glLoadMatrixf(mat);
+                // [ a0 a4 a8 a12
+                //   a1 a5 a9 a13
+                //   a2 a6 a10 a14
+                //   a3 a7 a11 a15 ]
+                // を
+                // [ 1 0 0 a12
+                //   0 1 0 a13
+                //   0 0 1 a14
+                //   a3 a7 a11 a15 ]
+                // になおす。
+                glPushMatrix();
+                float mat[16];
+                glGetFloatv(GL_MODELVIEW_MATRIX,mat);
+                mat[12] = cur3d->loc.x;
+                mat[13] = cur3d->loc.y;
+                mat[14] = cur3d->loc.z;                    
+                mat[0] = mat[5] = mat[10] = 1;
+                mat[1] = mat[2] = mat[4] = mat[6] = mat[8] = mat[9] = 0;
+                glLoadMatrixf(mat);
 
-                } else {
-                    glTranslatef( cur3d->loc.x, cur3d->loc.y, cur3d->loc.z );
-                    glScalef( cur3d->scl.x, cur3d->scl.y, cur3d->scl.z );
+            } else {
+                glTranslatef( cur3d->loc.x, cur3d->loc.y, cur3d->loc.z );
+                glScalef( cur3d->scl.x, cur3d->scl.y, cur3d->scl.z );
 
-                    if( cur3d->rot.x != 0 ){
-                        glRotatef( cur3d->rot.x, 1,0,0);     
-                    }
-                    if( cur3d->rot.y != 0 ){
-                        glRotatef( cur3d->rot.y, 0,1,0);     
-                    }
-                    if( cur3d->rot.z != 0 ){
-                        glRotatef( cur3d->rot.z, 0,0,1);
-                    }
+                if( cur3d->rot.x != 0 ){
+                    glRotatef( cur3d->rot.x, 1,0,0);     
                 }
-
-                glDrawElements( cur3d->mesh->prim_type, cur3d->mesh->ib->array_len, GL_UNSIGNED_INT, 0);
-                glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-                glBindBuffer( GL_ARRAY_BUFFER, 0 );
-
-                if( cur3d->billboard ){
-                    glPopMatrix();
+                if( cur3d->rot.y != 0 ){
+                    glRotatef( cur3d->rot.y, 0,1,0);     
+                }
+                if( cur3d->rot.z != 0 ){
+                    glRotatef( cur3d->rot.z, 0,0,1);
                 }
             }
+
+            glDrawElements( cur3d->mesh->prim_type, cur3d->mesh->ib->array_len, GL_UNSIGNED_INT, 0);
+            glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+            glBindBuffer( GL_ARRAY_BUFFER, 0 );
+
+            if( cur3d->billboard ){
+                glPopMatrix();
+            }
+            
             cur = cur->next;
         }
         return cnt;        

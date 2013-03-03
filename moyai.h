@@ -997,8 +997,10 @@ public:
     Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), billboard(false) {
         dimension = DIMENSION_3D;
     }
-    inline void setLoc(Vec3 l) { loc = l; }        
+    inline void setLoc(Vec3 l) { loc = l; }
+    inline void setLoc(float x, float y, float z) { loc.x = x; loc.y = y; loc.z = z; }            
     inline void setScl(Vec3 s) { scl = s; }
+    inline void setScl(float x, float y, float z) { scl.x = x; scl.y = y; scl.z = z; }    
     inline void setRot(Vec3 r) { rot = r; }
     inline void setMesh( Mesh *m) { mesh = m; }
     virtual bool prop3DPoll(double dt) { return true; }
