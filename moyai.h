@@ -345,7 +345,6 @@ public:
             glBindBuffer( GL_ARRAY_BUFFER, gl_name );
             glBufferData( GL_ARRAY_BUFFER, total_num_float * sizeof(float), buf, GL_STATIC_DRAW );
             glBindBuffer( GL_ARRAY_BUFFER, 0 );
-            print("VB genbuffer ret name:%d", gl_name );
         }
     }
 
