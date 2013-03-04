@@ -167,7 +167,7 @@ int Moyai::renderAll(){
 int Layer::renderAllProps(){
     assertmsg( viewport, "no viewport in a layer id:%d setViewport missed?", id );
     if( viewport->dimension == DIMENSION_2D ) {
-
+    
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho( -viewport->scl.x/2, viewport->scl.x/2, -viewport->scl.y/2, viewport->scl.y/2,-100,100);  // center is always (0,0)
@@ -221,7 +221,7 @@ int Layer::renderAllProps(){
         return drawn;
     } else { // 3D
         assertmsg(camera, "3d render need camera.");
-
+        
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
@@ -427,10 +427,13 @@ void Prop2D::drawIndex( TileDeck *dk, int ind, float minx, float miny, float max
         c = c.add( center_x, center_y );
         d = d.add( center_x, center_y );                    
     }
-    glTexCoord2f(u0,v1); glVertex3i( a.x, a.y, depth ); 
+
+    // counter clockwise
+    glTexCoord2f(u0,v1); glVertex3i( a.x, a.y, depth );
+    glTexCoord2f(u1,v1); glVertex3i( d.x, d.y, depth );
+    glTexCoord2f(u1,v0); glVertex3i( c.x, c.y, depth );
     glTexCoord2f(u0,v0); glVertex3i( b.x, b.y, depth ); 
-    glTexCoord2f(u1,v0); glVertex3i( c.x, c.y, depth ); 
-    glTexCoord2f(u1,v1); glVertex3i( d.x, d.y, depth ); 
+
 }
 
 
