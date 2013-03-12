@@ -364,11 +364,11 @@ void Prop2D::drawIndex( TileDeck *dk, int ind, float minx, float miny, float max
     int start_x = dk->cell_width * (int)( ind % dk->tile_width );
     int start_y = dk->cell_height * (int)( ind / dk->tile_width );
 
-    const float EPSILON = 0.000001;
+    const float EPSILON = 0.002;
     float u0 = (float) start_x / (float) dk->image_width + EPSILON + uofs * uunit; 
     float v0 = (float) start_y / (float) dk->image_height + EPSILON + vofs * vunit; 
     float u1 = u0 + uunit - EPSILON; 
-    float v1 = v0 + vunit - EPSILON; 
+    float v1 = v0 + vunit - EPSILON;
     float depth = 10;
 
     if(hrev){
@@ -542,7 +542,7 @@ void Prop2D::render(Camera *cam) {
         }
     }
 
-    // プリミティブ描画はスプライトの上に重ねるほうが都合がよい。
+    // primitives should go over image sprites
     if( prim_drawer ){
         prim_drawer->drawAll(loc.add(camx,camy) );
     }
@@ -556,14 +556,17 @@ bool Texture::load( const char *path ){
     if(tex==0)return false;
     glBindTexture( GL_TEXTURE_2D, tex );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); 
     
     print("soil_load_ogl_texture: new texid:%d", tex );
     return true;
 }
-void Texture::setLinearFilter(){
+void Texture::setLinearMagFilter(){
     glBindTexture( GL_TEXTURE_2D, tex );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+}
+void Texture::setLinearMinFilter(){
+    glBindTexture( GL_TEXTURE_2D, tex );    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );    
 }
 

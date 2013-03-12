@@ -410,7 +410,8 @@ public:
 
     void setImage( Image *img );
     bool load( const char *path );
-    void setLinearFilter();
+    void setLinearMagFilter();
+    void setLinearMinFilter();    
     void getSize( int *w, int *h){
         assertmsg(tex!=0,"getSize: not init?");
         glBindTexture( GL_TEXTURE_2D, tex );
