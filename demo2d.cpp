@@ -409,8 +409,8 @@ int main(int argc, char **argv )
     glfwSwapInterval(1); // vsync
 
     glClearColor(0,0,0,1);
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(true );
+    //    glEnable(GL_DEPTH_TEST);
+    //    glDepthMask(true );
 
     // controls
     g_pad = new Pad();
