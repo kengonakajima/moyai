@@ -731,6 +731,7 @@ class Prop {
 public:
     static int idgen;    
     int id;
+    int priority;
     Prop *next;
     Prop *prev;
 
@@ -742,8 +743,9 @@ public:
     unsigned int poll_count;
     bool visible;
     TileDeck *deck;
+    float enfat_epsilon;
     
-    inline Prop() : id(++idgen), next(NULL), prev(NULL), dimension(DIMENSION_INVAL), parent_layer(NULL), to_clean(false), accum_time(0),  poll_count(0), visible(true), deck(NULL) {
+    inline Prop() : id(++idgen), priority(id), next(NULL), prev(NULL), dimension(DIMENSION_INVAL), parent_layer(NULL), to_clean(false), accum_time(0),  poll_count(0), visible(true), deck(NULL), enfat_epsilon(0) {
     }
     ~Prop() {
 

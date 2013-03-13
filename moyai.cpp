@@ -174,7 +174,8 @@ int Layer::renderAllProps(){
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();        
 
-        static SorterEntry tosort[1024*8]; 
+        static SorterEntry tosort[1024*32];
+        
         int cnt = 0;
         int drawn = 0;
         Prop *cur = prop_top;
@@ -182,7 +183,6 @@ int Layer::renderAllProps(){
         Vec2 minv, maxv;
         viewport->getMinMax(&minv, &maxv);
         while(cur){
-            assert( cur->id > 0 );
             assert( cur->dimension == viewport->dimension );
 
             // culling
@@ -196,9 +196,9 @@ int Layer::renderAllProps(){
             float scr_minx = cur2d->loc.x - camx - cur2d->scl.x/2 + cur2d->min_lb_cache.x;
             float scr_maxy = cur2d->loc.y - camy + cur2d->scl.y/2 + cur2d->max_rt_cache.y;
             float scr_miny = cur2d->loc.y - camy - cur2d->scl.y/2 + cur2d->min_lb_cache.y;
-        
+            
             if( scr_maxx >= minv.x && scr_minx <= maxv.x && scr_maxy >= minv.y && scr_miny <= maxv.y ){
-                tosort[cnt].val = cur->id; 
+                tosort[cnt].val = cur->priority;
                 tosort[cnt].ptr = cur;
                 cnt++;
                 if(cnt>= elementof(tosort)){
@@ -214,6 +214,11 @@ int Layer::renderAllProps(){
         for(int i=0;i<cnt;i++){
             Prop *p = (Prop*) tosort[i].ptr;
             if(p->visible){
+                //                    print("prio:%f %d %d", p2d->loc.y, p2d->priority, p2d->id  );
+
+                
+                
+                
                 //            print("torender:id:%d i:%d",p->id, i);
                 p->render(camera);
             }
@@ -364,7 +369,7 @@ void Prop2D::drawIndex( TileDeck *dk, int ind, float minx, float miny, float max
     int start_x = dk->cell_width * (int)( ind % dk->tile_width );
     int start_y = dk->cell_height * (int)( ind / dk->tile_width );
 
-    const float EPSILON = 0.002;
+    const float EPSILON = 0.0001;
     float u0 = (float) start_x / (float) dk->image_width + EPSILON + uofs * uunit; 
     float v0 = (float) start_y / (float) dk->image_height + EPSILON + vofs * vunit; 
     float u1 = u0 + uunit - EPSILON; 
@@ -447,6 +452,7 @@ void Prop2D::render(Camera *cam) {
     }
 
 
+    // TODO: use vbo for grids
     if( grid_used_num > 0 ){
         glEnable(GL_TEXTURE_2D);
         glColor4f(color.r,color.g,color.b,color.a);        
@@ -491,11 +497,13 @@ void Prop2D::render(Camera *cam) {
                                        grid->color_table[ti].b,
                                        grid->color_table[ti].a                                       
                                        );
-                        } 
+                        }
                         drawIndex( draw_deck,
                                    ind,
-                                   camx + loc.x + x * scl.x + draw_offset.x, camy + loc.y + y * scl.y + draw_offset.y,
-                                   camx + loc.x + (x+1) * scl.x + draw_offset.x, camy + loc.y + (y+1)*scl.y + draw_offset.y,
+                                   camx + loc.x + x * scl.x + draw_offset.x - enfat_epsilon,
+                                   camy + loc.y + y * scl.y + draw_offset.y - enfat_epsilon,
+                                   camx + loc.x + (x+1) * scl.x + draw_offset.x + enfat_epsilon,
+                                   camy + loc.y + (y+1)*scl.y + draw_offset.y + enfat_epsilon,
                                    xflip,
                                    yflip,
                                    texofs_x,
