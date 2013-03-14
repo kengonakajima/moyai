@@ -211,10 +211,11 @@ int Layer::renderAllProps(){
         }
     
         quickSortF( tosort, 0, cnt-1 );
-        for(int i=0;i<cnt;i++){
+        //        for(int i=0;i<cnt;i++){
+        for(int i=cnt-1;i>=0;i--){
             Prop *p = (Prop*) tosort[i].ptr;
             if(p->visible){
-                //                    print("prio:%f %d %d", p2d->loc.y, p2d->priority, p2d->id  );
+                { Prop2D *p2d = (Prop2D*)p; print("prio:%f %d %d", p2d->loc.y, p2d->priority, p2d->id  ); }
 
                 
                 
