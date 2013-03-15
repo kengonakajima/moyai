@@ -74,6 +74,9 @@ inline float avg( float a, float b ) {
 inline float interpolate( float left, float right, float zero_to_one ) {
     return left * ( 1 - zero_to_one ) + right * zero_to_one;
 }
+inline bool isPowerOf2(unsigned int x) {
+    return !( x & (x-1) );
+}
 
 void enablePrint(bool enable);
 void print( const char *fmt, ... );
