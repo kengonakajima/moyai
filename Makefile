@@ -29,7 +29,7 @@ OUTLIB=libmoyai.a
 
 EXTLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(GLFWLIB) 
 LIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
-CFLAGS= -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I$(LIBPNG) -DUSE_FMOD -I$(GLFW)/include
+CFLAGS=-I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I$(LIBPNG) -DUSE_FMOD -I$(GLFW)/include
 
 
 DEMO2D=demo2d

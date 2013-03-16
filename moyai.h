@@ -423,7 +423,8 @@ public:
 
     void setImage( Image *img );
     bool load( const char *path );
-    void setLinearFilter();
+    void setLinearMagFilter();
+    void setLinearMinFilter();    
     void getSize( int *w, int *h){
         assertmsg(tex!=0,"getSize: not init?");
         glBindTexture( GL_TEXTURE_2D, tex );
@@ -743,6 +744,7 @@ class Prop {
 public:
     static int idgen;    
     int id;
+    int priority;
     Prop *next;
     Prop *prev;
 
@@ -754,8 +756,9 @@ public:
     unsigned int poll_count;
     bool visible;
     TileDeck *deck;
+    float enfat_epsilon;
     
-    inline Prop() : id(++idgen), next(NULL), prev(NULL), dimension(DIMENSION_INVAL), parent_layer(NULL), to_clean(false), accum_time(0),  poll_count(0), visible(true), deck(NULL) {
+    inline Prop() : id(++idgen), priority(id), next(NULL), prev(NULL), dimension(DIMENSION_INVAL), parent_layer(NULL), to_clean(false), accum_time(0),  poll_count(0), visible(true), deck(NULL), enfat_epsilon(0) {
     }
     ~Prop() {
 
@@ -1236,15 +1239,17 @@ public:
     Pad() : up(false), down(false), left(false), right(false) {
     }
     void readGLFW();
-    void getVec(float *dx, float *dy ){
-        *dx = *dy = 0;
-        if( up ) *dy=1.0;
-        if( down ) *dy=-1.0;
-        if( right ) *dx=1.0;
-        if( left ) *dx=-1.0;
+    void getVec( Vec2 *v ){
+        float dx=0,dy=0;
+        if( up ) dy=1.0;
+        if( down ) dy=-1.0;
+        if( right ) dx=1.0;
+        if( left ) dx=-1.0;
         if(dx!=0 || dy!=0){
-            normalize( dx, dy, 1 );
+            normalize( &dx, &dy, 1 );
         }
+        v->x = dx;
+        v->y = dy;
     }
 };
 

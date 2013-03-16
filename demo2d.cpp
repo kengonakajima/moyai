@@ -224,10 +224,10 @@ public:
     }
     
     virtual bool charPoll(double dt){
-        float dx,dy;
-        g_pad->getVec(&dx,&dy);
-        v.x = dx * vel;
-        v.y = dy * vel;
+        Vec2 force;
+        g_pad->getVec(&force);
+        v.x = force.x * vel;
+        v.y = force.y * vel;
 
         if(cnt%1000==0){
             Bullet * b = createBullet(loc.x, loc.y, loc.x + range(-100,100), loc.y + range(-100,100), 1, false );
@@ -409,8 +409,6 @@ int main(int argc, char **argv )
     glfwSwapInterval(1); // vsync
 
     glClearColor(0,0,0,1);
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(true );
 
     // controls
     g_pad = new Pad();
