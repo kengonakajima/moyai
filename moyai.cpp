@@ -243,15 +243,19 @@ int Layer::renderAllProps(){
 
             Prop3D *cur3d = (Prop3D*)cur;
 
-            assertmsg( cur3d->mesh, "mesh is not set for prop %p", cur );            
+            assertmsg( cur3d->mesh || cur3d->mesh_set, "mesh or mesh_set is required for 3d prop %p", cur );
 
             cnt++;
+
+            TileDeck *deck_to_use = cur3d->mesh->deck;
+            if( !deck_to_use ) deck_to_use = cur3d->deck;
+                                   
             //
-            if( cur3d->deck ){
+            if( deck_to_use ){
                 glEnable(GL_TEXTURE_2D);
-                if( cur3d->deck->tex->tex != last_tex_gl_id ) {
-                    glBindTexture( GL_TEXTURE_2D, cur3d->deck->tex->tex );
-                    last_tex_gl_id = cur3d->deck->tex->tex;
+                if( deck_to_use->tex->tex != last_tex_gl_id ) {
+                    glBindTexture( GL_TEXTURE_2D, deck_to_use->tex->tex );
+                    last_tex_gl_id = deck_to_use->tex->tex;
                 }
             } else {
                 glDisable(GL_TEXTURE_2D);            
@@ -1003,6 +1007,24 @@ void Pad::readGLFW() {
     right = glfwGetKey('D');
 }
 
+
+MeshSet::MeshSet() : meshes(NULL){
+}
+
+void MeshSet::reserve( int n ) {
+    assertmsg( meshes == NULL, "can't initialize again");
+    size_t sz = sizeof(Mesh*) * n;
+    meshes = (Mesh**) malloc( sz );
+    memset(meshes, 0, sz );
+    mesh_num = n;
+}
+void MeshSet::setMesh( int ind, Mesh *m ) {
+    assertmsg( ind >= 0 && ind < mesh_num, "invalid index:%d", ind );
+    meshes[ind] = m;
+}
+MeshSet::~MeshSet() {
+    if(meshes) free(meshes);
+}
 
 /////////
 

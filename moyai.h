@@ -375,18 +375,31 @@ public:
     }
     
 };
+
+class TileDeck;
 class Mesh {
 public:
     VertexBuffer * vb;
     IndexBuffer *ib;
     GLuint prim_type;
-    Mesh() : vb(0), ib(0) {
+    TileDeck *deck; // nullable
+    Mesh() : vb(0), ib(0), prim_type(0), deck(NULL) {
     }
     void setVertexBuffer(VertexBuffer *b) { vb = b; }
     void setIndexBuffer(IndexBuffer *b ){ ib = b; }
     void setPrimType( GLuint t) { prim_type = t; }
+    void setDeck( TileDeck *dk ) { deck = dk; }
 };
 
+class MeshSet {
+public:
+    Mesh **meshes;
+    int mesh_num;
+    MeshSet();
+    ~MeshSet();
+    void reserve( int n );
+    void setMesh( int ind, Mesh *m );
+};
 
 class Image {
 public:
@@ -992,8 +1005,9 @@ public:
     Vec3 scl;
     Vec3 rot;
     Mesh *mesh;
+    MeshSet *mesh_set;
     bool billboard;
-    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), billboard(false) {
+    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), mesh_set(NULL), billboard(false) {
         dimension = DIMENSION_3D;
     }
     inline void setLoc(Vec3 l) { loc = l; }
