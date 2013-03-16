@@ -735,6 +735,7 @@ class Prop {
 public:
     static int idgen;    
     int id;
+    int debug_id;
     int priority;
     Prop *next;
     Prop *prev;
@@ -749,7 +750,7 @@ public:
     TileDeck *deck;
     float enfat_epsilon;
     
-    inline Prop() : id(++idgen), priority(id), next(NULL), prev(NULL), dimension(DIMENSION_INVAL), parent_layer(NULL), to_clean(false), accum_time(0),  poll_count(0), visible(true), deck(NULL), enfat_epsilon(0) {
+    inline Prop() : id(++idgen), debug_id(0), priority(id), next(NULL), prev(NULL), dimension(DIMENSION_INVAL), parent_layer(NULL), to_clean(false), accum_time(0),  poll_count(0), visible(true), deck(NULL), enfat_epsilon(0) {
     }
     ~Prop() {
 
@@ -1112,7 +1113,7 @@ class Layer {
                             center + Vec2(dia,dia),
                             out, outlen );
     }
-    inline void drawMesh( Mesh *mesh, bool billboard, TileDeck *deck, Vec3 loc, Vec3 scl, Vec3 rot );
+    inline void drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot  );
 };
 
 class Font {

@@ -164,8 +164,8 @@ int Moyai::renderAll(){
     return cnt;
 }
 
-inline void Layer::drawMesh( Mesh *mesh, bool billboard, TileDeck *deck, Vec3 loc, Vec3 scl, Vec3 rot ) { 
-    if( deck ) { 
+inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot  ) {   
+    if( deck ) {
         glEnable(GL_TEXTURE_2D);
         if( deck->tex->tex != last_tex_gl_id ) {
             glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
@@ -235,24 +235,26 @@ inline void Layer::drawMesh( Mesh *mesh, bool billboard, TileDeck *deck, Vec3 lo
         glPushMatrix();
         float mat[16];
         glGetFloatv(GL_MODELVIEW_MATRIX,mat);
-        mat[12] = loc.x;
-        mat[13] = loc.y;
-        mat[14] = loc.z;                    
+        mat[12] = loc->x;
+        mat[13] = loc->y;
+        mat[14] = loc->z;                    
         mat[0] = mat[5] = mat[10] = 1;
         mat[1] = mat[2] = mat[4] = mat[6] = mat[8] = mat[9] = 0;
         glLoadMatrixf(mat);
     } else {
-        glTranslatef( loc.x, loc.y, loc.z );
-        glScalef( scl.x, scl.y, scl.z );
+        glTranslatef( loc->x, loc->y, loc->z );
+        glScalef( scl->x, scl->y, scl->z );
 
-        if( rot.x != 0 ){
-            glRotatef( rot.x, 1,0,0);     
-        }
-        if( rot.y != 0 ){
-            glRotatef( rot.y, 0,1,0);     
-        }
-        if( rot.z != 0 ){
-            glRotatef( rot.z, 0,0,1);
+        if( rot->x != 0 ) glRotatef( rot->x, 1,0,0);     
+        if( rot->y != 0 ) glRotatef( rot->y, 0,1,0);     
+        if( rot->z != 0 ) glRotatef( rot->z, 0,0,1);
+
+        if( localloc ) {
+            glTranslatef( localloc->x, localloc->y, localloc->z );
+            glScalef( localscl->x, localscl->y, localscl->z );
+            if( localrot->x != 0 ) glRotatef( localrot->x, 1,0,0);     
+            if( localrot->y != 0 ) glRotatef( localrot->y, 0,1,0);     
+            if( localrot->z != 0 ) glRotatef( localrot->z, 0,0,1);
         }
     }
 
@@ -350,16 +352,18 @@ int Layer::renderAllProps(){
             cnt++;
 
             if( cur3d->mesh ) {
-                drawMesh( cur3d->mesh, cur3d->billboard, cur3d->deck, cur3d->loc, cur3d->scl, cur3d->rot );
+                drawMesh( cur3d->debug_id, cur3d->mesh, cur3d->billboard, cur3d->deck,
+                          & cur3d->loc, & cur3d->scl, & cur3d->rot,
+                          NULL, NULL, NULL );
             }
             if( cur3d->children_num > 0 ) {
                 for(int i=0;i<cur3d->children_num;i++) {
                     Prop3D *child = cur3d->children[i];
                     if( child ) {
-                        Vec3 loc = cur3d->loc + child->loc;
-                        Vec3 scl = cur3d->scl * child->scl;
-                        Vec3 rot = cur3d->rot + child->rot;
-                        drawMesh( child->mesh, child->billboard, child->deck, loc, scl, rot );
+                        drawMesh( child->debug_id, child->mesh, child->billboard, child->deck,
+                                  & cur3d->loc, & cur3d->scl, & cur3d->rot,
+                                  & child->loc, & child->scl, & child->rot
+                                  );
                     }
                 }
             }
