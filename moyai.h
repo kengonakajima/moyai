@@ -391,15 +391,7 @@ public:
     void setDeck( TileDeck *dk ) { deck = dk; }
 };
 
-class MeshSet {
-public:
-    Mesh **meshes;
-    int mesh_num;
-    MeshSet();
-    ~MeshSet();
-    void reserve( int n );
-    void setMesh( int ind, Mesh *m );
-};
+
 
 class Image {
 public:
@@ -1008,9 +1000,12 @@ public:
     Vec3 scl;
     Vec3 rot;
     Mesh *mesh;
-    MeshSet *mesh_set;
     bool billboard;
-    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), mesh_set(NULL), billboard(false) {
+
+    Prop3D **children;
+    int children_num, children_max;
+    
+    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), billboard(false), children(NULL), children_num(0), children_max(0) {
         dimension = DIMENSION_3D;
     }
     inline void setLoc(Vec3 l) { loc = l; }
@@ -1019,6 +1014,19 @@ public:
     inline void setScl(float x, float y, float z) { scl.x = x; scl.y = y; scl.z = z; }    
     inline void setRot(Vec3 r) { rot = r; }
     inline void setMesh( Mesh *m) { mesh = m; }
+    void reserveChild( int n ) {
+        size_t sz = sizeof(Prop3D*) * n;
+        children = (Prop3D**) malloc( sz );
+        for(int i=0;i<n;i++) children[i] = NULL;
+        children_max = n;
+    }
+    void addChild( Prop3D *p ) {
+        assert(p);
+        assert( children_num < children_max );
+        children[children_num] = p;
+        children_num ++;
+    }
+
     virtual bool prop3DPoll(double dt) { return true; }
     virtual bool propPoll(double dt) {
         if( prop3DPoll(dt) == false ) return false;
@@ -1062,10 +1070,11 @@ class Layer {
     Viewport *viewport;
     
     int id;
+    GLuint last_tex_gl_id;
     
     static int idgen;
     
-    Layer() : camera(NULL), prop_top(NULL), viewport(NULL) {
+    Layer() : camera(NULL), prop_top(NULL), viewport(NULL), last_tex_gl_id(0) {
         id = idgen++;
     }
     inline void setViewport( Viewport *vp ){
@@ -1095,7 +1104,7 @@ class Layer {
                             center + Vec2(dia,dia),
                             out, outlen );
     }
-
+    inline void drawMesh( Mesh *mesh, bool billboard, TileDeck *deck, Vec3 loc, Vec3 scl, Vec3 rot );
 };
 
 class Font {

@@ -27,6 +27,8 @@ Mesh *g_texmesh;
 Mesh *g_texcolmesh;
 Mesh *g_billboardmesh;
 
+
+
 Prop3D *g_prop_col;
 Prop3D *g_prop_tex;
 Prop3D *g_prop_texcol;

@@ -164,6 +164,108 @@ int Moyai::renderAll(){
     return cnt;
 }
 
+inline void Layer::drawMesh( Mesh *mesh, bool billboard, TileDeck *deck, Vec3 loc, Vec3 scl, Vec3 rot ) { 
+    if( deck ) { 
+        glEnable(GL_TEXTURE_2D);
+        if( deck->tex->tex != last_tex_gl_id ) {
+            glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
+            last_tex_gl_id = deck->tex->tex;
+        }
+    } else {
+        glDisable(GL_TEXTURE_2D);            
+    }
+
+    mesh->vb->bless();
+    assert( mesh->vb->gl_name > 0 );
+    mesh->ib->bless();
+    assert( mesh->ib->gl_name > 0 );
+    int vert_sz = mesh->vb->fmt->getNumFloat() * sizeof(float);
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mesh->ib->gl_name );
+    glBindBuffer( GL_ARRAY_BUFFER, mesh->vb->gl_name );
+
+#if 0
+    print("draw mesh! %p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d vert_sz:%d array_len:%d",
+          mesh,
+          mesh->vb->gl_name,
+          mesh->ib->gl_name,
+          mesh->vb->fmt->coord_offset,
+          mesh->vb->fmt->color_offset,
+          mesh->vb->fmt->texture_offset,                        
+          vert_sz,
+          mesh->vb->array_len
+          );
+#endif
+
+    glDisableClientState( GL_VERTEX_ARRAY );
+    glDisableClientState( GL_COLOR_ARRAY );
+    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+    glDisableClientState( GL_NORMAL_ARRAY );
+        
+    if( mesh->vb->fmt->coord_offset >= 0 ){
+        glEnableClientState( GL_VERTEX_ARRAY );        
+        glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->coord_offset * sizeof(float) );
+    }
+    if( mesh->vb->fmt->color_offset >= 0 ){
+        glEnableClientState( GL_COLOR_ARRAY );
+        glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->color_offset * sizeof(float));
+    }
+    if( mesh->vb->fmt->texture_offset >= 0 ){
+        glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
+        glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->texture_offset * sizeof(float) );
+    }
+    if( mesh->vb->fmt->normal_offset >= 0 ) {
+        glEnableClientState( GL_NORMAL_ARRAY );
+        glNormalPointer( 3, vert_sz, (char*)0 + mesh->vb->fmt->normal_offset * sizeof(float) );
+    }
+
+    glLoadIdentity();
+                    
+    if(billboard){
+                    
+        // [ a0 a4 a8 a12
+        //   a1 a5 a9 a13
+        //   a2 a6 a10 a14
+        //   a3 a7 a11 a15 ]
+        // を
+        // [ 1 0 0 a12
+        //   0 1 0 a13
+        //   0 0 1 a14
+        //   a3 a7 a11 a15 ]
+        // になおす。
+        glPushMatrix();
+        float mat[16];
+        glGetFloatv(GL_MODELVIEW_MATRIX,mat);
+        mat[12] = loc.x;
+        mat[13] = loc.y;
+        mat[14] = loc.z;                    
+        mat[0] = mat[5] = mat[10] = 1;
+        mat[1] = mat[2] = mat[4] = mat[6] = mat[8] = mat[9] = 0;
+        glLoadMatrixf(mat);
+    } else {
+        glTranslatef( loc.x, loc.y, loc.z );
+        glScalef( scl.x, scl.y, scl.z );
+
+        if( rot.x != 0 ){
+            glRotatef( rot.x, 1,0,0);     
+        }
+        if( rot.y != 0 ){
+            glRotatef( rot.y, 0,1,0);     
+        }
+        if( rot.z != 0 ){
+            glRotatef( rot.z, 0,0,1);
+        }
+    }
+
+    glDrawElements( mesh->prim_type, mesh->ib->array_len, GL_UNSIGNED_INT, 0);
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+    glBindBuffer( GL_ARRAY_BUFFER, 0 );
+
+    if( billboard ){
+        glPopMatrix();
+    }
+}
+
+
 int Layer::renderAllProps(){
     assertmsg( viewport, "no viewport in a layer id:%d setViewport missed?", id );
     if( viewport->dimension == DIMENSION_2D ) {
@@ -234,8 +336,8 @@ int Layer::renderAllProps(){
         glLoadIdentity();
 
         int cnt=0;
+        last_tex_gl_id = 0;
 
-        GLuint last_tex_gl_id=0;
         Prop *cur = prop_top;
         while(cur){
             assert(cur->id>0);
@@ -243,115 +345,19 @@ int Layer::renderAllProps(){
 
             Prop3D *cur3d = (Prop3D*)cur;
 
-            assertmsg( cur3d->mesh || cur3d->mesh_set, "mesh or mesh_set is required for 3d prop %p", cur );
+            assertmsg( cur3d->mesh || cur3d->children_num > 0, "mesh or children is required for 3d prop %p", cur3d );
 
             cnt++;
 
+            
+
             TileDeck *deck_to_use = cur3d->mesh->deck;
             if( !deck_to_use ) deck_to_use = cur3d->deck;
+
+            if( cur3d->mesh ) {
+                drawMesh( cur3d->mesh, cur3d->billboard, deck_to_use, cur3d->loc, cur3d->scl, cur3d->rot );
+            }
                                    
-            //
-            if( deck_to_use ){
-                glEnable(GL_TEXTURE_2D);
-                if( deck_to_use->tex->tex != last_tex_gl_id ) {
-                    glBindTexture( GL_TEXTURE_2D, deck_to_use->tex->tex );
-                    last_tex_gl_id = deck_to_use->tex->tex;
-                }
-            } else {
-                glDisable(GL_TEXTURE_2D);            
-            }
-        
-            cur3d->mesh->vb->bless();
-            assert( cur3d->mesh->vb->gl_name > 0 );
-            cur3d->mesh->ib->bless();
-            assert( cur3d->mesh->ib->gl_name > 0 );
-            int vert_sz = cur3d->mesh->vb->fmt->getNumFloat() * sizeof(float);
-            glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, cur3d->mesh->ib->gl_name );
-            glBindBuffer( GL_ARRAY_BUFFER, cur3d->mesh->vb->gl_name );
-
-
-#if 0
-            print("draw mesh! %p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d vert_sz:%d array_len:%d",
-                  cur3d->mesh,
-                  cur3d->mesh->vb->gl_name,
-                  cur3d->mesh->ib->gl_name,
-                  cur3d->mesh->vb->fmt->coord_offset,
-                  cur3d->mesh->vb->fmt->color_offset,
-                  cur3d->mesh->vb->fmt->texture_offset,                        
-                  vert_sz,
-                  cur3d->mesh->vb->array_len
-                  );
-#endif
-
-            glDisableClientState( GL_VERTEX_ARRAY );
-            glDisableClientState( GL_COLOR_ARRAY );
-            glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-            glDisableClientState( GL_NORMAL_ARRAY );
-        
-            if( cur3d->mesh->vb->fmt->coord_offset >= 0 ){
-                glEnableClientState( GL_VERTEX_ARRAY );        
-                glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->coord_offset * sizeof(float) );
-            }
-            if( cur3d->mesh->vb->fmt->color_offset >= 0 ){
-                glEnableClientState( GL_COLOR_ARRAY );
-                glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->color_offset * sizeof(float));
-            }
-            if( cur3d->mesh->vb->fmt->texture_offset >= 0 ){
-                glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
-                glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->texture_offset * sizeof(float) );
-            }
-            if( cur3d->mesh->vb->fmt->normal_offset >= 0 ) {
-                glEnableClientState( GL_NORMAL_ARRAY );
-                glNormalPointer( 3, vert_sz, (char*)0 + cur3d->mesh->vb->fmt->normal_offset * sizeof(float) );
-                print("q:%d", cur3d->mesh->vb->fmt->normal_offset );
-            }
-
-            glLoadIdentity();
-                    
-            if(cur3d->billboard){
-                    
-                // [ a0 a4 a8 a12
-                //   a1 a5 a9 a13
-                //   a2 a6 a10 a14
-                //   a3 a7 a11 a15 ]
-                // を
-                // [ 1 0 0 a12
-                //   0 1 0 a13
-                //   0 0 1 a14
-                //   a3 a7 a11 a15 ]
-                // になおす。
-                glPushMatrix();
-                float mat[16];
-                glGetFloatv(GL_MODELVIEW_MATRIX,mat);
-                mat[12] = cur3d->loc.x;
-                mat[13] = cur3d->loc.y;
-                mat[14] = cur3d->loc.z;                    
-                mat[0] = mat[5] = mat[10] = 1;
-                mat[1] = mat[2] = mat[4] = mat[6] = mat[8] = mat[9] = 0;
-                glLoadMatrixf(mat);
-
-            } else {
-                glTranslatef( cur3d->loc.x, cur3d->loc.y, cur3d->loc.z );
-                glScalef( cur3d->scl.x, cur3d->scl.y, cur3d->scl.z );
-
-                if( cur3d->rot.x != 0 ){
-                    glRotatef( cur3d->rot.x, 1,0,0);     
-                }
-                if( cur3d->rot.y != 0 ){
-                    glRotatef( cur3d->rot.y, 0,1,0);     
-                }
-                if( cur3d->rot.z != 0 ){
-                    glRotatef( cur3d->rot.z, 0,0,1);
-                }
-            }
-
-            glDrawElements( cur3d->mesh->prim_type, cur3d->mesh->ib->array_len, GL_UNSIGNED_INT, 0);
-            glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-            glBindBuffer( GL_ARRAY_BUFFER, 0 );
-
-            if( cur3d->billboard ){
-                glPopMatrix();
-            }
             
             cur = cur->next;
         }
@@ -1013,24 +1019,6 @@ void Pad::readGLFW() {
     right = glfwGetKey('D');
 }
 
-
-MeshSet::MeshSet() : meshes(NULL){
-}
-
-void MeshSet::reserve( int n ) {
-    assertmsg( meshes == NULL, "can't initialize again");
-    size_t sz = sizeof(Mesh*) * n;
-    meshes = (Mesh**) malloc( sz );
-    memset(meshes, 0, sz );
-    mesh_num = n;
-}
-void MeshSet::setMesh( int ind, Mesh *m ) {
-    assertmsg( ind >= 0 && ind < mesh_num, "invalid index:%d", ind );
-    meshes[ind] = m;
-}
-MeshSet::~MeshSet() {
-    if(meshes) free(meshes);
-}
 
 /////////
 
