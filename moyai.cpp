@@ -349,13 +349,19 @@ int Layer::renderAllProps(){
 
             cnt++;
 
-            
-
-            TileDeck *deck_to_use = cur3d->mesh->deck;
-            if( !deck_to_use ) deck_to_use = cur3d->deck;
-
             if( cur3d->mesh ) {
-                drawMesh( cur3d->mesh, cur3d->billboard, deck_to_use, cur3d->loc, cur3d->scl, cur3d->rot );
+                drawMesh( cur3d->mesh, cur3d->billboard, cur3d->deck, cur3d->loc, cur3d->scl, cur3d->rot );
+            }
+            if( cur3d->children_num > 0 ) {
+                for(int i=0;i<cur3d->children_num;i++) {
+                    Prop3D *child = cur3d->children[i];
+                    if( child ) {
+                        Vec3 loc = cur3d->loc + child->loc;
+                        Vec3 scl = cur3d->scl * child->scl;
+                        Vec3 rot = cur3d->rot + child->rot;
+                        drawMesh( child->mesh, child->billboard, child->deck, loc, scl, rot );
+                    }
+                }
             }
                                    
             

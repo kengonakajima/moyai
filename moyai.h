@@ -68,6 +68,7 @@ public:
     inline Vec3 operator+(Vec3 arg){ return Vec3(x+arg.x,y+arg.y,z+arg.z); }
     inline Vec3 operator-(Vec3 arg){ return Vec3(x-arg.x,y-arg.y,z-arg.z); }
     inline Vec3 operator*(float f){ return Vec3(x*f,y*f,z*f); }
+    inline Vec3 operator*(Vec3 v){ return Vec3(x*v.x,y*v.y,z*v.z); }    
     inline Vec3 operator/(float f){ return Vec3(x/f,y/f,z/f); }    
     inline Vec3 operator*=(float f){ x *= f; y *= f; z *= f; return Vec3(x,y,z); }
     inline Vec3 operator/=(float f){ x /= f; y /= f; z /= f; return Vec3(x,y,z); }                
@@ -382,13 +383,11 @@ public:
     VertexBuffer * vb;
     IndexBuffer *ib;
     GLuint prim_type;
-    TileDeck *deck; // nullable
-    Mesh() : vb(0), ib(0), prim_type(0), deck(NULL) {
+    Mesh() : vb(0), ib(0), prim_type(0) {
     }
     void setVertexBuffer(VertexBuffer *b) { vb = b; }
     void setIndexBuffer(IndexBuffer *b ){ ib = b; }
     void setPrimType( GLuint t) { prim_type = t; }
-    void setDeck( TileDeck *dk ) { deck = dk; }
 };
 
 
@@ -1014,7 +1013,7 @@ public:
     inline void setScl(float x, float y, float z) { scl.x = x; scl.y = y; scl.z = z; }    
     inline void setRot(Vec3 r) { rot = r; }
     inline void setMesh( Mesh *m) { mesh = m; }
-    void reserveChild( int n ) {
+    void reserveChildren( int n ) {
         size_t sz = sizeof(Prop3D*) * n;
         children = (Prop3D**) malloc( sz );
         for(int i=0;i<n;i++) children[i] = NULL;
@@ -1030,6 +1029,15 @@ public:
     virtual bool prop3DPoll(double dt) { return true; }
     virtual bool propPoll(double dt) {
         if( prop3DPoll(dt) == false ) return false;
+        if( children_num > 0 ) { 
+            // children
+            for(int i=0;i<children_num;i++){
+                Prop3D *p = children[i];
+                p->loc = loc;
+                p->basePoll(dt);
+            }
+        }
+        
         return true;
     }
 

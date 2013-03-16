@@ -33,7 +33,8 @@ Prop3D *g_prop_col;
 Prop3D *g_prop_tex;
 Prop3D *g_prop_texcol;
 Prop3D *g_prop_billboard;
-
+Prop3D *g_prop_with_children;
+Prop3D *g_children[3];
 
 void updateGame() {
     static double last_print_at = 0;
@@ -79,16 +80,23 @@ void updateGame() {
         g_prop_billboard->loc.x = cos(g_prop_billboard->accum_time*2);
     }
 
-    
+
+    if( g_prop_with_children ) {
+        g_prop_with_children->loc.y = sin(g_prop_with_children->accum_time*0.5)*1.2;
+        g_prop_with_children->loc.x = cos(g_prop_with_children->accum_time*0.5)*1.2;
+        for(int i=0;i<elementof(g_children);i++) {
+            Prop3D *child = g_children[i];
+            child->loc.y = sin(g_prop_with_children->accum_time*(2+i) )/7.0;
+            child->loc.x = cos(g_prop_with_children->accum_time*(2+i) )/7.0;
+            child->rot.x = child->accum_time * 500;
+            child->rot.z = child->accum_time * 500;            
+        }
+    }
     //    print("propx:%f r:%f", g_prop_0->loc.x, g_prop_0->rot3d.z );
-
-
     
     g_moyai->renderAll();
     
     last_poll_at = t;
-
-
 }
 
 void setupCube() {
@@ -303,6 +311,33 @@ void setupCube() {
     g_prop_billboard->billboard = true;
     g_main_layer->insertProp(g_prop_billboard);
 
+    if(1){
+        g_children[0] = new Prop3D();
+        g_children[0]->setMesh( g_colmesh );
+        g_children[0]->setScl( Vec3(0.5,0.5,1) );
+        g_children[0]->setLoc( Vec3(0.5,0,0) );
+        g_children[1] = new Prop3D();
+        g_children[1]->setMesh( g_texmesh );
+        g_children[1]->setScl( Vec3(1,1,1) );
+        g_children[1]->setLoc( Vec3(0,0,0) );
+        g_children[1]->setTexture( g_wood_tex );
+        g_children[2] = new Prop3D();
+        g_children[2]->setMesh( g_texcolmesh );
+        g_children[2]->setScl( Vec3(1,1,1) );
+        g_children[2]->setLoc( Vec3(0,0,0) );
+        g_children[2]->setTexture( g_wood_tex );
+
+        g_prop_with_children = new Prop3D();
+        g_prop_with_children->reserveChildren(3);
+        g_prop_with_children->addChild(g_children[0]);
+        g_prop_with_children->addChild(g_children[1]);
+        g_prop_with_children->addChild(g_children[2]);
+        g_prop_with_children->setLoc( Vec3(0.1,0,0 ) );
+        g_prop_with_children->setScl( Vec3(1,1,1) );
+        g_main_layer->insertProp( g_prop_with_children );
+    }
+        
+    
     
 }
 
