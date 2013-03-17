@@ -8,6 +8,9 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include "cumino.h"
 
 
@@ -193,4 +196,13 @@ void dump(const char*s, size_t l) {
         if((i%16)==15) prt("\n");
     }
     prt("\n");
+}
+
+
+int getModifiedTime( const char *path, time_t *out ) {
+    struct stat st;
+    int r = stat(path,&st);
+    if( r < 0 ) return -1;
+    *out = st.st_mtime;
+    return 0;
 }
