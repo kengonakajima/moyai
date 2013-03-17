@@ -183,7 +183,7 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mesh->ib->gl_name );
     glBindBuffer( GL_ARRAY_BUFFER, mesh->vb->gl_name );
 
-#if 0
+    /*
     print("draw mesh! %p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d normofs:%d vert_sz:%d array_len:%d",
           mesh,
           mesh->vb->gl_name,
@@ -195,7 +195,7 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck
           vert_sz,
           mesh->vb->array_len
           );
-#endif
+    */
 
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_COLOR_ARRAY );
@@ -219,7 +219,26 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck
         glNormalPointer( GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->normal_offset * sizeof(float) );
     }
 
-    glLoadIdentity();
+    glLoadIdentity();    
+
+    // ライトが設定されてるメッシュの中でも、マテリアルが設定されてないメッシュが混ざってるときはライトつけないことが必要。
+    // TODO: すでにライトあててるときは再設定必要ない
+    if( light && material ) {
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        float ambient[4] = { light->ambient.r, light->ambient.g, light->ambient.b, light->ambient.a };
+        glLightfv( GL_LIGHT0, GL_AMBIENT, ambient );
+        float diffuse[4] = { light->diffuse.r, light->diffuse.g, light->diffuse.b, light->diffuse.a };
+        glLightfv( GL_LIGHT0, GL_DIFFUSE, diffuse );
+        float pos[4] = { light->pos.x, light->pos.y, light->pos.z, 0 };
+        glLightfv( GL_LIGHT0, GL_POSITION, pos );
+        float specular[4] = { light->specular.r, light->specular.g, light->specular.b, light->specular.a };        
+        glLightfv( GL_LIGHT0, GL_SPECULAR, specular );
+    } else {
+        glDisable(GL_LIGHTING);
+        glDisable(GL_LIGHT0);
+    }
+
                     
     if(billboard){
                     
@@ -348,23 +367,8 @@ int Layer::renderAllProps(){
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
+        // もともとライト設定はこの位置にあったが drawmeshに移動した
 
-        if( light ) {
-            glEnable(GL_LIGHTING);
-            glEnable(GL_LIGHT0);
-            float ambient[4] = { light->ambient.r, light->ambient.g, light->ambient.b, light->ambient.a };
-            glLightfv( GL_LIGHT0, GL_AMBIENT, ambient );
-            float diffuse[4] = { light->diffuse.r, light->diffuse.g, light->diffuse.b, light->diffuse.a };
-            glLightfv( GL_LIGHT0, GL_DIFFUSE, diffuse );
-            float pos[4] = { light->pos.x, light->pos.y, light->pos.z, 0 };
-            glLightfv( GL_LIGHT0, GL_POSITION, pos );
-            float specular[4] = { light->specular.r, light->specular.g, light->specular.b, light->specular.a };        
-            glLightfv( GL_LIGHT0, GL_SPECULAR, specular );
-        } else {
-            glDisable(GL_LIGHTING);
-            glDisable(GL_LIGHT0);
-        }
-        
         int cnt=0;
         last_tex_gl_id = 0;
 
