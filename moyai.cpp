@@ -359,7 +359,7 @@ int Layer::renderAllProps(){
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
-        gluPerspective( 60, 1, viewport->near_clip, viewport->far_clip );
+        gluPerspective( 60, (GLdouble)viewport->screen_width/(GLdouble)viewport->screen_height, viewport->near_clip, viewport->far_clip );
         gluLookAt( camera->loc.x,camera->loc.y,camera->loc.z,
                    camera->look_at.x,camera->look_at.y,camera->look_at.z,
                    camera->look_up.x,camera->look_up.y,camera->look_up.z );

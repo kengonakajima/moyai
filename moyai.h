@@ -104,6 +104,11 @@ public:
                      x * sin(v) + y * cos(v),
                      0 );
     }
+    inline Vec3 interpolate(Vec3 v, float zero_to_one) {
+        return Vec3( ::interpolate(x,v.x,zero_to_one),
+                     ::interpolate(y,v.y,zero_to_one),
+                     ::interpolate(z,v.z,zero_to_one) );
+    }
 };
 
 
