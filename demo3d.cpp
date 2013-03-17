@@ -102,8 +102,8 @@ void updateGame() {
 void setupCube() {
     // colored cube
     VertexFormat *colvf = new VertexFormat();
-    colvf->declareCoordVec3( 0 );
-    colvf->declareColor( 1 );
+    colvf->declareCoordVec3();
+    colvf->declareColor();
 
 
     VertexBuffer *colvb = new VertexBuffer();
@@ -151,8 +151,8 @@ void setupCube() {
     // cube with tex, no color
 
     VertexFormat *texvf = new VertexFormat();
-    texvf->declareCoordVec3(0);
-    texvf->declareUV(1);
+    texvf->declareCoordVec3();
+    texvf->declareUV();
 
     VertexBuffer *texvb = new VertexBuffer();
     texvb->setFormat(texvf);
@@ -167,22 +167,22 @@ void setupCube() {
     texvb->setCoord( 6, Vec3(d,d,-d) ); // G 
     texvb->setCoord( 7, Vec3(-d,d,-d) ); // H     
     
-    texvb->setUV( 0, 0,0 );
-    texvb->setUV( 1, 1,0 );
-    texvb->setUV( 2, 1,1 );
-    texvb->setUV( 3, 0,1 );
-    texvb->setUV( 4, 0,0 );
-    texvb->setUV( 5, 1,0 );
-    texvb->setUV( 6, 1,1 );
-    texvb->setUV( 7, 0,1 );
+    texvb->setUV( 0, Vec2(0,0) );
+    texvb->setUV( 1, Vec2(1,0) );
+    texvb->setUV( 2, Vec2(1,1) );
+    texvb->setUV( 3, Vec2(0,1) );
+    texvb->setUV( 4, Vec2(0,0) );
+    texvb->setUV( 5, Vec2(1,0) );
+    texvb->setUV( 6, Vec2(1,1) );
+    texvb->setUV( 7, Vec2(0,1) );
 
 
 
     // cube with tex and color 
     VertexFormat *texcolvf = new VertexFormat();
-    texcolvf->declareCoordVec3(0);
-    texcolvf->declareColor(1);
-    texcolvf->declareUV(2);
+    texcolvf->declareCoordVec3();
+    texcolvf->declareColor();
+    texcolvf->declareUV();
 
 
     VertexBuffer *texcolvb = new VertexBuffer();
@@ -198,14 +198,14 @@ void setupCube() {
     texcolvb->setCoord( 6, Vec3(d,d,-d) ); // G white
     texcolvb->setCoord( 7, Vec3(-d,d,-d) ); // H white
 
-    texcolvb->setUV( 0, 0,0 );
-    texcolvb->setUV( 1, 1,0 );
-    texcolvb->setUV( 2, 1,1 );
-    texcolvb->setUV( 3, 0,1 );
-    texcolvb->setUV( 4, 0,0 );
-    texcolvb->setUV( 5, 1,0 );
-    texcolvb->setUV( 6, 1,1 );
-    texcolvb->setUV( 7, 0,1 );    
+    texcolvb->setUV( 0, Vec2(0,0) );
+    texcolvb->setUV( 1, Vec2(1,0) );
+    texcolvb->setUV( 2, Vec2(1,1) );
+    texcolvb->setUV( 3, Vec2(0,1) );
+    texcolvb->setUV( 4, Vec2(0,0) );
+    texcolvb->setUV( 5, Vec2(1,0) );
+    texcolvb->setUV( 6, Vec2(1,1) );
+    texcolvb->setUV( 7, Vec2(0,1) );    
 
     texcolvb->setColor( 0, Color(1,0,0,0.5) );
     texcolvb->setColor( 1, Color(0,0,1,0.5) );

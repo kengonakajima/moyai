@@ -243,10 +243,10 @@ public:
             types[i] = 0;
         }
     }
-    void declareCoordVec3(int index ){ addType('v'); }
-    void declareColor(int index ){ addType('c'); }
-    void declareUV(int index){ addType('t'); }
-    void declareNormal(int index){ addType('n'); }
+    void declareCoordVec3(){ addType('v'); }
+    void declareColor(){ addType('c'); }
+    void declareUV(){ addType('t'); }
+    void declareNormal(){ addType('n'); }
     void addType(char t){
         assertmsg( types_used < elementof(types), "too many types");
         types[types_used++] = t;
@@ -308,6 +308,11 @@ public:
         buf[index_in_array+1] = v.y;
         buf[index_in_array+2] = v.z;
     }
+    void setCoordBulk( Vec3 *v, int num ) {
+        for(int i=0;i<num;i++) {
+            setCoord( i, v[i] );
+        }
+    }
     void setColor( int index, Color c ) {
         assertmsg(fmt, "vertex format is not set");
         assert( index < array_len );
@@ -319,26 +324,36 @@ public:
         buf[index_in_array+2] = c.b;
         buf[index_in_array+3] = c.a;        
     }
-    void setUV( int index, float u, float v ) {
+    void setUV( int index, Vec2 uv ) {
         assertmsg(fmt, "vertex format is not set");
         assert( index < array_len );
         int ofs = fmt->texture_offset;
         assertmsg( ofs >= 0, "texcoord have not declared in vertex format");
         int index_in_array = index * unit_num_float + ofs;
-        buf[index_in_array] = u;
-        buf[index_in_array+1] = v;
+        buf[index_in_array] = uv.x;
+        buf[index_in_array+1] = uv.y;
     }
-    void setNormal( int index, float x, float y, float z ) { 
+    void setUVBulk( Vec2 *uv, int num ) {
+        for(int i=0;i<num;i++) {
+            setUV( i, uv[i] );
+        }
+    }
+
+    void setNormal( int index, Vec3 v ) { 
         assertmsg(fmt, "vertex format is not set");
         assert( index < array_len );
         int ofs = fmt->normal_offset;
         assertmsg( ofs >= 0, "normal have not declared in vertex format" );
         int index_in_array = index * unit_num_float + ofs;
-        buf[index_in_array] = x;
-        buf[index_in_array+1] = y;
-        buf[index_in_array+2] = z;        
+        buf[index_in_array] = v.x;
+        buf[index_in_array+1] = v.y;
+        buf[index_in_array+2] = v.z;        
     }
-    
+    void setNormalBulk( Vec3 *v, int num ) {
+        for(int i=0;i<num;i++) {
+            setNormal( i, v[i] );
+        }
+    }
     void bless(){
         assert(fmt);
         if( gl_name == 0 ){
@@ -377,12 +392,23 @@ public:
     
 };
 
+class Light {
+public:
+    Vec3 pos;
+    Color diffuse;
+    Color ambient;
+    Color specular;
+    Light() : pos(0,0,0), diffuse(1,1,1,1), ambient(0,0,0,1), specular(0,0,0,0) {
+    }
+};
+
 class TileDeck;
 class Mesh {
 public:
     VertexBuffer * vb;
     IndexBuffer *ib;
     GLuint prim_type;
+    
     Mesh() : vb(0), ib(0), prim_type(0) {
     }
     void setVertexBuffer(VertexBuffer *b) { vb = b; }
@@ -994,6 +1020,14 @@ class Prop2D : public Prop {
 
 };
 
+class Material {
+public:
+    Color diffuse;
+    Color ambient;
+    Color specular;
+    Material() : diffuse(1,1,1,1), ambient(0,0,0,0), specular(0,0,0,0) {}
+};
+
 class Prop3D : public Prop {
 public:
     Vec3 loc;
@@ -1004,8 +1038,10 @@ public:
 
     Prop3D **children;
     int children_num, children_max;
+
+    Material *material;
     
-    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), billboard(false), children(NULL), children_num(0), children_max(0) {
+    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), billboard(false), children(NULL), children_num(0), children_max(0), material(NULL) {
         dimension = DIMENSION_3D;
     }
     inline void setLoc(Vec3 l) { loc = l; }
@@ -1026,6 +1062,7 @@ public:
         children[children_num] = p;
         children_num ++;
     }
+    void setMaterial( Material *mat ) { material = mat; }
 
     virtual bool prop3DPoll(double dt) { return true; }
     virtual bool propPoll(double dt) {
@@ -1080,10 +1117,12 @@ class Layer {
     
     int id;
     GLuint last_tex_gl_id;
+
+    Light *light;
     
     static int idgen;
     
-    Layer() : camera(NULL), prop_top(NULL), viewport(NULL), last_tex_gl_id(0) {
+    Layer() : camera(NULL), prop_top(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL) {
         id = idgen++;
     }
     inline void setViewport( Viewport *vp ){
@@ -1091,6 +1130,9 @@ class Layer {
     }
     inline void setCamera(Camera *cam){
         camera = cam;
+    }
+    inline void setLight(Light *l){
+        light = l;
     }
 
     inline void insertProp(Prop*p){
@@ -1113,7 +1155,7 @@ class Layer {
                             center + Vec2(dia,dia),
                             out, outlen );
     }
-    inline void drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot  );
+    inline void drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  );
 };
 
 class Font {

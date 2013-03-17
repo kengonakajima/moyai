@@ -164,7 +164,7 @@ int Moyai::renderAll(){
     return cnt;
 }
 
-inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot  ) {   
+inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {   
     if( deck ) {
         glEnable(GL_TEXTURE_2D);
         if( deck->tex->tex != last_tex_gl_id ) {
@@ -184,13 +184,14 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck
     glBindBuffer( GL_ARRAY_BUFFER, mesh->vb->gl_name );
 
 #if 0
-    print("draw mesh! %p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d vert_sz:%d array_len:%d",
+    print("draw mesh! %p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d normofs:%d vert_sz:%d array_len:%d",
           mesh,
           mesh->vb->gl_name,
           mesh->ib->gl_name,
           mesh->vb->fmt->coord_offset,
           mesh->vb->fmt->color_offset,
-          mesh->vb->fmt->texture_offset,                        
+          mesh->vb->fmt->texture_offset,
+          mesh->vb->fmt->normal_offset,
           vert_sz,
           mesh->vb->array_len
           );
@@ -215,7 +216,7 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck
     }
     if( mesh->vb->fmt->normal_offset >= 0 ) {
         glEnableClientState( GL_NORMAL_ARRAY );
-        glNormalPointer( 3, vert_sz, (char*)0 + mesh->vb->fmt->normal_offset * sizeof(float) );
+        glNormalPointer( GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->normal_offset * sizeof(float) );
     }
 
     glLoadIdentity();
@@ -255,9 +256,17 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck
             if( localrot->x != 0 ) glRotatef( localrot->x, 1,0,0);     
             if( localrot->y != 0 ) glRotatef( localrot->y, 0,1,0);     
             if( localrot->z != 0 ) glRotatef( localrot->z, 0,0,1);
-        }
+        }        
     }
 
+    if(material) {
+        float diffuse[4] = { material->diffuse.r, material->diffuse.g, material->diffuse.b, material->diffuse.a };
+        glMaterialfv( GL_FRONT, GL_DIFFUSE, diffuse );
+        float ambient[4] = { material->ambient.r, material->ambient.g, material->ambient.b, material->ambient.a };
+        glMaterialfv( GL_FRONT, GL_AMBIENT, ambient );
+        float specular[4] = { material->specular.r, material->specular.g, material->specular.b, material->specular.a };
+        glMaterialfv( GL_FRONT, GL_SPECULAR, specular);
+    }
     glDrawElements( mesh->prim_type, mesh->ib->array_len, GL_UNSIGNED_INT, 0);
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
     glBindBuffer( GL_ARRAY_BUFFER, 0 );
@@ -325,7 +334,9 @@ int Layer::renderAllProps(){
         return drawn;
     } else { // 3D
         assertmsg(camera, "3d render need camera.");
+
         
+            
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
@@ -337,6 +348,23 @@ int Layer::renderAllProps(){
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
+
+        if( light ) {
+            glEnable(GL_LIGHTING);
+            glEnable(GL_LIGHT0);
+            float ambient[4] = { light->ambient.r, light->ambient.g, light->ambient.b, light->ambient.a };
+            glLightfv( GL_LIGHT0, GL_AMBIENT, ambient );
+            float diffuse[4] = { light->diffuse.r, light->diffuse.g, light->diffuse.b, light->diffuse.a };
+            glLightfv( GL_LIGHT0, GL_DIFFUSE, diffuse );
+            float pos[4] = { light->pos.x, light->pos.y, light->pos.z, 0 };
+            glLightfv( GL_LIGHT0, GL_POSITION, pos );
+            float specular[4] = { light->specular.r, light->specular.g, light->specular.b, light->specular.a };        
+            glLightfv( GL_LIGHT0, GL_SPECULAR, specular );
+        } else {
+            glDisable(GL_LIGHTING);
+            glDisable(GL_LIGHT0);
+        }
+        
         int cnt=0;
         last_tex_gl_id = 0;
 
@@ -354,7 +382,7 @@ int Layer::renderAllProps(){
             if( cur3d->mesh ) {
                 drawMesh( cur3d->debug_id, cur3d->mesh, cur3d->billboard, cur3d->deck,
                           & cur3d->loc, & cur3d->scl, & cur3d->rot,
-                          NULL, NULL, NULL );
+                          NULL, NULL, NULL, cur3d->material );
             }
             if( cur3d->children_num > 0 ) {
                 for(int i=0;i<cur3d->children_num;i++) {
@@ -362,7 +390,8 @@ int Layer::renderAllProps(){
                     if( child ) {
                         drawMesh( child->debug_id, child->mesh, child->billboard, child->deck,
                                   & cur3d->loc, & cur3d->scl, & cur3d->rot,
-                                  & child->loc, & child->scl, & child->rot
+                                  & child->loc, & child->scl, & child->rot,
+                                  child->material
                                   );
                     }
                 }
