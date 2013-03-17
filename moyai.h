@@ -225,6 +225,9 @@ public:
                       a
                       );
     }
+    inline Color mul(Color v){
+        return Color( r * v.r, g * v.g, b * v.b, a * v.a );
+    }    
     inline Color adjust(float v){
         float rr=r*v,gg=g*v,bb=b*v;
         if(rr>1)rr=1;
