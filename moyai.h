@@ -422,6 +422,8 @@ public:
     void setVertexBuffer(VertexBuffer *b) { vb = b; }
     void setIndexBuffer(IndexBuffer *b ){ ib = b; }
     void setPrimType( GLuint t) { prim_type = t; }
+
+    
 };
 
 
@@ -491,6 +493,23 @@ class TileDeck {
         image_width = iw;
         image_height = ih;
     }
+
+    static const float EPSILON = 0.0001;
+    
+    inline void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs ) { 
+        float uunit = (float) cell_width / (float) image_width;
+        float vunit = (float) cell_height / (float) image_height;
+        int start_x = cell_width * (int)( ind % tile_width );
+        int start_y = cell_height * (int)( ind / tile_width );
+    
+        *u0 = (float) start_x / (float) image_width + EPSILON + uofs * uunit; 
+        *v0 = (float) start_y / (float) image_height + EPSILON + vofs * vunit; 
+        *u1 = *u0 + uunit - EPSILON; 
+        *v1 = *v0 + vunit - EPSILON;
+    }
+
+
+    
 };
 
 class FragmentShader {

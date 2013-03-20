@@ -412,6 +412,7 @@ int Layer::renderAllProps(){
 
 // 注意!min,maxの中心に中心点があるような形状しか対応していない
 void Prop2D::drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot ) {
+    /*
     float uunit = (float) dk->cell_width / (float) dk->image_width;
     float vunit = (float) dk->cell_height / (float) dk->image_height;
     int start_x = dk->cell_width * (int)( ind % dk->tile_width );
@@ -422,6 +423,9 @@ void Prop2D::drawIndex( TileDeck *dk, int ind, float minx, float miny, float max
     float v0 = (float) start_y / (float) dk->image_height + EPSILON + vofs * vunit; 
     float u1 = u0 + uunit - EPSILON; 
     float v1 = v0 + vunit - EPSILON;
+    */
+    float u0,v0,u1,v1;
+    dk->getUVFromIndex(ind, &u0, &v0, &u1, &v1, uofs, vofs );
     float depth = 10;
 
     if(hrev){
