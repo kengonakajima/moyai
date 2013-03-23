@@ -72,7 +72,7 @@ public:
     inline Vec3 operator/(float f){ return Vec3(x/f,y/f,z/f); }    
     inline Vec3 operator*=(float f){ x *= f; y *= f; z *= f; return Vec3(x,y,z); }
     inline Vec3 operator*=(Vec3 v){ x *= v.x; y *= v.y; z *= v.z; return Vec3(x,y,z); }
-    inline Vec3 operator/=(float f){ x /= f; y /= f; z /= f; return Vec3(x,y,z); }                
+    inline Vec3 operator/=(float f){ x /= f; y /= f; z /= f; return Vec3(x,y,z); }
     inline Vec3 operator+=(Vec3 arg){ x += arg.x; y += arg.y; z += arg.z; return Vec3(x,y,z); }
     inline Vec3 operator-=(Vec3 arg){ x -= arg.x; y -= arg.y; z -= arg.z; return Vec3(x,y,z); }
     inline bool operator==(Vec3 arg){ return (x==arg.x && y==arg.y && z==arg.z); }
@@ -297,7 +297,8 @@ public:
     float *buf;
     int array_len, total_num_float, unit_num_float;
     GLuint gl_name;
-    VertexBuffer() : fmt(NULL), buf(NULL), array_len(0), total_num_float(0), unit_num_float(0), gl_name(0) {}
+    Vec3 center;
+    VertexBuffer() : fmt(NULL), buf(NULL), array_len(0), total_num_float(0), unit_num_float(0), gl_name(0), center(0,0,0) {}
     void setFormat( VertexFormat *f ) { fmt = f; }
     void reserve(int cnt){
         assertmsg(fmt, "vertex format is not set" );
@@ -316,6 +317,14 @@ public:
         buf[index_in_array] = v.x;
         buf[index_in_array+1] = v.y;
         buf[index_in_array+2] = v.z;
+    }
+    Vec3 getCoord( int index ) {
+        assertmsg(fmt, "vertex format is not set" );
+        assert( index < array_len );
+        int ofs = fmt->coord_offset;
+        assertmsg( ofs >= 0, "coord have not declared in vertex format" );
+        int index_in_array = index * unit_num_float + ofs;
+        return Vec3( buf[index_in_array], buf[index_in_array+1], buf[index_in_array+2] );
     }
     void setCoordBulk( Vec3 *v, int num ) {
         for(int i=0;i<num;i++) {
@@ -370,6 +379,12 @@ public:
             glBindBuffer( GL_ARRAY_BUFFER, gl_name );
             glBufferData( GL_ARRAY_BUFFER, total_num_float * sizeof(float), buf, GL_STATIC_DRAW );
             glBindBuffer( GL_ARRAY_BUFFER, 0 );
+            Vec3 c(0,0,0);
+            for(int i=0;i<array_len;i++) {
+                c += getCoord(i);
+            }
+            c /= (float)array_len;
+            center = c;
         }
     }
 
@@ -417,6 +432,7 @@ public:
     VertexBuffer * vb;
     IndexBuffer *ib;
     GLuint prim_type;
+    Vec3 center;
     
     Mesh() : vb(0), ib(0), prim_type(0) {
     }
@@ -1066,6 +1082,7 @@ public:
 
     Prop3D **children;
     int children_num, children_max;
+    static const int CHILDREN_ABS_MAX = 64;
 
     Material *material;
     
@@ -1079,6 +1096,7 @@ public:
     inline void setRot(Vec3 r) { rot = r; }
     inline void setMesh( Mesh *m) { mesh = m; }
     void reserveChildren( int n ) {
+        assert( n <= CHILDREN_ABS_MAX );
         size_t sz = sizeof(Prop3D*) * n;
         children = (Prop3D**) malloc( sz );
         for(int i=0;i<n;i++) children[i] = NULL;

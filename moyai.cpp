@@ -389,8 +389,20 @@ int Layer::renderAllProps(){
                           NULL, NULL, NULL, cur3d->material );
             }
             if( cur3d->children_num > 0 ) {
+                SorterEntry sorter[Prop3D::CHILDREN_ABS_MAX];
+                int sorter_n=0;
                 for(int i=0;i<cur3d->children_num;i++) {
                     Prop3D *child = cur3d->children[i];
+                    if(child) {
+                        sorter[sorter_n].ptr = (void*)cur3d->children[i];
+                        sorter[sorter_n].val = camera->loc.len( cur3d->loc + child->loc + child->mesh->vb->center );
+                        sorter_n++;
+                    }
+                }
+                quickSortF( sorter, 0, sorter_n-1 );
+                
+                for(int i=sorter_n-1;i>=0;i--) {
+                    Prop3D *child = (Prop3D*)sorter[i].ptr;
                     if( child ) {
                         drawMesh( child->debug_id, child->mesh, child->billboard, child->deck,
                                   & cur3d->loc, & cur3d->scl, & cur3d->rot,
