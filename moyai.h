@@ -71,6 +71,7 @@ public:
     inline Vec3 operator*(Vec3 v){ return Vec3(x*v.x,y*v.y,z*v.z); }    
     inline Vec3 operator/(float f){ return Vec3(x/f,y/f,z/f); }    
     inline Vec3 operator*=(float f){ x *= f; y *= f; z *= f; return Vec3(x,y,z); }
+    inline Vec3 operator*=(Vec3 v){ x *= v.x; y *= v.y; z *= v.z; return Vec3(x,y,z); }
     inline Vec3 operator/=(float f){ x /= f; y /= f; z /= f; return Vec3(x,y,z); }                
     inline Vec3 operator+=(Vec3 arg){ x += arg.x; y += arg.y; z += arg.z; return Vec3(x,y,z); }
     inline Vec3 operator-=(Vec3 arg){ x -= arg.x; y -= arg.y; z -= arg.z; return Vec3(x,y,z); }
