@@ -433,8 +433,9 @@ public:
     IndexBuffer *ib;
     GLuint prim_type;
     Vec3 center;
+    bool transparent;
     
-    Mesh() : vb(0), ib(0), prim_type(0) {
+    Mesh() : vb(0), ib(0), prim_type(0), transparent(false) {
     }
     void setVertexBuffer(VertexBuffer *b) { vb = b; }
     void setIndexBuffer(IndexBuffer *b ){ ib = b; }
@@ -1165,6 +1166,10 @@ class Layer {
     GLuint last_tex_gl_id;
 
     Light *light;
+
+    // working area to avoid malloc in inner loops
+    SorterEntry sorter_opaque[Prop3D::CHILDREN_ABS_MAX];
+    SorterEntry sorter_transparent[Prop3D::CHILDREN_ABS_MAX];
     
     static int idgen;
     
