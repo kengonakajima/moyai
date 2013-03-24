@@ -110,6 +110,9 @@ public:
                      ::interpolate(y,v.y,zero_to_one),
                      ::interpolate(z,v.z,zero_to_one) );
     }
+    inline Vec3 floor() {
+        return Vec3( ::floor(x), ::floor(y), ::floor(z) );
+    }
 };
 
 
