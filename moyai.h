@@ -115,6 +115,29 @@ public:
     }
 };
 
+class AABB {
+public:
+    Vec3 min,max;
+    inline AABB( Vec3 min, Vec3 max ) : min(min),max(max) {}
+    inline AABB( Vec3 bottom_center, float width, float height ) {
+        min.x = bottom_center.x - width;
+        min.y = bottom_center.y;
+        min.z = bottom_center.z - width;
+
+        max.x = bottom_center.x + width;
+        max.y = bottom_center.y + height;
+        max.z = bottom_center.z + width;        
+    }
+    inline Vec3 get( int x, int y, int z ) {
+        Vec3 out;
+        if(x>0) out.x = max.x; else out.x = min.x;
+        if(y>0) out.y = max.y; else out.y = min.y;
+        if(z>0) out.z = max.z; else out.z = min.z;
+        return out;
+    }
+};
+
+
 
 
 class Vec2 {
