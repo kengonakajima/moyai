@@ -383,53 +383,54 @@ int Layer::renderAllProps(){
 
             cnt++;
 
-            if( cur3d->mesh ) {
-                drawMesh( cur3d->debug_id, cur3d->mesh, cur3d->billboard, cur3d->deck,
-                          & cur3d->loc, & cur3d->scl, & cur3d->rot,
-                          NULL, NULL, NULL, cur3d->material );
-            }
+            if( cur3d->visible ) { 
+                if( cur3d->mesh ) {
+                    drawMesh( cur3d->debug_id, cur3d->mesh, cur3d->billboard, cur3d->deck,
+                              & cur3d->loc, & cur3d->scl, & cur3d->rot,
+                              NULL, NULL, NULL, cur3d->material );
+                }
 
-            if( cur3d->children_num > 0 ) {
-                int opaque_n=0;
-                int transparent_n=0;
-                for(int i=0;i<cur3d->children_num;i++) {
-                    Prop3D *child = cur3d->children[i];
-                    if(child) {
-                        float l = camera->loc.len( cur3d->loc + child->loc + child->mesh->vb->center );
-                        if( child->mesh->transparent ) {
-                            sorter_transparent[transparent_n].ptr = (void*)cur3d->children[i];
-                            sorter_transparent[transparent_n].val = l;
-                            transparent_n++;
-                        } else {
-                            sorter_opaque[opaque_n].ptr = (void*)cur3d->children[i];
-                            sorter_opaque[opaque_n].val = l;
-                            opaque_n++;
+                if( cur3d->children_num > 0 ) {
+                    int opaque_n=0;
+                    int transparent_n=0;
+                    for(int i=0;i<cur3d->children_num;i++) {
+                        Prop3D *child = cur3d->children[i];
+                        if(child) {
+                            float l = camera->loc.len( cur3d->loc + child->loc + child->mesh->vb->center );
+                            if( child->mesh->transparent ) {
+                                sorter_transparent[transparent_n].ptr = (void*)cur3d->children[i];
+                                sorter_transparent[transparent_n].val = l;
+                                transparent_n++;
+                            } else {
+                                sorter_opaque[opaque_n].ptr = (void*)cur3d->children[i];
+                                sorter_opaque[opaque_n].val = l;
+                                opaque_n++;
+                            }
                         }
                     }
-                }
-                if( opaque_n > 0 ) quickSortF( sorter_opaque, 0, opaque_n-1 );
-                if( transparent_n > 0 ) quickSortF( sorter_transparent, 0, transparent_n-1 );
+                    if( opaque_n > 0 ) quickSortF( sorter_opaque, 0, opaque_n-1 );
+                    if( transparent_n > 0 ) quickSortF( sorter_transparent, 0, transparent_n-1 );
 
-                // draw opaque mesh first
-                for(int i=opaque_n-1;i>=0;i--) {
-                    Prop3D *child = (Prop3D*)sorter_opaque[i].ptr;
-                    drawMesh( child->debug_id, child->mesh, child->billboard, child->deck,
-                              & cur3d->loc, & cur3d->scl, & cur3d->rot,
-                              & child->loc, & child->scl, & child->rot,
-                              child->material
-                              );
-                }
-                for(int i=transparent_n-1;i>=0;i--){
-                    Prop3D *child = (Prop3D*)sorter_transparent[i].ptr;
-                    drawMesh( child->debug_id, child->mesh, child->billboard, child->deck,
-                              & cur3d->loc, & cur3d->scl, & cur3d->rot,
-                              & child->loc, & child->scl, & child->rot,
-                              child->material
-                              );
+                    // draw opaque mesh first
+                    for(int i=opaque_n-1;i>=0;i--) {
+                        Prop3D *child = (Prop3D*)sorter_opaque[i].ptr;
+                        drawMesh( child->debug_id, child->mesh, child->billboard, child->deck,
+                                  & cur3d->loc, & cur3d->scl, & cur3d->rot,
+                                  & child->loc, & child->scl, & child->rot,
+                                  child->material
+                                  );
+                    }
+                    for(int i=transparent_n-1;i>=0;i--){
+                        Prop3D *child = (Prop3D*)sorter_transparent[i].ptr;
+                        drawMesh( child->debug_id, child->mesh, child->billboard, child->deck,
+                                  & cur3d->loc, & cur3d->scl, & cur3d->rot,
+                                  & child->loc, & child->scl, & child->rot,
+                                  child->material
+                                  );
 
+                    }
                 }
-            }
-                                   
+            }                                   
             
             cur = cur->next;
         }
