@@ -287,6 +287,22 @@ public:
         types[types_used++] = t;
         updateSize();
     }
+    bool isCoordVec3Declared( int index ) {
+        assert(index>=0 && index<types_used);
+        return types[index] == 'v';
+    }
+    bool isColorDeclared( int index ) {
+        assert(index>=0 && index<types_used);
+        return types[index] == 'c';
+    }
+    bool isUVDeclared( int index ) {
+        assert(index>=0 && index<types_used);
+        return types[index] == 't';
+    }
+    bool isNormalDeclared( int index ) {
+        assert(index>=0 && index<types_used);
+        return types[index] == 'n';
+    }
     void updateSize(){
         num_float = 0;
         for(int i=0;i<types_used;i++){
@@ -325,6 +341,7 @@ public:
     GLuint gl_name;
 
     VertexBuffer() : fmt(NULL), buf(NULL), array_len(0), total_num_float(0), unit_num_float(0), gl_name(0) {}
+    ~VertexBuffer() { assert(buf); free(buf); }
     void setFormat( VertexFormat *f ) { fmt = f; }
     void reserve(int cnt){
         assertmsg(fmt, "vertex format is not set" );
