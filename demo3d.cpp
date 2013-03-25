@@ -382,8 +382,8 @@ void memTestDebug() {
 }
 
 int main() {
-    g_cumino_mem_debug = true;
-    memTestDebug();
+        g_cumino_mem_debug = true;
+        memTestDebug();
     
     g_moyai = new Moyai();
 

@@ -248,8 +248,8 @@ void *MALLOC( size_t sz ) {
     return out;
 }
 void FREE( void *ptr ) {
-    char *envaddr = ((char*)ptr) - ENVSIZE;
     if( g_cumino_mem_debug ) {
+        char *envaddr = ((char*)ptr) - ENVSIZE;
         unsigned long long addr = (unsigned long long)envaddr;
         int mod = (addr/16) % elementof(g_cumino_memtops);
         MemEntry *tgt = (MemEntry*) envaddr;
@@ -271,10 +271,12 @@ void FREE( void *ptr ) {
             }
 
         }
+        free(envaddr);
+    } else {
+        free(ptr);
     }
-    
-    free(envaddr);
 }
+
 void *operator new(size_t sz) {
     return MALLOC(sz);
 }
