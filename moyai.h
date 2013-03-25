@@ -353,7 +353,7 @@ public:
         array_len = cnt;
         unit_num_float = fmt->getNumFloat();
         total_num_float = array_len * unit_num_float;
-        buf = (float*)malloc( total_num_float * sizeof(float));
+        buf = (float*)MALLOC( total_num_float * sizeof(float));
         assert(buf);
     }
     void copyFromBuffer( float *v, int vert_cnt ) {
@@ -452,9 +452,14 @@ public:
     int array_len;
     GLuint gl_name;
     IndexBuffer() : buf(0), array_len(0), gl_name(0) {}
+    ~IndexBuffer() {
+        assert(buf);
+        FREE(buf);
+        glDeleteBuffers(1,&gl_name);
+    }
     void set( int *in, int l ) {
-        if(buf)free(buf);
-        buf = (int*) malloc( sizeof(int) * l );
+        if(buf) FREE(buf);
+        buf = (int*) MALLOC( sizeof(int) * l );
         assert(buf);
         memcpy(buf, in, sizeof(int)*l);
         array_len = l;
@@ -506,7 +511,7 @@ public:
     unsigned char *buffer;
     int width, height;
     Image() : buffer(NULL), width(0), height(0) {}
-    ~Image() { if(buffer)free(buffer); }
+    ~Image() { if(buffer)FREE(buffer); }
     void setSize(int w, int h ) { width = w; height = h; }
     void setPixel( int x, int y, Color c );
     Color getPixel( int x, int y );
@@ -644,9 +649,9 @@ class Grid {
         deck = NULL;
     }
     ~Grid(){
-        if(index_table) free(index_table);
-        if(xflip_table) free(xflip_table);
-        if(yflip_table) free(yflip_table);
+        if(index_table) FREE(index_table);
+        if(xflip_table) FREE(xflip_table);
+        if(yflip_table) FREE(yflip_table);
     }
     void setDeck( TileDeck *d ){
         deck = d;
@@ -656,7 +661,7 @@ class Grid {
         assertmsg(y>=0 && y<height,"invalid y:%d",y);
         return ( x + y * width );
     }
-#define ENSURE_GRID_TABLE( membname, T, inival)  if( !membname ){ membname = (T*) malloc(width*height*sizeof(T)); int i=0; for(int y=0;y<height;y++){ for(int x=0;x<width;x++){ membname[i++] = inival; }}}
+#define ENSURE_GRID_TABLE( membname, T, inival)  if( !membname ){ membname = (T*) MALLOC(width*height*sizeof(T)); int i=0; for(int y=0;y<height;y++){ for(int x=0;x<width;x++){ membname[i++] = inival; }}}
     inline void set(int x, int y, int ind ){
         ENSURE_GRID_TABLE( index_table, int, GRID_NOT_USED );
         index_table[ index(x,y) ] = ind;
@@ -819,7 +824,7 @@ public:
     inline void ensurePrims(){
         if(!prims){
             prim_max = 64;
-            if(!prims) prims = (Prim**) malloc( sizeof(Prim*) * prim_max );
+            if(!prims) prims = (Prim**) MALLOC( sizeof(Prim*) * prim_max );
             assert(prims);
             prim_num = 0;
         }
@@ -1156,7 +1161,7 @@ public:
     void reserveChildren( int n ) {
         assert( n <= CHILDREN_ABS_MAX );
         size_t sz = sizeof(Prop3D*) * n;
-        children = (Prop3D**) malloc( sz );
+        children = (Prop3D**) MALLOC( sz );
         for(int i=0;i<n;i++) children[i] = NULL;
         children_max = n;
     }
@@ -1312,10 +1317,10 @@ public:
     }
     inline void setString( char *s ){
         int l = strlen(s);
-        wchar_t *out = (wchar_t*)malloc((l+1)*sizeof(wchar_t));
+        wchar_t *out = (wchar_t*)MALLOC((l+1)*sizeof(wchar_t));
         mbstowcs(out, s, l+1 );
         setString(out);
-        free(out);
+        FREE(out);
     }
         
     inline void setString( const wchar_t *s ){
@@ -1324,9 +1329,9 @@ public:
     inline void setString( wchar_t *s ){
         size_t l = wcslen(s);
         if(str){
-            free(str);
+            FREE(str);
         }
-        str = (wchar_t*)malloc( (l+1) * sizeof(wchar_t) );
+        str = (wchar_t*)MALLOC( (l+1) * sizeof(wchar_t) );
         wcscpy( str, s );
     }
 };

@@ -214,11 +214,22 @@ class MemEntry {
 public:
     void *ptr;
     size_t sz;
-    
+    int tag;
+    MemEntry *next;
 };
+
+
+MemEntry *g_cumino_memtops[1024];
+
 
 void *MALLOC( size_t sz ) {
     void *out = malloc(sz);
+#if 0    
+    unsigned long long addr = (unsigned long long) out;
+    unsigned long long i = addr / 16;
+    unsigned long long mod = (addr/16) % elementof(g_cumino_memtops);
+    print("%lld", addr / 16 );
+#endif    
     return out;
 }
 void FREE( void *ptr ) {
