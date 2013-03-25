@@ -396,7 +396,7 @@ int Layer::renderAllProps(){
                     for(int i=0;i<cur3d->children_num;i++) {
                         Prop3D *child = cur3d->children[i];
                         if(child && child->visible ) {
-                            float l = camera->loc.len( cur3d->loc + child->loc + child->mesh->vb->center );
+                            float l = camera->loc.len( cur3d->loc + child->loc + child->sort_center );
                             if( child->mesh->transparent ) {
                                 sorter_transparent[transparent_n].ptr = (void*)cur3d->children[i];
                                 sorter_transparent[transparent_n].val = l;

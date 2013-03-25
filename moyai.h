@@ -323,8 +323,8 @@ public:
     float *buf;
     int array_len, total_num_float, unit_num_float;
     GLuint gl_name;
-    Vec3 center;
-    VertexBuffer() : fmt(NULL), buf(NULL), array_len(0), total_num_float(0), unit_num_float(0), gl_name(0), center(0,0,0) {}
+
+    VertexBuffer() : fmt(NULL), buf(NULL), array_len(0), total_num_float(0), unit_num_float(0), gl_name(0) {}
     void setFormat( VertexFormat *f ) { fmt = f; }
     void reserve(int cnt){
         assertmsg(fmt, "vertex format is not set" );
@@ -405,13 +405,15 @@ public:
             glBindBuffer( GL_ARRAY_BUFFER, gl_name );
             glBufferData( GL_ARRAY_BUFFER, total_num_float * sizeof(float), buf, GL_STATIC_DRAW );
             glBindBuffer( GL_ARRAY_BUFFER, 0 );
-            Vec3 c(0,0,0);
-            for(int i=0;i<array_len;i++) {
-                c += getCoord(i);
-            }
-            c /= (float)array_len;
-            center = c;
         }
+    }
+    Vec3 calcCenterOfCoords() {
+        Vec3 c(0,0,0);
+        for(int i=0;i<array_len;i++) {
+            c += getCoord(i);
+        }
+        c /= (float)array_len;
+        return c;
     }
 
 };
@@ -458,7 +460,6 @@ public:
     VertexBuffer * vb;
     IndexBuffer *ib;
     GLuint prim_type;
-    Vec3 center;
     bool transparent;
     
     Mesh() : vb(0), ib(0), prim_type(0), transparent(false) {
@@ -466,6 +467,7 @@ public:
     void setVertexBuffer(VertexBuffer *b) { vb = b; }
     void setIndexBuffer(IndexBuffer *b ){ ib = b; }
     void setPrimType( GLuint t) { prim_type = t; }
+    Vec3 getCenter() { return vb->calcCenterOfCoords(); }
 
     
 };
@@ -1106,14 +1108,16 @@ public:
     Vec3 rot;
     Mesh *mesh;
     bool billboard;
+    
 
     Prop3D **children;
     int children_num, children_max;
     static const int CHILDREN_ABS_MAX = 64;
 
     Material *material;
+    Vec3 sort_center;
     
-    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), billboard(false), children(NULL), children_num(0), children_max(0), material(NULL) {
+    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), billboard(false), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0) {
         dimension = DIMENSION_3D;
     }
     inline void setLoc(Vec3 l) { loc = l; }
