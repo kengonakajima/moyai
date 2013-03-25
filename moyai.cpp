@@ -757,10 +757,10 @@ static bool shaderCompile(GLuint shader, const char *src){
         glGetProgramiv( shader, GL_INFO_LOG_LENGTH, &size );
         if ( size > 0 ){
             GLchar *buf;
-            buf = (char *)malloc(size);
+            buf = (char *)MALLOC(size);
             glGetShaderInfoLog( shader, size, &len, buf);
             printf("%s",buf);
-            free(buf);
+            FREE(buf);
         }
         return false;
     }
@@ -781,10 +781,10 @@ static bool link( GLuint prog ){
     
         glGetProgramiv( prog, GL_INFO_LOG_LENGTH, &size );
         if ( size > 0 ){
-            infoLog = (char *)malloc(size);
+            infoLog = (char *)MALLOC(size);
             glGetProgramInfoLog( prog, size, &len, infoLog );
             printf("%s",infoLog);
-            free(infoLog);
+            FREE(infoLog);
         }
         return false;
     }
@@ -971,7 +971,7 @@ void Image::setPixel( int x, int y, Color c ){
     assert( width > 0 && height > 0);
     if(!buffer){
         size_t sz = width*height*4;
-        buffer = (unsigned char*) malloc(sz);
+        buffer = (unsigned char*) MALLOC(sz);
         assert(buffer);
         memset(buffer, 0, sz );
     }
@@ -1021,10 +1021,10 @@ bool Image::writePNG(const char *path) {
 
     png_structp png_ptr;
     png_infop info_ptr;
-    png_bytep * row_pointers = (png_bytep*) malloc( height * sizeof(png_bytep) );
+    png_bytep * row_pointers = (png_bytep*) MALLOC( height * sizeof(png_bytep) );
     assert(row_pointers);
     for(int y=0;y<height;y++){
-        png_byte* row = (png_byte*) malloc( width * 4 );
+        png_byte* row = (png_byte*) MALLOC( width * 4 );
         row_pointers[y] = row;
         for(int x=0;x<width;x++){
             int bi = x + y * width;
@@ -1063,9 +1063,9 @@ bool Image::writePNG(const char *path) {
     png_write_end(png_ptr,NULL);
 
     for(int y=0;y<height;y++){
-        free(row_pointers[y]);
+        FREE(row_pointers[y]);
     }
-    free(row_pointers);
+    FREE(row_pointers);
     
     fclose(fp);
 
@@ -1076,7 +1076,7 @@ bool Image::writePNG(const char *path) {
 
 
 void Moyai::capture( Image *img ) {
-    float *buf = (float*)malloc( img->width * img->height * 3 * sizeof(float) );
+    float *buf = (float*)MALLOC( img->width * img->height * 3 * sizeof(float) );
     glReadPixels( 0, 0, img->width, img->height, GL_RGB, GL_FLOAT, buf );
     for(int y=0;y<img->height;y++){
         for(int x=0;x<img->width;x++){
@@ -1086,7 +1086,7 @@ void Moyai::capture( Image *img ) {
             img->setPixel(x,img->height-1-y,c);
         }
     }    
-    free(buf);
+    FREE(buf);
 }
 
 void Pad::readGLFW() {

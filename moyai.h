@@ -345,7 +345,8 @@ public:
         if(gl_name>0) {
             glDeleteBuffers(1,&gl_name);
         }
-        assert(buf); free(buf);
+        assert(buf);
+        FREE(buf);
     }
     void setFormat( VertexFormat *f ) { fmt = f; }
     void reserve(int cnt){
@@ -634,7 +635,7 @@ class Grid {
     Grid(int w, int h ) : color(1,1,1,1) {
         width = w;
         height = h;
-        // 各テーブルは、実際に使う時にmallocする。
+        // allocate on use
         index_table = NULL;
         xflip_table = NULL;
         yflip_table = NULL;
@@ -645,7 +646,7 @@ class Grid {
         fragment_shader = NULL;
         visible = true;
         
-        // Propのdeckを上書きする。
+        // Overwrite Prop's deck
         deck = NULL;
     }
     ~Grid(){
@@ -1229,7 +1230,7 @@ class Layer {
 
     Light *light;
 
-    // working area to avoid malloc in inner loops
+    // working area to avoid allocation in inner loops
     SorterEntry sorter_opaque[Prop3D::CHILDREN_ABS_MAX];
     SorterEntry sorter_transparent[Prop3D::CHILDREN_ABS_MAX];
     

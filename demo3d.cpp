@@ -341,7 +341,35 @@ void setupCube() {
     
 }
 
+void memTestDebug() {
+    char *pointers[100000];
+    for(int i=0;i<elementof(pointers);i++){
+        pointers[i] = (char*) MALLOC( irange(1,1000) );
+    }
+    for(int i=0;i<elementof(pointers)-1;i++){
+        FREE(pointers[i]);
+    }
+    Vec3 *vecs[100000];
+    for(int i=0;i<elementof(vecs);i++){
+        vecs[i] = new Vec3(0,0,0);
+    }
+    for(int i=0;i<elementof(vecs)-1;i++){
+        delete vecs[i];
+    }
+    int objcnt = cuminoPrintMemStat(); 
+    assert( objcnt == 2 );
+
+    FREE( pointers[elementof(pointers)-1] );
+    delete vecs[elementof(vecs)-1];
+
+    objcnt = cuminoPrintMemStat(); 
+    assert( objcnt == 0 );
+}
+
 int main() {
+    g_cumino_mem_debug = true;
+    memTestDebug();
+    
     g_moyai = new Moyai();
 
     glfwInit();

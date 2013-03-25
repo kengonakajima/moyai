@@ -10,6 +10,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <strings.h>
 
 #include "cumino.h"
 
@@ -212,7 +213,6 @@ bool g_cumino_mem_debug = false;
 
 class MemEntry {
 public:
-    void *ptr;
     size_t sz;
     int tag;
     MemEntry *next;
@@ -221,23 +221,101 @@ public:
 
 MemEntry *g_cumino_memtops[1024];
 
-
+#define ENVSIZE 32
 void *MALLOC( size_t sz ) {
-    void *out = malloc(sz);
-#if 0    
-    unsigned long long addr = (unsigned long long) out;
-    unsigned long long i = addr / 16;
-    unsigned long long mod = (addr/16) % elementof(g_cumino_memtops);
-    print("%lld", addr / 16 );
-#endif    
+    void *out;
+    if( g_cumino_mem_debug ) {
+        assert( ENVSIZE >= sizeof(MemEntry) );
+        void *envaddr = malloc( sz + ENVSIZE );
+        out = (void*)( ((char*)envaddr) + ENVSIZE ); 
+        MemEntry *e = (MemEntry*)envaddr;
+        memset( e, 0, sizeof(MemEntry) );
+        
+        unsigned long long addr = (unsigned long long) envaddr;
+        int mod = (addr/16) % elementof(g_cumino_memtops);
+        if( g_cumino_memtops[mod] ){
+            e->next = g_cumino_memtops[mod];
+            //            print("ins:%p out:%p",e,out);
+        } else {
+            //            print("newtop:%p out:%p",e,out);
+        }
+        g_cumino_memtops[mod] = e;
+        e->sz = sz;
+    } else {
+        out = malloc(sz);
+    }
+
     return out;
 }
 void FREE( void *ptr ) {
-    free(ptr);
+    char *envaddr = ((char*)ptr) - ENVSIZE;
+    if( g_cumino_mem_debug ) {
+        unsigned long long addr = (unsigned long long)envaddr;
+        int mod = (addr/16) % elementof(g_cumino_memtops);
+        MemEntry *tgt = (MemEntry*) envaddr;
+        MemEntry *cur = g_cumino_memtops[mod];
+        assert(cur);
+        if(cur==tgt){
+            //            print("found on top! %p given:%p", tgt, ptr );
+            g_cumino_memtops[mod] = cur->next;
+        } else {
+            MemEntry *prev = NULL;
+            while(cur) {
+                if(cur == tgt ) {
+                    //                    print("found in list! %p given:%p", cur, ptr );
+                    assert(prev);
+                    prev->next = cur->next;
+                }
+                prev = cur;
+                cur = cur->next;
+            }
+
+        }
+    }
+    
+    free(envaddr);
 }
 void *operator new(size_t sz) {
     return MALLOC(sz);
 }
 void operator delete(void*ptr) {
     FREE(ptr);
+}
+
+class MemStatEnt {
+public:
+    size_t sz;
+    int count;
+};
+
+int cuminoPrintMemStat() {
+    MemStatEnt ents[2048];
+    memset( ents, 0, sizeof(ents) );
+    for(int i=0;i<elementof(g_cumino_memtops);i++){
+        MemEntry *cur = g_cumino_memtops[i];
+        while(cur) {
+            bool done=false;
+            for(int i=0;i<elementof(ents);i++){
+                if(ents[i].sz==cur->sz) {
+                    ents[i].count++;
+                    done=true;
+                    break;
+                } else if( ents[i].sz == 0 ) {
+                    ents[i].count = 1;
+                    ents[i].sz = cur->sz;
+                    done=true;
+                    break;
+                }
+            }
+            if(done)break;
+            cur = cur->next;
+        }
+    }
+    int obj_count=0;
+    for(int i=0;i<elementof(ents);i++){
+        if(ents[i].sz==0)break;
+        print("[%d] size:%d count:%d  total:%d", i, ents[i].sz, ents[i].count, ents[i].sz * ents[i].count );
+        obj_count += ents[i].count;
+    }
+    return obj_count;
 }

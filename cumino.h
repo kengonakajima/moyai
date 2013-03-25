@@ -137,7 +137,7 @@ void FREE( void *ptr );
 void *operator new(size_t sz);
 void operator delete(void*ptr);
 
-
+int cuminoPrintMemStat();
 
 
 
