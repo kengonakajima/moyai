@@ -308,13 +308,33 @@ int cuminoPrintMemStat( int thres_count ) {
             cur = cur->next;
         }
     }
+    
+    //
+
+    SorterEntry sorter[ elementof(ents) ];
+    int si=0;
+    for(int i=0;i<elementof(ents);i++) {
+        if( ents[i].sz > 0 ) {
+            sorter[si].ptr = & ents[i];
+            sorter[si].val = ents[i].count;
+            si++;
+        }
+    }
+    quickSortF( sorter, 0, si-1 );
+    
+    //
+    for(int i=si-1;i>=0;i--) {
+        MemStatEnt *e = (MemStatEnt*) sorter[i].ptr;
+        if( e->count >= thres_count ) {
+            print("[%d] size:%d count:%d  total:%d", i, e->sz, e->count, e->sz * e->count );
+        }
+    }
+
+    //
     long long total_size=0;
     int obj_count=0;
     for(int i=0;i<elementof(ents);i++){
         if(ents[i].sz==0)break;
-        if( ents[i].count >= thres_count ) {
-            print("[%d] size:%d count:%d  total:%d", i, ents[i].sz, ents[i].count, ents[i].sz * ents[i].count );
-        }
         total_size += ents[i].sz * ents[i].count;
         obj_count += ents[i].count;
     }
