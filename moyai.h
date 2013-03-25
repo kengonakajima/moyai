@@ -351,6 +351,13 @@ public:
         buf = (float*)malloc( total_num_float * sizeof(float));
         assert(buf);
     }
+    void copyFromBuffer( float *v, int vert_cnt ) {
+        assertmsg( unit_num_float > 0, "call setFormat() before this." );
+        assertmsg( vert_cnt <= array_len, "size too big");
+        array_len = vert_cnt;
+        total_num_float = vert_cnt * unit_num_float;
+        memcpy( buf, v, vert_cnt * unit_num_float * sizeof(float) );
+    }
     void setCoord( int index, Vec3 v ) {
         assertmsg(fmt, "vertex format is not set" );
         assert( index < array_len );
@@ -444,9 +451,7 @@ public:
         if(buf)free(buf);
         buf = (int*) malloc( sizeof(int) * l );
         assert(buf);
-        for(int i=0;i<l;i++){
-            buf[i] = in[i];
-        }
+        memcpy(buf, in, sizeof(int)*l);
         array_len = l;
     }
     void bless(){
