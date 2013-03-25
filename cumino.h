@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 
+
 inline double now() {
     struct timeval tmv;
     gettimeofday( &tmv, NULL );
@@ -127,4 +128,17 @@ bool readFile( const char *path, char *data, size_t *sz );
 int getModifiedTime( const char *path, time_t *out );
 
 void dump(const char*s, size_t l);
+
+extern bool g_cumino_mem_debug;
+
+void *MALLOC( size_t sz );
+void FREE( void *ptr );
+
+void *operator new(size_t sz);
+void operator delete(void*ptr);
+
+
+
+
+
 #endif

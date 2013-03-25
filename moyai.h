@@ -341,7 +341,12 @@ public:
     GLuint gl_name;
 
     VertexBuffer() : fmt(NULL), buf(NULL), array_len(0), total_num_float(0), unit_num_float(0), gl_name(0) {}
-    ~VertexBuffer() { assert(buf); free(buf); }
+    ~VertexBuffer() {
+        if(gl_name>0) {
+            glDeleteBuffers(1,&gl_name);
+        }
+        assert(buf); free(buf);
+    }
     void setFormat( VertexFormat *f ) { fmt = f; }
     void reserve(int cnt){
         assertmsg(fmt, "vertex format is not set" );

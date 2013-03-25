@@ -206,3 +206,27 @@ int getModifiedTime( const char *path, time_t *out ) {
     *out = st.st_mtime;
     return 0;
 }
+
+
+bool g_cumino_mem_debug = false;
+
+class MemEntry {
+public:
+    void *ptr;
+    size_t sz;
+    
+};
+
+void *MALLOC( size_t sz ) {
+    void *out = malloc(sz);
+    return out;
+}
+void FREE( void *ptr ) {
+    free(ptr);
+}
+void *operator new(size_t sz) {
+    return MALLOC(sz);
+}
+void operator delete(void*ptr) {
+    FREE(ptr);
+}
