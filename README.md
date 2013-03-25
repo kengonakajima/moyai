@@ -21,11 +21,12 @@ Moai SDK: https://github.com/moai/moai-dev
 Moyai is just combining good existing stable libs so itself has only 2K lines of C++ code.
 
 <pre>
-[@Macintosh-2 moyai]$ wc moyai.cpp cumino.cpp moyai.h
-     866    2770   26227 moyai.cpp
-     196     525    4264 cumino.cpp
-     914    2965   24696 moyai.h
-    1976    6260   55187 total
+[@Macintosh-2 moyai]$ wc moyai.cpp moyai.h cumino.cpp cumino.h
+    1160    3794   38004 moyai.cpp
+    1432    5057   41818 moyai.h
+     321     857    7495 cumino.cpp
+     144     513    3218 cumino.h
+    3057   10221   90535 total
 </pre>
 
 # Example
