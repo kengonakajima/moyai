@@ -394,6 +394,7 @@ int Layer::renderAllProps(){
                     int opaque_n=0;
                     int transparent_n=0;
                     for(int i=0;i<cur3d->children_num;i++) {
+                        cnt++;
                         Prop3D *child = cur3d->children[i];
                         if(child && child->visible ) {
                             float l = camera->loc.len( cur3d->loc + child->loc + child->sort_center );
