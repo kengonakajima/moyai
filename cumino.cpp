@@ -235,9 +235,9 @@ void *MALLOC( size_t sz ) {
         int mod = (addr/16) % elementof(g_cumino_memtops);
         if( g_cumino_memtops[mod] ){
             e->next = g_cumino_memtops[mod];
-            //            print("ins:%p out:%p",e,out);
+            //                        print("ins:%p out:%p",e,out);
         } else {
-            //            print("newtop:%p out:%p",e,out);
+            //                        print("newtop:%p out:%p",e,out);
         }
         g_cumino_memtops[mod] = e;
         e->sz = sz;
@@ -256,13 +256,13 @@ void FREE( void *ptr ) {
         MemEntry *cur = g_cumino_memtops[mod];
         assert(cur);
         if(cur==tgt){
-            //            print("found on top! %p given:%p", tgt, ptr );
+            //                        print("found on top! %p given:%p", tgt, ptr );
             g_cumino_memtops[mod] = cur->next;
         } else {
             MemEntry *prev = NULL;
             while(cur) {
                 if(cur == tgt ) {
-                    //                    print("found in list! %p given:%p", cur, ptr );
+                    //                                        print("found in list! %p given:%p", cur, ptr );
                     assert(prev);
                     prev->next = cur->next;
                 }
@@ -288,34 +288,36 @@ public:
     int count;
 };
 
-int cuminoPrintMemStat() {
+int cuminoPrintMemStat( int thres_count ) {
     MemStatEnt ents[2048];
     memset( ents, 0, sizeof(ents) );
     for(int i=0;i<elementof(g_cumino_memtops);i++){
         MemEntry *cur = g_cumino_memtops[i];
         while(cur) {
-            bool done=false;
-            for(int i=0;i<elementof(ents);i++){
-                if(ents[i].sz==cur->sz) {
-                    ents[i].count++;
-                    done=true;
+            for(int j=0;j<elementof(ents);j++){
+                if(ents[j].sz==cur->sz) {
+                    ents[j].count++;
                     break;
-                } else if( ents[i].sz == 0 ) {
-                    ents[i].count = 1;
-                    ents[i].sz = cur->sz;
-                    done=true;
+                } else if( ents[j].sz == 0 ) {
+                    ents[j].count = 1;
+                    ents[j].sz = cur->sz;
                     break;
                 }
+                assert(j!=elementof(ents)-1); // exhausted
             }
-            if(done)break;
             cur = cur->next;
         }
     }
+    long long total_size=0;
     int obj_count=0;
     for(int i=0;i<elementof(ents);i++){
         if(ents[i].sz==0)break;
-        print("[%d] size:%d count:%d  total:%d", i, ents[i].sz, ents[i].count, ents[i].sz * ents[i].count );
+        if( ents[i].count >= thres_count ) {
+            print("[%d] size:%d count:%d  total:%d", i, ents[i].sz, ents[i].count, ents[i].sz * ents[i].count );
+        }
+        total_size += ents[i].sz * ents[i].count;
         obj_count += ents[i].count;
     }
+    print( "Total: %lld bytes %lld Mibytes", total_size, total_size/1024/1024);
     return obj_count;
 }

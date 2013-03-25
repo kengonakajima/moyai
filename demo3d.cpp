@@ -342,27 +342,42 @@ void setupCube() {
 }
 
 void memTestDebug() {
+    int objcnt;
+    
     char *pointers[100000];
     for(int i=0;i<elementof(pointers);i++){
-        pointers[i] = (char*) MALLOC( irange(1,1000) );
+        size_t sz = irange(1,10)*103;
+        pointers[i] = (char*) MALLOC(sz); 
+        memset(pointers[i],0xff,sz);
     }
+    objcnt = cuminoPrintMemStat(1); 
+    assertmsg( objcnt == 100000, "real:%d", objcnt );    
+    
     for(int i=0;i<elementof(pointers)-1;i++){
         FREE(pointers[i]);
     }
+
+    objcnt = cuminoPrintMemStat(1); 
+    assertmsg( objcnt == 1, "real:%d", objcnt );
+    
     Vec3 *vecs[100000];
     for(int i=0;i<elementof(vecs);i++){
         vecs[i] = new Vec3(0,0,0);
     }
+
+    objcnt = cuminoPrintMemStat(1); 
+    assertmsg( objcnt == 100001, "real:%d", objcnt );
+    
     for(int i=0;i<elementof(vecs)-1;i++){
         delete vecs[i];
     }
-    int objcnt = cuminoPrintMemStat(); 
+    objcnt = cuminoPrintMemStat(1); 
     assert( objcnt == 2 );
 
     FREE( pointers[elementof(pointers)-1] );
     delete vecs[elementof(vecs)-1];
 
-    objcnt = cuminoPrintMemStat(); 
+    objcnt = cuminoPrintMemStat(1); 
     assert( objcnt == 0 );
 }
 
