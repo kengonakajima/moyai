@@ -1221,6 +1221,7 @@ public:
         look_at = at;
         look_up = up;
     }
+    inline Vec3 getLookAt() { return look_at; }
     Vec2 screenToWorld( int scr_x, int scr_y, int scr_w, int scr_h );
 
 };
