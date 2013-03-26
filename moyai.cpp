@@ -286,6 +286,7 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck
         float specular[4] = { material->specular.r, material->specular.g, material->specular.b, material->specular.a };
         glMaterialfv( GL_FRONT, GL_SPECULAR, specular);
     }
+
     glDrawElements( mesh->prim_type, mesh->ib->array_len, GL_UNSIGNED_INT, 0);
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
     glBindBuffer( GL_ARRAY_BUFFER, 0 );
@@ -1097,7 +1098,39 @@ void Pad::readGLFW() {
     right = glfwGetKey('D');
 }
 
-
+void VertexFormat::dump() {
+    print("vfmt: types_used:%d num_float:%d coord_ofs:%d color_ofs:%d tex_ofs:%d normal_ofs:%d",
+          types_used, num_float, coord_offset, color_offset, texture_offset, normal_offset );
+    for(int i=0;i<elementof(types);i++) {
+        print("type[%d]=%c", i, types[i]);
+    }
+}
+void VertexBuffer::dump() {
+    print("vb: len:%d nfloat:%d unitfloat:%d glname:%d", array_len, total_num_float, unit_num_float, gl_name );
+    if(fmt) fmt->dump(); else print("vb:nofmt");
+    if(buf) {
+        for(int i=0;i<array_len;i++){
+            for(int j=0;j<unit_num_float;j++){
+                print("[%d][%d]=%.10f", i, j, buf[i*unit_num_float+j]);
+            }
+        }
+    }
+}
+void IndexBuffer::dump() {
+    print("ib: len:%d glname:%d", array_len, gl_name );
+    if(buf){
+        for(int i=0;i<array_len;i++) {
+            print("[%d]=%d",i, buf[i] );
+        }
+    } else {
+        print("ib:nobuf");
+    }
+}
+void Mesh::dump() {
+    print("mesh: primtype:%d transparent:%d", prim_type, transparent );
+    if(vb) vb->dump(); else print("no-vb" );
+    if(ib) ib->dump(); else print("no-ib" );
+}
 /////////
 
 inline void FMOD_ERRCHECK(FMOD_RESULT result){

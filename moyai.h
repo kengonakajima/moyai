@@ -331,6 +331,7 @@ public:
     inline size_t getNumFloat() {
         return num_float;
     }
+    void dump();
 };
 
 class VertexBuffer {
@@ -445,7 +446,7 @@ public:
         c /= (float)array_len;
         return c;
     }
-
+    void dump();
 };
 class IndexBuffer {
 public:
@@ -474,7 +475,7 @@ public:
             glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
         }
     }
-    
+    void dump();
 };
 
 class Light {
@@ -501,7 +502,7 @@ public:
     void setIndexBuffer(IndexBuffer *b ){ ib = b; }
     void setPrimType( GLuint t) { prim_type = t; }
     Vec3 getCenter() { return vb->calcCenterOfCoords(); }
-
+    void dump();
     
 };
 
@@ -1153,10 +1154,14 @@ public:
     Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), billboard(false), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0) {
         dimension = DIMENSION_3D;
     }
+    ~Prop3D() {
+        //       if(children) FREE(children);
+    }
     inline void setLoc(Vec3 l) { loc = l; }
     inline void setLoc(float x, float y, float z) { loc.x = x; loc.y = y; loc.z = z; }            
     inline void setScl(Vec3 s) { scl = s; }
     inline void setScl(float x, float y, float z) { scl.x = x; scl.y = y; scl.z = z; }
+    inline void setScl(float s){ setScl(s,s,s); }
     inline void setRot(Vec3 r) { rot = r; }
     inline void setMesh( Mesh *m) { mesh = m; }
     void reserveChildren( int n ) {
