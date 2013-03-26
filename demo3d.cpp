@@ -78,6 +78,7 @@ void updateGame() {
     if( g_prop_billboard ) {
         g_prop_billboard->loc.y = sin(g_prop_billboard->accum_time*2);
         g_prop_billboard->loc.x = cos(g_prop_billboard->accum_time*2);
+        g_prop_billboard->rot.x = g_prop_billboard->accum_time * 100;
     }
 
 

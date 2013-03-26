@@ -1013,6 +1013,7 @@ class Prop2D : public Prop {
     inline void setScl(Vec2 s){
         scl = s;
     }
+    inline void setScl(float s) { scl.x = scl.y = s; }
     inline void setScl(float x, float y ){
         scl.x = x;
         scl.y = y;
