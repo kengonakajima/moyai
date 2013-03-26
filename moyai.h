@@ -495,8 +495,8 @@ public:
     IndexBuffer *ib;
     GLuint prim_type;
     bool transparent;
-    
-    Mesh() : vb(0), ib(0), prim_type(0), transparent(false) {
+    float line_width;
+    Mesh() : vb(0), ib(0), prim_type(0), transparent(false), line_width(1) {
     }
     void setVertexBuffer(VertexBuffer *b) { vb = b; }
     void setIndexBuffer(IndexBuffer *b ){ ib = b; }
@@ -1223,7 +1223,7 @@ public:
     }
     inline Vec3 getLookAt() { return look_at; }
     Vec2 screenToWorld( int scr_x, int scr_y, int scr_w, int scr_h );
-
+    Vec3 getDirection() { return look_at - loc; }
 };
 
 class Layer {

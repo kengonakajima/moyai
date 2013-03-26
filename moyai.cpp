@@ -286,7 +286,9 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck
         float specular[4] = { material->specular.r, material->specular.g, material->specular.b, material->specular.a };
         glMaterialfv( GL_FRONT, GL_SPECULAR, specular);
     }
-
+    if( mesh->prim_type == GL_LINES || mesh->prim_type == GL_LINE_STRIP ) {
+        glLineWidth(mesh->line_width);
+    }
     glDrawElements( mesh->prim_type, mesh->ib->array_len, GL_UNSIGNED_INT, 0);
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
     glBindBuffer( GL_ARRAY_BUFFER, 0 );
