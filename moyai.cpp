@@ -183,19 +183,21 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mesh->ib->gl_name );
     glBindBuffer( GL_ARRAY_BUFFER, mesh->vb->gl_name );
 
-    /*
-    print("draw mesh! %p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d normofs:%d vert_sz:%d array_len:%d",
-          mesh,
-          mesh->vb->gl_name,
-          mesh->ib->gl_name,
-          mesh->vb->fmt->coord_offset,
-          mesh->vb->fmt->color_offset,
-          mesh->vb->fmt->texture_offset,
-          mesh->vb->fmt->normal_offset,
-          vert_sz,
-          mesh->vb->array_len
-          );
-    */
+    if( dbg != 0 ) {
+        print("draw mesh! dbg:%d %p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d normofs:%d vert_sz:%d array_len:%d loc:%f %f %f",
+              dbg, 
+              mesh,
+              mesh->vb->gl_name,
+              mesh->ib->gl_name,
+              mesh->vb->fmt->coord_offset,
+              mesh->vb->fmt->color_offset,
+              mesh->vb->fmt->texture_offset,
+              mesh->vb->fmt->normal_offset,
+              vert_sz,
+              mesh->vb->array_len,
+              loc->x, loc->y, loc->z
+              );
+    }
 
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_COLOR_ARRAY );
@@ -641,6 +643,47 @@ void Prop2D::render(Camera *cam) {
         prim_drawer->drawAll(loc.add(camx,camy) );
     }
 }
+
+
+void Prop3D::reserveChildren( int n ) {
+    assert( n <= CHILDREN_ABS_MAX );
+    size_t sz = sizeof(Prop3D*) * n;
+    children = (Prop3D**) MALLOC( sz );
+    for(int i=0;i<n;i++) children[i] = NULL;
+    children_max = n;
+}
+void Prop3D::addChild( Prop3D *p ) {
+    assert(p);
+    assert( children_num < children_max );
+    children[children_num] = p;
+    children_num ++;
+}
+void Prop3D::deleteChild( Prop3D *p ) {
+    assert(p);
+    for(int i=0;i<children_num;i++) {
+        if( children[i] == p ) {
+            for(int j=i+1;j<children_num;j++) {
+                children[j-1] = children[j];
+            }
+            children_num --;
+            return;
+        }
+    }
+}
+
+bool Prop3D::propPoll(double dt) {    
+    if( prop3DPoll(dt) == false ) return false;
+    if( children_num > 0 ) { 
+        // children
+        for(int i=0;i<children_num;i++){
+            Prop3D *p = children[i];
+            p->basePoll(dt);
+        }
+    }
+        
+    return true;
+}
+
 
 bool Texture::load( const char *path ){
     tex = SOIL_load_OGL_texture( path,
@@ -1099,6 +1142,173 @@ void Pad::readGLFW() {
     down = glfwGetKey('S');    
     right = glfwGetKey('D');
 }
+
+
+
+
+
+
+void VertexBuffer::reserve(int cnt){
+    assertmsg(fmt, "vertex format is not set" );
+    array_len = cnt;
+    unit_num_float = fmt->getNumFloat();
+    total_num_float = array_len * unit_num_float;
+    buf = (float*)MALLOC( total_num_float * sizeof(float));
+    assert(buf);
+}
+
+void VertexBuffer::copyFromBuffer( float *v, int vert_cnt ) {
+    assertmsg( unit_num_float > 0, "call setFormat() before this." );
+    assertmsg( vert_cnt <= array_len, "size too big");
+    array_len = vert_cnt;
+    total_num_float = vert_cnt * unit_num_float;
+    memcpy( buf, v, vert_cnt * unit_num_float * sizeof(float) );
+}
+void VertexBuffer::setCoord( int index, Vec3 v ) {
+    assertmsg(fmt, "vertex format is not set" );
+    assert( index < array_len );
+    int ofs = fmt->coord_offset;
+    assertmsg( ofs >= 0, "coord have not declared in vertex format" );
+    int index_in_array = index * unit_num_float + ofs;
+    buf[index_in_array] = v.x;
+    buf[index_in_array+1] = v.y;
+    buf[index_in_array+2] = v.z;
+}
+
+Vec3 VertexBuffer::getCoord( int index ) {
+    assertmsg(fmt, "vertex format is not set" );
+    assert( index < array_len );
+    int ofs = fmt->coord_offset;
+    assertmsg( ofs >= 0, "coord have not declared in vertex format" );
+    int index_in_array = index * unit_num_float + ofs;
+    return Vec3( buf[index_in_array], buf[index_in_array+1], buf[index_in_array+2] );
+}
+void VertexBuffer::setCoordBulk( Vec3 *v, int num ) {
+    for(int i=0;i<num;i++) {
+        setCoord( i, v[i] );
+    }
+}
+void VertexBuffer::setColor( int index, Color c ) {
+    assertmsg(fmt, "vertex format is not set");
+    assert( index < array_len );
+    int ofs = fmt->color_offset;
+    assertmsg( ofs >= 0, "color have not declared in vertex format");
+    int index_in_array = index * unit_num_float + ofs;
+    buf[index_in_array] = c.r;
+    buf[index_in_array+1] = c.g;
+    buf[index_in_array+2] = c.b;
+    buf[index_in_array+3] = c.a;        
+}
+Color VertexBuffer::getColor( int index ) {
+    assertmsg(fmt, "vertex format is not set" );
+    assert( index < array_len );
+    int ofs = fmt->color_offset;
+    assertmsg( ofs >= 0, "color have not declared in vertex format" );
+    int index_in_array = index * unit_num_float + ofs;
+    return Color( buf[index_in_array], buf[index_in_array+1], buf[index_in_array+2], buf[index_in_array+3] );    
+}
+void VertexBuffer::setUV( int index, Vec2 uv ) {
+    assertmsg(fmt, "vertex format is not set");
+    assert( index < array_len );
+    int ofs = fmt->texture_offset;
+    assertmsg( ofs >= 0, "texcoord have not declared in vertex format");
+    int index_in_array = index * unit_num_float + ofs;
+    buf[index_in_array] = uv.x;
+    buf[index_in_array+1] = uv.y;
+}
+Vec2 VertexBuffer::getUV( int index ) {
+    assertmsg(fmt, "vertex format is not set" );
+    assert( index < array_len );
+    int ofs = fmt->texture_offset;
+    assertmsg( ofs >= 0, "texuv have not declared in vertex format" );
+    int index_in_array = index * unit_num_float + ofs;
+    return Vec2( buf[index_in_array], buf[index_in_array+1] );
+}
+
+void VertexBuffer::setUVBulk( Vec2 *uv, int num ) {
+    for(int i=0;i<num;i++) {
+        setUV( i, uv[i] );
+    }
+}
+void VertexBuffer::setNormal( int index, Vec3 v ) { 
+    assertmsg(fmt, "vertex format is not set");
+    assert( index < array_len );
+    int ofs = fmt->normal_offset;
+    assertmsg( ofs >= 0, "normal have not declared in vertex format" );
+    int index_in_array = index * unit_num_float + ofs;
+    buf[index_in_array] = v.x;
+    buf[index_in_array+1] = v.y;
+    buf[index_in_array+2] = v.z;        
+}
+Vec3 VertexBuffer::getNormal( int index ) {
+    assertmsg(fmt, "vertex format is not set" );
+    assert( index < array_len );
+    int ofs = fmt->normal_offset;
+    assertmsg( ofs >= 0, "normal have not declared in vertex format" );
+    int index_in_array = index * unit_num_float + ofs;
+    return Vec3( buf[index_in_array], buf[index_in_array+1], buf[index_in_array+2] );    
+}
+void VertexBuffer::setNormalBulk( Vec3 *v, int num ) {
+    for(int i=0;i<num;i++) {
+        setNormal( i, v[i] );
+    }
+}
+void VertexBuffer::bless(){
+    assert(fmt);
+    if( gl_name == 0 ){
+        glGenBuffers(1, &gl_name);
+        glBindBuffer( GL_ARRAY_BUFFER, gl_name );
+        glBufferData( GL_ARRAY_BUFFER, total_num_float * sizeof(float), buf, GL_STATIC_DRAW );
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );
+    }
+}
+Vec3 VertexBuffer::calcCenterOfCoords() {
+    Vec3 c(0,0,0);
+    for(int i=0;i<array_len;i++) {
+        c += getCoord(i);
+    }
+    c /= (float)array_len;
+    return c;
+}
+
+
+IndexBuffer::~IndexBuffer() {
+    assert(buf);
+    FREE(buf);
+    glDeleteBuffers(1,&gl_name);
+}
+void IndexBuffer::reserve( int len ) {
+    if(buf) FREE(buf);    
+    buf = (int*) MALLOC( sizeof(int) * len );
+    assert(buf);
+    array_len = len;
+}
+void IndexBuffer::setIndex( int index_at, int val ) {
+    assert(buf);
+    assert(index_at >= 0 && index_at < array_len );
+    buf[index_at] = val;
+}
+int IndexBuffer::getIndex( int index_at ) {
+    assert(buf);
+    assert(index_at >= 0 && index_at < array_len );
+    return buf[index_at];
+}
+    
+void IndexBuffer::set( int *in, int l ) {
+    reserve(l);
+    memcpy(buf, in, sizeof(int)*l);
+}
+
+void IndexBuffer::bless(){
+    if( gl_name == 0 ){
+        glGenBuffers(1, &gl_name);
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, gl_name );
+        // データがよく変わるときは GL_DYNAMIC_DRAWらしいけど、それはコンセプトから外れた使い方だからデフォルトはSTATICにしておく。
+        glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * array_len, buf, GL_STATIC_DRAW );
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+    }
+}
+
 
 void VertexFormat::dump() {
     print("vfmt: types_used:%d num_float:%d coord_ofs:%d color_ofs:%d tex_ofs:%d normal_ofs:%d",

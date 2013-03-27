@@ -350,102 +350,21 @@ public:
         FREE(buf);
     }
     void setFormat( VertexFormat *f ) { fmt = f; }
-    void reserve(int cnt){
-        assertmsg(fmt, "vertex format is not set" );
-        array_len = cnt;
-        unit_num_float = fmt->getNumFloat();
-        total_num_float = array_len * unit_num_float;
-        buf = (float*)MALLOC( total_num_float * sizeof(float));
-        assert(buf);
-    }
-    void copyFromBuffer( float *v, int vert_cnt ) {
-        assertmsg( unit_num_float > 0, "call setFormat() before this." );
-        assertmsg( vert_cnt <= array_len, "size too big");
-        array_len = vert_cnt;
-        total_num_float = vert_cnt * unit_num_float;
-        memcpy( buf, v, vert_cnt * unit_num_float * sizeof(float) );
-    }
-    void setCoord( int index, Vec3 v ) {
-        assertmsg(fmt, "vertex format is not set" );
-        assert( index < array_len );
-        int ofs = fmt->coord_offset;
-        assertmsg( ofs >= 0, "coord have not declared in vertex format" );
-        int index_in_array = index * unit_num_float + ofs;
-        buf[index_in_array] = v.x;
-        buf[index_in_array+1] = v.y;
-        buf[index_in_array+2] = v.z;
-    }
-    Vec3 getCoord( int index ) {
-        assertmsg(fmt, "vertex format is not set" );
-        assert( index < array_len );
-        int ofs = fmt->coord_offset;
-        assertmsg( ofs >= 0, "coord have not declared in vertex format" );
-        int index_in_array = index * unit_num_float + ofs;
-        return Vec3( buf[index_in_array], buf[index_in_array+1], buf[index_in_array+2] );
-    }
-    void setCoordBulk( Vec3 *v, int num ) {
-        for(int i=0;i<num;i++) {
-            setCoord( i, v[i] );
-        }
-    }
-    void setColor( int index, Color c ) {
-        assertmsg(fmt, "vertex format is not set");
-        assert( index < array_len );
-        int ofs = fmt->color_offset;
-        assertmsg( ofs >= 0, "color have not declared in vertex format");
-        int index_in_array = index * unit_num_float + ofs;
-        buf[index_in_array] = c.r;
-        buf[index_in_array+1] = c.g;
-        buf[index_in_array+2] = c.b;
-        buf[index_in_array+3] = c.a;        
-    }
-    void setUV( int index, Vec2 uv ) {
-        assertmsg(fmt, "vertex format is not set");
-        assert( index < array_len );
-        int ofs = fmt->texture_offset;
-        assertmsg( ofs >= 0, "texcoord have not declared in vertex format");
-        int index_in_array = index * unit_num_float + ofs;
-        buf[index_in_array] = uv.x;
-        buf[index_in_array+1] = uv.y;
-    }
-    void setUVBulk( Vec2 *uv, int num ) {
-        for(int i=0;i<num;i++) {
-            setUV( i, uv[i] );
-        }
-    }
-
-    void setNormal( int index, Vec3 v ) { 
-        assertmsg(fmt, "vertex format is not set");
-        assert( index < array_len );
-        int ofs = fmt->normal_offset;
-        assertmsg( ofs >= 0, "normal have not declared in vertex format" );
-        int index_in_array = index * unit_num_float + ofs;
-        buf[index_in_array] = v.x;
-        buf[index_in_array+1] = v.y;
-        buf[index_in_array+2] = v.z;        
-    }
-    void setNormalBulk( Vec3 *v, int num ) {
-        for(int i=0;i<num;i++) {
-            setNormal( i, v[i] );
-        }
-    }
-    void bless(){
-        assert(fmt);
-        if( gl_name == 0 ){
-            glGenBuffers(1, &gl_name);
-            glBindBuffer( GL_ARRAY_BUFFER, gl_name );
-            glBufferData( GL_ARRAY_BUFFER, total_num_float * sizeof(float), buf, GL_STATIC_DRAW );
-            glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        }
-    }
-    Vec3 calcCenterOfCoords() {
-        Vec3 c(0,0,0);
-        for(int i=0;i<array_len;i++) {
-            c += getCoord(i);
-        }
-        c /= (float)array_len;
-        return c;
-    }
+    void reserve(int cnt);
+    void copyFromBuffer( float *v, int vert_cnt );
+    void setCoord( int index, Vec3 v );
+    Vec3 getCoord( int index );
+    void setCoordBulk( Vec3 *v, int num );
+    void setColor( int index, Color c );
+    Color getColor( int index );    
+    void setUV( int index, Vec2 uv );
+    Vec2 getUV( int index );
+    void setUVBulk( Vec2 *uv, int num );
+    void setNormal( int index, Vec3 v );
+    Vec3 getNormal( int index );
+    void setNormalBulk( Vec3 *v, int num );
+    void bless();
+    Vec3 calcCenterOfCoords();
     void dump();
 };
 class IndexBuffer {
@@ -454,27 +373,12 @@ public:
     int array_len;
     GLuint gl_name;
     IndexBuffer() : buf(0), array_len(0), gl_name(0) {}
-    ~IndexBuffer() {
-        assert(buf);
-        FREE(buf);
-        glDeleteBuffers(1,&gl_name);
-    }
-    void set( int *in, int l ) {
-        if(buf) FREE(buf);
-        buf = (int*) MALLOC( sizeof(int) * l );
-        assert(buf);
-        memcpy(buf, in, sizeof(int)*l);
-        array_len = l;
-    }
-    void bless(){
-        if( gl_name == 0 ){
-            glGenBuffers(1, &gl_name);
-            glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, gl_name );
-            // データがよく変わるときは GL_DYNAMIC_DRAWらしいけど、それはコンセプトから外れた使い方だからデフォルトはSTATICにしておく。
-            glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * array_len, buf, GL_STATIC_DRAW );
-            glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-        }
-    }
+    ~IndexBuffer();
+    void reserve(int l );
+    void setIndex( int index, int i );
+    int getIndex( int index );
+    void set( int *in, int l );
+    void bless();
     void dump();
 };
 
@@ -1165,36 +1069,13 @@ public:
     inline void setScl(float s){ setScl(s,s,s); }
     inline void setRot(Vec3 r) { rot = r; }
     inline void setMesh( Mesh *m) { mesh = m; }
-    void reserveChildren( int n ) {
-        assert( n <= CHILDREN_ABS_MAX );
-        size_t sz = sizeof(Prop3D*) * n;
-        children = (Prop3D**) MALLOC( sz );
-        for(int i=0;i<n;i++) children[i] = NULL;
-        children_max = n;
-    }
-    void addChild( Prop3D *p ) {
-        assert(p);
-        assert( children_num < children_max );
-        children[children_num] = p;
-        children_num ++;
-    }
+    void reserveChildren( int n );
+    void addChild( Prop3D *p );
+    void deleteChild( Prop3D *p );
     void setMaterial( Material *mat ) { material = mat; }
 
     virtual bool prop3DPoll(double dt) { return true; }
-    virtual bool propPoll(double dt) {
-        if( prop3DPoll(dt) == false ) return false;
-        if( children_num > 0 ) { 
-            // children
-            for(int i=0;i<children_num;i++){
-                Prop3D *p = children[i];
-                p->loc = loc;
-                p->basePoll(dt);
-            }
-        }
-        
-        return true;
-    }
-
+    virtual bool propPoll(double dt);
 };
 
 class Camera {
