@@ -343,3 +343,12 @@ int cuminoPrintMemStat( int thres_count ) {
     print( "Total: %lld bytes %lld Mibytes", total_size, total_size/1024/1024);
     return obj_count;
 }
+
+bool findChar( const char *s, char ch ) {
+    const char *p = s;
+    while(*p) {
+        if(*p == ch ) return true;
+        p++;
+    }
+    return false;
+}

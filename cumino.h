@@ -139,6 +139,7 @@ void operator delete(void*ptr);
 
 int cuminoPrintMemStat(int thres_count);
 
+bool findChar( const char *s, char ch );
 
 
 #endif
