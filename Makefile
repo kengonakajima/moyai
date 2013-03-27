@@ -111,6 +111,8 @@ $(LIBPNGLIB):
 	cd $(LIBPNG); ./configure; make
 
 $(GLFWLIB):
+	rm -rf $(GLFW)
+	unzip $(GLFW).zip
 	cd $(GLFW); make cocoa
 
 
