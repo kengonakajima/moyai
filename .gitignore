@@ -8,3 +8,15 @@ freetype-2.4.10
 libpng-1.5.13
 zlib-1.2.7
 _captured.png
+glfw-2.7.7/examples/*.app
+glfw-2.7.7/examples/*.dSYM
+glfw-2.7.7/examples/listmodes
+glfw-2.7.7/examples/mtbench
+glfw-2.7.7/examples/mthello
+glfw-2.7.7/lib/cocoa/libglfw.dylib
+glfw-2.7.7/tests/*.app
+glfw-2.7.7/tests/*.dSYM
+glfw-2.7.7/tests/events
+glfw-2.7.7/tests/joysticks
+glfw-2.7.7/tests/version
+glfw-2.7.7/tests/defaults
