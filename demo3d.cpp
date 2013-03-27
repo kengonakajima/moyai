@@ -394,6 +394,8 @@ int main() {
     glfwEnable( GLFW_STICKY_KEYS );
     glfwSwapInterval(1); // vsync
 
+    glfwDisable( GLFW_MOUSE_CURSOR );
+    
     glClearColor(0,0,0,1);
 
     glEnable(GL_DEPTH_TEST);    

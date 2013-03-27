@@ -1134,6 +1134,7 @@ void _glfwPlatformSetMouseCursorPos( int x, int y )
                                           mainScreenHeight - globalPoint.y -
                                               mainScreenOrigin.y );
         CGDisplayMoveCursorToPoint( CGMainDisplayID(), targetPoint );
+        CGWarpMouseCursorPosition( targetPoint );
     }
 }
 
