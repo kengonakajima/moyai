@@ -302,6 +302,7 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck
 
 
 int Layer::renderAllProps(){
+    if( !to_render ) return 0;
     assertmsg( viewport, "no viewport in a layer id:%d setViewport missed?", id );
     if( viewport->dimension == DIMENSION_2D ) {
     
@@ -358,8 +359,6 @@ int Layer::renderAllProps(){
         return drawn;
     } else { // 3D
         assertmsg(camera, "3d render need camera.");
-
-        
             
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();

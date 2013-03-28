@@ -80,7 +80,8 @@ public:
     inline bool operator>=(Vec3 arg){ return (x>=arg.x && y>=arg.y && z>=arg.z); }
     inline bool operator>(Vec3 arg){ return (x>arg.x && y>arg.y && z>arg.z); }    
     inline bool operator<=(Vec3 arg){ return (x<=arg.x && y<=arg.y && z <=arg.z); }
-    inline bool operator<(Vec3 arg){ return (x<arg.x && y<arg.y && z<arg.z); }        
+    inline bool operator<(Vec3 arg){ return (x<arg.x && y<arg.y && z<arg.z); }
+    inline Vec3 cross(Vec3 v) { return Vec3( y*v.z-z*v.y, z*v.x-x*v.z, x*v.y-y*v.x ); }    
     inline bool isZero(){ return (x==0 && y==0 && z == 0 ); }
     inline Vec3 friction( float diff ){
         float l = len();
@@ -193,7 +194,7 @@ public:
     inline bool operator>=(Vec2 arg){ return (x>=arg.x && y>=arg.y); }
     inline bool operator>(Vec2 arg){ return (x>arg.x && y>arg.y); }    
     inline bool operator<=(Vec2 arg){ return (x<=arg.x && y<=arg.y); }
-    inline bool operator<(Vec2 arg){ return (x<arg.x && y<arg.y); }        
+    inline bool operator<(Vec2 arg){ return (x<arg.x && y<arg.y); }
     inline bool isZero(){ return (x==0 && y==0 ); }
     inline Vec2 friction( float diff ){
         float l = len();
@@ -786,7 +787,6 @@ public:
     bool visible;
     TileDeck *deck;
     float enfat_epsilon;
-    
     inline Prop() : id(++idgen), debug_id(0), priority(id), next(NULL), prev(NULL), dimension(DIMENSION_INVAL), parent_layer(NULL), to_clean(false), accum_time(0),  poll_count(0), visible(true), deck(NULL), enfat_epsilon(0) {
     }
     ~Prop() {
@@ -1121,10 +1121,12 @@ class Layer {
     // working area to avoid allocation in inner loops
     SorterEntry sorter_opaque[Prop3D::CHILDREN_ABS_MAX];
     SorterEntry sorter_transparent[Prop3D::CHILDREN_ABS_MAX];
+
+    bool to_render;
     
     static int idgen;
     
-    Layer() : camera(NULL), prop_top(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL) {
+    Layer() : camera(NULL), prop_top(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL), to_render(true) {
         id = idgen++;
     }
     inline void setViewport( Viewport *vp ){
