@@ -607,6 +607,7 @@ class Grid {
     }
     inline void setColor( Color c){ color = c; }
     inline void setVisible( bool flg ){ visible = flg; }
+    inline bool getVisible() { return visible; }
     void clear();
 };
 
@@ -799,6 +800,7 @@ public:
     }
     virtual void onDelete(){}
     inline void setVisible(bool flg){ visible = flg; }
+    inline bool getVisible() { return visible; }    
     inline void setDeck( TileDeck *d ){
         deck = d;
         assert( d->cell_width > 0 );
