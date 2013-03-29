@@ -114,6 +114,9 @@ public:
     inline Vec3 floor() {
         return Vec3( ::floor(x), ::floor(y), ::floor(z) );
     }
+    inline Vec3 toInt() {
+        return Vec3( (int)(x), (int)(y), (int)(z) );
+    }
 };
 
 class AABB {
