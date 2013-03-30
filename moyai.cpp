@@ -419,20 +419,39 @@ int Layer::renderAllProps(){
                     // draw opaque mesh first
                     for(int i=opaque_n-1;i>=0;i--) {
                         Prop3D *child = (Prop3D*)sorter_opaque[i].ptr;
-                        drawMesh( child->debug_id, child->mesh, child->billboard, child->deck,
-                                  & cur3d->loc, & cur3d->scl, & cur3d->rot,
-                                  & child->loc, & child->scl, & child->rot,
-                                  child->material
-                                  );
+                        if( child->skip_rot ) {
+                            Vec3 fixedrot(0,0,0);
+                            drawMesh( child->debug_id, child->mesh, child->billboard, child->deck,
+                                      & cur3d->loc, & cur3d->scl, & fixedrot,
+                                      & child->loc, & child->scl, & child->rot,
+                                      child->material
+                                      );
+                            
+                        } else { 
+                            drawMesh( child->debug_id, child->mesh, child->billboard, child->deck,
+                                      & cur3d->loc, & cur3d->scl, & cur3d->rot,
+                                      & child->loc, & child->scl, & child->rot,
+                                      child->material
+                                      );
+                        } 
                     }
                     for(int i=transparent_n-1;i>=0;i--){
                         Prop3D *child = (Prop3D*)sorter_transparent[i].ptr;
-                        drawMesh( child->debug_id, child->mesh, child->billboard, child->deck,
-                                  & cur3d->loc, & cur3d->scl, & cur3d->rot,
-                                  & child->loc, & child->scl, & child->rot,
-                                  child->material
-                                  );
-
+                        if( child->skip_rot ) {
+                            Vec3 fixedrot(0,0,0);
+                            drawMesh( child->debug_id, child->mesh, child->billboard, child->deck,
+                                      & cur3d->loc, & cur3d->scl, & fixedrot,
+                                      & child->loc, & child->scl, & child->rot,
+                                      child->material
+                                      );
+                            
+                        } else {
+                            drawMesh( child->debug_id, child->mesh, child->billboard, child->deck,
+                                      & cur3d->loc, & cur3d->scl, & cur3d->rot,
+                                      & child->loc, & child->scl, & child->rot,
+                                      child->material
+                                      );
+                        }
                     }
                 }
             }                                   

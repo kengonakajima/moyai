@@ -1060,8 +1060,8 @@ public:
 
     Material *material;
     Vec3 sort_center;
-    
-    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), billboard(false), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0) {
+    bool skip_rot;
+    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), billboard(false), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0), skip_rot(false) {
         dimension = DIMENSION_3D;
     }
     ~Prop3D() {
