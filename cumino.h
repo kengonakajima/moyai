@@ -72,6 +72,9 @@ inline bool birandom(){
 inline float avg( float a, float b ) {
     return (a+b)/2;
 }
+inline float absolute( float a ) {
+    if(a<0)return a*-1; else return a;
+}
 inline float interpolate( float left, float right, float zero_to_one ) {
     return left * ( 1 - zero_to_one ) + right * zero_to_one;
 }

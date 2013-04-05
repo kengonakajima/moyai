@@ -81,7 +81,8 @@ public:
     inline bool operator>(Vec3 arg){ return (x>arg.x && y>arg.y && z>arg.z); }    
     inline bool operator<=(Vec3 arg){ return (x<=arg.x && y<=arg.y && z <=arg.z); }
     inline bool operator<(Vec3 arg){ return (x<arg.x && y<arg.y && z<arg.z); }
-    inline Vec3 cross(Vec3 v) { return Vec3( y*v.z-z*v.y, z*v.x-x*v.z, x*v.y-y*v.x ); }    
+    inline Vec3 cross(Vec3 v) { return Vec3( y*v.z-z*v.y, z*v.x-x*v.z, x*v.y-y*v.x ); }
+    inline float dot(Vec3 v) { return x*v.x + y*v.y + z*v.z; }
     inline bool isZero(){ return (x==0 && y==0 && z == 0 ); }
     inline Vec3 friction( float diff ){
         float l = len();
