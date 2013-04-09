@@ -462,14 +462,8 @@ class TileDeck {
     int tile_width, tile_height;
     int image_width, image_height;
 
-    // 得られる値のキャッシュ
-
-
-    
     Texture *tex;
-    TileDeck(){
-        tex = NULL;
-    }
+    TileDeck() : tex(NULL) {}
     void setTexture( Texture *t ){
         assert(t->tex!=0);
         tex = t;
@@ -479,15 +473,16 @@ class TileDeck {
         tex->setImage(img);        
     }
 
-    // tw,th : in tiles
-    // cw,ch : cell size
-    inline void setSize( int tw, int th, int cw, int ch, int iw, int ih  ){
-        tile_width = tw;
-        tile_height = th;
-        cell_width = cw;
-        cell_height = ch;
-        image_width = iw;
-        image_height = ih;
+    // sprw,sprh : sprite size
+    // cellw,cellh : cell nums
+    // imgw,imgh : image size
+    inline void setSize( int sprw, int sprh, int cellw, int cellh, int imgw, int imgh  ){
+        tile_width = sprw;
+        tile_height = sprh;
+        cell_width = cellw;
+        cell_height = cellh;
+        image_width = imgw;
+        image_height = imgh;
     }
 
     static const float EPSILON = 0.0001;
@@ -503,8 +498,15 @@ class TileDeck {
         *u1 = *u0 + uunit - EPSILON; 
         *v1 = *v0 + vunit - EPSILON;
     }
-
-
+    // (x0,y0)-(x1,y1) : (0,0)-(16,16) for 16x16 sprite
+    inline void getPixelPosition( int ind, int *x0, int *y0, int *x1, int *y1 ) {
+        int start_x = cell_width * (int)( ind % tile_width );
+        int start_y = cell_height * (int)( ind / tile_width );
+        *x0 = start_x;
+        *y0 = start_y;
+        *x1 = start_x + tile_width;
+        *y1 = start_y + tile_height;
+    }
     
 };
 

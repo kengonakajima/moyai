@@ -701,8 +701,7 @@ bool Texture::load( const char *path ){
     if(tex==0)return false;
     glBindTexture( GL_TEXTURE_2D, tex );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); 
-    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );     
     print("soil_load_ogl_texture: new texid:%d", tex );
     return true;
 }
@@ -1203,6 +1202,8 @@ void Texture::setImage( Image *img ) {
     
     glBindTexture(GL_TEXTURE_2D, tex );
     glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, img->width, img->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img->buffer );
+
+    image = img;
 }
 
 
