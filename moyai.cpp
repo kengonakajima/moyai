@@ -1189,6 +1189,36 @@ void Image::loadPNG( const char *path ) {
     fclose(fp);    
 }
 
+// copy inside image
+void Image::copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0, int toy0 ) {
+    int w = fromx1 - fromx0;
+    int h = fromy1 - fromy0;
+    assert( w > 0 );
+    assert( h > 0 );    
+    
+    for(int y=0;y<h;y++){
+        for( int x=0;x<w;x++){
+            int fromx = fromx0 + x, fromy = fromy0 + y;
+            int tox = tox0 + x, toy = toy0 + y;
+            unsigned char fromr,fromg,fromb,froma, tor, tog, tob, toa;
+            getPixelRaw( fromx, fromy, &fromr, &fromg, &fromb, &froma );
+            getPixelRaw( tox, toy, &tor, &tog, &tob, &toa );
+            unsigned char r,g,b,a;
+
+            float rate = (float)froma/(float)255.0;
+            r = fromr * rate + tor * (1-rate);
+            g = fromg * rate + tog * (1-rate);
+            b = fromb * rate + tob * (1-rate);
+            int total_a = froma + toa;
+            if(total_a>255) total_a = 255;
+            a = total_a;
+            
+            setPixelRaw( tox, toy, r, g, b, a );
+        
+            
+        }
+    }
+}
 
 void Texture::setImage( Image *img ) {
     if(tex==0){

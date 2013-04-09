@@ -431,6 +431,7 @@ public:
     void loadPNG( const char *path );    
     bool writePNG(const char *path);
     void ensureBuffer();
+    void copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0, int toy0 );
 };
 
 class Texture {
@@ -504,8 +505,8 @@ class TileDeck {
         int start_y = cell_height * (int)( ind / tile_width );
         *x0 = start_x;
         *y0 = start_y;
-        *x1 = start_x + tile_width;
-        *y1 = start_y + tile_height;
+        *x1 = start_x + cell_width;
+        *y1 = start_y + cell_height;
     }
     
 };
