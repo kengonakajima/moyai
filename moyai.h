@@ -474,6 +474,10 @@ class TileDeck {
         assert(t->tex!=0);
         tex = t;
     }
+    void setImage( Image *img ) {
+        tex = new Texture();
+        tex->setImage(img);        
+    }
 
     // tw,th : in tiles
     // cw,ch : cell size

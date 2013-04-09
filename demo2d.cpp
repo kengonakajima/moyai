@@ -591,9 +591,18 @@ int main(int argc, char **argv )
     solp0->setLoc( SCRW/2-40, 0);
     solp0->setTexture( soltex0 );
     solp0->setScl(32);
-    solp0->debug_id = 123;
     g_main_layer->insertProp(solp0);
-    
+
+    TileDeck *soldk = new TileDeck();
+    soldk->setTexture(soltex0);
+    soldk->setSize( 2,2,8,8, 16,16 );
+    Prop2D *solp2 = new Prop2D();
+    solp2->setLoc( SCRW/2-120, 0);
+    solp2->setDeck( soldk );
+    solp2->setScl(32);
+    solp2->setIndex(1);
+    g_main_layer->insertProp(solp2);
+
     
 
     
