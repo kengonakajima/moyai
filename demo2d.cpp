@@ -556,8 +556,47 @@ int main(int argc, char **argv )
     t3->setString( L"ABC012ほげ。\nふがふがふがの。" );
     t3->setLoc(-100,-50);
     g_main_layer->insertProp(t3);
+
+    // Image manipulation
+    Image *solimg = new Image();
+    solimg->loadPNG( "assets/sol.png" );
+    assert( solimg->width == 16 );
+    assert( solimg->height == 16 );
+
+    for(int y=0;y<16;y++){
+        for(int x=0;x<16;x++) {
+            unsigned char r,g,b,a;
+            solimg->getPixelRaw( x,y, &r, &g, &b, &a );
+            if( r == 255 && g == 255 && b == 255 && a == 255 ) {
+                solimg->setPixelRaw( x,y, 255,0,0,255 );
+            }
+        }
+    }
+
+    Texture *soltex0 = new Texture();
+    soltex0->setImage( solimg );
+    
+    Texture *soltex1 = new Texture();
+    soltex1->load( "assets/sol.png" );
+
+#if 1
+    Prop2D *solp1 = new Prop2D();
+    solp1->setLoc( SCRW/2-80, 0);
+    solp1->setTexture(soltex1);
+    solp1->setScl(32);
+    g_main_layer->insertProp(solp1);    
+#endif
+    
+    Prop2D *solp0 = new Prop2D();
+    solp0->setLoc( SCRW/2-40, 0);
+    solp0->setTexture( soltex0 );
+    solp0->setScl(32);
+    solp0->debug_id = 123;
+    g_main_layer->insertProp(solp0);
+    
     
 
+    
 
     // bitmap font
     Prop2D *scorep = new Prop2D();

@@ -427,7 +427,10 @@ public:
     void setPixel( int x, int y, Color c );
     Color getPixel( int x, int y );
     void getPixelRaw( int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a );
-    bool writePNG(const char *path);    
+    void setPixelRaw( int x, int y, unsigned char r,  unsigned char g,  unsigned char b,  unsigned char a );
+    void loadPNG( const char *path );    
+    bool writePNG(const char *path);
+    void ensureBuffer();
 };
 
 class Texture {
@@ -879,8 +882,9 @@ class Prop2D : public Prop {
     inline Prop2D() : Prop() {
 
         dimension = DIMENSION_2D;
-        
-        //        print("newprop: id:%d", id );
+
+        index = 0;
+
         color = Color(1,1,1,1);
 
         children_num = 0;

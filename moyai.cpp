@@ -464,23 +464,13 @@ int Layer::renderAllProps(){
 }
 
 
-// 注意!min,maxの中心に中心点があるような形状しか対応していない
 void Prop2D::drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot ) {
-    /*
-    float uunit = (float) dk->cell_width / (float) dk->image_width;
-    float vunit = (float) dk->cell_height / (float) dk->image_height;
-    int start_x = dk->cell_width * (int)( ind % dk->tile_width );
-    int start_y = dk->cell_height * (int)( ind / dk->tile_width );
 
-    const float EPSILON = 0.0001;
-    float u0 = (float) start_x / (float) dk->image_width + EPSILON + uofs * uunit; 
-    float v0 = (float) start_y / (float) dk->image_height + EPSILON + vofs * vunit; 
-    float u1 = u0 + uunit - EPSILON; 
-    float v1 = v0 + vunit - EPSILON;
-    */
     float u0,v0,u1,v1;
     dk->getUVFromIndex(ind, &u0, &v0, &u1, &v1, uofs, vofs );
     float depth = 10;
+
+    if(debug_id==123) print("UV: ind:%d %f,%f %f,%f uo:%f vo:%f", ind, u0,v0, u1,v1, uofs, vofs );
 
     if(hrev){
         float tmp = u1;
@@ -1032,14 +1022,18 @@ void PrimDrawer::getMinMax( Vec2 *minv, Vec2 *maxv ) {
         if( prm->b.y > maxv->y ) maxv->y = prm->b.y;
     }
 }
-void Image::setPixel( int x, int y, Color c ){
-    assert( width > 0 && height > 0);
+void Image::ensureBuffer() {
     if(!buffer){
         size_t sz = width*height*4;
         buffer = (unsigned char*) MALLOC(sz);
         assert(buffer);
         memset(buffer, 0, sz );
     }
+}
+
+void Image::setPixel( int x, int y, Color c ){
+    assert( width > 0 && height > 0);
+    ensureBuffer();
     if(x>=0&&y>=0&&x<width&&y<height){
         int index = ( x + y * width ) * 4;
         buffer[index] = c.r*255;
@@ -1073,8 +1067,140 @@ void Image::getPixelRaw( int x, int y, unsigned char *r, unsigned char *g, unsig
         *a = buffer[index+3];
     }
 }
+void Image::setPixelRaw( int x, int y, unsigned char r,  unsigned char g,  unsigned char b,  unsigned char a ) {
+    assert( width > 0 && height > 0 );
+    assert(buffer);
+    if(x>=0&&y>=0&&x<width&&y<height){
+        int index = ( x + y * width ) * 4;
+        buffer[index] = r;
+        buffer[index+1] = g;
+        buffer[index+2] = b;
+        buffer[index+3] = a;
+    }
+}
+
+// http://stackoverflow.com/questions/11296644/loading-png-textures-to-opengl-with-libpng-only
+void Image::loadPNG( const char *path ) {
+    FILE *fp = fopen(path,"rb");
+
+    png_byte header[8];
+    assertmsg(fp, "can't open file:%s", path );
+
+    // read the header
+    fread(header, 1, 8, fp);
+
+    if(png_sig_cmp(header, 0, 8)) assertmsg(false, "error: %s is not a PNG.", path );
+
+    png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    assertmsg( png_ptr, "png_create_read_struct returned 0 for %s", path );
+
+    // create png info struct
+    png_infop info_ptr = png_create_info_struct(png_ptr);
+    if (!info_ptr) {
+        png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
+        fclose(fp);
+        assertmsg( false, "png_create_info_struct returned 0 for %s", path );
+    }
+
+    // create png info struct
+    png_infop end_info = png_create_info_struct(png_ptr);
+    if (!end_info) {
+        png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
+        fclose(fp);
+        assertmsg(false, "png_create_info_struct returned 0 for %s", path );
+    }
+
+    // the code in this if statement gets called if libpng encounters an error
+    if (setjmp(png_jmpbuf(png_ptr))) {
+        png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+        fclose(fp);
+        assertmsg( false, "error from libpng for %s", path );
+    }
+
+    // init png reading
+    png_init_io(png_ptr, fp);
+
+    // let libpng know you already read the first 8 bytes
+    png_set_sig_bytes(png_ptr, 8);
+
+    // read all the info up to the image data
+    png_read_info(png_ptr, info_ptr);
+
+    // variables to pass to get info
+    int bit_depth, color_type;
+    png_uint_32 temp_width, temp_height;
+
+    // get info about png
+    png_get_IHDR(png_ptr, info_ptr, &temp_width, &temp_height, &bit_depth, &color_type, NULL, NULL, NULL);
+
+    width = temp_width;
+    height = temp_height;
+
+
+    // Update the png info struct.
+    png_read_update_info(png_ptr, info_ptr);
+
+    // Row size in bytes.
+    int rowbytes = png_get_rowbytes(png_ptr, info_ptr);
+
+    // glTexImage2d requires rows to be 4-byte aligned
+    rowbytes += 3 - ((rowbytes-1) % 4);
+
+    // Allocate the image_data as a big block, to be given to opengl
+    png_byte * image_data = (png_byte*)MALLOC(rowbytes * temp_height * sizeof(png_byte)+15);
+    if (image_data == NULL) {
+        png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+        fclose(fp);
+        assertmsg( false, "could not allocate memory for PNG image data for %s", path );
+    }
+
+    // row_pointers is for pointing to image_data for reading the png with libpng
+    png_bytep * row_pointers = (png_bytep*) MALLOC(temp_height * sizeof(png_bytep));
+    if (row_pointers == NULL) {
+        png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+        free(image_data);
+        fclose(fp);
+        assertmsg( false, "could not allocate memory for PNG row pointers for %s", path );
+    }
+
+    // set the individual row_pointers to point at the correct offsets of image_data
+    for (unsigned int i = 0; i < temp_height; i++) {
+        row_pointers[temp_height - 1 - i] = image_data + i * rowbytes;
+    }
+
+    // read the png into image_data through row_pointers
+    png_read_image(png_ptr, row_pointers);
+
+    ensureBuffer();
+
+    for(int i=0;i<width*height;i++){
+        int x = i % width;
+        int y = height - 1 - (i / width);
+        int ii = y * width + x;
+        buffer[ii*4+0] = image_data[i*4+0]; // r
+        buffer[ii*4+1] = image_data[i*4+1]; // g
+        buffer[ii*4+2] = image_data[i*4+2]; // b
+        buffer[ii*4+3] = image_data[i*4+3]; // a
+    }
+
+    // clean up
+    png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+    FREE(image_data);
+    FREE(row_pointers);
+    fclose(fp);    
+}
+
+
 void Texture::setImage( Image *img ) {
-    assertmsg(tex!=0,"you must load an initializer image before setImage" );
+    if(tex==0){
+        glGenTextures( 1, &tex );
+        assertmsg(tex!=0,"glGenTexture failed");
+        glBindTexture( GL_TEXTURE_2D, tex );
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ); 
+        
+    }
+    
     glBindTexture(GL_TEXTURE_2D, tex );
     glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, img->width, img->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img->buffer );
 }
