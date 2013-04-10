@@ -305,7 +305,9 @@ int Layer::renderAllProps(){
     if( !to_render ) return 0;
     assertmsg( viewport, "no viewport in a layer id:%d setViewport missed?", id );
     if( viewport->dimension == DIMENSION_2D ) {
-    
+        glDisable(GL_LIGHTING);
+        glDisable(GL_LIGHT0);
+        
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho( -viewport->scl.x/2, viewport->scl.x/2, -viewport->scl.y/2, viewport->scl.y/2,-100,100);  // center is always (0,0)
