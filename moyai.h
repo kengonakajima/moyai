@@ -118,6 +118,9 @@ public:
     inline Vec3 toInt() {
         return Vec3( (int)(x), (int)(y), (int)(z) );
     }
+    inline bool hitCube( Vec3 to, float dia ) {
+        return ( (x>to.x-dia) && (x<to.x+dia) && (y>to.y-dia) && (y<to.y+dia) && (z>to.z-dia) && (z<to.z+dia) );
+    }
 };
 
 class AABB {

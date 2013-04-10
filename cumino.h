@@ -50,6 +50,9 @@ inline float maxf( float a, float b ){
 inline float maxf( float a, float b, float c ) {
     return maxf( maxf(a,b), c );
 }
+inline float maxf( float a, float b, float c, float d ) {
+    return maxf( maxf(a,b), maxf(c,d) );
+}
 inline double max( double a, double b ){
     return  (a>b) ? a:b;
 }
