@@ -307,7 +307,10 @@ int Layer::renderAllProps(){
     if( viewport->dimension == DIMENSION_2D ) {
         glDisable(GL_LIGHTING);
         glDisable(GL_LIGHT0);
-        
+        glDisable(GL_DEPTH_TEST);    
+        glDepthMask(false);
+
+    
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho( -viewport->scl.x/2, viewport->scl.x/2, -viewport->scl.y/2, viewport->scl.y/2,-100,100);  // center is always (0,0)
@@ -361,7 +364,10 @@ int Layer::renderAllProps(){
         return drawn;
     } else { // 3D
         assertmsg(camera, "3d render need camera.");
-            
+
+        glEnable(GL_DEPTH_TEST);    
+        glDepthMask(true);
+        
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
