@@ -1000,7 +1000,7 @@ class Prop2D : public Prop {
         seek_color_time = time_sec;
         seek_color_target = c;        
     }
-    
+    inline bool isSeekingColor(){ return seek_color_time != 0 && (seek_color_time + seek_color_started_at > accum_time); }    
     inline void setAnim(AnimCurve *ac ){
         assert(ac);
         anim_curve = ac;

@@ -104,7 +104,6 @@ bool Prop2D::propPoll(double dt) {
         if( elt > seek_scl_time ){
             scl = seek_scl_target;
             seek_scl_time = 0;
-            
         } else {
             double rate = elt / seek_scl_time;
             scl.x = seek_scl_orig.x + ( seek_scl_target.x - seek_scl_orig.x ) * rate;
@@ -116,6 +115,7 @@ bool Prop2D::propPoll(double dt) {
         double elt = accum_time - seek_rot_started_at;
         if( elt > seek_rot_time ){
             rot = seek_rot_target;
+            seek_rot_time = 0;
         } else {
             double rate = elt / seek_rot_time;
             rot = seek_rot_orig + ( seek_rot_target - seek_rot_orig ) * rate;
@@ -126,6 +126,7 @@ bool Prop2D::propPoll(double dt) {
         double elt = accum_time - seek_color_started_at;
         if( elt > seek_color_time ){
             color = seek_color_target;
+            seek_color_time = 0;
         } else {
             double rate = elt / seek_color_time;
             color = Color( seek_color_orig.r + ( seek_color_target.r - seek_color_orig.r ) * rate,
