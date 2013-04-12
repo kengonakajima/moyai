@@ -307,8 +307,7 @@ int Layer::renderAllProps(){
     if( viewport->dimension == DIMENSION_2D ) {
         glDisable(GL_LIGHTING);
         glDisable(GL_LIGHT0);
-        glDisable(GL_DEPTH_TEST);    
-        glDepthMask(false);
+        glDisable(GL_DEPTH_TEST);
 
     
         glMatrixMode(GL_PROJECTION);
@@ -365,8 +364,7 @@ int Layer::renderAllProps(){
     } else { // 3D
         assertmsg(camera, "3d render need camera.");
 
-        glEnable(GL_DEPTH_TEST);    
-        glDepthMask(true);
+        glEnable(GL_DEPTH_TEST);
         
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
