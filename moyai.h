@@ -975,6 +975,10 @@ class Prop2D : public Prop {
         updateMinMaxSizeCache();
         return true;
     }
+    inline void clearGrid() {
+        grid_used_num = 0; // object have to be freed by app
+        updateMinMaxSizeCache();        
+    }
     inline bool addChild( Prop2D *p ){
         assert(p);
         if( children_num >= elementof(children) ) {
