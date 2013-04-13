@@ -619,6 +619,10 @@ class Grid {
         ENSURE_GRID_TABLE( color_table, Color, Color(1,1,1,1) );
         color_table[ index(x,y) ] = col;
     }
+    inline Color getColor( int x, int y ) {
+        ENSURE_GRID_TABLE( color_table, Color, Color(1,1,1,1) );
+        return color_table[ index(x,y) ];
+    }
     inline void setFragmentShader( FragmentShader *fs ){
         fragment_shader = fs;
     }
