@@ -432,6 +432,12 @@ int Layer::renderAllProps(){
             cnt++;
 
             if( cur3d->visible ) {
+
+                if( cur3d->fragment_shader ){
+                    glUseProgram( cur3d->fragment_shader->program );
+                    cur3d->fragment_shader->updateUniforms();
+                }
+                
                 if( cur3d->billboard_index >= 0 ) {
                     drawBillboard( cur3d->billboard_index, cur3d->deck, & cur3d->loc, & cur3d->scl  );
                 } else if( cur3d->mesh ) {
@@ -500,6 +506,9 @@ int Layer::renderAllProps(){
                                       );
                         }
                     }
+                }
+                if( cur3d->fragment_shader ) {
+                    glUseProgram(0);
                 }
             }                                   
             
