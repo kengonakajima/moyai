@@ -26,7 +26,7 @@ Texture *g_sol_tex;
 Mesh *g_colmesh;
 Mesh *g_texmesh;
 Mesh *g_texcolmesh;
-Mesh *g_billboardmesh;
+
 
 
 
@@ -275,10 +275,6 @@ void setupCube() {
     g_texcolmesh->setIndexBuffer(cube_ib);
     g_texcolmesh->setPrimType( GL_TRIANGLES );
 
-    g_billboardmesh = new Mesh();
-    g_billboardmesh->setVertexBuffer(texvb);
-    g_billboardmesh->setIndexBuffer( board_ib );
-    g_billboardmesh->setPrimType( GL_TRIANGLES );
 
     g_wood_tex = new Texture();
     g_wood_tex->load( "assets/wood256.png" );
@@ -309,7 +305,6 @@ void setupCube() {
 
 
     g_prop_billboard = new Prop3D();
-    g_prop_billboard->setMesh( g_billboardmesh);
     g_prop_billboard->setScl(Vec3(0.5,0.5,0.5));
     g_prop_billboard->setLoc(Vec3(0,0,0));
     g_prop_billboard->setTexture(g_sol_tex);

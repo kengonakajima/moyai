@@ -1186,7 +1186,8 @@ class Layer {
                             center + Vec2(dia,dia),
                             out, outlen );
     }
-    inline void drawMesh( int dbg, Mesh *mesh, int billboard_index, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  );
+    inline void drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  );
+    inline void drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc, Vec3 *scl  );
 };
 
 class Font {

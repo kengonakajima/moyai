@@ -164,8 +164,66 @@ int Moyai::renderAll(){
     glFlush();
     return cnt;
 }
+inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc, Vec3 *scl  ) {
+    if(billboard_index <0)return;    
+    assert(deck);
+    glEnable(GL_TEXTURE_2D);
+    if( deck->tex->tex != last_tex_gl_id ) {
+        glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
+        last_tex_gl_id = deck->tex->tex;
+    }
 
-inline void Layer::drawMesh( int dbg, Mesh *mesh, int billboard_index, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {   
+    glLoadIdentity();    
+    Vec3 diff_camera = *loc - camera->loc;
+    Vec3 up_v(0.0f, 1.0f, 0.0f);
+
+    Vec3 cross_a = diff_camera.cross(up_v).normalize(1); 
+    Vec3 cross_b = diff_camera.cross(cross_a).normalize(1); 
+
+    // now you can use CrossA and CrossB and the billboard position to calculate the positions of the edges of the billboard-rectangle
+    cross_a.x *= scl->x * 0.5;        
+    cross_a.y *= scl->y * 0.5;
+    cross_a.z *= scl->z * 0.5;
+    cross_b.x *= scl->x * 0.5;        
+    cross_b.y *= scl->y * 0.5;
+    cross_b.z *= scl->z * 0.5;                        
+    Vec3 p1 = *loc + cross_a + cross_b;
+    Vec3 p2 = *loc - cross_a + cross_b;
+    Vec3 p3 = *loc - cross_a - cross_b;
+    Vec3 p4 = *loc + cross_a - cross_b;
+
+#if 0
+        print("loc:%f %f %f a:%.1f %.1f %.1f b:%.1f %.1f %.1f  p1:%.1f %.1f %.1f p2:%.1f %.1f %.1f p3:%.1f %.1f %.1f p4:%.1f %.1f %.1f",
+              loc->x, loc->y, loc->z,
+              cross_a.x, cross_a.y, cross_a.z,
+              cross_b.x, cross_b.y, cross_b.z,
+              p1.x - loc->x, p1.y - loc->y, p1.z - loc->z,
+              p2.x - loc->x, p2.y - loc->y, p2.z - loc->z,
+              p3.x - loc->x, p3.y - loc->y, p3.z - loc->z,
+              p4.x - loc->x, p4.y - loc->y, p4.z - loc->z                           
+              );
+#endif
+
+        float u0 = 0, v0 = 0, u1 = 1, v1 = 1;
+        if( deck ) deck->getUVFromIndex( billboard_index, &u0, &v0, &u1, &v1, 0, 0 );
+
+        //        glDisable(GL_CULL_FACE);
+        
+        glBegin(GL_TRIANGLES);
+        glColor4f( 1,1,1,1 );
+        glTexCoord2f(u1,v1); glVertex3f( p1.x, p1.y, p1.z );
+        glTexCoord2f(u0,v0); glVertex3f( p3.x, p3.y, p3.z );
+        glTexCoord2f(u0,v1); glVertex3f( p2.x, p2.y, p2.z );
+
+        glTexCoord2f(u1,v1); glVertex3f( p1.x, p1.y, p1.z );        
+        glTexCoord2f(u1,v0); glVertex3f( p4.x, p4.y, p4.z );
+        glTexCoord2f(u0,v0); glVertex3f( p3.x, p3.y, p3.z );        
+        glEnd();
+        //glEnable(GL_CULL_FACE);
+        //glCullFace(GL_BACK);
+}
+
+inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {   
     if( deck ) {
         glEnable(GL_TEXTURE_2D);
         if( deck->tex->tex != last_tex_gl_id ) {
@@ -176,54 +234,54 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, int billboard_index, TileDeck 
         glDisable(GL_TEXTURE_2D);            
     }
 
-    if(billboard_index < 0 ) {
-        mesh->vb->bless();
-        assert( mesh->vb->gl_name > 0 );
-        mesh->ib->bless();
-        assert( mesh->ib->gl_name > 0 );
-        int vert_sz = mesh->vb->fmt->getNumFloat() * sizeof(float);
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mesh->ib->gl_name );
-        glBindBuffer( GL_ARRAY_BUFFER, mesh->vb->gl_name );
-        if( dbg != 0 ) {
-            print("draw mesh! dbg:%d deck:%p mesh:%p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d normofs:%d vert_sz:%d array_len:%d loc:%f %f %f",
-                  dbg,
-                  deck,
-                  mesh,
-                  mesh->vb->gl_name,
-                  mesh->ib->gl_name,
-                  mesh->vb->fmt->coord_offset,
-                  mesh->vb->fmt->color_offset,
-                  mesh->vb->fmt->texture_offset,
-                  mesh->vb->fmt->normal_offset,
-                  vert_sz,
-                  mesh->vb->array_len,
-                  loc->x, loc->y, loc->z
-                  );
-        }
-
-
-        glDisableClientState( GL_VERTEX_ARRAY );
-        glDisableClientState( GL_COLOR_ARRAY );
-        glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-        glDisableClientState( GL_NORMAL_ARRAY );
-        
-        if( mesh->vb->fmt->coord_offset >= 0 ){
-            glEnableClientState( GL_VERTEX_ARRAY );        
-            glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->coord_offset * sizeof(float) );
-        }
-        if( mesh->vb->fmt->color_offset >= 0 ){
-            glEnableClientState( GL_COLOR_ARRAY );
-            glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->color_offset * sizeof(float));
-        }
-        if( mesh->vb->fmt->texture_offset >= 0 ){
-            glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
-            glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->texture_offset * sizeof(float) );
-        }
-        if( mesh->vb->fmt->normal_offset >= 0 ) {
-            glEnableClientState( GL_NORMAL_ARRAY );
-            glNormalPointer( GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->normal_offset * sizeof(float) );
-        }
+    mesh->vb->bless();
+    assert( mesh->vb->gl_name > 0 );
+    mesh->ib->bless();
+    assert( mesh->ib->gl_name > 0 );
+    int vert_sz = mesh->vb->fmt->getNumFloat() * sizeof(float);
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mesh->ib->gl_name );
+    glBindBuffer( GL_ARRAY_BUFFER, mesh->vb->gl_name );
+    if( dbg != 0 ) {
+        print("draw mesh! dbg:%d deck:%p mesh:%p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d normofs:%d vert_sz:%d array_len:%d loc:%f %f %f",
+              dbg,
+              deck,
+              mesh,
+              mesh->vb->gl_name,
+              mesh->ib->gl_name,
+              mesh->vb->fmt->coord_offset,
+              mesh->vb->fmt->color_offset,
+              mesh->vb->fmt->texture_offset,
+              mesh->vb->fmt->normal_offset,
+              vert_sz,
+              mesh->vb->array_len,
+              loc->x, loc->y, loc->z
+              );
     }
+
+
+
+    glDisableClientState( GL_VERTEX_ARRAY );
+    glDisableClientState( GL_COLOR_ARRAY );
+    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+    glDisableClientState( GL_NORMAL_ARRAY );
+        
+    if( mesh->vb->fmt->coord_offset >= 0 ){
+        glEnableClientState( GL_VERTEX_ARRAY );        
+        glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->coord_offset * sizeof(float) );
+    }
+    if( mesh->vb->fmt->color_offset >= 0 ){
+        glEnableClientState( GL_COLOR_ARRAY );
+        glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->color_offset * sizeof(float));
+    }
+    if( mesh->vb->fmt->texture_offset >= 0 ){
+        glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
+        glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->texture_offset * sizeof(float) );
+    }
+    if( mesh->vb->fmt->normal_offset >= 0 ) {
+        glEnableClientState( GL_NORMAL_ARRAY );
+        glNormalPointer( GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->normal_offset * sizeof(float) );
+    }
+
     glLoadIdentity();    
 
     // ライトが設定されてるメッシュの中でも、マテリアルが設定されてないメッシュが混ざってるときはライトつけないことが必要。
@@ -245,87 +303,37 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, int billboard_index, TileDeck 
     }
 
                     
-    if(billboard_index >= 0 ){
-        Vec3 diff_camera = *loc - camera->loc;
-        Vec3 up_v(0.0f, 1.0f, 0.0f);
-
-        Vec3 cross_a = diff_camera.cross(up_v).normalize(1); 
-        Vec3 cross_b = diff_camera.cross(cross_a).normalize(1); 
-
-        // now you can use CrossA and CrossB and the billboard position to calculate the positions of the edges of the billboard-rectangle
-        cross_a.x *= scl->x * 0.5;        
-        cross_a.y *= scl->y * 0.5;
-        cross_a.z *= scl->z * 0.5;
-        cross_b.x *= scl->x * 0.5;        
-        cross_b.y *= scl->y * 0.5;
-        cross_b.z *= scl->z * 0.5;                        
-        Vec3 p1 = *loc + cross_a + cross_b;
-        Vec3 p2 = *loc - cross_a + cross_b;
-        Vec3 p3 = *loc - cross_a - cross_b;
-        Vec3 p4 = *loc + cross_a - cross_b;
-
-        /*
-        print("loc:%f %f %f a:%.1f %.1f %.1f b:%.1f %.1f %.1f  p1:%.1f %.1f %.1f p2:%.1f %.1f %.1f p3:%.1f %.1f %.1f p4:%.1f %.1f %.1f",
-              loc->x, loc->y, loc->z,
-              cross_a.x, cross_a.y, cross_a.z,
-              cross_b.x, cross_b.y, cross_b.z,
-              p1.x - loc->x, p1.y - loc->y, p1.z - loc->z,
-              p2.x - loc->x, p2.y - loc->y, p2.z - loc->z,
-              p3.x - loc->x, p3.y - loc->y, p3.z - loc->z,
-              p4.x - loc->x, p4.y - loc->y, p4.z - loc->z                           
-              );
-        */
-
-        float u0 = 0, v0 = 0, u1 = 1, v1 = 1;
-        if( deck ) deck->getUVFromIndex( billboard_index, &u0, &v0, &u1, &v1, 0, 0 );
-
-        //        glDisable(GL_CULL_FACE);
+    glTranslatef( loc->x, loc->y, loc->z );
+    if( rot->x != 0 ) glRotatef( rot->x, 1,0,0);     
+    if( rot->y != 0 ) glRotatef( rot->y, 0,1,0);     
+    if( rot->z != 0 ) glRotatef( rot->z, 0,0,1);
         
-        glBegin(GL_TRIANGLES);
-        glColor4f( 1,1,1,1 );
-        glTexCoord2f(u1,v1); glVertex3f( p1.x, p1.y, p1.z );
-        glTexCoord2f(u0,v0); glVertex3f( p3.x, p3.y, p3.z );
-        glTexCoord2f(u0,v1); glVertex3f( p2.x, p2.y, p2.z );
-
-        glTexCoord2f(u1,v1); glVertex3f( p1.x, p1.y, p1.z );        
-        glTexCoord2f(u1,v0); glVertex3f( p4.x, p4.y, p4.z );
-        glTexCoord2f(u0,v0); glVertex3f( p3.x, p3.y, p3.z );        
-        glEnd();
-        //glEnable(GL_CULL_FACE);
-        //glCullFace(GL_BACK);
-
-    } else {
-        glTranslatef( loc->x, loc->y, loc->z );
-        if( rot->x != 0 ) glRotatef( rot->x, 1,0,0);     
-        if( rot->y != 0 ) glRotatef( rot->y, 0,1,0);     
-        if( rot->z != 0 ) glRotatef( rot->z, 0,0,1);
-        
-        glScalef( scl->x, scl->y, scl->z );
+    glScalef( scl->x, scl->y, scl->z );
 
 
-        if( localloc ) {
-            glTranslatef( localloc->x, localloc->y, localloc->z );
-            if( localrot->x != 0 ) glRotatef( localrot->x, 1,0,0);     
-            if( localrot->y != 0 ) glRotatef( localrot->y, 0,1,0);     
-            if( localrot->z != 0 ) glRotatef( localrot->z, 0,0,1);
-            glScalef( localscl->x, localscl->y, localscl->z );
-        }        
+    if( localloc ) {
+        glTranslatef( localloc->x, localloc->y, localloc->z );
+        if( localrot->x != 0 ) glRotatef( localrot->x, 1,0,0);     
+        if( localrot->y != 0 ) glRotatef( localrot->y, 0,1,0);     
+        if( localrot->z != 0 ) glRotatef( localrot->z, 0,0,1);
+        glScalef( localscl->x, localscl->y, localscl->z );
+    }        
 
-        if(material) {
-            float diffuse[4] = { material->diffuse.r, material->diffuse.g, material->diffuse.b, material->diffuse.a };
-            glMaterialfv( GL_FRONT, GL_DIFFUSE, diffuse );
-            float ambient[4] = { material->ambient.r, material->ambient.g, material->ambient.b, material->ambient.a };
-            glMaterialfv( GL_FRONT, GL_AMBIENT, ambient );
-            float specular[4] = { material->specular.r, material->specular.g, material->specular.b, material->specular.a };
-            glMaterialfv( GL_FRONT, GL_SPECULAR, specular);
-        }
-        if( mesh->prim_type == GL_LINES || mesh->prim_type == GL_LINE_STRIP ) {
-            glLineWidth(mesh->line_width);
-        }
-        glDrawElements( mesh->prim_type, mesh->ib->array_len, GL_UNSIGNED_INT, 0);
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
+    if(material) {
+        float diffuse[4] = { material->diffuse.r, material->diffuse.g, material->diffuse.b, material->diffuse.a };
+        glMaterialfv( GL_FRONT, GL_DIFFUSE, diffuse );
+        float ambient[4] = { material->ambient.r, material->ambient.g, material->ambient.b, material->ambient.a };
+        glMaterialfv( GL_FRONT, GL_AMBIENT, ambient );
+        float specular[4] = { material->specular.r, material->specular.g, material->specular.b, material->specular.a };
+        glMaterialfv( GL_FRONT, GL_SPECULAR, specular);
     }
+    if( mesh->prim_type == GL_LINES || mesh->prim_type == GL_LINE_STRIP ) {
+        glLineWidth(mesh->line_width);
+    }
+    glDrawElements( mesh->prim_type, mesh->ib->array_len, GL_UNSIGNED_INT, 0);
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+    glBindBuffer( GL_ARRAY_BUFFER, 0 );
+
 }
 
 
@@ -417,16 +425,19 @@ int Layer::renderAllProps(){
 
             Prop3D *cur3d = (Prop3D*)cur;
 
-            assertmsg( cur3d->mesh || cur3d->children_num > 0, "mesh or children is required for 3d prop %p", cur3d );
+            assertmsg( cur3d->mesh || cur3d->children_num > 0 || cur3d->billboard_index>=0, "mesh or children is required for 3d prop %p", cur3d );
 
             cnt++;
 
-            if( cur3d->visible ) { 
-                if( cur3d->mesh ) {
-                    drawMesh( cur3d->debug_id, cur3d->mesh, cur3d->billboard_index, cur3d->deck,
+            if( cur3d->visible ) {
+                if( cur3d->billboard_index >= 0 ) {
+                    drawBillboard( cur3d->billboard_index, cur3d->deck, & cur3d->loc, & cur3d->scl  );
+                } else if( cur3d->mesh ) {
+                    drawMesh( cur3d->debug_id, cur3d->mesh, cur3d->deck,
                               & cur3d->loc, & cur3d->scl, & cur3d->rot,
                               NULL, NULL, NULL, cur3d->material );
                 }
+
 
                 if( cur3d->children_num > 0 ) {
                     int opaque_n=0;
@@ -455,14 +466,14 @@ int Layer::renderAllProps(){
                         Prop3D *child = (Prop3D*)sorter_opaque[i].ptr;
                         if( child->skip_rot ) {
                             Vec3 fixedrot(0,0,0);
-                            drawMesh( child->debug_id, child->mesh, child->billboard_index, child->deck,
+                            drawMesh( child->debug_id, child->mesh, child->deck,
                                       & cur3d->loc, & cur3d->scl, & fixedrot,
                                       & child->loc, & child->scl, & child->rot,
                                       child->material
                                       );
                             
                         } else { 
-                            drawMesh( child->debug_id, child->mesh, child->billboard_index, child->deck,
+                            drawMesh( child->debug_id, child->mesh, child->deck,
                                       & cur3d->loc, & cur3d->scl, & cur3d->rot,
                                       & child->loc, & child->scl, & child->rot,
                                       child->material
@@ -473,14 +484,14 @@ int Layer::renderAllProps(){
                         Prop3D *child = (Prop3D*)sorter_transparent[i].ptr;
                         if( child->skip_rot ) {
                             Vec3 fixedrot(0,0,0);
-                            drawMesh( child->debug_id, child->mesh, child->billboard_index, child->deck,
+                            drawMesh( child->debug_id, child->mesh, child->deck,
                                       & cur3d->loc, & cur3d->scl, & fixedrot,
                                       & child->loc, & child->scl, & child->rot,
                                       child->material
                                       );
                             
                         } else {
-                            drawMesh( child->debug_id, child->mesh, child->billboard_index, child->deck,
+                            drawMesh( child->debug_id, child->mesh, child->deck,
                                       & cur3d->loc, & cur3d->scl, & cur3d->rot,
                                       & child->loc, & child->scl, & child->rot,
                                       child->material
