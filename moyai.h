@@ -1074,8 +1074,6 @@ public:
     Vec3 scl;
     Vec3 rot;
     Mesh *mesh;
-    bool billboard;
-    
 
     Prop3D **children;
     int children_num, children_max;
@@ -1084,7 +1082,8 @@ public:
     Material *material;
     Vec3 sort_center;
     bool skip_rot;
-    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), billboard(false), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0), skip_rot(false) {
+    int billboard_index; // enable by >=0
+    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0), skip_rot(false), billboard_index(-1) {
         dimension = DIMENSION_3D;
     }
     ~Prop3D() {
@@ -1101,7 +1100,7 @@ public:
     void addChild( Prop3D *p );
     void deleteChild( Prop3D *p );
     void setMaterial( Material *mat ) { material = mat; }
-
+    void setBillboardIndex( int ind ) { billboard_index = ind;  }
     virtual bool prop3DPoll(double dt) { return true; }
     virtual bool propPoll(double dt);
 };
@@ -1187,7 +1186,7 @@ class Layer {
                             center + Vec2(dia,dia),
                             out, outlen );
     }
-    inline void drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  );
+    inline void drawMesh( int dbg, Mesh *mesh, int billboard_index, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  );
 };
 
 class Font {

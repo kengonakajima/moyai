@@ -313,7 +313,7 @@ void setupCube() {
     g_prop_billboard->setScl(Vec3(0.5,0.5,0.5));
     g_prop_billboard->setLoc(Vec3(0,0,0));
     g_prop_billboard->setTexture(g_sol_tex);
-    g_prop_billboard->billboard = true;
+    g_prop_billboard->setBillboardIndex(0);
     g_main_layer->insertProp(g_prop_billboard);
 
     if(1){
