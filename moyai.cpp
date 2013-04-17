@@ -207,6 +207,7 @@ inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc,
         float u0 = 0, v0 = 0, u1 = 1, v1 = 1;
         if( deck ) deck->getUVFromIndex( billboard_index, &u0, &v0, &u1, &v1, 0, 0 );
 
+        glDepthMask(false);
         //        glDisable(GL_CULL_FACE);
         
         glBegin(GL_TRIANGLES);
@@ -221,6 +222,7 @@ inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc,
         glEnd();
         //glEnable(GL_CULL_FACE);
         //glCullFace(GL_BACK);
+        glDepthMask(true);
 }
 
 inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {   
