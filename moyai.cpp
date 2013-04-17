@@ -244,60 +244,72 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, bool billboard, TileDeck *deck
 
                     
     if(billboard){
-                    
-        // [ a0 a4 a8 a12
-        //   a1 a5 a9 a13
-        //   a2 a6 a10 a14
-        //   a3 a7 a11 a15 ]
-        // を
-        // [ 1 0 0 a12
-        //   0 1 0 a13
-        //   0 0 1 a14
-        //   a3 a7 a11 a15 ]
-        // になおす。
-        glPushMatrix();
-        float mat[16];
-        glGetFloatv(GL_MODELVIEW_MATRIX,mat);
-        mat[12] = loc->x;
-        mat[13] = loc->y;
-        mat[14] = loc->z;                    
-        mat[0] = mat[5] = mat[10] = 1;
-        mat[1] = mat[2] = mat[4] = mat[6] = mat[8] = mat[9] = 0;
-        glLoadMatrixf(mat);
-    } else {
-        glTranslatef( loc->x, loc->y, loc->z );
-        glScalef( scl->x, scl->y, scl->z );
 
+        glTranslatef( loc->x, loc->y, loc->z );
         if( rot->x != 0 ) glRotatef( rot->x, 1,0,0);     
         if( rot->y != 0 ) glRotatef( rot->y, 0,1,0);     
         if( rot->z != 0 ) glRotatef( rot->z, 0,0,1);
+        
+        glScalef( scl->x, scl->y, scl->z );
+
+        
+        Vec3 diff_camera = *loc - camera->loc;
+        Vec3 up_v(0.0f, 1.0f, 0.0f);
+
+        Vec3 cross_a = diff_camera.cross(up_v).normalize(1); 
+        Vec3 cross_b = diff_camera.cross(cross_a).normalize(1); 
+        // now you can use CrossA and CrossB and the billboard position to calculate the positions of the edges of the billboard-rectangle
+        Vec3 p1 = *loc + cross_a + cross_b;
+        Vec3 p2 = *loc - cross_a + cross_b;
+        Vec3 p3 = *loc - cross_a - cross_b;
+        Vec3 p4 = *loc + cross_a - cross_b;
+
+        //        glDisable(GL_CULL_FACE);
+
+        float u0 = 0, v0 = 0, u1 = 1, v1 = 1;
+        glBegin(GL_TRIANGLES);
+        glTexCoord2f(u1,v1); glVertex3f( p1.x, p1.y, p1.z );
+        glTexCoord2f(u0,v0); glVertex3f( p3.x, p3.y, p3.z );
+        glTexCoord2f(u0,v1); glVertex3f( p2.x, p2.y, p2.z );
+
+        glTexCoord2f(u1,v1); glVertex3f( p1.x, p1.y, p1.z );        
+        glTexCoord2f(u1,v0); glVertex3f( p4.x, p4.y, p4.z );
+        glTexCoord2f(u0,v0); glVertex3f( p3.x, p3.y, p3.z );        
+        glEnd();
+        //        glEnable(GL_CULL_FACE);
+        //        glCullFace(GL_BACK);        
+
+    } else {
+        glTranslatef( loc->x, loc->y, loc->z );
+        if( rot->x != 0 ) glRotatef( rot->x, 1,0,0);     
+        if( rot->y != 0 ) glRotatef( rot->y, 0,1,0);     
+        if( rot->z != 0 ) glRotatef( rot->z, 0,0,1);
+        
+        glScalef( scl->x, scl->y, scl->z );
+
 
         if( localloc ) {
             glTranslatef( localloc->x, localloc->y, localloc->z );
-            glScalef( localscl->x, localscl->y, localscl->z );
             if( localrot->x != 0 ) glRotatef( localrot->x, 1,0,0);     
             if( localrot->y != 0 ) glRotatef( localrot->y, 0,1,0);     
             if( localrot->z != 0 ) glRotatef( localrot->z, 0,0,1);
+            glScalef( localscl->x, localscl->y, localscl->z );
         }        
-    }
 
-    if(material) {
-        float diffuse[4] = { material->diffuse.r, material->diffuse.g, material->diffuse.b, material->diffuse.a };
-        glMaterialfv( GL_FRONT, GL_DIFFUSE, diffuse );
-        float ambient[4] = { material->ambient.r, material->ambient.g, material->ambient.b, material->ambient.a };
-        glMaterialfv( GL_FRONT, GL_AMBIENT, ambient );
-        float specular[4] = { material->specular.r, material->specular.g, material->specular.b, material->specular.a };
-        glMaterialfv( GL_FRONT, GL_SPECULAR, specular);
-    }
-    if( mesh->prim_type == GL_LINES || mesh->prim_type == GL_LINE_STRIP ) {
-        glLineWidth(mesh->line_width);
-    }
-    glDrawElements( mesh->prim_type, mesh->ib->array_len, GL_UNSIGNED_INT, 0);
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-    glBindBuffer( GL_ARRAY_BUFFER, 0 );
-
-    if( billboard ){
-        glPopMatrix();
+        if(material) {
+            float diffuse[4] = { material->diffuse.r, material->diffuse.g, material->diffuse.b, material->diffuse.a };
+            glMaterialfv( GL_FRONT, GL_DIFFUSE, diffuse );
+            float ambient[4] = { material->ambient.r, material->ambient.g, material->ambient.b, material->ambient.a };
+            glMaterialfv( GL_FRONT, GL_AMBIENT, ambient );
+            float specular[4] = { material->specular.r, material->specular.g, material->specular.b, material->specular.a };
+            glMaterialfv( GL_FRONT, GL_SPECULAR, specular);
+        }
+        if( mesh->prim_type == GL_LINES || mesh->prim_type == GL_LINE_STRIP ) {
+            glLineWidth(mesh->line_width);
+        }
+        glDrawElements( mesh->prim_type, mesh->ib->array_len, GL_UNSIGNED_INT, 0);
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );
     }
 }
 

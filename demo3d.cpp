@@ -21,6 +21,7 @@ Camera *g_hud_camera;
 Camera *g_main_camera;
 
 Texture *g_wood_tex;
+Texture *g_sol_tex;
 
 Mesh *g_colmesh;
 Mesh *g_texmesh;
@@ -56,7 +57,7 @@ void updateGame() {
 
     // move camera
     Vec3 campos = g_main_camera->loc;
-    g_main_camera->setLoc( campos + Vec3(0,0,dt));    
+    g_main_camera->setLoc( campos + Vec3(dt,0,0));    
 
     if( g_prop_col ){
         g_prop_col->loc.x += dt/10;
@@ -76,9 +77,10 @@ void updateGame() {
         g_prop_texcol->rot.z -= dt*100;        
     }
     if( g_prop_billboard ) {
-        g_prop_billboard->loc.y = sin(g_prop_billboard->accum_time*2);
-        g_prop_billboard->loc.x = cos(g_prop_billboard->accum_time*2);
-        g_prop_billboard->rot.x = g_prop_billboard->accum_time * 100;
+        g_prop_billboard->loc.x = cos(g_prop_billboard->accum_time);
+        g_prop_billboard->loc.y = sin(g_prop_billboard->accum_time);
+        g_prop_billboard->loc.z = 0;//cos(g_prop_billboard->accum_time*2);
+        //        g_prop_billboard->rot.x = g_prop_billboard->accum_time * 100;
     }
 
 
@@ -280,6 +282,8 @@ void setupCube() {
 
     g_wood_tex = new Texture();
     g_wood_tex->load( "assets/wood256.png" );
+    g_sol_tex = new Texture();
+    g_sol_tex->load( "assets/sol.png" );    
     
 
     g_prop_col = new Prop3D();
@@ -306,9 +310,9 @@ void setupCube() {
 
     g_prop_billboard = new Prop3D();
     g_prop_billboard->setMesh( g_billboardmesh);
-    g_prop_billboard->setScl(Vec3(1,1,1));
+    g_prop_billboard->setScl(Vec3(0.5,0.5,0.5));
     g_prop_billboard->setLoc(Vec3(0,0,0));
-    g_prop_billboard->setTexture(g_wood_tex);
+    g_prop_billboard->setTexture(g_sol_tex);
     g_prop_billboard->billboard = true;
     g_main_layer->insertProp(g_prop_billboard);
 
@@ -410,7 +414,7 @@ int main() {
     g_main_layer = new Layer();
     g_main_layer->setViewport(g_viewport3d);    
     g_main_camera = new Camera();
-    g_main_camera->setLoc(0,0);
+    g_main_camera->setLoc(0.001,0,3);
     g_main_camera->setLookAt(Vec3(0,0,0), Vec3(0,1,0));    
     g_main_layer->setCamera( g_main_camera );
 
