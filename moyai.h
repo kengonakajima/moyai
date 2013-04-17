@@ -67,6 +67,7 @@ public:
     inline void toSign(int*xs,int*ys,int*zs){ *xs = sign(x); *ys = sign(y); *zs = sign(z); }
     inline Vec3 operator+(Vec3 arg){ return Vec3(x+arg.x,y+arg.y,z+arg.z); }
     inline Vec3 operator-(Vec3 arg){ return Vec3(x-arg.x,y-arg.y,z-arg.z); }
+    inline Vec3 operator-() { return Vec3(x*-1,y*-1,z*-1); }
     inline Vec3 operator*(float f){ return Vec3(x*f,y*f,z*f); }
     inline Vec3 operator*(Vec3 v){ return Vec3(x*v.x,y*v.y,z*v.z); }    
     inline Vec3 operator/(float f){ return Vec3(x/f,y/f,z/f); }    
@@ -189,7 +190,8 @@ public:
     inline Vec2 operator+(Vec2 arg){ return Vec2(x+arg.x,y+arg.y); }
     inline Vec2 operator+(Vec3 arg){ return Vec2(x+arg.x,y+arg.y); }    
     inline Vec2 operator-(Vec2 arg){ return Vec2(x-arg.x,y-arg.y); }
-    inline Vec2 operator-(Vec3 arg){ return Vec2(x-arg.x,y-arg.y); }    
+    inline Vec2 operator-(Vec3 arg){ return Vec2(x-arg.x,y-arg.y); }
+    inline Vec2 operator-(){ return Vec2(x*-1,y*-1); }
     inline Vec2 operator*(float f){ return Vec2(x*f,y*f); }
     inline Vec2 operator/(float f){ return Vec2(x/f,y/f); }    
     inline Vec2 operator*=(float f){ x *= f; y *= f; return Vec2(x,y); }
