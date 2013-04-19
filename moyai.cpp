@@ -432,7 +432,13 @@ int Layer::renderAllProps(){
             cnt++;
 
             if( cur3d->visible ) {
-
+                glDepthMask( cur3d->depth_mask );
+                if( cur3d->alpha_test ) {
+                    glEnable( GL_ALPHA_TEST );
+                    glAlphaFunc( GL_GREATER, 0.5 );
+                } else {
+                    glDisable( GL_ALPHA_TEST );
+                }
                 if( cur3d->fragment_shader ){
                     glUseProgram( cur3d->fragment_shader->program );
                     cur3d->fragment_shader->updateUniforms();
