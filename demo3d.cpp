@@ -397,10 +397,7 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);    
     glEnable(GL_DEPTH_BUFFER_BIT);    
-    glDepthMask(true );
 
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
 
     // 3d
     g_viewport3d = new Viewport();

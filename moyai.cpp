@@ -208,8 +208,6 @@ inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc,
         if( deck ) deck->getUVFromIndex( billboard_index, &u0, &v0, &u1, &v1, 0, 0 );
 
         glDepthMask(false);
-        //        glDisable(GL_CULL_FACE);
-        
         glBegin(GL_TRIANGLES);
         glColor4f( 1,1,1,1 );
         glTexCoord2f(u1,v1); glVertex3f( p1.x, p1.y, p1.z );
@@ -220,8 +218,6 @@ inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc,
         glTexCoord2f(u1,v0); glVertex3f( p4.x, p4.y, p4.z );
         glTexCoord2f(u0,v0); glVertex3f( p3.x, p3.y, p3.z );        
         glEnd();
-        //glEnable(GL_CULL_FACE);
-        //glCullFace(GL_BACK);
         glDepthMask(true);
 }
 
@@ -438,6 +434,12 @@ int Layer::renderAllProps(){
                     glAlphaFunc( GL_GREATER, 0.5 );
                 } else {
                     glDisable( GL_ALPHA_TEST );
+                }
+                if( cur3d->cull_back_face ) {
+                    glEnable(GL_CULL_FACE);
+                    glCullFace(GL_BACK);                    
+                } else  {
+                    glDisable(GL_CULL_FACE);
                 }
                 if( cur3d->fragment_shader ){
                     glUseProgram( cur3d->fragment_shader->program );
