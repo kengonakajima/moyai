@@ -1114,6 +1114,8 @@ public:
     inline void setDepthMask(bool flg) { depth_mask = flg; }
     inline void setAlphaTest(bool flg) { alpha_test = flg; }
     inline void setCullBackFace(bool flg) { cull_back_face = flg; }
+    inline void cleanRenderOptions();
+    inline void performRenderOptions();
     virtual bool prop3DPoll(double dt) { return true; }
     virtual bool propPoll(double dt);
 };

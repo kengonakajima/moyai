@@ -334,6 +334,28 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec
 
 }
 
+inline void Prop3D::performRenderOptions() {
+    glDepthMask( depth_mask );
+    if( alpha_test ) {
+        glEnable( GL_ALPHA_TEST );
+        glAlphaFunc( GL_GREATER, 0.5 );
+    } else {
+        glDisable( GL_ALPHA_TEST );
+    }
+    if( cull_back_face ) {
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);                    
+    } else  {
+        glDisable(GL_CULL_FACE);
+    }
+    if( fragment_shader ){
+        glUseProgram( fragment_shader->program );
+        fragment_shader->updateUniforms();
+    }
+}
+inline void Prop3D::cleanRenderOptions() {
+    if( fragment_shader ) glUseProgram( 0 );
+}
 
 int Layer::renderAllProps(){
     if( !to_render ) return 0;
@@ -428,23 +450,7 @@ int Layer::renderAllProps(){
             cnt++;
 
             if( cur3d->visible ) {
-                glDepthMask( cur3d->depth_mask );
-                if( cur3d->alpha_test ) {
-                    glEnable( GL_ALPHA_TEST );
-                    glAlphaFunc( GL_GREATER, 0.5 );
-                } else {
-                    glDisable( GL_ALPHA_TEST );
-                }
-                if( cur3d->cull_back_face ) {
-                    glEnable(GL_CULL_FACE);
-                    glCullFace(GL_BACK);                    
-                } else  {
-                    glDisable(GL_CULL_FACE);
-                }
-                if( cur3d->fragment_shader ){
-                    glUseProgram( cur3d->fragment_shader->program );
-                    cur3d->fragment_shader->updateUniforms();
-                }
+                cur3d->performRenderOptions();
                 
                 if( cur3d->billboard_index >= 0 ) {
                     drawBillboard( cur3d->billboard_index, cur3d->deck, & cur3d->loc, & cur3d->scl  );
@@ -480,6 +486,7 @@ int Layer::renderAllProps(){
                     // draw opaque mesh first
                     for(int i=opaque_n-1;i>=0;i--) {
                         Prop3D *child = (Prop3D*)sorter_opaque[i].ptr;
+                        child->performRenderOptions();                        
                         if( child->skip_rot ) {
                             Vec3 fixedrot(0,0,0);
                             drawMesh( child->debug_id, child->mesh, child->deck,
@@ -494,10 +501,12 @@ int Layer::renderAllProps(){
                                       & child->loc, & child->scl, & child->rot,
                                       child->material
                                       );
-                        } 
+                        }
+                        child->cleanRenderOptions();                        
                     }
                     for(int i=transparent_n-1;i>=0;i--){
                         Prop3D *child = (Prop3D*)sorter_transparent[i].ptr;
+                        child->performRenderOptions();                                                
                         if( child->skip_rot ) {
                             Vec3 fixedrot(0,0,0);
                             drawMesh( child->debug_id, child->mesh, child->deck,
@@ -513,11 +522,10 @@ int Layer::renderAllProps(){
                                       child->material
                                       );
                         }
+                        child->cleanRenderOptions();
                     }
                 }
-                if( cur3d->fragment_shader ) {
-                    glUseProgram(0);
-                }
+                cur3d->cleanRenderOptions();
             }                                   
             
             cur = cur->next;
