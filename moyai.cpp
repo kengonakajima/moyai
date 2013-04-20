@@ -207,7 +207,6 @@ inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc,
         float u0 = 0, v0 = 0, u1 = 1, v1 = 1;
         if( deck ) deck->getUVFromIndex( billboard_index, &u0, &v0, &u1, &v1, 0, 0 );
 
-        glDepthMask(false);
         glBegin(GL_TRIANGLES);
         glColor4f( 1,1,1,1 );
         glTexCoord2f(u1,v1); glVertex3f( p1.x, p1.y, p1.z );
@@ -218,7 +217,7 @@ inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc,
         glTexCoord2f(u1,v0); glVertex3f( p4.x, p4.y, p4.z );
         glTexCoord2f(u0,v0); glVertex3f( p3.x, p3.y, p3.z );        
         glEnd();
-        glDepthMask(true);
+
 }
 
 inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {   
@@ -338,7 +337,7 @@ inline void Prop3D::performRenderOptions() {
     glDepthMask( depth_mask );
     if( alpha_test ) {
         glEnable( GL_ALPHA_TEST );
-        glAlphaFunc( GL_GREATER, 0.5 );
+        glAlphaFunc( GL_GREATER, 0.01 );
     } else {
         glDisable( GL_ALPHA_TEST );
     }
