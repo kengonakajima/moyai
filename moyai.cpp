@@ -66,6 +66,7 @@ int Layer::pollAllProps(double dt ){
         p->onDelete();
         delete p;
     }
+    last_poll_num = cnt;
 
     return cnt;
 }
@@ -530,7 +531,6 @@ int Layer::renderAllProps(){
             cur = cur->next;
         }
         return cnt;        
-        
     }
 }
 
@@ -724,12 +724,29 @@ void Prop2D::render(Camera *cam) {
     }
 }
 
+int Prop3D::countSpareChildren() {
+    int cnt=0;
+    for(int i=0;i<children_num;i++) {
+        if( children[i] == NULL ) cnt ++;
+    }
+    return cnt;
+}
 
 void Prop3D::reserveChildren( int n ) {
     assert( n <= CHILDREN_ABS_MAX );
     size_t sz = sizeof(Prop3D*) * n;
-    children = (Prop3D**) MALLOC( sz );
-    for(int i=0;i<n;i++) children[i] = NULL;
+    if( children ) {
+        Prop3D **newptr = (Prop3D**) MALLOC( sz );
+        for(int i=0;i<n;i++) newptr[i] = NULL;        
+        for(int i=0;i<children_max;i++) {
+            newptr[i] = children[i];
+        }
+        FREE(children);
+        children = newptr;
+    } else {
+        children = (Prop3D**) MALLOC( sz );
+        for(int i=0;i<n;i++) children[i] = NULL;
+    }
     children_max = n;
 }
 void Prop3D::addChild( Prop3D *p ) {

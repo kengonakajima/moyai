@@ -1103,6 +1103,7 @@ public:
     inline void setRot(Vec3 r) { rot = r; }
     inline void setMesh( Mesh *m) { mesh = m; }
     void reserveChildren( int n );
+    int countSpareChildren();
     void addChild( Prop3D *p );
     void deleteChild( Prop3D *p );
     void setMaterial( Material *mat ) { material = mat; }
@@ -1167,8 +1168,8 @@ class Layer {
     bool to_render;
     
     static int idgen;
-    
-    Layer() : camera(NULL), prop_top(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL), to_render(true) {
+    int last_poll_num;
+    Layer() : camera(NULL), prop_top(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL), to_render(true), last_poll_num(0) {
         id = idgen++;
     }
     inline void setViewport( Viewport *vp ){
