@@ -452,7 +452,6 @@ int Layer::renderAllProps(){
 
             if( cur3d->visible ) {
                 cur3d->performRenderOptions();
-                
                 if( cur3d->billboard_index >= 0 ) {
                     drawBillboard( cur3d->billboard_index, cur3d->deck, & cur3d->loc, & cur3d->scl  );
                 } else if( cur3d->mesh ) {
@@ -460,6 +459,7 @@ int Layer::renderAllProps(){
                               & cur3d->loc, & cur3d->scl, & cur3d->rot,
                               NULL, NULL, NULL, cur3d->material );
                 }
+                cur3d->cleanRenderOptions();
 
 
                 if( cur3d->children_num > 0 ) {
@@ -526,7 +526,6 @@ int Layer::renderAllProps(){
                         child->cleanRenderOptions();
                     }
                 }
-                cur3d->cleanRenderOptions();
             }                                   
             
             cur = cur->next;
