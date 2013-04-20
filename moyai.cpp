@@ -355,6 +355,7 @@ inline void Prop3D::performRenderOptions() {
 }
 inline void Prop3D::cleanRenderOptions() {
     if( fragment_shader ) glUseProgram( 0 );
+    glDepthMask(true);
 }
 
 int Layer::renderAllProps(){
