@@ -272,6 +272,12 @@ public:
         if(bb>1)bb=1;
         return Color(rr,gg,bb,a);
     }
+    inline Color interpolate( Color c, float rate ) {
+        return Color( ::interpolate( r, c.r, rate ),
+                      ::interpolate( g, c.g, rate ),
+                      ::interpolate( b, c.b, rate ),
+                      ::interpolate( a, c.a, rate ) );
+    }
     
 };
 
