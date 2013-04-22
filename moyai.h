@@ -1095,6 +1095,7 @@ public:
     bool depth_mask;
     bool alpha_test;
     bool cull_back_face;
+
     Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0), skip_rot(false), billboard_index(-1), fragment_shader(NULL), depth_mask(true), alpha_test(false), cull_back_face(true) {
         dimension = DIMENSION_3D;
     }
@@ -1124,8 +1125,11 @@ public:
     inline void setCullBackFace(bool flg) { cull_back_face = flg; }
     inline void cleanRenderOptions();
     inline void performRenderOptions();
+    Vec2 getScreenPos();
+    
     virtual bool prop3DPoll(double dt) { return true; }
     virtual bool propPoll(double dt);
+    
 };
 
 class Camera {
@@ -1211,6 +1215,8 @@ class Layer {
     }
     inline void drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  );
     inline void drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc, Vec3 *scl  );
+
+    Vec2 getScreenPos( Vec3 at );
 };
 
 class Font {

@@ -187,7 +187,8 @@ inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc,
     cross_a.z *= scl->z * 0.5;
     cross_b.x *= scl->x * 0.5;        
     cross_b.y *= scl->y * 0.5;
-    cross_b.z *= scl->z * 0.5;                        
+    cross_b.z *= scl->z * 0.5;
+
     Vec3 p1 = *loc + cross_a + cross_b;
     Vec3 p2 = *loc - cross_a + cross_b;
     Vec3 p3 = *loc - cross_a - cross_b;
@@ -434,6 +435,7 @@ int Layer::renderAllProps(){
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
+
         // もともとライト設定はこの位置にあったが drawmeshに移動した
 
         int cnt=0;
@@ -443,9 +445,9 @@ int Layer::renderAllProps(){
         while(cur){
             assert(cur->id>0);
             assert(cur->dimension == viewport->dimension );
-
+        
             Prop3D *cur3d = (Prop3D*)cur;
-
+        
             assertmsg( cur3d->mesh || cur3d->children_num > 0 || cur3d->billboard_index>=0, "mesh or children is required for 3d prop %p", cur3d );
 
             cnt++;
@@ -541,6 +543,34 @@ void Prop3D::setMaterialChildren( Material *mat ) {
         }
     }
 }    
+
+Vec2 Prop3D::getScreenPos() {
+    return parent_layer->getScreenPos(loc);
+}
+
+Vec2 Layer::getScreenPos( Vec3 at ) {
+    double projection[16], modelview[16];
+    double sx,sy,sz;
+    int vp[4];
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    gluPerspective( 60, (GLdouble)viewport->screen_width/(GLdouble)viewport->screen_height, viewport->near_clip, viewport->far_clip );
+    gluLookAt( camera->loc.x,camera->loc.y,camera->loc.z,
+               camera->look_at.x,camera->look_at.y,camera->look_at.z,
+               camera->look_up.x,camera->look_up.y,camera->look_up.z );
+        
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+        
+    glGetIntegerv( GL_VIEWPORT, vp );
+    glGetDoublev(GL_PROJECTION_MATRIX, projection );
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview );
+
+    gluProject( at.x, at.y, at.z, modelview, projection, vp, &sx, &sy, &sz );
+    return Vec2( sx,sy );
+}
 
 
 void Prop2D::drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot ) {
