@@ -423,18 +423,10 @@ int Layer::renderAllProps(){
         assertmsg(camera, "3d render need camera.");
 
         glEnable(GL_DEPTH_TEST);
-        
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
 
-        gluPerspective( 60, (GLdouble)viewport->screen_width/(GLdouble)viewport->screen_height, viewport->near_clip, viewport->far_clip );
-        gluLookAt( camera->loc.x,camera->loc.y,camera->loc.z,
-                   camera->look_at.x,camera->look_at.y,camera->look_at.z,
-                   camera->look_up.x,camera->look_up.y,camera->look_up.z );
-        
+        setupProjectionMatrix3D();
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-
 
         // もともとライト設定はこの位置にあったが drawmeshに移動した
 
@@ -548,28 +540,48 @@ Vec2 Prop3D::getScreenPos() {
     return parent_layer->getScreenPos(loc);
 }
 
-Vec2 Layer::getScreenPos( Vec3 at ) {
-    double projection[16], modelview[16];
-    double sx,sy,sz;
-    int vp[4];
-
+void Layer::setupProjectionMatrix3D() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-
     gluPerspective( 60, (GLdouble)viewport->screen_width/(GLdouble)viewport->screen_height, viewport->near_clip, viewport->far_clip );
     gluLookAt( camera->loc.x,camera->loc.y,camera->loc.z,
                camera->look_at.x,camera->look_at.y,camera->look_at.z,
                camera->look_up.x,camera->look_up.y,camera->look_up.z );
-        
+}
+
+Vec2 Layer::getScreenPos( Vec3 at ) {
+    setupProjectionMatrix3D();
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    
+    double projection[16], modelview[16];
+    double sx,sy,sz;
+    int vp[4];
         
-    glGetIntegerv( GL_VIEWPORT, vp );
+    glGetIntegerv( GL_VIEWPORT, vp );    
     glGetDoublev(GL_PROJECTION_MATRIX, projection );
     glGetDoublev(GL_MODELVIEW_MATRIX, modelview );
 
     gluProject( at.x, at.y, at.z, modelview, projection, vp, &sx, &sy, &sz );
     return Vec2( sx,sy );
+}
+Vec3 Layer::getWorldPos( Vec2 scrpos ) {
+    setupProjectionMatrix3D();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    double projection[16], modelview[16];
+    int vp[4];
+    glGetIntegerv( GL_VIEWPORT, vp );
+    glGetDoublev(GL_PROJECTION_MATRIX, projection );
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview );
+    
+    float z;
+    double ox,oy,oz;
+    Vec3 out;
+    glReadPixels( scrpos.x, scrpos.y, 1,1, GL_DEPTH_COMPONENT, GL_FLOAT, &z );
+    gluUnProject( scrpos.x, scrpos.y, z, modelview, projection, vp, &ox, &oy, &oz );
+    return Vec3(ox,oy,oz);
 }
 
 

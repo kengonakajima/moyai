@@ -1216,7 +1216,9 @@ class Layer {
     inline void drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  );
     inline void drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc, Vec3 *scl  );
 
+    void setupProjectionMatrix3D();
     Vec2 getScreenPos( Vec3 at );
+    Vec3 getWorldPos( Vec2 scrpos );    
 };
 
 class Font {
