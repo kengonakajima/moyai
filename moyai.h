@@ -1003,7 +1003,7 @@ class Prop2D : public Prop {
     }
     inline void clearChildren() {
         children_num=0;
-    }    
+    }
     inline void setColor( Color c ){
         color = c;
     }
@@ -1113,6 +1113,7 @@ public:
     void addChild( Prop3D *p );
     void deleteChild( Prop3D *p );
     void setMaterial( Material *mat ) { material = mat; }
+    void setMaterialChildren( Material *mat ); 
     void setBillboardIndex( int ind ) { billboard_index = ind;  }
     inline void setFragmentShader( FragmentShader *fs ){
         assert(fs);

@@ -534,6 +534,14 @@ int Layer::renderAllProps(){
     }
 }
 
+void Prop3D::setMaterialChildren( Material *mat ) {        
+    for(int i=0;i<children_num;i++) {
+        if( children[i] ) {
+            children[i]->setMaterial(mat);
+        }
+    }
+}    
+
 
 void Prop2D::drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot ) {
 
