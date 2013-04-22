@@ -222,7 +222,7 @@ inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc,
 
 }
 
-inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {   
+inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *locofs, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {   
     if( deck ) {
         glEnable(GL_TEXTURE_2D);
         if( deck->tex->tex != last_tex_gl_id ) {
@@ -302,7 +302,7 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec
     }
 
                     
-    glTranslatef( loc->x, loc->y, loc->z );
+    glTranslatef( loc->x + locofs->x, loc->y + locofs->y, loc->z + locofs->z );
     if( rot->x != 0 ) glRotatef( rot->x, 1,0,0);     
     if( rot->y != 0 ) glRotatef( rot->y, 0,1,0);     
     if( rot->z != 0 ) glRotatef( rot->z, 0,0,1);
@@ -450,7 +450,7 @@ int Layer::renderAllProps(){
                     drawBillboard( cur3d->billboard_index, cur3d->deck, & cur3d->loc, & cur3d->scl  );
                 } else if( cur3d->mesh ) {
                     drawMesh( cur3d->debug_id, cur3d->mesh, cur3d->deck,
-                              & cur3d->loc, & cur3d->scl, & cur3d->rot,
+                              & cur3d->loc, &cur3d->draw_offset, & cur3d->scl, & cur3d->rot,
                               NULL, NULL, NULL, cur3d->material );
                 }
                 cur3d->cleanRenderOptions();
@@ -485,14 +485,14 @@ int Layer::renderAllProps(){
                         if( child->skip_rot ) {
                             Vec3 fixedrot(0,0,0);
                             drawMesh( child->debug_id, child->mesh, child->deck,
-                                      & cur3d->loc, & cur3d->scl, & fixedrot,
+                                      & cur3d->loc, &cur3d->draw_offset, & cur3d->scl, & fixedrot,
                                       & child->loc, & child->scl, & child->rot,
                                       child->material
                                       );
                             
                         } else { 
                             drawMesh( child->debug_id, child->mesh, child->deck,
-                                      & cur3d->loc, & cur3d->scl, & cur3d->rot,
+                                      & cur3d->loc, &cur3d->draw_offset, & cur3d->scl, & cur3d->rot,
                                       & child->loc, & child->scl, & child->rot,
                                       child->material
                                       );
@@ -505,14 +505,14 @@ int Layer::renderAllProps(){
                         if( child->skip_rot ) {
                             Vec3 fixedrot(0,0,0);
                             drawMesh( child->debug_id, child->mesh, child->deck,
-                                      & cur3d->loc, & cur3d->scl, & fixedrot,
+                                      & cur3d->loc, &cur3d->draw_offset, & cur3d->scl, & fixedrot,
                                       & child->loc, & child->scl, & child->rot,
                                       child->material
                                       );
                             
                         } else {
                             drawMesh( child->debug_id, child->mesh, child->deck,
-                                      & cur3d->loc, & cur3d->scl, & cur3d->rot,
+                                      & cur3d->loc, &cur3d->draw_offset, & cur3d->scl, & cur3d->rot,
                                       & child->loc, & child->scl, & child->rot,
                                       child->material
                                       );

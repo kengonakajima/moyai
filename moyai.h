@@ -1095,8 +1095,8 @@ public:
     bool depth_mask;
     bool alpha_test;
     bool cull_back_face;
-
-    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0), skip_rot(false), billboard_index(-1), fragment_shader(NULL), depth_mask(true), alpha_test(false), cull_back_face(true) {
+    Vec3 draw_offset;
+    Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0), skip_rot(false), billboard_index(-1), fragment_shader(NULL), depth_mask(true), alpha_test(false), cull_back_face(true), draw_offset(0,0,0) {
         dimension = DIMENSION_3D;
     }
     ~Prop3D() {
@@ -1108,6 +1108,7 @@ public:
     inline void setScl(float x, float y, float z) { scl.x = x; scl.y = y; scl.z = z; }
     inline void setScl(float s){ setScl(s,s,s); }
     inline void setRot(Vec3 r) { rot = r; }
+    inline void setRot(float x, float y, float z) { rot.x = x; rot.y = y; rot.z = z; }
     inline void setMesh( Mesh *m) { mesh = m; }
     void reserveChildren( int n );
     int countSpareChildren();
@@ -1213,7 +1214,7 @@ class Layer {
                             center + Vec2(dia,dia),
                             out, outlen );
     }
-    inline void drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  );
+    inline void drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *locofs, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  );
     inline void drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc, Vec3 *scl  );
 
     void setupProjectionMatrix3D();
