@@ -6,11 +6,11 @@
 #include <math.h>
 #include <unistd.h>
 
-#include "moyai.h"
+#include "client.h"
 
 static const int SCRW=966, SCRH=544;
 
-Moyai *g_moyai;
+MoyaiClient *g_moyai_client;
 Viewport *g_viewport3d;
 Viewport *g_viewport2d;
 TileDeck *g_deck;
@@ -47,7 +47,7 @@ void updateGame() {
     double t = now();
     double dt = t - last_poll_at;
     
-    g_moyai->pollAll(dt);
+    g_moyai_client->pollAll(dt);
 
     if( t > last_print_at + 1 ) {
         print("FPS:%d", frame_counter );
@@ -97,7 +97,7 @@ void updateGame() {
     }
     //    print("propx:%f r:%f", g_prop_0->loc.x, g_prop_0->rot3d.z );
     
-    g_moyai->renderAll();
+    g_moyai_client->renderAll();
     
     last_poll_at = t;
 }
@@ -382,10 +382,10 @@ void memTestDebug() {
 }
 
 int main() {
-        g_cumino_mem_debug = true;
-        memTestDebug();
+    g_cumino_mem_debug = true;
+    memTestDebug();
     
-    g_moyai = new Moyai();
+    g_moyai_client = new MoyaiClient();
 
     glfwInit();
     glfwOpenWindow( SCRW,SCRH, 8,8,8,8, 16,0, GLFW_WINDOW );
@@ -423,8 +423,8 @@ int main() {
 
 
     // draw 2d after 3d
-    g_moyai->insertLayer( g_main_layer );    
-    g_moyai->insertLayer( g_hud_layer );
+    g_moyai_client->insertLayer( g_main_layer );    
+    g_moyai_client->insertLayer( g_hud_layer );
 
     
     Texture *t = new Texture();

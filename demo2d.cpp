@@ -5,9 +5,9 @@
 #include <strings.h>
 #include <math.h>
 
-#include "moyai.h"
+#include "client.h"
 
-Moyai *g_moyai;
+MoyaiClient *g_moyai_client;
 Viewport *g_viewport;
 Layer *g_main_layer;
 Texture *g_base_atlas;
@@ -268,7 +268,7 @@ void updateGame(void) {
     frame_counter ++;
     
     int cnt;
-    cnt = g_moyai->pollAll(dt);
+    cnt = g_moyai_client->pollAll(dt);
 
     if(last_print_at == 0){
         last_print_at = t;
@@ -297,7 +297,7 @@ void updateGame(void) {
     if( frame_counter % 1000 == 0 ) {
         Image *img = new Image();
         img->setSize( SCRW, SCRH );
-        g_moyai->capture(img);
+        g_moyai_client->capture(img);
         bool ret = img->writePNG("_captured.png");
         assert(ret);
         print("captured in _captured.png");
@@ -421,14 +421,14 @@ int main(int argc, char **argv )
         return 0;
     }
 
-    g_moyai = new Moyai();
+    g_moyai_client = new MoyaiClient();
 
     g_viewport = new Viewport();
     g_viewport->setSize(SCRW,SCRH);
     g_viewport->setScale2D(SCRW,SCRH);
 
     Layer *l = new Layer();
-    g_moyai->insertLayer(l);
+    g_moyai_client->insertLayer(l);
     l->setViewport(g_viewport);
 
     Texture *t = new Texture();
@@ -513,7 +513,7 @@ int main(int argc, char **argv )
     }
     
     g_main_layer = new Layer();
-    g_moyai->insertLayer(g_main_layer);
+    g_moyai_client->insertLayer(g_main_layer);
     g_main_layer->setViewport(g_viewport);
 
     g_base_atlas = new Texture();
@@ -674,7 +674,7 @@ int main(int argc, char **argv )
 
         // replace white to random color
         g_replacer_shader->setColor( Color(1,1,1,1), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
-        g_last_render_cnt = g_moyai->renderAll();
+        g_last_render_cnt = g_moyai_client->renderAll();
 
         if( glfwGetKey('Q') ) {
             print("Q pressed");
