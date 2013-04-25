@@ -17,17 +17,6 @@ Moai SDK: https://github.com/moai/moai-dev
   - FreeType2 based, reads TTF files, multi-byte chars
   
 
-# Small
-Moyai is just combining good existing stable libs so itself has only 2K lines of C++ code.
-
-<pre>
-[@Macintosh-2 moyai]$ wc moyai.cpp moyai.h cumino.cpp cumino.h
-    1160    3794   38004 moyai.cpp
-    1432    5057   41818 moyai.h
-     321     857    7495 cumino.cpp
-     144     513    3218 cumino.h
-    3057   10221   90535 total
-</pre>
 
 # Example
 
@@ -44,6 +33,8 @@ To show a sprite on your screen, just:
 
 <pre lang="c++">
 <code>
+#include "moyai/client.h"
+
 Moyai *g_moyai;
 
 int main() 
