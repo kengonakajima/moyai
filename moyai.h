@@ -12,10 +12,10 @@
 #include "freetype-gl/freetype-gl.h"
 #include "freetype-gl/vertex-buffer.h"
 
-#ifdef USE_FMOD
+
 #include "fmod/api/inc/fmod.h"
 #include "fmod/api/inc/fmod_errors.h"
-#endif
+
 
 typedef enum {
     DIMENSION_INVAL = 0,
@@ -830,6 +830,7 @@ public:
     
 };
 
+
 class Renderable {
 public:
     DIMENSION dimension;
@@ -1348,7 +1349,7 @@ public:
     
 };
 
-#ifdef USE_FMOD
+
 
 class SoundSystem;
 
@@ -1372,7 +1373,7 @@ public:
     Sound *newSound( const char *path, float vol );
     Sound *newSound( const char *path );
 };
-#endif
+
 
 
 class Pad {
