@@ -1158,6 +1158,8 @@ public:
         look_up = up;
     }
     inline Vec3 getLookAt() { return look_at; }
+    static void screenToGL( int scr_x, int scr_y, int scrw, int scrh, Vec2 *out );
+        
     Vec2 screenToWorld( int scr_x, int scr_y, int scr_w, int scr_h );
     Vec3 getDirection() { return look_at - loc; }
 };
@@ -1319,11 +1321,6 @@ public:
     int pollAll(double dt );
 
 
-    static inline void screenToGL( int scr_x, int scr_y, int scrw, int scrh, Vec2 *out ){
-        out->x = scr_x - scrw/2;
-        out->y = scr_y - scrh/2;
-        out->y *= -1;
-    }
 
     void capture( Image *img );
     
