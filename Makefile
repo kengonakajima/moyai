@@ -112,9 +112,11 @@ $(LIBPNGLIB):
 
 
 
-$(GLFWLIB): $(GLFW)
+$(GLFW) :
 	rm -rf $(GLFW)
 	unzip $(GLFW).zip
+
+$(GLFWLIB): $(GLFW)
 	cd $(GLFW); make cocoa
 
 
