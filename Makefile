@@ -110,18 +110,19 @@ $(LIBPNGLIB):
 	tar zxf $(LIBPNG).tar.gz
 	cd $(LIBPNG); ./configure; make
 
-$(GLFWLIB):
+
+
+$(GLFWLIB): $(GLFW)
 	rm -rf $(GLFW)
 	unzip $(GLFW).zip
 	cd $(GLFW); make cocoa
 
 
 clean:
-	rm -r $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG)
+	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) $(GLFW)
 	rm -f *.o deps.make $(DEMO2D) $(OUTLIB) *.o *.a
-	make depend
 
-depend: 
+depend: $(GLFWLIB)
 	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAISRCS) > deps.make
 
 
