@@ -796,7 +796,7 @@ public:
     void getMinMax( Vec2 *minv, Vec2 *maxv );
 };
 
-class Layer;
+class Group;
 class Camera;
 
 class Prop {
@@ -804,20 +804,18 @@ public:
     static int idgen;    
     int id;
     int debug_id;
-    int priority;
     Prop *next;
     Prop *prev;
-
-    DIMENSION dimension;
-
-    Layer *parent_layer;
+    Group *parent_group;
+    
     bool to_clean;
     double accum_time;
     unsigned int poll_count;
-    bool visible;
-    TileDeck *deck;
-    float enfat_epsilon;
-    inline Prop() : id(++idgen), debug_id(0), priority(id), next(NULL), prev(NULL), dimension(DIMENSION_INVAL), parent_layer(NULL), to_clean(false), accum_time(0),  poll_count(0), visible(true), deck(NULL), enfat_epsilon(0) {
+
+    static const int CHILDREN_ABS_MAX = 64;
+
+
+    inline Prop() : id(++idgen), debug_id(0), next(NULL), prev(NULL), parent_group(NULL), to_clean(false), accum_time(0),  poll_count(0) {
     }
     ~Prop() {
 
@@ -828,8 +826,21 @@ public:
         return true;
     }
     virtual void onDelete(){}
-    inline void setVisible(bool flg){ visible = flg; }
-    inline bool getVisible() { return visible; }    
+
+    
+};
+
+class Renderable {
+public:
+    DIMENSION dimension;
+    int priority;        
+
+    bool visible;
+    TileDeck *deck;
+    float enfat_epsilon;
+    Renderable() : dimension(DIMENSION_INVAL), priority(0), visible(true), deck(NULL), enfat_epsilon(0) {
+    }
+
     inline void setDeck( TileDeck *d ){
         deck = d;
         assert( d->cell_width > 0 );
@@ -849,7 +860,7 @@ public:
     
 };
 
-class Prop2D : public Prop {
+class Prop2D : public Prop, public Renderable {
  public:
     
     Vec2 loc;
@@ -864,8 +875,7 @@ class Prop2D : public Prop {
     int index;
     Color color;
 
-    static const int MAX_CHILDREN = 8;
-    Prop2D *children[MAX_CHILDREN];
+    Prop2D *children[Prop::CHILDREN_ABS_MAX];
     int children_num;
 
     AnimCurve *anim_curve;
@@ -901,8 +911,8 @@ class Prop2D : public Prop {
     Vec2 max_rt_cache, min_lb_cache;
     
 
-    inline Prop2D() : Prop() {
-
+    inline Prop2D() : Prop(), Renderable() {
+        priority = id;
         dimension = DIMENSION_2D;
 
         index = 0;
@@ -940,6 +950,10 @@ class Prop2D : public Prop {
         }        
         if(prim_drawer) delete prim_drawer;
     }
+
+    inline void setVisible(bool flg){ visible = flg; }
+    inline bool getVisible() { return visible; }        
+    
     virtual bool prop2DPoll(double dt){ return true;}
     virtual bool propPoll(double dt);        
 
@@ -1076,7 +1090,7 @@ public:
     Material() : diffuse(1,1,1,1), ambient(0,0,0,0), specular(0,0,0,0) {}
 };
 
-class Prop3D : public Prop {
+class Prop3D : public Prop, public Renderable {
 public:
     Vec3 loc;
     Vec3 scl;
@@ -1085,7 +1099,6 @@ public:
 
     Prop3D **children;
     int children_num, children_max;
-    static const int CHILDREN_ABS_MAX = 64;
 
     Material *material;
     Vec3 sort_center;
@@ -1096,7 +1109,10 @@ public:
     bool alpha_test;
     bool cull_back_face;
     Vec3 draw_offset;
+
+    
     Prop3D() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0), skip_rot(false), billboard_index(-1), fragment_shader(NULL), depth_mask(true), alpha_test(false), cull_back_face(true), draw_offset(0,0,0) {
+        priority = id;        
         dimension = DIMENSION_3D;
     }
     ~Prop3D() {
@@ -1164,27 +1180,45 @@ public:
     Vec3 getDirection() { return look_at - loc; }
 };
 
-class Layer {
+class Group {
+public:
+    Prop *prop_top;
+    int id;
+    static int idgen;
+    int last_poll_num;    
+    Group() : prop_top(NULL), last_poll_num(0) {
+        id = idgen++;        
+    }
+
+    inline void insertProp(Prop*p){
+        //        assert(p->deck);
+        assertmsg( !p->parent_group, "inserting prop twice");
+        if(prop_top){
+            p->next = prop_top;
+            prop_top->prev = p;
+        }
+        prop_top = p;
+        p->parent_group = this;
+        p->prev = NULL;
+    }
+    int pollAllProps(double dt);
+    
+};
+class Layer : public Group {
  public:
     Camera *camera;
-    Prop *prop_top;
     Viewport *viewport;
-    
-    int id;
     GLuint last_tex_gl_id;
-
     Light *light;
-
-    // working area to avoid allocation in inner loops
-    SorterEntry sorter_opaque[Prop3D::CHILDREN_ABS_MAX];
-    SorterEntry sorter_transparent[Prop3D::CHILDREN_ABS_MAX];
-
     bool to_render;
     
-    static int idgen;
-    int last_poll_num;
-    Layer() : camera(NULL), prop_top(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL), to_render(true), last_poll_num(0) {
-        id = idgen++;
+    // working area to avoid allocation in inner loops
+    SorterEntry sorter_opaque[Prop::CHILDREN_ABS_MAX];
+    SorterEntry sorter_transparent[Prop::CHILDREN_ABS_MAX];
+    
+
+    Layer() : Group(), camera(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL), to_render(true) {
+
     }
     inline void setViewport( Viewport *vp ){
         viewport = vp;
@@ -1196,20 +1230,8 @@ class Layer {
         light = l;
     }
 
-    inline void insertProp(Prop*p){
-        //        assert(p->deck);
-        assertmsg( !p->parent_layer, "inserting prop twice");
-        if(prop_top){
-            p->next = prop_top;
-            prop_top->prev = p;
-        }
-        prop_top = p;
-        p->parent_layer = this;
-        p->prev = NULL;
-    }
-
     int renderAllProps();
-    int pollAllProps(double dt);
+
     void selectCenterInside( Vec2 minloc, Vec2 maxloc, Prop*out[], int *outlen );
     inline void selectCenterInside( Vec2 center, float dia, Prop *out[], int *outlen){
         selectCenterInside( center - Vec2(dia,dia),

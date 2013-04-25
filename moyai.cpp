@@ -9,7 +9,7 @@
 
 
 int Prop::idgen = 1;
-int Layer::idgen = 1;
+int Group::idgen = 1;
 
 int Moyai::pollAll(double dt){
     if( dt <0 || dt > 1 ){ print( "poll too slow or negative. dt:%f", dt ); }
@@ -25,7 +25,7 @@ int Moyai::pollAll(double dt){
     }
     return cnt;
 }
-int Layer::pollAllProps(double dt ){
+int Group::pollAllProps(double dt ){
     int cnt=0;
     Prop *cur = prop_top;
 
@@ -383,7 +383,9 @@ int Layer::renderAllProps(){
         Vec2 minv, maxv;
         viewport->getMinMax(&minv, &maxv);
         while(cur){
-            assert( cur->dimension == viewport->dimension );
+            Prop2D *cur2d = (Prop2D*)cur;
+            
+            assert( cur2d->dimension == viewport->dimension );
 
             // culling
             float camx=0,camy=0;
@@ -391,15 +393,15 @@ int Layer::renderAllProps(){
                 camx = camera->loc.x;
                 camy = camera->loc.y;
             }
-            Prop2D *cur2d = (Prop2D*)cur;
+
             float scr_maxx = cur2d->loc.x - camx + cur2d->scl.x/2 + cur2d->max_rt_cache.x;
             float scr_minx = cur2d->loc.x - camx - cur2d->scl.x/2 + cur2d->min_lb_cache.x;
             float scr_maxy = cur2d->loc.y - camy + cur2d->scl.y/2 + cur2d->max_rt_cache.y;
             float scr_miny = cur2d->loc.y - camy - cur2d->scl.y/2 + cur2d->min_lb_cache.y;
             
             if( scr_maxx >= minv.x && scr_minx <= maxv.x && scr_maxy >= minv.y && scr_miny <= maxv.y ){
-                tosort[cnt].val = cur->priority;
-                tosort[cnt].ptr = cur;
+                tosort[cnt].val = cur2d->priority;
+                tosort[cnt].ptr = cur2d;
                 cnt++;
                 if(cnt>= elementof(tosort)){
                     print("WARNING: too many props in a layer" );
@@ -412,7 +414,7 @@ int Layer::renderAllProps(){
     
         quickSortF( tosort, 0, cnt-1 );
         for(int i=cnt-1;i>=0;i--){
-            Prop *p = (Prop*) tosort[i].ptr;
+            Prop2D *p = (Prop2D*) tosort[i].ptr;
             if(p->visible){
                 //                { Prop2D *p2d = (Prop2D*)p; print("prio:%f %d %d", p2d->loc.y, p2d->priority, p2d->id  ); }
                 p->render(camera);
@@ -435,10 +437,11 @@ int Layer::renderAllProps(){
 
         Prop *cur = prop_top;
         while(cur){
-            assert(cur->id>0);
-            assert(cur->dimension == viewport->dimension );
+            assert(cur->id>0);            
+            Prop3D *cur3d = (Prop3D*)cur;            
+            assert(cur3d->dimension == viewport->dimension );
         
-            Prop3D *cur3d = (Prop3D*)cur;
+
         
             assertmsg( cur3d->mesh || cur3d->children_num > 0 || cur3d->billboard_index>=0, "mesh or children is required for 3d prop %p", cur3d );
 
@@ -537,7 +540,8 @@ void Prop3D::setMaterialChildren( Material *mat ) {
 }    
 
 Vec2 Prop3D::getScreenPos() {
-    return parent_layer->getScreenPos(loc);
+    Layer *l = (Layer*) parent_group;
+    return l->getScreenPos(loc);
 }
 
 void Layer::setupProjectionMatrix3D() {
@@ -740,7 +744,7 @@ void Prop2D::render(Camera *cam) {
 
     if( children_num > 0 ){
         for(int i=0;i<children_num;i++){
-            Prop *p = children[i];
+            Prop2D *p = (Prop2D*) children[i];
             p->render( cam );
         }
     }
@@ -905,12 +909,12 @@ void TextBox::render(Camera *cam ) {
 
 
 Prop *Prop2D::getNearestProp(){
-    Prop *cur = parent_layer->prop_top;
+    Prop *cur = parent_group->prop_top;
     float minlen = 999999999999999.0f;
     Prop *ans=0;
     while(cur){
-        if( cur->dimension == DIMENSION_2D ) {
-            Prop2D *cur2d = (Prop2D*)cur;
+        Prop2D *cur2d = (Prop2D*)cur;        
+        if( cur2d->dimension == DIMENSION_2D ) {
             float l = cur2d->loc.len(loc);
             if(l<minlen && cur != this ){
                 ans = cur;
@@ -1068,8 +1072,9 @@ void Layer::selectCenterInside( Vec2 minloc, Vec2 maxloc, Prop*out[], int *outle
     int cnt=0;
     
     while(cur){
-        if( cur->dimension == DIMENSION_2D ){
-            if( !cur->to_clean && ((Prop2D*)cur)->isCenterInside(minloc, maxloc) ){
+        Prop2D *cur2d = (Prop2D*) cur;
+        if( cur2d->dimension == DIMENSION_2D ){
+            if( !cur->to_clean && cur2d->isCenterInside(minloc, maxloc) ){
                 if( cnt < out_max){
                     out[cnt] = cur;
                     cnt++;
