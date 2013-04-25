@@ -1,12 +1,16 @@
 
 MOYAICLISRCS=common.cpp client.cpp cumino.cpp
+MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o)
 MOYAISVSRCS=common.cpp cumino.cpp
-
+MOYAISVOBJS=$(MOYAISVSRCS:.cpp=.o)
 DEMO2DSRCS=demo2d.cpp 
 DEMO2DOBJS=$(DEMO2DSRCS:.cpp=.o)
 DEMO3DSRCS=demo3d.cpp
 DEMO3DOBJS=$(DEMO3DSRCS:.cpp=.o)
-MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o)
+DEMOSVSRCS=demosv.cpp
+DEMOSVOBJS=$(DEMOSVSRCS:.cpp=.o)
+
+
 
 FREETYPE=freetype-2.4.10
 FREETYPELIB=$(FREETYPE)/objs/.libs/libfreetype.a  # build product of freetype source
@@ -28,28 +32,34 @@ SOILOBJS=SOIL.o stb_image_aug.o image_DXT.o image_helper.o
 SOILLIB=libsoil.a
 FTGLLIB=libftgl.a
 OUTCLILIB=libmoyaicl.a
+OUTSVLIB=libmoyaisv.a
 
-EXTLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(GLFWLIB) 
-LIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
+EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB)
+EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(GLFWLIB) 
+CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
 CFLAGS=-O3 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I$(LIBPNG) -I$(GLFW)/include
 
 
 DEMO2D=demo2d
 DEMO3D=demo3d
+DEMOSV=demosv
+
+all : $(DEMO2D) $(DEMO3D) $(DEMOSV)
 
 
-all : $(DEMO2D) $(DEMO3D) #$(DEMOSV)
+
+$(DEMO2D) : $(EXTCLILIBS) $(OUTCLILIB) $(DEMO2DOBJS)
+	g++ $(CFLAGS) $(CLILIBFLAGS) $(DEMO2DOBJS) -o $(DEMO2D) $(OUTCLILIB) $(EXTCLILIBS)
+
+$(DEMO3D) : $(EXTCLILIBS) $(OUTCLILIB) $(DEMO3DOBJS)
+	g++ $(CFLAGS) $(CLILIBFLAGS) $(DEMO3DOBJS) -o $(DEMO3D) $(OUTCLILIB) $(EXTCLILIBS)
+
+$(DEMOSV) : $(EXTCOMMONLIBS) $(OUTSVLIB) $(DEMOSVOBJS)
+	g++ $(CFLAGS) -m64 $(DEMOSVOBJS) -o $(DEMOSV) $(OUTSVLIB) $(EXTCOMMONLIBS)
 
 
-
-$(DEMO2D) : $(EXTLIBS) $(OUTCLILIB) $(DEMO2DOBJS)
-	g++ $(CFLAGS) $(LIBFLAGS) $(DEMO2DOBJS) -o $(DEMO2D) $(OUTCLILIB) $(EXTLIBS)
-
-$(DEMO3D) : $(EXTLIBS) $(OUTCLILIB) $(DEMO3DOBJS)
-	g++ $(CFLAGS) $(LIBFLAGS) $(DEMO3DOBJS) -o $(DEMO3D) $(OUTCLILIB) $(EXTLIBS)
-
-#$(DEMOSV) : $(
-
+demosv.o : demosv.cpp
+	g++ -c demosv.cpp $(CFLAGS)
 demo2d.o : demo2d.cpp 
 	g++ -c demo2d.cpp $(CFLAGS)
 demo3d.o : demo3d.cpp 
@@ -58,9 +68,15 @@ demo3d.o : demo3d.cpp
 $(OUTCLILIB) : $(MOYAICLIOBJS)
 	ar cr $(OUTCLILIB) $(MOYAICLIOBJS)
 	ranlib $(OUTCLILIB)
+
+$(OUTSVLIB) : $(MOYAISVOBJS)
+	ar cr $(OUTSVLIB) $(MOYAISVOBJS)
+	ranlib $(OUTSVLIB)
+
 $(FTGLLIB) : $(FTGLOBJS)
 	ar cr $(FTGLLIB) $(FTGLOBJS)
 	ranlib $(FTGLLIB)
+
 $(SOILLIB) : $(SOILOBJS)
 	ar cr $(SOILLIB) $(SOILOBJS)
 	ranlib $(SOILLIB) 
@@ -129,7 +145,7 @@ $(GLFWLIB): $(GLFW)
 
 clean:
 	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) $(GLFW)
-	rm -f *.o deps.make $(DEMO2D) $(OUTCLILIB) *.o *.a
+	rm -f *.o deps.make $(DEMO2D) $(DEMO3D) $(DEMOSV) $(OUTCLILIB) $(OUTSVLIB) *.o *.a
 
 depend: $(GLFWLIB)
 	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAICLISRCS) > deps.make
