@@ -562,6 +562,10 @@ public:
         d->setSize( 1,1, w, h, w,h );
         deck = d;        
     }
+
+    inline void setVisible(bool flg){ visible = flg; }
+    inline bool getVisible() { return visible; }        
+
     
     virtual void render(Camera *cam){};
     
@@ -658,8 +662,6 @@ class Prop2D : public Prop, public Renderable {
         if(prim_drawer) delete prim_drawer;
     }
 
-    inline void setVisible(bool flg){ visible = flg; }
-    inline bool getVisible() { return visible; }        
     
     virtual bool prop2DPoll(double dt){ return true;}
     virtual bool propPoll(double dt);        
