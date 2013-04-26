@@ -94,7 +94,10 @@ void prt(const char *fmt, ... );
 
 void assertmsg( bool cond, const char *fmt, ... );
 
+#ifndef elementof
 #define elementof(x) ( (int)(sizeof(x) / sizeof(x[0])))
+#endif
+
 #define choose(ary) ( ary[ irange(0, elementof(ary)) ] )
 
 inline int chooseInt2( int a, int b ) {
