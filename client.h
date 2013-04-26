@@ -45,7 +45,7 @@ public:
     int num_float;
     int coord_offset, color_offset, texture_offset, normal_offset; // -1:not used
     VertexFormat() : types_used(0), num_float(0), coord_offset(-1), color_offset(-1), texture_offset(-1), normal_offset(-1) {
-        for(int i=0;i<elementof(types);i++){
+        for(unsigned int i=0;i<elementof(types);i++){
             types[i] = 0;
         }
     }
