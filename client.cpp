@@ -74,8 +74,11 @@ int MoyaiClient::renderAll(){
 
     int cnt=0;
     for(int i=0;i<elementof(groups);i++){
-        Layer *l = (Layer*) groups[i];
-        if(l) cnt += l->renderAllProps();
+        Group *g = groups[i];
+        if( g && g->to_render ) {
+            Layer *l = (Layer*) g;
+            cnt += l->renderAllProps();
+        }
     }
 
     glfwSwapBuffers();
@@ -277,7 +280,6 @@ inline void Prop3D::cleanRenderOptions() {
 }
 
 int Layer::renderAllProps(){
-    if( !to_render ) return 0;
     assertmsg( viewport, "no viewport in a layer id:%d setViewport missed?", id );
     if( viewport->dimension == DIMENSION_2D ) {
         glDisable(GL_LIGHTING);

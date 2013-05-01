@@ -897,15 +897,14 @@ class Layer : public Group {
     Viewport *viewport;
     GLuint last_tex_gl_id;
     Light *light;
-    bool to_render;
     
     // working area to avoid allocation in inner loops
     SorterEntry sorter_opaque[Prop::CHILDREN_ABS_MAX];
     SorterEntry sorter_transparent[Prop::CHILDREN_ABS_MAX];
     
 
-    Layer() : Group(), camera(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL), to_render(true) {
-
+    Layer() : Group(), camera(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL) {
+        to_render = true;
     }
     inline void setViewport( Viewport *vp ){
         viewport = vp;

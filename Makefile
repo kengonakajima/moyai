@@ -37,7 +37,7 @@ OUTSVLIB=libmoyaisv.a
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(GLFWLIB) 
 CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
-CFLAGS=-O3 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I$(LIBPNG) -I$(GLFW)/include
+CFLAGS=-O0 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I$(LIBPNG) -I$(GLFW)/include
 
 
 DEMO2D=demo2d

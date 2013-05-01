@@ -293,8 +293,9 @@ public:
     Prop *prop_top;
     int id;
     static int idgen;
-    int last_poll_num;    
-    Group() : prop_top(NULL), last_poll_num(0) {
+    int last_poll_num;
+    bool to_render;
+    Group() : prop_top(NULL), last_poll_num(0), to_render(false) {
         id = idgen++;        
     }
 
@@ -310,6 +311,7 @@ public:
         p->prev = NULL;
     }
     int pollAllProps(double dt);
+    Prop *findPropById( int id );
     
 };
 

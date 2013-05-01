@@ -63,6 +63,15 @@ int Group::pollAllProps(double dt ){
 
     return cnt;
 }
+// TODO: avoid linear scan..
+Prop *Group::findPropById( int id ) {
+    Prop *cur = prop_top;
+    while(cur){
+        if( cur->id == id ) return cur;
+        cur = cur->next;
+    }
+    return NULL;
+}
 bool Prop::basePoll(double dt){
 
     if(to_clean){
