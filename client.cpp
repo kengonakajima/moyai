@@ -93,6 +93,8 @@ inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc,
         glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
         last_tex_gl_id = deck->tex->tex;
     }
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
 
     glLoadIdentity();    
     Vec3 diff_camera = *loc - camera->loc;
@@ -246,6 +248,7 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec
         float specular[4] = { material->specular.r, material->specular.g, material->specular.b, material->specular.a };
         glMaterialfv( GL_FRONT, GL_SPECULAR, specular);
     }
+
     if( mesh->prim_type == GL_LINES || mesh->prim_type == GL_LINE_STRIP ) {
         glLineWidth(mesh->line_width);
     }
