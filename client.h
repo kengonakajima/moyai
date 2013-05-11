@@ -566,6 +566,16 @@ public:
     inline void setVisible(bool flg){ visible = flg; }
     inline bool getVisible() { return visible; }        
 
+    inline void swapPriority( Renderable *target ) {
+        int p = priority;
+        priority = target->priority;
+        target->priority = p;
+    }
+    inline void ensureFront( Renderable *target ) {
+        if( target->priority < priority ) {
+            swapPriority(target);
+        }
+    }
     
     virtual void render(Camera *cam){};
     
