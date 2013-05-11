@@ -91,6 +91,10 @@ bool Prop::basePoll(double dt){
 }
 
 
+void Image::setSize(int w, int h ) {
+    width = w; height = h;
+    ensureBuffer();
+}    
 void Image::ensureBuffer() {
     if(!buffer){
         size_t sz = width*height*4;
