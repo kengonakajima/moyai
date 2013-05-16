@@ -145,7 +145,7 @@ inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc,
 }
 
 inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *locofs, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {
-    if( mesh->vb->array_len == 0 || mesh->ib->array_len == 0 ) return; // nothing to render!
+    if( !mesh || mesh->vb->array_len == 0 || mesh->ib->array_len == 0 ) return; // nothing to render!
     
     if( deck ) {
         glEnable(GL_TEXTURE_2D);
@@ -395,6 +395,10 @@ int Layer::renderAllProps(){
                         Prop3D *child = cur3d->children[i];
                         if(child && child->visible ) {
                             float l = camera->loc.len( cur3d->loc + child->loc + child->sort_center );
+                            if( child->billboard_index > 0 ) {
+                                print("child node doesn't support billboarding");
+                            }
+                            assert( child->mesh );
                             if( child->mesh->transparent ) {
                                 sorter_transparent[transparent_n].ptr = (void*)cur3d->children[i];
                                 sorter_transparent[transparent_n].val = l;
@@ -412,7 +416,7 @@ int Layer::renderAllProps(){
                     // draw opaque mesh first
                     for(int i=opaque_n-1;i>=0;i--) {
                         Prop3D *child = (Prop3D*)sorter_opaque[i].ptr;
-                        child->performRenderOptions();                        
+                        child->performRenderOptions();
                         if( child->skip_rot ) {
                             Vec3 fixedrot(0,0,0);
                             drawMesh( child->debug_id, child->mesh, child->deck,
@@ -428,11 +432,12 @@ int Layer::renderAllProps(){
                                       child->material
                                       );
                         }
+                        
                         child->cleanRenderOptions();                        
                     }
                     for(int i=transparent_n-1;i>=0;i--){
                         Prop3D *child = (Prop3D*)sorter_transparent[i].ptr;
-                        child->performRenderOptions();                                                
+                        child->performRenderOptions();
                         if( child->skip_rot ) {
                             Vec3 fixedrot(0,0,0);
                             drawMesh( child->debug_id, child->mesh, child->deck,
