@@ -572,7 +572,7 @@ public:
         target->priority = p;
     }
     inline void ensureFront( Renderable *target ) {
-        if( target->priority < priority ) {
+        if( target->priority > priority ) {
             swapPriority(target);
         }
     }
