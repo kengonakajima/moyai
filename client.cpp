@@ -144,7 +144,9 @@ inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc,
 
 }
 
-inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *locofs, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {   
+inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *locofs, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {
+    if( mesh->vb->array_len == 0 || mesh->ib->array_len == 0 ) return; // nothing to render!
+    
     if( deck ) {
         glEnable(GL_TEXTURE_2D);
         if( deck->tex->tex != last_tex_gl_id ) {
@@ -162,8 +164,10 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec
     int vert_sz = mesh->vb->fmt->getNumFloat() * sizeof(float);
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mesh->ib->gl_name );
     glBindBuffer( GL_ARRAY_BUFFER, mesh->vb->gl_name );
-    if( dbg != 0 ) {
-        print("draw mesh! dbg:%d deck:%p mesh:%p vbn:%d ibn:%d coordofs:%d colofs:%d texofs:%d normofs:%d vert_sz:%d array_len:%d loc:%f %f %f",
+
+
+    if( dbg != 0  ){
+        print("draw mesh! dbg:%d deck:%p mesh:%p vbname:%d ibname:%d coordofs:%d colofs:%d texofs:%d normofs:%d vert_sz:%d varray_len:%d iarray_len:%d loc:%f %f %f",
               dbg,
               deck,
               mesh,
@@ -175,6 +179,7 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec
               mesh->vb->fmt->normal_offset,
               vert_sz,
               mesh->vb->array_len,
+              mesh->ib->array_len,              
               loc->x, loc->y, loc->z
               );
     }
