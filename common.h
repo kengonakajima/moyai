@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 #include <strings.h>
+#include <math.h>
+#include <assert.h>
 
 #include "cumino.h"
 #include "zlib.h"
@@ -210,6 +212,9 @@ public:
     inline Vec2 rot(float v) {
         return Vec2( x * cos(v) - y * sin(v),
                      x * sin(v) + y * cos(v) );
+    }
+    inline Vec2 toInt() {
+        return Vec2( (int)(x), (int)(y) );
     }
 };
 
