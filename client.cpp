@@ -655,10 +655,10 @@ void Prop2D::render(Camera *cam) {
                         }
                         drawIndex( draw_deck,
                                    ind,
-                                   camx + loc.x + x * scl.x + draw_offset.x - enfat_epsilon,
-                                   camy + loc.y + y * scl.y + draw_offset.y - enfat_epsilon,
-                                   camx + loc.x + (x+1) * scl.x + draw_offset.x + enfat_epsilon,
-                                   camy + loc.y + (y+1)*scl.y + draw_offset.y + enfat_epsilon,
+                                   camx + loc.x + x * scl.x + draw_offset.x - grid->enfat_epsilon,
+                                   camy + loc.y + y * scl.y + draw_offset.y - grid->enfat_epsilon,
+                                   camx + loc.x + (x+1) * scl.x + draw_offset.x + grid->enfat_epsilon,
+                                   camy + loc.y + (y+1)*scl.y + draw_offset.y + grid->enfat_epsilon,
                                    xflip,
                                    yflip,
                                    texofs_x,
@@ -693,10 +693,10 @@ void Prop2D::render(Camera *cam) {
         glColor4f(color.r,color.g,color.b,color.a);
         
         float minx, miny, maxx, maxy;
-        minx = camx + loc.x - scl.x/2 + draw_offset.x;
-        miny = camy + loc.y - scl.y/2 + draw_offset.y;
-        maxx = camx + loc.x + scl.x/2 + draw_offset.x;
-        maxy = camy + loc.y + scl.y/2 + draw_offset.y;
+        minx = camx + loc.x - scl.x/2 + draw_offset.x - enfat_epsilon;
+        miny = camy + loc.y - scl.y/2 + draw_offset.y - enfat_epsilon;
+        maxx = camx + loc.x + scl.x/2 + draw_offset.x + enfat_epsilon;
+        maxy = camy + loc.y + scl.y/2 + draw_offset.y + enfat_epsilon;
 
         drawIndex( deck, index, minx, miny, maxx, maxy, xflip, yflip, 0,0, uvrot, rot );
         glEnd();

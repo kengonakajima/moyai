@@ -298,31 +298,20 @@ class Grid {
     FragmentShader *fragment_shader;
     Color color;
     bool visible;
+    float enfat_epsilon;
     
     static const int GRID_FLAG_XFLIP = 1;
     static const int GRID_FLAG_YFLIP = 2;
     static const int GRID_NOT_USED = -1;
-    Grid(int w, int h ) : color(1,1,1,1) {
-        width = w;
-        height = h;
-        // allocate on use
-        index_table = NULL;
-        xflip_table = NULL;
-        yflip_table = NULL;
-        texofs_table = NULL;
-        rot_table = NULL;
-        color_table = NULL;
-
-        fragment_shader = NULL;
-        visible = true;
-        
-        // Overwrite Prop's deck
-        deck = NULL;
+    Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), color(1,1,1,1), visible(true), enfat_epsilon(0) {
     }
     ~Grid(){
         if(index_table) FREE(index_table);
         if(xflip_table) FREE(xflip_table);
         if(yflip_table) FREE(yflip_table);
+        if(texofs_table) FREE(texofs_table);
+        if(rot_table) FREE(rot_table);
+        if(color_table) FREE(color_table);
     }
     void setDeck( TileDeck *d ){
         deck = d;
