@@ -869,6 +869,10 @@ const char replacer_shader[] =
     "	if(pixel.r > color1.r - eps && pixel.r < color1.r + eps && pixel.g > color1.g - eps && pixel.g < color1.g + eps && pixel.b > color1.b - eps && pixel.b < color1.b + eps ){\n"
     "		pixel = vec4(replace1, pixel.a );\n"
     "    }\n"
+    "   pixel.r = gl_Color.r * pixel.r;\n"
+    "   pixel.g = gl_Color.g * pixel.g;\n"
+    "   pixel.b = gl_Color.b * pixel.b;\n"
+    "   pixel.a = gl_Color.a * pixel.a;\n"    
     "	gl_FragColor = pixel;\n"
     "}\n";
 

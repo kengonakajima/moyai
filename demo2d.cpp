@@ -229,6 +229,8 @@ public:
         v.x = force.x * vel;
         v.y = force.y * vel;
 
+        float c = absolute(::sin( accum_time * 10 ) );
+        setColor( Color(c,c,c,1));
         if(cnt%1000==0){
             Bullet * b = createBullet(loc.x, loc.y, loc.x + range(-100,100), loc.y + range(-100,100), 1, false );
             //
