@@ -253,6 +253,9 @@ public:
                       ::interpolate( b, c.b, rate ),
                       ::interpolate( a, c.a, rate ) );
     }
+    inline unsigned int toCode() {
+        return  ( (int)(r * 255) << 16 ) + ( (int)(g * 255) << 8 ) + (int)( b * 255);
+    }
     
 };
 
