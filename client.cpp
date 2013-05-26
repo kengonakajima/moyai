@@ -59,7 +59,6 @@ bool Prop2D::propPoll(double dt) {
     // children
     for(int i=0;i<children_num;i++){
         Prop2D *p = children[i];
-        p->loc = loc;
         p->basePoll(dt);
     }
     
@@ -528,7 +527,7 @@ void Prop2D::drawIndex( TileDeck *dk, int ind, float minx, float miny, float max
     dk->getUVFromIndex(ind, &u0, &v0, &u1, &v1, uofs, vofs );
     float depth = 10;
 
-    if(debug_id==123) print("UV: ind:%d %f,%f %f,%f uo:%f vo:%f", ind, u0,v0, u1,v1, uofs, vofs );
+    if(debug_id) print("UV: ind:%d %f,%f %f,%f uo:%f vo:%f", ind, u0,v0, u1,v1, uofs, vofs );
 
     if(hrev){
         float tmp = u1;
