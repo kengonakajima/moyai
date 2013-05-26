@@ -675,12 +675,6 @@ void Prop2D::render(Camera *cam) {
         }
     }
 
-    if( children_num > 0 ){
-        for(int i=0;i<children_num;i++){
-            Prop2D *p = (Prop2D*) children[i];
-            p->render( cam );
-        }
-    }
     
     if(deck){
         glEnable(GL_TEXTURE_2D);
@@ -705,6 +699,13 @@ void Prop2D::render(Camera *cam) {
         }
     }
 
+    if( children_num > 0 ){
+        for(int i=0;i<children_num;i++){
+            Prop2D *p = (Prop2D*) children[i];
+            p->render( cam );
+        }
+    }
+    
     // primitives should go over image sprites
     if( prim_drawer ){
         prim_drawer->drawAll(loc.add(camx,camy) );
