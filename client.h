@@ -726,6 +726,18 @@ class Prop2D : public Prop, public Renderable {
     inline void clearChildren() {
         children_num=0;
     }
+    inline bool clearChild( Prop2D *p ) {
+        for(int i=0;i<elementof(children);i++) {
+            if( children[i] ==p ) {
+                for(int j=i;j<elementof(children)-1;j++){
+                    children[j] = children[j+1];
+                }
+                children_num --;
+                return true;
+            }
+        }
+        return false;
+    }
     inline void setColor( Color c ){
         color = c;
     }
