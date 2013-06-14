@@ -236,18 +236,16 @@ class TileDeck {
         image_height = imgh;
     }
 
-    static const float EPSILON = 0.0001;
-    
-    inline void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs ) { 
+    inline void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) { 
         float uunit = (float) cell_width / (float) image_width;
         float vunit = (float) cell_height / (float) image_height;
         int start_x = cell_width * (int)( ind % tile_width );
         int start_y = cell_height * (int)( ind / tile_width );
     
-        *u0 = (float) start_x / (float) image_width + EPSILON + uofs * uunit; 
-        *v0 = (float) start_y / (float) image_height + EPSILON + vofs * vunit; 
-        *u1 = *u0 + uunit - EPSILON; 
-        *v1 = *v0 + vunit - EPSILON;
+        *u0 = (float) start_x / (float) image_width + eps + uofs * uunit; 
+        *v0 = (float) start_y / (float) image_height + eps + vofs * vunit; 
+        *u1 = *u0 + uunit - eps; 
+        *v1 = *v0 + vunit - eps;
     }
     // (x0,y0)-(x1,y1) : (0,0)-(16,16) for 16x16 sprite
     inline void getPixelPosition( int ind, int *x0, int *y0, int *x1, int *y1 ) {
@@ -619,7 +617,8 @@ class Prop2D : public Prop, public Renderable {
 
     // prop-size cache for fast culling
     Vec2 max_rt_cache, min_lb_cache;
-    
+
+    float tex_epsilon;
 
     inline Prop2D() : Prop(), Renderable() {
         priority = id;
@@ -650,6 +649,8 @@ class Prop2D : public Prop, public Renderable {
         prim_drawer = NULL;
         max_rt_cache = Vec2(0,0);
         min_lb_cache = Vec2(0,0);
+
+        tex_epsilon = 0.001;
     }
     ~Prop2D(){
         for(int i=0;i<grid_used_num;i++){

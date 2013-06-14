@@ -128,7 +128,7 @@ inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc,
 #endif
 
         float u0 = 0, v0 = 0, u1 = 1, v1 = 1;
-        if( deck ) deck->getUVFromIndex( billboard_index, &u0, &v0, &u1, &v1, 0, 0 );
+        if( deck ) deck->getUVFromIndex( billboard_index, &u0, &v0, &u1, &v1, 0, 0, 0.0001 );
 
         glBegin(GL_TRIANGLES);
         glColor4f( 1,1,1,1 );
@@ -524,7 +524,7 @@ Vec3 Layer::getWorldPos( Vec2 scrpos ) {
 void Prop2D::drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot ) {
 
     float u0,v0,u1,v1;
-    dk->getUVFromIndex(ind, &u0, &v0, &u1, &v1, uofs, vofs );
+    dk->getUVFromIndex(ind, &u0, &v0, &u1, &v1, uofs, vofs, tex_epsilon );
     float depth = 10;
 
     if(debug_id) print("UV: ind:%d %f,%f %f,%f uo:%f vo:%f", ind, u0,v0, u1,v1, uofs, vofs );
