@@ -330,7 +330,7 @@ int Layer::renderAllProps(){
                 tosort[cnt].ptr = cur2d;
                 cnt++;
                 if(cnt>= elementof(tosort)){
-                    print("WARNING: too many props in a layer" );
+                    print("WARNING: too many props in a layer : %d", cnt );
                     break;
                 }
                 drawn ++;

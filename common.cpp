@@ -23,7 +23,7 @@ int Group::pollAllProps(double dt ){
     Prop *cur = prop_top;
 
     // poll
-    Prop *to_clean[256]; // 1ループにこの個数まで
+    Prop *to_clean[32*1024]; // 1ループにこの個数までclean
     int to_clean_cnt = 0;
 
     while(cur){
