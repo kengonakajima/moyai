@@ -650,7 +650,7 @@ class Prop2D : public Prop, public Renderable {
         max_rt_cache = Vec2(0,0);
         min_lb_cache = Vec2(0,0);
 
-        tex_epsilon = 0.001;
+        tex_epsilon = 0;
     }
     ~Prop2D(){
         for(int i=0;i<grid_used_num;i++){
