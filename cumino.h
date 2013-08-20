@@ -130,6 +130,7 @@ void dirToDXDY( DIR d, int *dx, int *dy );
 bool birandom();
 DIR rightDir( DIR d );
 DIR leftDir( DIR d );
+bool validateDir( DIR d);
 
 inline int sign(float f){
     if(f>0) return 1; else if(f<0) return -1; else return 0;

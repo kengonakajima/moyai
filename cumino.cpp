@@ -83,7 +83,17 @@ void quickSortF(SorterEntry array[],  int left ,int right){
 }
 
 
-
+bool validateDir( DIR d ) {
+    switch(d) {
+    case DIR_UP:
+    case DIR_DOWN:
+    case DIR_RIGHT:
+    case DIR_LEFT:
+        return true;
+    default:
+        return false;
+    }
+}
 DIR randomDir(){
     switch( irange(0,4) ) {
     case 0: return DIR_UP;
