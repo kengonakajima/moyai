@@ -229,6 +229,9 @@ texture_font_generate_kerning( texture_font_t *self )
     FT_Done_FreeType( library );
 }
 
+#ifdef WIN32
+double round(double x) { return floor(x + 0.5); }
+#endif
 
 // ------------------------------------------------------- texture_font_new ---
 texture_font_t *

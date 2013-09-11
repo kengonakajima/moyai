@@ -1,4 +1,4 @@
-/* ============================================================================
+﻿/* ============================================================================
  * Freetype GL - A C OpenGL Freetype engine
  * Platform:    Any
  * WWW:         http://code.google.com/p/freetype-gl/
@@ -128,6 +128,7 @@ void add_text( vertex_buffer_t * buffer, texture_font_t * font,
 // ------------------------------------------------------------------- main ---
 int main( int argc, char **argv )
 {
+
     glutInit( &argc, argv );
     glutInitWindowSize( 800, 400 );
     glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );
@@ -135,19 +136,22 @@ int main( int argc, char **argv )
     glutReshapeFunc( reshape );
     glutDisplayFunc( display );
     glutKeyboardFunc( keyboard );
-
+#ifdef WIN32		
+	glewInit();
+#endif
     size_t i;
     texture_font_t *font = 0;
     texture_atlas_t *atlas = texture_atlas_new( 512, 512, 1 );
     const char * filename = "fonts/cinecaption227.ttf"; //"Vera.ttf";
     wchar_t *text = L"A Quick Brown Fox Jumps Over The Lazy Dog 0123456789ほげ日本";
+
     buffer = vertex_buffer_new( "v3f:t2f:c4f" ); 
     vec2 pen = {{5,400}};
     vec4 black = {{0,0,0,1}};
     for( i=7; i < 27; ++i)
     {
         font = texture_font_new( atlas, filename, i );
-        pen.x = 5;
+        pen.x = 85;
         pen.y -= font->height;
         texture_font_load_glyphs( font, text );
         add_text( buffer, font, text, &black, &pen );

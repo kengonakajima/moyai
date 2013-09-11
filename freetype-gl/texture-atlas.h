@@ -31,12 +31,12 @@
  * policies, either expressed or implied, of Nicolas P. Rougier.
  * ============================================================================
  *
- * This source is based on the article by Jukka Jylänki :
+ * This source is based on the article by Jukka Jylanki :
  * "A Thousand Ways to Pack the Bin - A Practical Approach to
  * Two-Dimensional Rectangle Bin Packing", February 27, 2010.
  *
  * More precisely, this is an implementation of the Skyline Bottom-Left
- * algorithm based on C++ sources provided by Jukka Jylänki at:
+ * algorithm based on C++ sources provided by Jukka Jylanki at:
  * http://clb.demon.fi/files/RectangleBinPack/
  *
  *  ============================================================================
@@ -51,6 +51,7 @@ extern "C" {
 #include "vector.h"
 #include "vec234.h"
 
+	
 /**
  * @file   texture-atlas.h
  * @author Nicolas Rougier (Nicolas.Rougier@inria.fr)
@@ -59,11 +60,11 @@ extern "C" {
  *
  * A texture atlas is used to pack several small regions into a single texture.
  *
- * The actual implementation is based on the article by Jukka Jylänki : "A
+ * The actual implementation is based on the article by Jukka Jylanki : "A
  * Thousand Ways to Pack the Bin - A Practical Approach to Two-Dimensional
  * Rectangle Bin Packing", February 27, 2010.
  * More precisely, this is an implementation of the Skyline Bottom-Left
- * algorithm based on C++ sources provided by Jukka Jylänki at:
+ * algorithm based on C++ sources provided by Jukka Jylanki at:
  * http://clb.demon.fi/files/RectangleBinPack/
  *
  *
@@ -131,6 +132,7 @@ typedef struct
     unsigned char * data;
 
 } texture_atlas_t;
+
 
 
 
@@ -217,7 +219,7 @@ typedef struct
 /** @} */
 
 #ifdef __cplusplus
-}
+};
 #endif
 
 #endif /* __TEXTURE_ATLAS_H__ */
