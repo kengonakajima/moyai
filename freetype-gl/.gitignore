@@ -8,4 +8,8 @@ ZERO_CHECK.*
 cmake_install.cmake
 demo-*.vcxproj*
 demo-font.dir/**/*
+freetype-gl.vcxproj*
+glew.asm
+makefont.vcxproj*
+stdc_test.c
 
