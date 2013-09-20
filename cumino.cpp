@@ -1,8 +1,13 @@
-/*
+﻿/*
   lumino, rumino, jumino, cumino
  */
 
+#ifndef WIN32
 #include <sys/time.h>
+#include <strings.h>
+#endif
+
+
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -10,10 +15,71 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <strings.h>
 
 #include "cumino.h"
 
+#ifdef WIN32
+
+int gettimeofday(struct timeval *tv, struct timezone *tz)
+{
+    FILETIME        tagFileTime;
+    LARGE_INTEGER   largeInt;
+    __int64         val64;
+    static int      tzflag;
+
+    if (tv)
+    {
+        GetSystemTimeAsFileTime(&tagFileTime);
+
+        largeInt.LowPart  = tagFileTime.dwLowDateTime;
+        largeInt.HighPart = tagFileTime.dwHighDateTime;
+        val64 = largeInt.QuadPart;
+        val64 = val64 - EPOCHFILETIME;
+        val64 = val64 / 10;
+        tv->tv_sec  = (long)(val64 / 1000000);
+        tv->tv_usec = (long)(val64 % 1000000);
+    }
+
+    if (tz)
+    {
+        if (!tzflag)
+        {
+            _tzset();
+            tzflag++;
+        }
+
+#if _MSC_VER == 1310
+        //Visual C++ 6.0でＯＫだった・・ 
+        tz->tz_minuteswest = _timezone / 60;
+        tz->tz_dsttime = _daylight;
+#else
+        long _Timezone = 0;
+         _get_timezone(&_Timezone);
+         tz->tz_minuteswest = _Timezone / 60;
+
+		 int _Daylight = 0;
+         _get_daylight(&_Daylight);
+         tz->tz_dsttime = _Daylight;
+#endif         
+    }
+
+    return 0;
+}
+
+int read( int fdesc, char *buf, size_t nbytes ){
+	return recv( fdesc, buf, nbytes, 0 );
+}
+void close( SOCKET s ){
+	closesocket(s);
+}
+
+long random() { 
+	int top = rand();
+	int bottom = rand();
+	long out = ( top << 16 ) | bottom;
+	return out;
+}
+#endif
 
 bool g_enablePrint = true;
 void enablePrint(bool enable){

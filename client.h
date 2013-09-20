@@ -1,16 +1,16 @@
-#ifndef _MOYAI_CLIENT_H_
+﻿#ifndef _MOYAI_CLIENT_H_
 #define _MOYAI_CLIENT_H_
 
 
 #include "common.h"
 
-#include <GL/glfw.h>
 #include "soil/src/SOIL.h"
 #include "freetype-gl/freetype-gl.h"
 #include "freetype-gl/vertex-buffer.h"
 #include "fmod/api/inc/fmod.h"
 #include "fmod/api/inc/fmod_errors.h"
 
+#include <GL/glfw.h>
 
 
 

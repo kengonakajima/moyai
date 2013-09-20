@@ -1,11 +1,16 @@
-#include <GL/glfw.h>
-
+﻿
 #include <stdio.h>
 #include <assert.h>
-#include <strings.h>
 #include <math.h>
 
+#ifndef WIN32
+#include <strings.h>
+#endif
+
+//#include <GL/glfw.h>
+
 #include "client.h"
+
 
 MoyaiClient *g_moyai_client;
 Viewport *g_viewport;
@@ -409,6 +414,8 @@ int main(int argc, char **argv )
     glfwSetWindowTitle( "demo2d" );
     glfwEnable( GLFW_STICKY_KEYS );
     glfwSwapInterval(1); // vsync
+
+	glewInit();
 
     glClearColor(0,0,0,1);
 

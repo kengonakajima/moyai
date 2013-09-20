@@ -1,4 +1,4 @@
-
+﻿
 #include "cumino.h"
 #include "client.h"
 
@@ -1034,9 +1034,9 @@ void Viewport::setScale2D( float sx, float sy ){
     scl = Vec3(sx,sy,1);
 
 }
-void Viewport::setClip3D( float near, float far ) {        
-    near_clip = near;
-    far_clip = far;
+void Viewport::setClip3D( float neardist, float fardist ) {        
+    near_clip = neardist;
+    far_clip = fardist;
     dimension = DIMENSION_3D;
 }
 

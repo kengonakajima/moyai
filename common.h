@@ -1,14 +1,25 @@
-#ifndef _MOYAI_COMMON_H_
+﻿#ifndef _MOYAI_COMMON_H_
 #define _MOYAI_COMMON_H_
 
 #include <stdlib.h>
-#include <strings.h>
+#ifdef WIN32
+#define _USE_MATH_DEFINES
+#endif
 #include <math.h>
 #include <assert.h>
+
+#ifndef WIN32
+#include <strings.h>
+#endif
 
 #include "cumino.h"
 #include "zlib.h"
 #include "png.h"
+
+#ifdef WIN32
+#undef min
+#undef max
+#endif
 
 class Vec3 {
 public:
@@ -28,7 +39,7 @@ public:
         return ::len( x,y,z,tgt.x,tgt.y,tgt.z);
     }
     inline DIR toDir() {
-        const float pi4 = M_PI / 4.0f;
+        const float pi4 = (float) M_PI / 4.0f;
         float at = atan2( x,y );
         if( at >= -pi4  && at <= pi4 ){
             return DIR_UP;

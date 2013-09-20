@@ -4,11 +4,37 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <sys/time.h>
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>
 
+#ifndef WIN32
+#include <sys/time.h>
+#endif
+
+
+#ifdef WIN32
+//#include "stdafx.h"
+
+#include    <windows.h>
+
+#include    <time.h>
+
+struct timezone {
+    int tz_minuteswest;
+    int tz_dsttime;    
+};
+
+#define EPOCHFILETIME (116444736000000000i64)
+
+int gettimeofday(struct timeval *tv, struct timezone *tz);
+int read( int fdesc, char *buf, size_t nbytes );
+void close( SOCKET s );
+long random();
+
+#define snprintf sprintf_s
+
+#endif//WIN32
 
 inline double now() {
     struct timeval tmv;
@@ -53,12 +79,14 @@ inline float maxf( float a, float b, float c ) {
 inline float maxf( float a, float b, float c, float d ) {
     return maxf( maxf(a,b), maxf(c,d) );
 }
-inline double max( double a, double b ){
+inline double maxd( double a, double b ){
     return  (a>b) ? a:b;
 }
-inline double min( double a, double b ){
+inline double mind( double a, double b ){
     return (a<b) ? a:b;
 }
+
+
 
 inline double range( double a, double b ) {
     long r = random();
