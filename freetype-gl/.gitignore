@@ -1,1 +1,11 @@
 *.o
+CMakeFiles/**/*
+Debug/**/*
+CMakeCache.txt
+ALL_BUILD.*
+Project.*
+ZERO_CHECK.*
+cmake_install.cmake
+demo-*.vcxproj*
+demo-font.dir/**/*
+
