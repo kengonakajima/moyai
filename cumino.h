@@ -171,6 +171,8 @@ int getModifiedTime( const char *path, time_t *out );
 void dump(const char*s, size_t l);
 
 extern bool g_cumino_mem_debug;
+extern unsigned long g_cumino_total_malloc_count;
+extern unsigned long g_cumino_total_malloc_size;
 
 void *MALLOC( size_t sz );
 void FREE( void *ptr );

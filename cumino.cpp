@@ -286,6 +286,8 @@ int getModifiedTime( const char *path, time_t *out ) {
 
 
 bool g_cumino_mem_debug = false;
+unsigned long g_cumino_total_malloc_count=0;
+unsigned long g_cumino_total_malloc_size=0;
 
 class MemEntry {
 public:
@@ -320,7 +322,8 @@ void *MALLOC( size_t sz ) {
     } else {
         out = malloc(sz);
     }
-
+	g_cumino_total_malloc_count++;
+	g_cumino_total_malloc_size += sz;
     return out;
 }
 void FREE( void *ptr ) {
@@ -351,6 +354,7 @@ void FREE( void *ptr ) {
     } else {
         free(ptr);
     }
+	g_cumino_total_malloc_count --;
 }
 
 void *operator new(size_t sz) {
