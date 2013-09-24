@@ -17,5 +17,4 @@ _captured.png
 **/*.lastbuildstate
 **/*.unsuccessfulbuild
 **/*.log
-demowin/Debug/**/*
 **/*.pdb
