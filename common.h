@@ -2,9 +2,11 @@
 #define _MOYAI_COMMON_H_
 
 #include <stdlib.h>
+
 #ifdef WIN32
 #define _USE_MATH_DEFINES
 #endif
+
 #include <math.h>
 #include <assert.h>
 
@@ -58,7 +60,7 @@ public:
     inline Vec3 add( float xx, float yy, float zz ){ return Vec3( x+xx, y+yy,z+zz);}
     inline Vec3 add( float xx, float yy ){ return Vec3( x+xx, y+yy,z);}    
     inline Vec3 to( Vec3 v){ return Vec3( v.x - x, v.y - y, v.z - z ); }
-    inline Vec3 randomize(float r){ return Vec3( x + range(-r,r), y + range(-r,r), z + range(-r,r) ); }
+    inline Vec3 randomize(float r){ return Vec3( x + (float)range(-r,r), y + (float)range(-r,r), z + (float)range(-r,r) ); }
     static inline Vec3 angle(float rad){ return Vec3( cos(rad), sin(rad), 0 ); }
     inline void toSign(int*xs,int*ys){ *xs = sign(x); *ys = sign(y); }
     inline void toSign(int*xs,int*ys,int*zs){ *xs = sign(x); *ys = sign(y); *zs = sign(z); }
@@ -97,7 +99,7 @@ public:
     static inline Vec3 fromDir(DIR d){
         int dx,dy;
         dirToDXDY(d,&dx,&dy);
-        return Vec3(dx,dy);
+        return Vec3( (float)dx, (float)dy);
     }
     // clockwise, up=y+
     inline Vec3 rot(float v) {
@@ -114,7 +116,7 @@ public:
         return Vec3( ::floor(x), ::floor(y), ::floor(z) );
     }
     inline Vec3 toInt() {
-        return Vec3( (int)(x), (int)(y), (int)(z) );
+        return Vec3( (float)((int)(x)), (float)((int)(y)), (float)((int)(z)) );
     }
     inline bool hitCube( Vec3 to, float dia ) {
         return ( (x>to.x-dia) && (x<to.x+dia) && (y>to.y-dia) && (y<to.y+dia) && (z>to.z-dia) && (z<to.z+dia) );
@@ -163,7 +165,7 @@ public:
         return ::len( x,y,tgt.x,tgt.y);
     }
     inline DIR toDir() {
-        const float pi4 = M_PI / 4.0f;
+        const float pi4 = (float)(M_PI / 4.0f);
         float at = atan2( x,y );
         if( at >= -pi4  && at <= pi4 ){
             return DIR_UP;
@@ -181,7 +183,7 @@ public:
     inline Vec2 add( Vec2 v){ return Vec2( x+v.x, y+v.y);}
     inline Vec2 add( float xx, float yy ){ return Vec2( x+xx, y+yy);}
     inline Vec2 to( Vec2 v){ return Vec2( v.x - x, v.y - y); }
-    inline Vec2 randomize(float r){ return Vec2( x + range(-r,r), y + range(-r,r) ); }
+    inline Vec2 randomize(float r){ return Vec2( x + (float)range(-r,r), y + (float)range(-r,r) ); }
     static inline Vec2 angle(float rad){ return Vec2( cos(rad), sin(rad) ); }
     inline void toSign(int*xs,int*ys){ *xs = sign(x); *ys = sign(y); }
     inline Vec2 operator+(Vec2 arg){ return Vec2(x+arg.x,y+arg.y); }
@@ -217,7 +219,7 @@ public:
     static inline Vec2 fromDir(DIR d){
         int dx,dy;
         dirToDXDY(d,&dx,&dy);
-        return Vec2(dx,dy);
+        return Vec2( (float)dx, (float)dy);
     }
     // clockwise, up=y+
     inline Vec2 rot(float v) {
@@ -225,7 +227,7 @@ public:
                      x * sin(v) + y * cos(v) );
     }
     inline Vec2 toInt() {
-        return Vec2( (int)(x), (int)(y) );
+        return Vec2( (float)((int)(x)), (float)((int)(y)) );
     }
 };
 
