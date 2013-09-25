@@ -448,10 +448,10 @@ int main(int argc, char **argv )
     
     TileDeck *deck = new TileDeck();
     deck->setTexture(t);
-    deck->setSize(16,16,16,16,256,256);
+    deck->setSize(16,16,16,16);
     TileDeck *d2 = new TileDeck();
     d2->setTexture(t2);
-    d2->setSize(16,16, 16,16, 256,256 );
+    d2->setSize(16,16, 16,16 );
 
     for(int i=0;i<10;i++ ){
         Prop2D *p = new Prop2D();
@@ -529,13 +529,13 @@ int main(int argc, char **argv )
     g_base_atlas->load("./assets/base.png");
     g_base_deck = new TileDeck();
     g_base_deck->setTexture(g_base_atlas);
-    g_base_deck->setSize(16,16, 16,16, 256,256 );
+    g_base_deck->setSize(16,16, 16,16 );
 
     g_bmpfont_atlas = new Texture();
     g_bmpfont_atlas->load("./assets/font_only.png");
     g_bmpfont_deck = new TileDeck();
     g_bmpfont_deck->setTexture( g_bmpfont_atlas );
-    g_bmpfont_deck->setSize(32,32, 8,8, 256,256 );
+    g_bmpfont_deck->setSize(32,32, 8,8 );
     
     g_camera = new Camera();
     g_camera->setLoc(0,0);
@@ -604,7 +604,7 @@ int main(int argc, char **argv )
 
     TileDeck *soldk = new TileDeck();
     soldk->setTexture(soltex0);
-    soldk->setSize( 2,2,8,8, 16,16 );
+    soldk->setSize( 2,2,8,8 );
     Prop2D *solp2 = new Prop2D();
     solp2->setLoc( SCRW/2-120, 0);
     solp2->setDeck( soldk );
@@ -662,7 +662,7 @@ int main(int argc, char **argv )
         Prop2D *p = new Prop2D();
         TileDeck *d = new TileDeck();
         d->setTexture(g_dyn_texture);
-        d->setSize( 16,16,16,16,256,256);
+        d->setSize( 16,16,16,16);
         p->setDeck(d);
         p->setLoc(200,200);
         p->setScl(128,128);

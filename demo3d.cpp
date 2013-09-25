@@ -432,7 +432,7 @@ int main() {
 
     g_deck = new TileDeck();
     g_deck->setTexture(t);
-    g_deck->setSize(16,16,16,16,256,256);
+    g_deck->setSize(16,16,16,16);
 
     Prop2D *p = new Prop2D();
     p->setDeck( g_deck );

@@ -212,31 +212,31 @@ class TileDeck {
     int cell_width, cell_height;
     int tile_width, tile_height;
     int image_width, image_height;
-
     Texture *tex;
-    TileDeck() : tex(NULL) {}
+    TileDeck() : cell_width(0), cell_height(0), tile_width(0), tile_height(0), image_width(0), image_height(0),tex(NULL) {}
     void setTexture( Texture *t ){
         assert(t->tex!=0);
         tex = t;
+        tex->getSize( &image_width, &image_height );
     }
     void setImage( Image *img ) {
         tex = new Texture();
-        tex->setImage(img);        
+        tex->setImage(img);
+        image_width = img->width;
+        image_height = img->height;
     }
 
     // sprw,sprh : sprite size
     // cellw,cellh : cell nums
     // imgw,imgh : image size
-    inline void setSize( int sprw, int sprh, int cellw, int cellh, int imgw, int imgh  ){
+    inline void setSize( int sprw, int sprh, int cellw, int cellh ){
         tile_width = sprw;
         tile_height = sprh;
         cell_width = cellw;
         cell_height = cellh;
-        image_width = imgw;
-        image_height = imgh;
     }
 
-    inline void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) { 
+    inline void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
         float uunit = (float) cell_width / (float) image_width;
         float vunit = (float) cell_height / (float) image_height;
         int start_x = cell_width * (int)( ind % tile_width );
@@ -546,7 +546,7 @@ public:
         d->setTexture(t);
         int w,h;
         t->getSize(&w,&h);
-        d->setSize( 1,1, w, h, w,h );
+        d->setSize( 1,1, w, h );
         deck = d;        
     }
 
