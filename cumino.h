@@ -91,8 +91,8 @@ inline double mind( double a, double b ){
 inline double range( double a, double b ) {
     long r = random();
     double rate = (double)r / (double)(0x7fffffff);
-    double _a = min(a,b);
-    double _b = max(a,b);
+    double _a = mind(a,b);
+    double _b = maxd(a,b);
     return _a + (_b-_a)*rate;
 }
 inline int irange( int a, int b ) {

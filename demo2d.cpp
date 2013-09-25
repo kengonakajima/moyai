@@ -414,9 +414,9 @@ int main(int argc, char **argv )
     glfwSetWindowTitle( "demo2d" );
     glfwEnable( GLFW_STICKY_KEYS );
     glfwSwapInterval(1); // vsync
-
+#ifdef WIN32
 	glewInit();
-
+#endif
     glClearColor(0,0,0,1);
 
     // controls
