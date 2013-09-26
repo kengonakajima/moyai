@@ -275,7 +275,7 @@ void updateGame(void) {
     frame_counter ++;
     
     int cnt;
-    cnt = g_moyai_client->pollAll(dt);
+    cnt = g_moyai_client->poll(dt);
 
     if(last_print_at == 0){
         last_print_at = t;

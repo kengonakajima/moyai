@@ -78,7 +78,7 @@ int main()
     double t = now();
     double dt = t - last_poll_at;
   
-    g_moyai->pollAll(dt); // everything happens in 
+    g_moyai->poll(dt); // everything happens in 
     g_moyai->renderAll();
     
     last_poll_at = t;
@@ -131,7 +131,7 @@ int main() {
     static double last_poll_at = now();
     double t = now();
     double dt = t - last_poll_at;
-    g_moyai->pollAll(dt);
+    g_moyai->poll(dt);
     g_moyai->renderAll();
     last_poll_at = t;
   }

@@ -47,7 +47,7 @@ void updateGame() {
     double t = now();
     double dt = t - last_poll_at;
     
-    g_moyai_client->pollAll(dt);
+    g_moyai_client->poll(dt);
 
     if( t > last_print_at + 1 ) {
         print("FPS:%d", frame_counter );

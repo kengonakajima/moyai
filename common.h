@@ -381,7 +381,7 @@ public:
         assert(freei>=0);
         groups[freei] = g;
     }
-    int pollAll(double dt );
+    int poll(double dt );
 };
 
 

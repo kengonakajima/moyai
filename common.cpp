@@ -6,7 +6,7 @@ int Group::idgen = 1;
 
 
 
-int Moyai::pollAll(double dt){
+int Moyai::poll(double dt){
     if( dt <0 || dt > 1 ){ print( "poll too slow or negative. dt:%f", dt ); }
     if(dt==0){
         dt = 0.0001;
