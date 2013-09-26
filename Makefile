@@ -148,7 +148,7 @@ clean:
 	rm -f *.o deps.make $(DEMO2D) $(DEMO3D) $(DEMOSV) $(OUTCLILIB) $(OUTSVLIB) *.o *.a
 
 depend: $(GLFWLIB)
-	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAICLISRCS) > deps.make
+	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAICLISRCS) $(DEMO2DSRCS) $(DEMO3DSRCS)  > deps.make
 
 
 -include deps.make

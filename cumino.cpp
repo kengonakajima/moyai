@@ -432,3 +432,19 @@ bool findChar( const char *s, char ch ) {
     }
     return false;
 }
+
+////////////
+
+
+double g_measure_start_time;
+char *g_measure_name;
+void startMeasure(const char *name) {
+    g_measure_name = (char*)name;
+    g_measure_start_time = now();
+}
+
+void endMeasure() {
+    double et = now();
+    if(!g_measure_name) g_measure_name = (char*) "no name";
+    print("endMeasure at %s : %f(ms)", g_measure_name, (et-g_measure_start_time)*1000 );
+}

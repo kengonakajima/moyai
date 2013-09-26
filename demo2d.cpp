@@ -302,6 +302,7 @@ void updateGame(void) {
 
 
     if( frame_counter % 1000 == 0 ) {
+        startMeasure("capt");
         Image *img = new Image();
         img->setSize( SCRW, SCRH );
         g_moyai_client->capture(img);
@@ -309,6 +310,7 @@ void updateGame(void) {
         assert(ret);
         print("captured in _captured.png");
         delete img;
+        endMeasure();
     }
     
     last_poll_at = t;
