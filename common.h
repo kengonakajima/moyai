@@ -316,7 +316,8 @@ public:
     static int idgen;
     int last_poll_num;
     bool to_render;
-    Group() : prop_top(NULL), last_poll_num(0), to_render(false) {
+    bool skip_poll;
+    Group() : prop_top(NULL), last_poll_num(0), to_render(false), skip_poll(false) {
         id = idgen++;        
     }
 

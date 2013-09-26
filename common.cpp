@@ -14,7 +14,7 @@ int Moyai::pollAll(double dt){
     int cnt = 0;
     for(int i=0;i<elementof(groups);i++){
         Group *g = groups[i];
-        if(g) cnt += g->pollAllProps(dt);
+        if(g && g->skip_poll == false ) cnt += g->pollAllProps(dt);
     }
     return cnt;
 }
