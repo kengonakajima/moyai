@@ -956,7 +956,7 @@ public:
         font = NULL;
         atlas = texture_atlas_new( 1024, 1024, 1 );
     }
-    bool loadFromTTF(const char *path, wchar_t *codes, int pixelsz ){
+    bool loadFromTTF(const char *path, const wchar_t *codes, int pixelsz ){
         pixel_size = pixelsz;
         font = texture_font_new( atlas, path, pixelsz );
         if(!font){
