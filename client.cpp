@@ -1393,7 +1393,7 @@ SoundSystem::SoundSystem()  : sys(0) {
     FMOD_ERRCHECK(r);
 }
 
-Sound *SoundSystem::newSound( const char *path, float vol ) {
+Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_currently_ignored ) {
     FMOD_RESULT r;
     Sound *out = new Sound(this);
     FMOD_SOUND *s;
@@ -1405,7 +1405,7 @@ Sound *SoundSystem::newSound( const char *path, float vol ) {
     return out;
 }
 Sound *SoundSystem::newSound( const char *path ){
-    return newSound( path, 1.0 );
+    return newSound( path, 1.0, false );
 }
 
     

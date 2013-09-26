@@ -1045,7 +1045,13 @@ class SoundSystem {
 public:
     FMOD_SYSTEM *sys;
     SoundSystem();
-    Sound *newSound( const char *path, float vol );
+    
+    Sound * newSE( const char *path ) { return newSE(path,1.0f); }
+    Sound * newSE( const char *path, float vol ) { return newSound(path,vol,false); };
+    Sound * newBGM( const char *path ) { return newBGM(path,1.0f); }
+    Sound * newBGM( const char *path, float vol ) { return newSound(path,vol,true); };
+    
+    Sound *newSound( const char *path, float vol, bool use_stream_currently_ignored );
     Sound *newSound( const char *path );
 };
 
