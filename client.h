@@ -758,6 +758,13 @@ class Prop2D : public Prop, public Renderable {
         anim_curve = ac;
         anim_start_at = accum_time;
     }
+    inline void clearAnim() {
+        anim_curve = NULL;
+    }
+    inline void ensureAnim( AnimCurve *ac ) {
+        if( anim_curve != ac ) setAnim(ac);
+    }
+    
 
     inline void setUVRot( bool flg){ uvrot = flg; }
     inline void setXFlip( bool flg){ xflip = flg; }
