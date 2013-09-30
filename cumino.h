@@ -102,6 +102,9 @@ inline int irange( int a, int b ) {
 inline bool birandom(){
     if( range(0,1) < 0.5 ) return true; else return false;
 }
+inline int plusMinusOne() {
+    if(range(0,1)<0.5) return -1; else return 1;
+}
 
 inline float avg( float a, float b ) {
     return (a+b)/2;

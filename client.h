@@ -711,6 +711,11 @@ class Prop2D : public Prop, public Renderable {
         updateMinMaxSizeCache();
         return true;
     }
+    inline Grid* getGrid(int index) {
+        assert(index>=0 && index < elementof(grids) ) ;
+        return grids[index];
+    }
+    
     inline void clearGrid() {
         grid_used_num = 0; // object have to be freed by app
         updateMinMaxSizeCache();        
