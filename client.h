@@ -1074,6 +1074,8 @@ public:
     Sound( SoundSystem *s);
     void play();
     void play(float vol);
+    void playDistance(float mindist, float maxdist, float dist, float relvol );
+    
 };
 
 

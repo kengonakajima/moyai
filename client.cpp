@@ -1375,7 +1375,17 @@ void Sound::play(float vol){
     FMOD_ERRCHECK(r);
     FMOD_Channel_SetVolume(ch, default_volume * vol );
 }
-
+void Sound::playDistance(float mindist, float maxdist, float dist, float relvol) {
+    if(dist<mindist) {
+        play(1 * relvol);
+    } else if( dist > maxdist ) {
+        return;
+    } else {
+        float width = maxdist - mindist;
+        float r = 1 - (dist - mindist) / width;
+        play(r * relvol);
+    }
+}
 
 SoundSystem::SoundSystem()  : sys(0) {
     FMOD_RESULT r;
