@@ -97,7 +97,7 @@ void updateGame() {
     }
     //    print("propx:%f r:%f", g_prop_0->loc.x, g_prop_0->rot3d.z );
     
-    g_moyai_client->renderAll();
+    g_moyai_client->render();
     
     last_poll_at = t;
 }

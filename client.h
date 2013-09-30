@@ -1039,7 +1039,7 @@ class MoyaiClient : public Moyai {
 public:
     MoyaiClient() : Moyai() {
     }
-    int renderAll();
+    int render();
     void capture( Image *img );
     void insertLayer( Layer *l ) {
         insertGroup( l );

@@ -65,7 +65,7 @@ bool Prop2D::propPoll(double dt) {
     return true;
 }
 
-int MoyaiClient::renderAll(){
+int MoyaiClient::render(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );    
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);

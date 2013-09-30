@@ -685,7 +685,7 @@ int main(int argc, char **argv )
 
         // replace white to random color
         g_replacer_shader->setColor( Color(1,1,1,1), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
-        g_last_render_cnt = g_moyai_client->renderAll();
+        g_last_render_cnt = g_moyai_client->render();
 
         if( glfwGetKey('Q') ) {
             print("Q pressed");
