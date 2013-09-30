@@ -1,4 +1,4 @@
-#include "common.h"
+﻿#include "common.h"
 
 
 int Prop::idgen = 1;
@@ -109,10 +109,10 @@ void Image::setPixel( int x, int y, Color c ){
     ensureBuffer();
     if(x>=0&&y>=0&&x<width&&y<height){
         int index = ( x + y * width ) * 4;
-        buffer[index] = c.r*255;
-        buffer[index+1] = c.g*255;
-        buffer[index+2] = c.b*255;
-        buffer[index+3] = c.a*255;
+        buffer[index] = (unsigned char) c.r*255;
+        buffer[index+1] = (unsigned char) c.g*255;
+        buffer[index+2] = (unsigned char) c.b*255;
+        buffer[index+3] = (unsigned char) c.a*255;
     }
 }
 Color Image::getPixel( int x, int y ) {
@@ -124,7 +124,7 @@ Color Image::getPixel( int x, int y ) {
         unsigned char g = buffer[index+1];
         unsigned char b = buffer[index+2];
         unsigned char a = buffer[index+3];
-        return Color( ((float)r)/255.0, ((float)g)/255.0, ((float)b)/255.0, ((float)a)/255.0 );
+        return Color( ((float)r)/255.0f, ((float)g)/255.0f, ((float)b)/255.0f, ((float)a)/255.0f );
     } else {
         return Color( 0,0,0,1 );
     }
@@ -157,7 +157,7 @@ void Image::loadPNG( const char *path ) {
     FILE *fp = fopen(path,"rb");
 
     png_byte header[8];
-    assertmsg(fp, "can't open file:%s", path );
+    assertmsg(fp!=0, "can't open file:%s", path );
 
     // read the header
     fread(header, 1, 8, fp);
@@ -165,7 +165,7 @@ void Image::loadPNG( const char *path ) {
     if(png_sig_cmp(header, 0, 8)) assertmsg(false, "error: %s is not a PNG.", path );
 
     png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    assertmsg( png_ptr, "png_create_read_struct returned 0 for %s", path );
+    assertmsg( png_ptr!=0, "png_create_read_struct returned 0 for %s", path );
 
     // create png info struct
     png_infop info_ptr = png_create_info_struct(png_ptr);
@@ -280,9 +280,9 @@ void Image::copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0,
             unsigned char r,g,b,a;
 
             float rate = (float)froma/(float)255.0;
-            r = fromr * rate + tor * (1-rate);
-            g = fromg * rate + tog * (1-rate);
-            b = fromb * rate + tob * (1-rate);
+            r = (unsigned char)( fromr * rate + tor * (1-rate) );
+            g = (unsigned char)( fromg * rate + tog * (1-rate) );
+            b = (unsigned char)( fromb * rate + tob * (1-rate) );
             int total_a = froma + toa;
             if(total_a>255) total_a = 255;
             a = total_a;
@@ -296,7 +296,7 @@ void Image::copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0,
 
 
 bool Image::writePNG(const char *path) {
-    assertmsg( buffer, "image not initialized?" );
+    assertmsg( buffer!=0 , "image not initialized?" );
     FILE *fp = fopen( path, "wb");
 
     png_structp png_ptr;

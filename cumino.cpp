@@ -398,7 +398,7 @@ int cuminoPrintMemStat( int thres_count ) {
     for(int i=0;i<elementof(ents);i++) {
         if( ents[i].sz > 0 ) {
             sorter[si].ptr = & ents[i];
-            sorter[si].val = ents[i].count * ents[i].sz;
+            sorter[si].val = (float) ents[i].count * ents[i].sz;
             si++;
         }
     }
