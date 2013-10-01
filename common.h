@@ -235,6 +235,9 @@ public:
                 y >= to.y - dia &&
                 y <= to.y + dia );
     }
+    inline float dot( Vec2 v ) {
+        return x * v.x + y * v.y;
+    }
     
 };
 
