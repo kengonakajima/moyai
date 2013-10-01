@@ -415,6 +415,11 @@ public:
             }
         }
     }
+    inline int getDefaultIndex() {
+        assert( index_used > 0 );
+        return index_table[0];
+    }
+    
 };
 
 class Animation {
