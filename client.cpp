@@ -604,6 +604,12 @@ void Prop2D::render(Camera *cam) {
         camy = cam->loc.y * -1;
     }
 
+    if( children_num > 0 && render_children_first ){
+        for(int i=0;i<children_num;i++){
+            Prop2D *p = (Prop2D*) children[i];
+            p->render( cam );
+        }
+    }
 
     // TODO: use vbo for grids
     if( grid_used_num > 0 ){
@@ -698,7 +704,7 @@ void Prop2D::render(Camera *cam) {
         }
     }
 
-    if( children_num > 0 ){
+    if( children_num > 0 && (render_children_first == false) ){
         for(int i=0;i<children_num;i++){
             Prop2D *p = (Prop2D*) children[i];
             p->render( cam );

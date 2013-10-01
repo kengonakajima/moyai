@@ -621,6 +621,8 @@ class Prop2D : public Prop, public Renderable {
 
     float tex_epsilon;
 
+    bool render_children_first;
+
     inline Prop2D() : Prop(), Renderable() {
         priority = id;
         dimension = DIMENSION_2D;
@@ -652,6 +654,8 @@ class Prop2D : public Prop, public Renderable {
         min_lb_cache = Vec2(0,0);
 
         tex_epsilon = 0;
+
+        render_children_first = false;
     }
     ~Prop2D(){
         for(int i=0;i<grid_used_num;i++){
