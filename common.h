@@ -229,6 +229,13 @@ public:
     inline Vec2 toInt() {
         return Vec2( (float)((int)(x)), (float)((int)(y)) );
     }
+    inline bool isNearRect(Vec2 to, float dia) {
+        return( x >= to.x - dia &&
+                x <= to.x + dia &&
+                y >= to.y - dia &&
+                y <= to.y + dia );
+    }
+    
 };
 
 
