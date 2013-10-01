@@ -564,6 +564,15 @@ public:
             swapPriority(target);
         }
     }
+    inline void ensurePriority( Renderable *lower ) {
+        if( priority >= lower->priority ) {
+            return;
+        } else {
+            int tmp = priority;
+            priority = lower->priority;
+            lower->priority = tmp;
+        }
+    }
     
     virtual void render(Camera *cam){};
     
