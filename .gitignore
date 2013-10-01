@@ -18,3 +18,4 @@ _captured.png
 **/*.unsuccessfulbuild
 **/*.log
 **/*.pdb
+assets/dynamic_out.png
