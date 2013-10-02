@@ -96,6 +96,15 @@
     <ClCompile Include="..\soil\src\image_helper.c" />
     <ClCompile Include="..\soil\src\SOIL.c" />
     <ClCompile Include="..\soil\src\stb_image_aug.c" />
+    <ClCompile Include="..\zlib-1.2.7\adler32.c" />
+    <ClCompile Include="..\zlib-1.2.7\compress.c" />
+    <ClCompile Include="..\zlib-1.2.7\crc32.c" />
+    <ClCompile Include="..\zlib-1.2.7\deflate.c" />
+    <ClCompile Include="..\zlib-1.2.7\inffast.c" />
+    <ClCompile Include="..\zlib-1.2.7\inflate.c" />
+    <ClCompile Include="..\zlib-1.2.7\inftrees.c" />
+    <ClCompile Include="..\zlib-1.2.7\trees.c" />
+    <ClCompile Include="..\zlib-1.2.7\zutil.c" />
     <ClCompile Include="demowin.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>

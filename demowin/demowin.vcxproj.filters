@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ソース ファイル\zlib">
+      <UniqueIdentifier>{5a4a1e50-febe-4e20-bb76-55a0c10f8dc2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -64,6 +67,33 @@
     </ClCompile>
     <ClCompile Include="..\soil\src\stb_image_aug.c">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\deflate.c">
+      <Filter>ソース ファイル\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\compress.c">
+      <Filter>ソース ファイル\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\crc32.c">
+      <Filter>ソース ファイル\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\inflate.c">
+      <Filter>ソース ファイル\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\inftrees.c">
+      <Filter>ソース ファイル\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\trees.c">
+      <Filter>ソース ファイル\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\zutil.c">
+      <Filter>ソース ファイル\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\adler32.c">
+      <Filter>ソース ファイル\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\inffast.c">
+      <Filter>ソース ファイル\zlib</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
