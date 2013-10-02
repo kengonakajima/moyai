@@ -16,6 +16,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "zlib.h"
+
 #include "cumino.h"
 
 #ifdef WIN32
@@ -448,3 +450,97 @@ void endMeasure() {
     if(!g_measure_name) g_measure_name = (char*) "no name";
     print("endMeasure at %s : %f(ms)", g_measure_name, (et-g_measure_start_time)*1000 );
 }
+
+///////////
+
+int memInflate( char *out, int outlen, char *in, int inlen ) {
+    char buf[4096];
+    int out_so_far =0;
+    z_stream z;
+    
+    memset(&z,0,sizeof(z));
+    z.zalloc = NULL;
+    z.zfree = NULL;
+    z.opaque = NULL;
+    if(inflateInit( &z ) != Z_OK ){
+        return -123;
+    }
+    
+    z.next_in = (Bytef*)in;
+    z.avail_in = inlen;
+    z.next_out = (Bytef*)buf;
+    z.avail_out = sizeof(buf);
+
+    while(1){
+        int r,outsz;
+//        printf( "AAAAAA %d\n",out_so_far );
+        r = inflate( &z, Z_NO_FLUSH );
+        if( r == Z_STREAM_END || r == Z_BUF_ERROR ){
+            break;
+        }
+        if( r != Z_OK) {
+            return -1234;
+        }
+
+        /* inflation OK! */
+        outsz = sizeof(buf)- z.avail_out;
+        if( (out_so_far +outsz)> outlen){
+            return -12345;
+        }
+        memcpy( out + out_so_far , buf, outsz );
+        out_so_far += outsz;
+        z.next_out = (Bytef*)buf;
+        z.avail_out = sizeof(buf);
+    }
+
+    return out_so_far;
+}
+
+int memDeflate( char *out, int outlen, char *in, int inlen ) {
+    char buf[4096];
+    int out_so_far = 0;
+    z_stream z;
+    
+    memset(&z,0,sizeof(z));
+    z.zalloc = NULL;
+    z.zfree = NULL;
+    z.opaque = NULL;
+    if(deflateInit( &z, Z_DEFAULT_COMPRESSION ) != Z_OK ){
+        return -123;
+    }
+    
+    z.avail_in = inlen;
+    z.next_in = (Bytef*)in;
+
+    /* got hint from ssh3 code */
+    do {
+
+        int r,outsz;
+        
+        z.next_out = (Bytef*)buf;
+        z.avail_out = sizeof(buf);
+        if( z.avail_in != 0 ){
+            r = deflate( &z, Z_PARTIAL_FLUSH);
+        } else {
+            r = deflate( &z, Z_SYNC_FLUSH );
+        }
+
+        if( r == Z_OK ){
+            outsz = sizeof(buf) - z.avail_out;
+            if( (out_so_far + outsz) > outlen ){
+                deflateEnd(&z);
+                return -1234;
+            }
+            memcpy( out + out_so_far, buf, outsz );
+            out_so_far += outsz;
+        } else {
+            deflateEnd(&z);
+            return -12345;
+        }
+    } while( z.avail_out == 0 );
+
+    deflateEnd(&z);
+    return out_so_far;
+}
+
+
