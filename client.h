@@ -766,6 +766,7 @@ class Prop2D : public Prop, public Renderable {
     inline void setColor( Color c ){
         color = c;
     }
+    inline Color getColor() { return color; }
     inline void setColor(float r, float g, float b, float a ){
         color = Color(r,g,b,a);
     }
@@ -1036,9 +1037,9 @@ public:
     vertex_buffer_t *vb;
     wchar_t *str;
     Font *font;
-    Color color;
+    //    Color color;
     
-    TextBox() : color(0.5,0.5,0.5,1) {
+    TextBox() {
         vb = vertex_buffer_new( "v3f:t2f:c4f" );
         str = NULL;
     }
