@@ -354,3 +354,10 @@ bool Image::writePNG(const char *path) {
     return true;
 }
 
+void Image::fill( Color c ) {
+    for(int y=0;y<height;y++){
+        for(int x=0;x<width;x++) {
+            setPixel(x,y,c);
+        }
+    }
+}

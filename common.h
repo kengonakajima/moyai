@@ -374,6 +374,7 @@ public:
     bool writePNG(const char *path);
     void ensureBuffer();
     void copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0, int toy0 );
+    void fill( Color c );    
 };
 
 
