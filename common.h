@@ -344,6 +344,17 @@ public:
     }
     int pollAllProps(double dt);
     Prop *findPropById( int id );
+
+    inline Prop *getProp(int id) {
+        Prop *cur = prop_top;
+        while(cur) {
+            if(cur->id == id ) {
+                return cur;
+            }
+            cur = cur->next;
+        }
+        return NULL;
+    }
     
 };
 
