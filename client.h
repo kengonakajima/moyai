@@ -204,6 +204,11 @@ public:
         *w = ww;
         *h = hh;
     }
+    inline Vec2 getSize() { // use this vector direct to Prop2D::setScl(v)
+        int w,h;
+        getSize( &w, &h );
+        return Vec2(w,h);
+    }
     
 };
 
