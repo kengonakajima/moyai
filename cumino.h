@@ -130,6 +130,8 @@ void assertmsg( bool cond, const char *fmt, ... );
 #endif
 
 #define choose(ary) ( ary[ irange(0, elementof(ary)) ] )
+#define nchoose(ary,n) ( ary[ irange(0, n) ] )
+
 
 inline int chooseInt2( int a, int b ) {
     if( (random()%2) == 0 ) return a; else return b;
