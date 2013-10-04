@@ -828,9 +828,11 @@ class Prop2D : public Prop, public Renderable {
     }
     void updateMinMaxSizeCache();
 
-    inline bool hit( Vec2 at ){
-        return ( at.x >= loc.x - scl.x/2 ) && ( at.x <= loc.x + scl.x/2 ) && ( at.y >= loc.y - scl.y/2 ) && ( at.y <= loc.y + scl.y/2 );
-    }
+    inline bool hit( Vec2 at, float margin = 0 ){
+        return ( at.x >= loc.x - scl.x/2 - margin ) && ( at.x <= loc.x + scl.x/2 + margin) &&
+            ( at.y >= loc.y - scl.y/2 - margin) && ( at.y <= loc.y + scl.y/2 + margin );
+    }    
+
     virtual void render(Camera *cam);
 
     inline void getRect( Vec2 *min_out, Vec2 *max_out ) {
