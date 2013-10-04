@@ -832,6 +832,13 @@ class Prop2D : public Prop, public Renderable {
     }
     virtual void render(Camera *cam);
 
+    inline void getRect( Vec2 *min_out, Vec2 *max_out ) {
+        min_out->x = loc.x - scl.x/2;
+        min_out->y = loc.y - scl.y/2;
+        max_out->x = loc.x + scl.x/2;
+        max_out->y = loc.y + scl.y/2;
+    }
+    
 };
 
 class Material {
