@@ -389,12 +389,22 @@ void optest(){
 void comptest() {
     char buf[] = "hogehogefugafugahogefugapiyopiyo";
     char zipped[1024];
-    int zipped_len = memDeflate( zipped, sizeof(zipped), buf, strlen(buf) );
+    int zipped_len = memCompress( zipped, sizeof(zipped), buf, strlen(buf) );
     char inflated[1024];
-    int inflated_len = memInflate( inflated, sizeof(inflated), zipped, zipped_len );
+    int inflated_len = memDecompress( inflated, sizeof(inflated), zipped, zipped_len );
     inflated[inflated_len] = '\0';
     assert( inflated_len == (int) strlen(buf) );
     assert( strcmp( inflated, buf ) == 0 );
+    print("zlib: %d bytes to %d byte", inflated_len, zipped_len );
+
+    // lz4
+    zipped_len = memCompressLZ4( zipped, sizeof(zipped), buf, strlen(buf) );
+    inflated_len = memDecompressLZ4( inflated, sizeof(inflated), zipped, zipped_len );
+    inflated[inflated_len] = '\0';
+    print("lz4: %d bytes to %d byte", inflated_len, zipped_len );
+    
+    
+    
 }
 
 
