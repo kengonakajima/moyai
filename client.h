@@ -841,6 +841,10 @@ class Prop2D : public Prop, public Renderable {
         max_out->x = loc.x + scl.x/2;
         max_out->y = loc.y + scl.y/2;
     }
+    inline Vec2 getBottomLeft() {
+        if( grid_used_num > 0 ) return loc; else return loc - scl/2;
+    }
+    
     
 };
 
