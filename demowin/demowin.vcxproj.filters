@@ -16,6 +16,9 @@
     <Filter Include="ソース ファイル\zlib">
       <UniqueIdentifier>{5a4a1e50-febe-4e20-bb76-55a0c10f8dc2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\lz4">
+      <UniqueIdentifier>{f7bf439b-e526-4489-abc0-0e8f6d3c50aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -94,6 +97,12 @@
     </ClCompile>
     <ClCompile Include="..\zlib-1.2.7\inffast.c">
       <Filter>ソース ファイル\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lz4\lz4.c">
+      <Filter>ソース ファイル\lz4</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lz4\lz4hc.c">
+      <Filter>ソース ファイル\lz4</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
