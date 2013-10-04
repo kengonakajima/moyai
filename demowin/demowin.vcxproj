@@ -92,6 +92,8 @@
     <ClCompile Include="..\common.cpp" />
     <ClCompile Include="..\cumino.cpp" />
     <ClCompile Include="..\demo2d.cpp" />
+    <ClCompile Include="..\lz4\lz4.c" />
+    <ClCompile Include="..\lz4\lz4hc.c" />
     <ClCompile Include="..\soil\src\image_DXT.c" />
     <ClCompile Include="..\soil\src\image_helper.c" />
     <ClCompile Include="..\soil\src\SOIL.c" />
