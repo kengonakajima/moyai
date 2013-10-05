@@ -97,7 +97,10 @@ void prt(const char *fmt, ... ){
     va_start( argptr, fmt );
     vsprintf( dest, fmt, argptr );
     va_end( argptr );
-    fprintf( stderr, "%s", dest );    
+    fprintf( stderr, "%s", dest );   
+#ifdef WIN32
+	OutputDebugStringA(dest);
+#endif
 }
 
 void print( const char *fmt, ... ){
@@ -108,6 +111,10 @@ void print( const char *fmt, ... ){
     vsprintf( dest, fmt, argptr );
     va_end( argptr );
     fprintf( stderr, "%s\n", dest );
+#ifdef WIN32
+	OutputDebugStringA(dest);
+	OutputDebugStringA("\n");
+#endif
 }
 
 void assertmsg( bool cond, const char *fmt, ... ) {
