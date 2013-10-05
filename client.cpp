@@ -785,6 +785,15 @@ bool Texture::load( const char *path ){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );     
     print("soil_load_ogl_texture: new texid:%d", tex );
+
+    // generate image from gl texture
+    if(image) delete image;
+    image = new Image();
+    int w,h;
+    getSize(&w,&h);
+    image->setSize(w,h); 
+    glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image->buffer );
+    
     return true;
 }
 void Texture::setLinearMagFilter(){

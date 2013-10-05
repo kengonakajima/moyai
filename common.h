@@ -361,7 +361,7 @@ public:
 
 class Image {
 public:
-    unsigned char *buffer;
+    unsigned char *buffer; // rgbargbargba..
     int width, height;
     Image() : buffer(NULL), width(0), height(0) {}
     ~Image() { if(buffer)FREE(buffer); }

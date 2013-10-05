@@ -458,6 +458,22 @@ int main(int argc, char **argv )
     g_viewport->setSize(SCRW,SCRH);
     g_viewport->setScale2D(SCRW,SCRH);
 
+#if 0
+    {
+        Texture *sss = new Texture();
+        sss->load( "./assets/sol.png" );
+        print("TTTTTTTTTTTTT");
+        for(int y=0;y<sss->image->height;y++) {
+            for(int x=0;x<sss->image->width;x++) {
+                Color c = sss->image->getPixel(x,y);
+                prt( "%d ", (int)(c.r*255) );
+            }
+            prt("\n");
+        }
+        return 0;
+    }
+#endif
+    
     Layer *l = new Layer();
     g_moyai_client->insertLayer(l);
     l->setViewport(g_viewport);
