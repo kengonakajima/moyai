@@ -1,13 +1,11 @@
-﻿
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <assert.h>
 #include <math.h>
+#include <locale.h>
 
 #ifndef WIN32
 #include <strings.h>
 #endif
-
-#include <locale.h>
 
 //#include <GL/glfw.h>
 
@@ -416,11 +414,17 @@ int main(int argc, char **argv )
     qstest();
     optest();
     comptest();
+
     
+
     print("program start");
 
-	
-	setlocale(LC_ALL, "ja_JP");
+#ifdef __APPLE__    
+    setlocale( LC_ALL, "ja_JP");
+#endif
+#ifdef WIN32    
+    setlocale( LC_ALL, "jpn");
+#endif    
 
     g_sound_system = new SoundSystem();
     g_explosion_sound = g_sound_system->newSound("./assets/blobloblll.wav" );
@@ -605,16 +609,16 @@ int main(int argc, char **argv )
 
     TextBox *t3 = new TextBox();
     t3->setFont(font);
-    t3->setString( L"ABC012ほげ。\nふがふがふがのWCS。" );
+    t3->setString( L"ABC012ほげ。\nふがふがふがの(wchar_t)。" );
     t3->setLoc(-100,-50);
     g_main_layer->insertProp(t3);
 
     TextBox *t4 = new TextBox();
     t4->setFont(font);
-    t4->setString("ABC012ほげ。\nふがふがふがのMBS(utf-8)。");
-    t4->setLoc(-100,-30);
+    t4->setString( "ABC012ほげ。\nふがふがふがの(mb-utf8)。" );
+    t4->setLoc(-100,-90);
     g_main_layer->insertProp(t4);
-
+    
     // Image manipulation
     Image *solimg = new Image();
     solimg->loadPNG( "assets/sol.png" );
@@ -736,6 +740,7 @@ int main(int argc, char **argv )
 
         if( glfwGetKey('Q') ) {
             print("Q pressed");
+            exit(0);
             break;
         }
 
@@ -749,4 +754,3 @@ int main(int argc, char **argv )
 
     return 0;
 }
-
