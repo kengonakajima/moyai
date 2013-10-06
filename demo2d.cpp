@@ -603,7 +603,7 @@ int main(int argc, char **argv )
     t3->setString( L"ABC012ほげ。\nふがふがふがの。" );
     t3->setLoc(-100,-50);
     g_main_layer->insertProp(t3);
-
+    
     // Image manipulation
     Image *solimg = new Image();
     solimg->loadPNG( "assets/sol.png" );
@@ -725,6 +725,7 @@ int main(int argc, char **argv )
 
         if( glfwGetKey('Q') ) {
             print("Q pressed");
+            exit(0);
             break;
         }
 
