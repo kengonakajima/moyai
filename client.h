@@ -1082,6 +1082,7 @@ public:
         }
         str = (wchar_t*)MALLOC( (l+1) * sizeof(wchar_t) );
         wcscpy( str, s );
+		assert( wcslen(str) == wcslen(s) );
     }
 };
 
