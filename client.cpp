@@ -681,7 +681,7 @@ void Prop2D::render(Camera *cam) {
     }
 
     
-    if(deck){
+    if(deck && index >= 0 ){
         glEnable(GL_TEXTURE_2D);
         glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
         if( fragment_shader ){
