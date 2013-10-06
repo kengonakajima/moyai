@@ -420,7 +420,7 @@ int main(int argc, char **argv )
     print("program start");
 
 	
-	setlocale(LC_ALL, "jpn");
+	setlocale(LC_ALL, "ja_JP");
 
     g_sound_system = new SoundSystem();
     g_explosion_sound = g_sound_system->newSound("./assets/blobloblll.wav" );
