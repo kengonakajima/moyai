@@ -322,17 +322,20 @@ void updateGame(void) {
         createRandomDigit();
     }
 
-    if( frame_counter % 4000 == 0 ) {
+
+    static int capt_count =0;
+    if( (capt_count % 200)  == 0 ) {
         startMeasure("capt");
         Image *img = new Image();
         img->setSize( SCRW, SCRH );
         g_moyai_client->capture(img);
         bool ret = img->writePNG("_captured.png");
         assert(ret);
-        print("captured in _captured.png");
+        print("captured in _captured.png cnt:%d", capt_count );
         delete img;
         endMeasure();
     }
+    capt_count ++;
     
     last_poll_at = t;
 
