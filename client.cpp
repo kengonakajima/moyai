@@ -809,9 +809,16 @@ void Texture::setLinearMinFilter(){
 void TextBox::render(Camera *cam ) {
     glBindTexture( GL_TEXTURE_2D, font->atlas->id );
 
+    int line_num = 0;
+    for(unsigned int i=0; i < wcslen(str); ++i ){
+        if( str[i] == L"\n"[0] ){
+            line_num++;
+        }
+    }
+    
     size_t i;
     float x = loc.x;
-    float y = loc.y;
+    float y = loc.y + line_num * font->pixel_size;
     if(cam){
         x -= cam->loc.x;
         y -= cam->loc.y;

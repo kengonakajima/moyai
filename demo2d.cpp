@@ -622,7 +622,9 @@ int main(int argc, char **argv )
     // Check bottom line
     TextBox *t5 = new TextBox();
     t5->setFont(font);
-    t5->setString( "THIS SHOULDN'T SINK UNDER BOTTOM LINE : このせんはしたにしずまない" );
+    t5->setString( "THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない1ぎょうめ\n"
+                   "THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない2ぎょうめ"
+                   );
     t5->setLoc(-SCRW/2,-SCRH/2);
     g_main_layer->insertProp(t5);
     
