@@ -688,7 +688,8 @@ class Prop2D : public Prop, public Renderable {
 
     
     virtual bool prop2DPoll(double dt){ return true;}
-    virtual bool propPoll(double dt);        
+    virtual bool propPoll(double dt);
+    virtual void onAnimFinished(){}
 
     inline void setIndex( int ind){
         index = ind;

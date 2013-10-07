@@ -28,6 +28,7 @@ ColorReplacerShader *g_replacer_shader;
 TextBox *g_tb;
 
 AnimCurve *g_bullet_anim_curve;
+AnimCurve *g_digit_anim_curve;
 
 SoundSystem *g_sound_system;
 Sound *g_explosion_sound;
@@ -54,7 +55,7 @@ enum {
     ATLAS_BEAM = 65,
     ATLAS_DEBRI0 = 66,
     ATLAS_STAR0 = 70,   
-    ATLAS_DIGIT0 = 80,   /* 1:82,2:83,3:84,4:85,5:86,6:87,7:88,8:89,9:90 */
+    ATLAS_DIGIT0 = 80,  
 };
 
 // config
@@ -236,7 +237,7 @@ public:
 
         float c = absolute(::sin( accum_time * 10 ) );
         setColor( Color(c,c,c,1));
-        if(cnt%1000==0){
+        if(cnt%200==0){
             Bullet * b = createBullet(loc.x, loc.y, loc.x + range(-100,100), loc.y + range(-100,100), 1, false );
             //
             Vec2 aimv = b->v.rot(M_PI/8).normalize(100);
@@ -257,12 +258,29 @@ MyShip *createMyShip(float x, float y){
     return ms;
 }
 
+//////
+class Digit : public Prop2D {
+public:
+    Digit( Vec2 at ) : Prop2D() {
+        setLoc(at);
+        setAnim( g_digit_anim_curve );
+        setDeck( g_base_deck );
+        setScl( range(10,40), range(10,40) );        
+    }
+    virtual void onAnimFinished() {
+        to_clean = true;
+    }
+    static Digit*create(Vec2 at) {
+        Digit *d = new Digit(at);
+        g_main_layer->insertProp(d);
+        return d;
+    }
+};
 
-
-
-
-
-
+void createRandomDigit() {
+    Vec2 at(range(-200,200), range(-200,200) );    
+    Digit::create(at);
+}
 
 void updateGame(void) {
     static double last_print_at = 0;
@@ -300,8 +318,11 @@ void updateGame(void) {
     }
     g_dyn_texture->setImage(g_img);
 
+    if( ( frame_counter % 171 ) == 0 ) {
+        createRandomDigit();
+    }
 
-    if( frame_counter % 1000 == 0 ) {
+    if( frame_counter % 4000 == 0 ) {
         startMeasure("capt");
         Image *img = new Image();
         img->setSize( SCRW, SCRH );
@@ -591,6 +612,8 @@ int main(int argc, char **argv )
 
     int bulletinds[] = { ATLAS_BULLET0, ATLAS_BULLET0+1, ATLAS_BULLET0+2,ATLAS_BULLET0+3};
     g_bullet_anim_curve = new AnimCurve( 0.2, true, bulletinds, elementof(bulletinds));
+    int digitinds[] = { ATLAS_DIGIT0, ATLAS_DIGIT0+1, ATLAS_DIGIT0+2, ATLAS_DIGIT0+3 };
+    g_digit_anim_curve = new AnimCurve( 0.2, false, digitinds, elementof(digitinds));
     
 
 

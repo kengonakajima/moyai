@@ -13,9 +13,13 @@ bool Prop2D::propPoll(double dt) {
     // animation of index
     if(anim_curve){
         int previndex = index;
-        index = anim_curve->getIndex( accum_time - anim_start_at );
+        bool finished = false;
+        index = anim_curve->getIndex( accum_time - anim_start_at, &finished );
         if( index != previndex ){
             onIndexChanged(previndex);
+        }
+        if(finished) {
+            onAnimFinished();
         }
     }
     // animation of scale
