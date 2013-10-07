@@ -448,7 +448,7 @@ int main(int argc, char **argv )
 #ifdef WIN32
 	glewInit();
 #endif
-    glClearColor(0,0,0,1);
+    glClearColor(0.2,0.2,0.2,1);
 
     // controls
     g_pad = new Pad();
@@ -618,6 +618,14 @@ int main(int argc, char **argv )
     t4->setString( "ABC012ほげ。\nふがふがふがの(mb-utf8)。" );
     t4->setLoc(-100,-90);
     g_main_layer->insertProp(t4);
+
+    // Check bottom line
+    TextBox *t5 = new TextBox();
+    t5->setFont(font);
+    t5->setString( "THIS SHOULDN'T SINK UNDER BOTTOM LINE : このせんはしたにしずまない" );
+    t5->setLoc(-SCRW/2,-SCRH/2);
+    g_main_layer->insertProp(t5);
+    
     
     // Image manipulation
     Image *solimg = new Image();

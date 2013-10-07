@@ -820,7 +820,8 @@ void TextBox::render(Camera *cam ) {
         
     glBegin(GL_QUADS);
     glColor4f( color.r, color.g, color.b, color.a );
-        
+
+    int y_margin = (int)(font->pixel_size / 6.0f ); // suitable for ascii/japanese(CJK) mixed text
     for( i=0; i<wcslen(str); ++i ){
         if( str[i] == L"\n"[0] ){
             x = basex;
@@ -834,11 +835,12 @@ void TextBox::render(Camera *cam ) {
         if( i > 0){
             kerning = texture_glyph_get_kerning( glyph, str[i-1] );
         }
+        //        print("ofsy: %d h:%d", glyph->offset_y, glyph->height );        
         x += kerning;
         int x0  = (int)( x + glyph->offset_x );
-        int y0  = (int)( y + glyph->offset_y );
+        int y0  = (int)( y + glyph->offset_y ) + y_margin;
         int x1  = (int)( x0 + glyph->width );
-        int y1  = (int)( y0 - glyph->height );
+        int y1  = (int)( y0 - glyph->height ) + y_margin;
         float s0 = glyph->s0;
         float t0 = glyph->t0;
         float s1 = glyph->s1;
