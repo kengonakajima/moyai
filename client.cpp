@@ -821,7 +821,7 @@ void TextBox::render(Camera *cam ) {
     glBegin(GL_QUADS);
     glColor4f( color.r, color.g, color.b, color.a );
 
-    int y_margin = (int)(font->pixel_size / 6.0f ); // suitable for ascii/japanese(CJK) mixed text
+    int y_margin = (int)(font->pixel_size / 7.0f ); // suitable for ascii/japanese(CJK) mixed text
     for( i=0; i<wcslen(str); ++i ){
         if( str[i] == L"\n"[0] ){
             x = basex;
