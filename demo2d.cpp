@@ -265,7 +265,8 @@ public:
         setLoc(at);
         setAnim( g_digit_anim_curve );
         setDeck( g_base_deck );
-        setScl( range(10,40), range(10,40) );        
+        setScl( range(10,40), range(10,40) );   
+		seekColor( Color(1,0,0,0.2),1);
     }
     virtual void onAnimFinished() {
         to_clean = true;
