@@ -19,3 +19,4 @@ _captured.png
 **/*.log
 **/*.pdb
 assets/dynamic_out.png
+.DS_Store

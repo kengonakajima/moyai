@@ -737,13 +737,15 @@ int main(int argc, char **argv )
         g_img = new Image();
         g_img->setSize(256,256);
         for(int i=0;i<256;i++){
-            g_img->setPixel( i,i, Color(range(0,1), range(0,1),range(0,1),1));
+            Color c(range(0,1), range(0,1),range(0,1),1);
+            g_img->setPixel( i,i, c );
         }
+        g_img->writePNG( "assets/dynamic_out.png");
         g_dyn_texture =  new Texture();
         g_dyn_texture->load("assets/base.png");
         g_dyn_texture->setImage(g_img);
 
-        g_img->writePNG( "assets/dynamic_out.png");
+
     
         Prop2D *p = new Prop2D();
         TileDeck *d = new TileDeck();

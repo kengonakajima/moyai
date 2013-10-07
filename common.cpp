@@ -109,10 +109,10 @@ void Image::setPixel( int x, int y, Color c ){
     ensureBuffer();
     if(x>=0&&y>=0&&x<width&&y<height){
         int index = ( x + y * width ) * 4;
-        buffer[index] = (unsigned char) c.r*255;
-        buffer[index+1] = (unsigned char) c.g*255;
-        buffer[index+2] = (unsigned char) c.b*255;
-        buffer[index+3] = (unsigned char) c.a*255;
+        buffer[index] = (unsigned char) (c.r*255);
+        buffer[index+1] = (unsigned char) (c.g*255);
+        buffer[index+2] = (unsigned char) (c.b*255);
+        buffer[index+3] = (unsigned char) (c.a*255);
     }
 }
 Color Image::getPixel( int x, int y ) {
@@ -311,7 +311,7 @@ bool Image::writePNG(const char *path) {
             row[x*4+0] = buffer[bi*4+0];
             row[x*4+1] = buffer[bi*4+1];            
             row[x*4+2] = buffer[bi*4+2];            
-            row[x*4+3] = buffer[bi*4+3];            
+            row[x*4+3] = buffer[bi*4+3];
         }
     }
 
