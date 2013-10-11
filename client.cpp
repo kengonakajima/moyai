@@ -523,7 +523,19 @@ Vec3 Layer::getWorldPos( Vec2 scrpos ) {
     gluUnProject( scrpos.x, scrpos.y, z, modelview, projection, vp, &ox, &oy, &oz );
     return Vec3(ox,oy,oz);
 }
+int Layer::getHighestPriority() {
+    int prio = 0;
+    Prop *cur = prop_top;
+    while(cur) {
+        Prop2D *p = (Prop2D*)cur;
+        if( p->priority > prio ) prio = p->priority;
+        cur = cur->next;
+    }
+    return prio;
+}
 
+
+///////////
 
 void Prop2D::drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot ) {
 

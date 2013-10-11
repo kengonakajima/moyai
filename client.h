@@ -583,7 +583,7 @@ public:
             lower->priority = tmp;
         }
     }
-    
+
     virtual void render(Camera *cam){};
     
 };
@@ -850,8 +850,6 @@ class Prop2D : public Prop, public Renderable {
     inline Vec2 getBottomLeft() {
         if( grid_used_num > 0 ) return loc; else return loc - scl/2;
     }
-    
-    
 };
 
 class Material {
@@ -1017,7 +1015,7 @@ class Layer : public Group {
     Vec2 getScreenPos( Vec3 at );
     Vec3 getWorldPos( Vec2 scrpos );
 
-
+    int getHighestPriority();
     
 };
 
