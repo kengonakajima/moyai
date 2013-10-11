@@ -1422,7 +1422,7 @@ bool Sound::isPlaying() {
     FMOD_BOOL val;
     FMOD_RESULT r;
 	r = FMOD_Channel_IsPlaying( this->ch, &val );
-	FMOD_ERRCHECK(r);
+	if( r != FMOD_OK ) return false;
     return val;
 }
 
