@@ -1414,6 +1414,9 @@ void Sound::playDistance(float mindist, float maxdist, float dist, float relvol)
         play(r * relvol);
     }
 }
+void Sound::stop() {
+    FMOD_Channel_Stop( this->ch );
+}
 
 SoundSystem::SoundSystem()  : sys(0) {
     FMOD_RESULT r;

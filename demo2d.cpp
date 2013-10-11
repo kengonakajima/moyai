@@ -32,6 +32,7 @@ AnimCurve *g_digit_anim_curve;
 
 SoundSystem *g_sound_system;
 Sound *g_explosion_sound;
+Sound *g_bgm_sound;
 
 Image *g_img;
 Texture *g_dyn_texture;
@@ -454,7 +455,8 @@ int main(int argc, char **argv )
     g_sound_system = new SoundSystem();
     g_explosion_sound = g_sound_system->newSound("./assets/blobloblll.wav" );
     g_explosion_sound->play();
-    
+    g_bgm_sound = g_sound_system->newBGM( "./assets/gymno1_1min.wav" );
+    g_bgm_sound->play(); // stop this later
 
     // glfw
     if( !glfwInit() ) {
@@ -781,6 +783,9 @@ int main(int argc, char **argv )
             print("Q pressed");
             exit(0);
             break;
+        }
+        if( g_pc->accum_time > 10 ) {
+            g_bgm_sound->stop();
         }
 
         g_pad->readGLFW();
