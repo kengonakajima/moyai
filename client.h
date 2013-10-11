@@ -1115,6 +1115,7 @@ public:
     void play(float vol);
     void playDistance(float mindist, float maxdist, float dist, float relvol );
     void stop();
+    bool isPlaying();
 };
 
 

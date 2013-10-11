@@ -1417,6 +1417,11 @@ void Sound::playDistance(float mindist, float maxdist, float dist, float relvol)
 void Sound::stop() {
     FMOD_Channel_Stop( this->ch );
 }
+bool Sound::isPlaying() {
+    FMOD_BOOL val;
+    FMOD_Channel_IsPlaying( this->ch, &val );
+    return val;
+}
 
 SoundSystem::SoundSystem()  : sys(0) {
     FMOD_RESULT r;
@@ -1438,6 +1443,7 @@ Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_curre
     FMOD_RESULT r;
     Sound *out = new Sound(this);
     FMOD_SOUND *s;
+    print("newSound: loading '%s'", path );
     r = FMOD_System_CreateSound(sys, path, FMOD_SOFTWARE, 0, &s );
     FMOD_ERRCHECK(r);
     FMOD_Sound_SetMode( s, FMOD_LOOP_OFF );
