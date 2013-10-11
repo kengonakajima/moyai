@@ -1418,8 +1418,11 @@ void Sound::stop() {
     FMOD_Channel_Stop( this->ch );
 }
 bool Sound::isPlaying() {
+	if(!this->ch)return false;
     FMOD_BOOL val;
-    FMOD_Channel_IsPlaying( this->ch, &val );
+    FMOD_RESULT r;
+	r = FMOD_Channel_IsPlaying( this->ch, &val );
+	FMOD_ERRCHECK(r);
     return val;
 }
 
