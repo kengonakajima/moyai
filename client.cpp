@@ -862,8 +862,8 @@ void TextBox::render(Camera *cam ) {
         }
         //        print("ofsy: %d h:%d", glyph->offset_y, glyph->height );        
         x += kerning * xscl;
-        int x0  = (int)( x + glyph->offset_x );
-        int y0  = (int)( y + glyph->offset_y ) + y_margin;
+        int x0  = (int)( x + glyph->offset_x *yscl);
+        int y0  = (int)( y + glyph->offset_y * xscl) + y_margin;
         int x1  = (int)( x0 + glyph->width * xscl );
         int y1  = (int)( y0 - glyph->height * yscl ) + y_margin;
 
