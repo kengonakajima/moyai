@@ -646,6 +646,7 @@ int main(int argc, char **argv )
     t4->setFont(font);
     t4->setString( "ABC012ほげ。\nふがふがふがの(mb-utf8)。" );
     t4->setLoc(-100,-90);
+    t4->setScl(0.8,0.8);
     g_main_layer->insertProp(t4);
 
     // Check bottom line

@@ -1052,6 +1052,7 @@ public:
     TextBox() {
         vb = vertex_buffer_new( "v3f:t2f:c4f" );
         str = NULL;
+        setScl(1,1);
     }
     inline void setFont( Font *f ){
         assert(f);

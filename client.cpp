@@ -848,7 +848,7 @@ void TextBox::render(Camera *cam ) {
     for( i=0; i<wcslen(str); ++i ){
         if( str[i] == L"\n"[0] ){
             x = basex;
-            y -= font->pixel_size;
+            y -= font->pixel_size * scl.y;
             continue;
         }
         texture_glyph_t *glyph = texture_font_get_glyph( font->font, str[i] );
@@ -859,11 +859,12 @@ void TextBox::render(Camera *cam ) {
             kerning = texture_glyph_get_kerning( glyph, str[i-1] );
         }
         //        print("ofsy: %d h:%d", glyph->offset_y, glyph->height );        
-        x += kerning;
+        x += kerning * scl.x;
         int x0  = (int)( x + glyph->offset_x );
         int y0  = (int)( y + glyph->offset_y ) + y_margin;
-        int x1  = (int)( x0 + glyph->width );
-        int y1  = (int)( y0 - glyph->height ) + y_margin;
+        int x1  = (int)( x0 + glyph->width * scl.x );
+        int y1  = (int)( y0 - glyph->height * scl.y ) + y_margin;
+
         float s0 = glyph->s0;
         float t0 = glyph->t0;
         float s1 = glyph->s1;
@@ -874,7 +875,7 @@ void TextBox::render(Camera *cam ) {
         glTexCoord2f(s1,t1); glVertex3i( x1,y1, depth );
         glTexCoord2f(s1,t0); glVertex3i( x1,y0, depth );
             
-        x += glyph->advance_x;
+        x += glyph->advance_x * scl.x;
 
     }
     glEnd();
