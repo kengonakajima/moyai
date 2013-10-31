@@ -196,5 +196,11 @@ int memCompress( char *out, int outlen, char *in, int inlen );
 int memDecompress( char *out, int outlen, char *in, int inlen );
 int memCompressLZ4( char *out, int outlen, char *in, int inlen );
 int memDecompressLZ4( char *out, int outlen, char *in, int inlen );
-    
+
+
+#ifndef INVALID_SOCKET // winsock
+#define INVALID_SOCKET (-1)
+#endif
+
+
 #endif

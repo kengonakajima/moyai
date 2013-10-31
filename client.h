@@ -1028,19 +1028,7 @@ public:
         font = NULL;
         atlas = texture_atlas_new( 1024, 1024, 1 );
     }
-    bool loadFromTTF(const char *path, const wchar_t *codes, int pixelsz ){
-        pixel_size = pixelsz;
-        font = texture_font_new( atlas, path, pixelsz );
-        if(!font){
-            return false;
-        }
-        
-        texture_font_load_glyphs( font, codes);
-
-        
-        return true;
-        
-    }
+    bool loadFromTTF(const char *path, const wchar_t *codes, int pixelsz );
 };
 class TextBox : public Prop2D {
 public:

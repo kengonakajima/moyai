@@ -121,10 +121,10 @@ image_DXT.o:
 image_helper.o:
 	g++ -c soil/src/image_helper.c $(CFLAGS)
 
-lz4/lz4.o:
+lz4.o:
 	g++ -c lz4/lz4.c $(CFLAGS)
 
-lz4/lz4hc.o:
+lz4hc.o:
 	g++ -c lz4/lz4hc.c $(CFLAGS)
 
 $(FREETYPELIB):
