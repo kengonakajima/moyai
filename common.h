@@ -165,18 +165,11 @@ public:
         return ::len( x,y,tgt.x,tgt.y);
     }
     inline DIR toDir() {
-        const float pi4 = (float)(M_PI / 4.0f);
-        float at = atan2( x,y );
-        if( at >= -pi4  && at <= pi4 ){
-            return DIR_UP;
-        } else if( at >= pi4 && at <= pi4*3){
-            return DIR_RIGHT;
-        } else if( at >= pi4*3 || at <= -pi4*3 ){
-            return DIR_DOWN;
-        } else if( at <= -pi4 && at >= -pi4*3 ){
-            return DIR_LEFT;
+        if( x==0.0f && y==0.0f) return DIR_NONE;
+        if( y > 0 ) {
+            if( abs(x) < abs(y) ) return DIR_UP; else if( x > 0 ) return DIR_RIGHT; else return DIR_LEFT;
         } else {
-            return DIR_NONE;
+            if( abs(x) < abs(y) ) return DIR_DOWN; else if( x > 0 ) return DIR_RIGHT; else return DIR_LEFT;
         }
     }
     inline Vec2 mul(float val){ return Vec2( x*val, y*val); }
