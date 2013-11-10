@@ -368,10 +368,10 @@ void FREE( void *ptr ) {
 	g_cumino_total_malloc_count --;
 }
 
-void *operator new(size_t sz) {
+void *operator new(size_t sz) throw() {
     return MALLOC(sz);
 }
-void operator delete(void*ptr) {
+void operator delete(void*ptr) throw() {
     FREE(ptr);
 }
 
