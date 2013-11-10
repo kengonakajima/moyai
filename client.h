@@ -676,7 +676,7 @@ class Prop2D : public Prop, public Renderable {
 
         render_children_first = false;
     }
-    ~Prop2D(){
+    virtual ~Prop2D(){
         for(int i=0;i<grid_used_num;i++){
             if(grids[i]) delete grids[i];
         }
