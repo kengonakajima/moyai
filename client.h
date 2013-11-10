@@ -646,7 +646,7 @@ class Prop2D : public Prop, public Renderable {
         priority = id;
         dimension = DIMENSION_2D;
 
-        index = 0;
+        index = -1; // dont render anything by default
 
         color = Color(1,1,1,1);
 

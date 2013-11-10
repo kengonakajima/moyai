@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+
+
 #ifndef WIN32
 #include <sys/time.h>
 #endif
@@ -182,8 +184,8 @@ extern unsigned long g_cumino_total_malloc_size;
 void *MALLOC( size_t sz );
 void FREE( void *ptr );
 
-void *operator new(size_t sz) throw();
-void operator delete(void*ptr) throw();
+void *operator new(size_t sz);
+void operator delete(void*ptr);
 
 int cuminoPrintMemStat(int thres_count);
 
