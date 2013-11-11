@@ -44,7 +44,7 @@ int Group::pollAllProps(double dt ){
 
     for(int i=0;i<to_clean_cnt;i++){
         Prop *p = to_clean[i];
-        //        print("deleting p:%p prev:%p next:%p", p, p->prev, p->next );
+        //                print("deleting p:%p prev:%p next:%p", p, p->prev, p->next );
 
         if(p == prop_top ){
             prop_top = p->next;

@@ -297,7 +297,7 @@ public:
 
     inline Prop() : id(++idgen), debug_id(0), next(NULL), prev(NULL), parent_group(NULL), to_clean(false), accum_time(0),  poll_count(0) {
     }
-    ~Prop() {
+    virtual ~Prop() {
 
     }
 
