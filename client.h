@@ -543,7 +543,8 @@ public:
     bool visible;
     TileDeck *deck;
     float enfat_epsilon;
-    Renderable() : dimension(DIMENSION_INVAL), priority(0), visible(true), deck(NULL), enfat_epsilon(0) {
+    int index;    
+    Renderable() : dimension(DIMENSION_INVAL), priority(0), visible(true), deck(NULL), enfat_epsilon(0), index(-1) {
     }
 
     inline void setDeck( TileDeck *d ){
@@ -558,7 +559,8 @@ public:
         int w,h;
         t->getSize(&w,&h);
         d->setSize( 1,1, w, h );
-        deck = d;        
+        deck = d;
+        index = 0;
     }
 
     inline void setVisible(bool flg){ visible = flg; }
@@ -600,7 +602,7 @@ class Prop2D : public Prop, public Renderable {
     int grid_used_num;
     
 
-    int index;
+
     Color color;
 
     Prop2D *children[Prop::CHILDREN_ABS_MAX];
@@ -645,8 +647,6 @@ class Prop2D : public Prop, public Renderable {
     inline Prop2D() : Prop(), Renderable() {
         priority = id;
         dimension = DIMENSION_2D;
-
-        index = -1; // dont render anything by default
 
         color = Color(1,1,1,1);
 
