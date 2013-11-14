@@ -685,7 +685,7 @@ void Prop2D::render(Camera *cam) {
                                    texofs_x,
                                    texofs_y,
                                    uvrot,
-                                   0 );
+                                   tex_epsilon );
                     }
                 }
             }
