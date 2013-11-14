@@ -249,8 +249,8 @@ class TileDeck {
     
         *u0 = (float) start_x / (float) image_width + eps + uofs * uunit; 
         *v0 = (float) start_y / (float) image_height + eps + vofs * vunit; 
-        *u1 = *u0 + uunit - eps; 
-        *v1 = *v0 + vunit - eps;
+        *u1 = *u0 + uunit - eps*2;  // *2 because adding eps once for u0 and v0
+        *v1 = *v0 + vunit - eps*2;
     }
     // (x0,y0)-(x1,y1) : (0,0)-(16,16) for 16x16 sprite
     inline void getPixelPosition( int ind, int *x0, int *y0, int *x1, int *y1 ) {
