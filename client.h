@@ -302,12 +302,11 @@ class Grid {
     Color color;
     bool visible;
     float enfat_epsilon;
-    float tex_epsilon; 
     
     static const int GRID_FLAG_XFLIP = 1;
     static const int GRID_FLAG_YFLIP = 2;
     static const int GRID_NOT_USED = -1;
-    Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), color(1,1,1,1), visible(true), enfat_epsilon(0), tex_epsilon(0) {
+    Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), color(1,1,1,1), visible(true), enfat_epsilon(0) {
     }
     ~Grid(){
         if(index_table) FREE(index_table);
