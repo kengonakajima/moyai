@@ -590,6 +590,8 @@ public:
     
 };
 
+class Layer;
+
 class Prop2D : public Prop, public Renderable {
  public:
     
@@ -849,6 +851,9 @@ class Prop2D : public Prop, public Renderable {
     }
     inline Vec2 getBottomLeft() {
         if( grid_used_num > 0 ) return loc; else return loc - scl/2;
+    }
+    inline Layer *getParentLayer() {
+        return (Layer*) parent_group;
     }
 };
 
