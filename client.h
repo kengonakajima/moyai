@@ -458,10 +458,12 @@ public:
     PRIMTYPE type;
     Vec2 a,b;
     Color color;
-    inline Prim( PRIMTYPE t, Vec2 a, Vec2 b, Color c ) : type(t), a(a),b(b), color(c) {
+    int line_width;
+    inline Prim( PRIMTYPE t, Vec2 a, Vec2 b, Color c, int line_width = 1 ) : type(t), a(a),b(b), color(c), line_width(line_width) {
     }
     inline void draw(Vec2 ofs){
         glDisable( GL_TEXTURE_2D );
+        glLineWidth(line_width);
         switch(type){
         case PRIMTYPE_LINE:
             glBegin( GL_LINES );
@@ -503,15 +505,15 @@ public:
             prim_num = 0;
         }
     }
-    inline void addLine(Vec2 from, Vec2 to, Color c ){
+    inline void addLine(Vec2 from, Vec2 to, Color c, int width=1){
         ensurePrims();
         assertmsg( prim_num <= prim_max, "too many prims" );
-        prims[prim_num++] = new Prim( PRIMTYPE_LINE, from, to, c );
+        prims[prim_num++] = new Prim( PRIMTYPE_LINE, from, to, c, width );
     }
-    inline void addRect(Vec2 from, Vec2 to, Color c ){
+    inline void addRect(Vec2 from, Vec2 to, Color c, int width=1 ){
         ensurePrims();
         assertmsg( prim_num <= prim_max, "too many prims" );        
-        prims[prim_num++] = new Prim( PRIMTYPE_RECTANGLE, from, to, c );
+        prims[prim_num++] = new Prim( PRIMTYPE_RECTANGLE, from, to, c, width );
     }
     
     inline void drawAll(Vec2 ofs ){
@@ -816,9 +818,9 @@ class Prop2D : public Prop, public Renderable {
     inline void ensurePrimDrawer(){
         if(!prim_drawer ) prim_drawer = new PrimDrawer();
     }
-    inline void addLine(Vec2 from, Vec2 to, Color c ){
+    inline void addLine(Vec2 from, Vec2 to, Color c, int width=1 ){
         ensurePrimDrawer();
-        prim_drawer->addLine( from, to, c );
+        prim_drawer->addLine( from, to, c, width );
         updateMinMaxSizeCache();
     }
     inline void addRect( Vec2 from, Vec2 to, Color c ){

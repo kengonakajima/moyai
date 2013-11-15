@@ -727,7 +727,7 @@ int main(int argc, char **argv )
     // line prop
     g_linep = new Prop2D();
     g_linep->addLine( Vec2(0,0), Vec2(100,100), Color(1,0,0,1) );
-    g_linep->addLine( Vec2(0,0), Vec2(100,-50), Color(0,1,0,1) );
+    g_linep->addLine( Vec2(0,0), Vec2(100,-50), Color(0,1,0,1), 5 );
     g_linep->addRect( Vec2(0,0), Vec2(-150,230), Color(0,0,1,0.5) );
     g_linep->setLoc(0,200);
     g_main_layer->insertProp(g_linep);
