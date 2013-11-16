@@ -45,7 +45,7 @@ int main()
   v->setSize(1024,768);
   v->setScale(1024,768);
 
-  Layer *l = new Layer();
+  Layer *lay = new Layer();
   lay->setViewport(v);
   
   Camera *c = new Camera();
@@ -59,15 +59,15 @@ int main()
 
   TileDeck *deck = new TileDeck();
   deck->setTexture(tex);
-  deck->setSize( 16,16, 16,16, 256,256); //16x16 of 16pix x 16pix sprites in a sheet
+  deck->setSize( 16,16, 16,16); //16x16 of 16pix x 16pix sprites in a sheet
 
-  Prop *p = new Prop();
+  Prop2D *p = new Prop2D();
   p->setDeck(deck);
   p->setLoc(100,100);
   p->setIndex(13); // index number in the sprite sheet (top-down, left-right)
   p->setScl(32,32);
 
-  lay->insertProp℗;
+  lay->insertProp(p);
 
   // initialize glfw
   glfwInit();
@@ -120,7 +120,7 @@ int main() {
 
   Texture *t = new Texture();
   t->load("wood_surface.png");
-  Prop3d *p = new Prop3D();
+  Prop3D *p = new Prop3D();
   p->setMesh(mesh); // prepare mesh before
   p->setTexture(t);
   p->setScl(Vec3(2,2,2));
