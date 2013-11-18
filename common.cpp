@@ -153,11 +153,14 @@ void Image::setPixelRaw( int x, int y, unsigned char r,  unsigned char g,  unsig
 }
 
 // http://stackoverflow.com/questions/11296644/loading-png-textures-to-opengl-with-libpng-only
-void Image::loadPNG( const char *path ) {
+bool Image::loadPNG( const char *path ) {
     FILE *fp = fopen(path,"rb");
-
+    if(!fp) {
+        print( "Image::loadPNG: can't open file:%s", path );
+        return false;
+    }
+    
     png_byte header[8];
-    assertmsg(fp!=0, "can't open file:%s", path );
 
     // read the header
     fread(header, 1, 8, fp);
@@ -260,7 +263,9 @@ void Image::loadPNG( const char *path ) {
     png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
     FREE(image_data);
     FREE(row_pointers);
-    fclose(fp);    
+    fclose(fp);
+
+    return true;
 }
 
 // copy inside image

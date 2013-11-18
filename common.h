@@ -364,7 +364,7 @@ public:
     Color getPixel( int x, int y );
     void getPixelRaw( int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a );
     void setPixelRaw( int x, int y, unsigned char r,  unsigned char g,  unsigned char b,  unsigned char a );
-    void loadPNG( const char *path );    
+    bool loadPNG( const char *path );    
     bool writePNG(const char *path);
     void ensureBuffer();
     void copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0, int toy0 );
