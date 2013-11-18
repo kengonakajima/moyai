@@ -1484,6 +1484,12 @@ Sound *SoundSystem::newSound( const char *path ){
     return newSound( path, 1.0, false );
 }
 
-    
+void Sound::setLoop( bool flag ) {
+    if( flag ) {
+        FMOD_Sound_SetMode( sound, FMOD_LOOP_NORMAL );            
+    } else {
+        FMOD_Sound_SetMode( sound, FMOD_LOOP_OFF );    
+    }
+}
 
 ////////

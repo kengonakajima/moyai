@@ -1108,6 +1108,7 @@ public:
     
     float default_volume;
     Sound( SoundSystem *s);
+    void setLoop( bool flag );
     void play();
     void play(float vol);
     void playDistance(float mindist, float maxdist, float dist, float relvol );
