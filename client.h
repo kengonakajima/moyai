@@ -833,9 +833,11 @@ class Prop2D : public Prop, public Renderable {
     inline void clearPrims(){
         if(prim_drawer)prim_drawer->clear();
     }
-    inline int countPrims() {
+    inline int getPrimNum() {
         if(prim_drawer) return prim_drawer->prim_num; else return 0;
     }
+    inline Prim* getPrim(int index) { return prim_drawer->prims[index]; }
+    
     inline bool isCenterInside(Vec2 minloc, Vec2 maxloc){
         return ( loc.x >= minloc.x && loc.x <= maxloc.x && loc.y >= minloc.y && loc.y <= maxloc.y );
     }

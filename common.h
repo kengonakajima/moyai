@@ -272,7 +272,8 @@ public:
     inline unsigned int toCode() {
         return  ( (int)(r * 255) << 16 ) + ( (int)(g * 255) << 8 ) + (int)( b * 255);
     }
-    
+    inline Color operator*(float f) { return Color( r*f, g*f, b*f, a*f ); }
+    inline Color operator+( Color c) { return Color(r+c.r, g+c.g, b+c.b, a+c.a); }
 };
 
 
