@@ -299,14 +299,13 @@ class Grid {
     Color *color_table;
     TileDeck *deck;
     FragmentShader *fragment_shader;
-    Color color;
     bool visible;
     float enfat_epsilon;
     
     static const int GRID_FLAG_XFLIP = 1;
     static const int GRID_FLAG_YFLIP = 2;
     static const int GRID_NOT_USED = -1;
-    Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), color(1,1,1,1), visible(true), enfat_epsilon(0) {
+    Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), visible(true), enfat_epsilon(0) {
     }
     ~Grid(){
         if(index_table) FREE(index_table);
@@ -365,11 +364,12 @@ class Grid {
     inline void setFragmentShader( FragmentShader *fs ){
         fragment_shader = fs;
     }
-    inline void setColor( Color c){ color = c; }
     inline void setVisible( bool flg ){ visible = flg; }
     inline bool getVisible() { return visible; }
     inline void clear(int x, int y) { set(x,y,GRID_NOT_USED); }    
     void clear();
+
+    void fillColor( Color c );
 };
 
 class CharGrid : public Grid {

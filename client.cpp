@@ -650,7 +650,6 @@ void Prop2D::render(Camera *cam) {
                 grid->fragment_shader->updateUniforms();
             }
             glBegin(GL_QUADS);
-            glColor4f( grid->color.r, grid->color.g, grid->color.b, grid->color.a );
 
             for(int y=0;y<grid->height;y++){
                 for(int x=0;x<grid->width;x++){
@@ -1040,6 +1039,13 @@ void Grid::clear(){
     for(int y=0;y<height;y++){
         for(int x=0;x<width;x++){
             set(x,y,GRID_NOT_USED);
+        }
+    }
+}
+void Grid::fillColor( Color c ) {
+    for(int y=0;y<height;y++) {
+        for(int x=0;x<width;x++) {
+            setColor(x,y,c);
         }
     }
 }
