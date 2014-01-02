@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 
+#include <unordered_map>
+
 #ifdef WIN32
 #define _USE_MATH_DEFINES
 #endif
@@ -321,6 +323,8 @@ public:
     int last_poll_num;
     bool to_render;
     bool skip_poll;
+    std::unordered_map<int,Prop*> idmap;
+    
     Group() : prop_top(NULL), last_poll_num(0), to_render(false), skip_poll(false) {
         id = idgen++;        
     }
@@ -335,6 +339,8 @@ public:
         prop_top = p;
         p->parent_group = this;
         p->prev = NULL;
+
+        idmap[p->id] = p;
     }
     int pollAllProps(double dt);
     Prop *findPropById( int id );

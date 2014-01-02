@@ -184,8 +184,8 @@ extern unsigned long g_cumino_total_malloc_size;
 void *MALLOC( size_t sz );
 void FREE( void *ptr );
 
-void *operator new(size_t sz);
-void operator delete(void*ptr);
+//void *operator new(size_t sz);
+//void operator delete(void*ptr);
 
 int cuminoPrintMemStat(int thres_count);
 

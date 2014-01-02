@@ -57,20 +57,27 @@ int Group::pollAllProps(double dt ){
         }
         p->next = NULL;
         p->onDelete();
+
+        std::unordered_map<int,Prop*>::iterator ii = idmap.find(p->id);
+        idmap.erase(ii);
         delete p;
     }
     last_poll_num = cnt;
 
     return cnt;
 }
-// TODO: avoid linear scan..
+
 Prop *Group::findPropById( int id ) {
+#if 0    
     Prop *cur = prop_top;
     while(cur){
         if( cur->id == id ) return cur;
         cur = cur->next;
     }
     return NULL;
+#else
+    return idmap[id];
+#endif    
 }
 bool Prop::basePoll(double dt){
 
