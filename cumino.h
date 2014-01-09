@@ -87,6 +87,12 @@ inline double maxd( double a, double b ){
 inline double mind( double a, double b ){
     return (a<b) ? a:b;
 }
+inline int maxi( int a, int b ){
+    return  (a>b) ? a:b;
+}
+inline int mini( int a, int b ){
+    return (a<b) ? a:b;
+}
 
 
 
