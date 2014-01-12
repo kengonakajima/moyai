@@ -4,11 +4,12 @@ An experimental simple 2D/3D game engine for native C++, strongly inspired by Mo
 
 Moai SDK: https://github.com/moai/moai-dev
 
+# Features
  - Rendering
   - 2D sprite + 3D mesh
   - OpenGL 2.0 (ES2), [GLFW http://www.glfw.org/]
  - Image
-  - PNG read/write from file
+  - PNG read/write from file (lodepng)
   - dynamic texture
  - Audio
   - Reads any WAV files
@@ -17,6 +18,9 @@ Moai SDK: https://github.com/moai/moai-dev
   - FreeType2 based, reads TTF files, multi-byte chars
   
 
+# Compatibility
+ - OSX 10.8/10.9
+ - Windows7 (VS2012)
 
 # Example
 
