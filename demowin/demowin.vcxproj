@@ -20,12 +20,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -40,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\Users\win7\moyai\glfw-2.7.7\include;C:\Users\win7\moyai\zlib-1.2.7;C:\Users\win7\moyai\libpng-1.5.13;C:\Users\win7\moyai\glew-1.10.0\include;C:\Users\win7\moyai\glut-3.7.6-bin;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\win7\moyai\windeps_compiled;C:\Users\win7\moyai\fmodwin\api\lib;C:\Users\win7\moyai\glut-3.7.6-bin;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Users\win7\moyai\windeps_compiled\vs2012;C:\Users\win7\moyai\fmodwin\api\lib;C:\Users\win7\moyai\glut-3.7.6-bin;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -92,6 +94,7 @@
     <ClCompile Include="..\common.cpp" />
     <ClCompile Include="..\cumino.cpp" />
     <ClCompile Include="..\demo2d.cpp" />
+    <ClCompile Include="..\lodepng.cpp" />
     <ClCompile Include="..\lz4\lz4.c" />
     <ClCompile Include="..\lz4\lz4hc.c" />
     <ClCompile Include="..\soil\src\image_DXT.c" />
