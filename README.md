@@ -196,7 +196,7 @@ delete img;
 Build
 =====
 
-Tested only on MacOS X 10.8. After installing Xcode and command line tools, just do:
+MacOS X 10.8 or 10.9: After installing Xcode and command line tools, just do:
  
 <pre>
 $ git clone https://github.com/kengonakajima/moyai
@@ -205,6 +205,9 @@ $ make
 $ ./demo2d
 $ ./demo3d
 </pre>
+
+Windows 7 VisualStudio 2012: use demowin/demowin.sln and modify lib PATHs of vcxproj.
+
 
 Classes
 =====
