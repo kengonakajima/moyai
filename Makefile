@@ -1,7 +1,7 @@
 
-MOYAICLISRCS=common.cpp client.cpp cumino.cpp
+MOYAICLISRCS=common.cpp client.cpp cumino.cpp  lodepng.cpp
 MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o)
-MOYAISVSRCS=common.cpp cumino.cpp
+MOYAISVSRCS=common.cpp cumino.cpp  lodepng.cpp
 MOYAISVOBJS=$(MOYAISVSRCS:.cpp=.o)
 DEMO2DSRCS=demo2d.cpp 
 DEMO2DOBJS=$(DEMO2DSRCS:.cpp=.o)
@@ -21,9 +21,6 @@ BZ2LIB=$(BZ2)/libbz2.a # build product of bz2 source
 ZLIB=zlib-1.2.7
 ZLIBLIB=$(ZLIB)/libz.a
 
-LIBPNG=libpng-1.5.13
-LIBPNGLIB=$(LIBPNG)/.libs/libpng15.a
-
 GLFW=glfw-2.7.7
 GLFWLIB=$(GLFW)/lib/cocoa/libglfw.a
 
@@ -40,7 +37,7 @@ OUTSVLIB=libmoyaisv.a
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB)  $(LZ4LIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(GLFWLIB) 
 CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
-CFLAGS=-O0 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I$(LIBPNG) -I$(GLFW)/include
+CFLAGS=-O0 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include
 
 
 DEMO2D=demo2d

@@ -1,5 +1,7 @@
 ﻿#include "common.h"
-
+#define LODEPNG_COMPILE_DISK
+#define LODEPNG_COMPILE_ERROR_TEXT
+#include "lodepng.h"
 
 int Prop::idgen = 1;
 int Group::idgen = 1;
@@ -159,101 +161,28 @@ void Image::setPixelRaw( int x, int y, unsigned char r,  unsigned char g,  unsig
     }
 }
 
-// http://stackoverflow.com/questions/11296644/loading-png-textures-to-opengl-with-libpng-only
+
 bool Image::loadPNG( const char *path ) {
     FILE *fp = fopen(path,"rb");
     if(!fp) {
         print( "Image::loadPNG: can't open file:%s", path );
         return false;
     }
+
+    unsigned error;
+    unsigned char* image_data = (unsigned char*) MALLOC( 1024 * 1024 * 4 );
+    unsigned w, h;
+
+    error = lodepng_decode32_file(&image_data, &w, &h, path );
+
+    if(error) {
+        fprintf(stderr, "decoder error %u: %s\n", error, lodepng_error_text(error) );
+        return false;
+    }
+
+    width = w;
+    height = h;
     
-    png_byte header[8];
-
-    // read the header
-    fread(header, 1, 8, fp);
-
-    if(png_sig_cmp(header, 0, 8)) assertmsg(false, "error: %s is not a PNG.", path );
-
-    png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    assertmsg( png_ptr!=0, "png_create_read_struct returned 0 for %s", path );
-
-    // create png info struct
-    png_infop info_ptr = png_create_info_struct(png_ptr);
-    if (!info_ptr) {
-        png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
-        fclose(fp);
-        assertmsg( false, "png_create_info_struct returned 0 for %s", path );
-    }
-
-    // create png info struct
-    png_infop end_info = png_create_info_struct(png_ptr);
-    if (!end_info) {
-        png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
-        fclose(fp);
-        assertmsg(false, "png_create_info_struct returned 0 for %s", path );
-    }
-
-    // the code in this if statement gets called if libpng encounters an error
-    if (setjmp(png_jmpbuf(png_ptr))) {
-        png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-        fclose(fp);
-        assertmsg( false, "error from libpng for %s", path );
-    }
-
-    // init png reading
-    png_init_io(png_ptr, fp);
-
-    // let libpng know you already read the first 8 bytes
-    png_set_sig_bytes(png_ptr, 8);
-
-    // read all the info up to the image data
-    png_read_info(png_ptr, info_ptr);
-
-    // variables to pass to get info
-    int bit_depth, color_type;
-    png_uint_32 temp_width, temp_height;
-
-    // get info about png
-    png_get_IHDR(png_ptr, info_ptr, &temp_width, &temp_height, &bit_depth, &color_type, NULL, NULL, NULL);
-
-    width = temp_width;
-    height = temp_height;
-
-
-    // Update the png info struct.
-    png_read_update_info(png_ptr, info_ptr);
-
-    // Row size in bytes.
-    int rowbytes = png_get_rowbytes(png_ptr, info_ptr);
-
-    // glTexImage2d requires rows to be 4-byte aligned
-    rowbytes += 3 - ((rowbytes-1) % 4);
-
-    // Allocate the image_data as a big block, to be given to opengl
-    png_byte * image_data = (png_byte*)MALLOC(rowbytes * temp_height * sizeof(png_byte)+15);
-    if (image_data == NULL) {
-        png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-        fclose(fp);
-        assertmsg( false, "could not allocate memory for PNG image data for %s", path );
-    }
-
-    // row_pointers is for pointing to image_data for reading the png with libpng
-    png_bytep * row_pointers = (png_bytep*) MALLOC(temp_height * sizeof(png_bytep));
-    if (row_pointers == NULL) {
-        png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-        free(image_data);
-        fclose(fp);
-        assertmsg( false, "could not allocate memory for PNG row pointers for %s", path );
-    }
-
-    // set the individual row_pointers to point at the correct offsets of image_data
-    for (unsigned int i = 0; i < temp_height; i++) {
-        row_pointers[temp_height - 1 - i] = image_data + i * rowbytes;
-    }
-
-    // read the png into image_data through row_pointers
-    png_read_image(png_ptr, row_pointers);
-
     ensureBuffer();
 
     for(int i=0;i<width*height;i++){
@@ -267,9 +196,7 @@ bool Image::loadPNG( const char *path ) {
     }
 
     // clean up
-    png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
     FREE(image_data);
-    FREE(row_pointers);
     fclose(fp);
 
     return true;
@@ -308,61 +235,18 @@ void Image::copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0,
 
 
 bool Image::writePNG(const char *path) {
+
     assertmsg( buffer!=0 , "image not initialized?" );
-    FILE *fp = fopen( path, "wb");
+    assertmsg( width <= 1024 && height <= 1024, "image too big" );
+    
 
-    png_structp png_ptr;
-    png_infop info_ptr;
-    png_bytep * row_pointers = (png_bytep*) MALLOC( height * sizeof(png_bytep) );
-    assert(row_pointers);
-    for(int y=0;y<height;y++){
-        png_byte* row = (png_byte*) MALLOC( width * 4 );
-        row_pointers[y] = row;
-        for(int x=0;x<width;x++){
-            int bi = x + y * width;
-            row[x*4+0] = buffer[bi*4+0];
-            row[x*4+1] = buffer[bi*4+1];            
-            row[x*4+2] = buffer[bi*4+2];            
-            row[x*4+3] = buffer[bi*4+3];
-        }
+    /*Same as lodepng_encode_file, but always encodes from 32-bit RGBA raw image.*/
+    unsigned error;
+    error = lodepng_encode32_file( path, buffer, width, height );
+    if(error) {
+        fprintf(stderr, "lodepng_encode32_file failed%d", error );
+        return false;
     }
-
-    png_ptr = png_create_write_struct( PNG_LIBPNG_VER_STRING, NULL, NULL, NULL );
-    if(!png_ptr) return false;
-    info_ptr = png_create_info_struct(png_ptr);
-    if(!info_ptr) return false;
-    if( setjmp( png_jmpbuf(png_ptr))) return false;
-    png_init_io( png_ptr, fp );
-
-    // write header
-    if( setjmp( png_jmpbuf(png_ptr))) return false;
-    png_set_IHDR( png_ptr, info_ptr,
-                  width, height,
-                  8, // bit depth
-                  6, // RGBA
-                  PNG_INTERLACE_NONE,
-                  PNG_COMPRESSION_TYPE_BASE,
-                  PNG_FILTER_TYPE_BASE 
-                  );
-    png_write_info( png_ptr, info_ptr );
-
-    if( setjmp( png_jmpbuf(png_ptr))) return false;
-
-    png_write_image( png_ptr, row_pointers );
-
-    if( setjmp( png_jmpbuf(png_ptr))) return false;
-
-    png_write_end(png_ptr,NULL);
-
-    for(int y=0;y<height;y++){
-        FREE(row_pointers[y]);
-    }
-    FREE(row_pointers);
-    
-    fclose(fp);
-
-    
-    
     return true;
 }
 
