@@ -750,7 +750,7 @@ int main(int argc, char **argv )
             Color c(range(0,1), range(0,1),range(0,1),1);
             g_img->setPixel( i,i, c );
         }
-        g_img->writePNG( "assets/dynamic_out.png");
+        g_img->writePNG( "dynamic_out.png");
         g_dyn_texture =  new Texture();
         g_dyn_texture->load("assets/base.png");
         g_dyn_texture->setImage(g_img);
