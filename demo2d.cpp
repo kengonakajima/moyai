@@ -497,8 +497,7 @@ int main(int argc, char **argv )
 #if 0
     {
         Texture *sss = new Texture();
-        sss->load( "./assets/sol.png" );
-        print("TTTTTTTTTTTTT");
+        sss->load( "./assets/dragon16.png" );
         for(int y=0;y<sss->image->height;y++) {
             for(int x=0;x<sss->image->width;x++) {
                 Color c = sss->image->getPixel(x,y);
@@ -522,10 +521,10 @@ int main(int argc, char **argv )
     
     TileDeck *deck = new TileDeck();
     deck->setTexture(t);
-    deck->setSize(16,16,16,16);
+    deck->setSize(32,32,8,8);
     TileDeck *d2 = new TileDeck();
     d2->setTexture(t2);
-    d2->setSize(16,16, 16,16 );
+    d2->setSize(32,32,8,8 );
 
     for(int i=0;i<10;i++ ){
         Prop2D *p = new Prop2D();
@@ -603,7 +602,7 @@ int main(int argc, char **argv )
     g_base_atlas->load("./assets/base.png");
     g_base_deck = new TileDeck();
     g_base_deck->setTexture(g_base_atlas);
-    g_base_deck->setSize(16,16, 16,16 );
+    g_base_deck->setSize(32,32,8,8 );
 
     g_bmpfont_atlas = new Texture();
     g_bmpfont_atlas->load("./assets/font_only.png");
@@ -663,50 +662,50 @@ int main(int argc, char **argv )
     
     
     // Image manipulation
-    Image *solimg = new Image();
-    solimg->loadPNG( "assets/sol.png" );
-    assert( solimg->width == 16 );
-    assert( solimg->height == 16 );
+    Image *dragonimg = new Image();
+    dragonimg->loadPNG( "assets/dragon16.png" );
+    assert( dragonimg->width == 8 );
+    assert( dragonimg->height == 8 );
 
-    for(int y=0;y<16;y++){
-        for(int x=0;x<16;x++) {
+    for(int y=0;y<8;y++){
+        for(int x=0;x<8;x++) {
             unsigned char r,g,b,a;
-            solimg->getPixelRaw( x,y, &r, &g, &b, &a );
+            dragonimg->getPixelRaw( x,y, &r, &g, &b, &a );
             if( r == 255 && g == 255 && b == 255 && a == 255 ) {
-                solimg->setPixelRaw( x,y, 255,0,0,255 );
+                dragonimg->setPixelRaw( x,y, 255,0,0,255 );
             }
         }
     }
 
-    Texture *soltex0 = new Texture();
-    soltex0->setImage( solimg );
+    Texture *dragontex0 = new Texture();
+    dragontex0->setImage( dragonimg );
     
-    Texture *soltex1 = new Texture();
-    soltex1->load( "assets/sol.png" );
+    Texture *dragontex1 = new Texture();
+    dragontex1->load( "assets/dragon16.png" );
 
 #if 1
-    Prop2D *solp1 = new Prop2D();
-    solp1->setLoc( SCRW/2-80, 0);
-    solp1->setTexture(soltex1);
-    solp1->setScl(32);
-    g_main_layer->insertProp(solp1);    
+    Prop2D *dragonp1 = new Prop2D();
+    dragonp1->setLoc( SCRW/2-80, 0);
+    dragonp1->setTexture(dragontex1);
+    dragonp1->setScl(32);
+    g_main_layer->insertProp(dragonp1);    
 #endif
     
-    Prop2D *solp0 = new Prop2D();
-    solp0->setLoc( SCRW/2-40, 0);
-    solp0->setTexture( soltex0 );
-    solp0->setScl(32);
-    g_main_layer->insertProp(solp0);
+    Prop2D *dragonp0 = new Prop2D();
+    dragonp0->setLoc( SCRW/2-40, 0);
+    dragonp0->setTexture( dragontex0 );
+    dragonp0->setScl(32);
+    g_main_layer->insertProp(dragonp0);
 
-    TileDeck *soldk = new TileDeck();
-    soldk->setTexture(soltex0);
-    soldk->setSize( 2,2,8,8 );
-    Prop2D *solp2 = new Prop2D();
-    solp2->setLoc( SCRW/2-120, 0);
-    solp2->setDeck( soldk );
-    solp2->setScl(32);
-    solp2->setIndex(1);
-    g_main_layer->insertProp(solp2);
+    TileDeck *dragondk = new TileDeck();
+    dragondk->setTexture(dragontex0);
+    dragondk->setSize( 2,2,8,8 );
+    Prop2D *dragonp2 = new Prop2D();
+    dragonp2->setLoc( SCRW/2-120, 0);
+    dragonp2->setDeck( dragondk );
+    dragonp2->setScl(32);
+    dragonp2->setIndex(1);
+    g_main_layer->insertProp(dragonp2);
 
     
 
