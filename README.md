@@ -22,6 +22,10 @@ Moai SDK: https://github.com/moai/moai-dev
  - OSX 10.8/10.9
  - Windows7 (VS2012)
 
+# Performance target
+8K~10K sprites at 60FPS with -O0 on UNIX, -O1 on VC++
+
+
 # Example
 
 All of its class names are from MoaiSDK's, 
@@ -222,6 +226,9 @@ Windows 7 VisualStudio 2012 :
 10. Copy demowin/fmodex.dll to demowin/Debug/fmodex.dll
 </pre>
 
+An example screenshot of a program "demo2d" :
+
+<img src="https://raw.github.com/kengonakajima/moyai/master/screen_shot_2d.png" width=800>
 
 Classes
 =====
