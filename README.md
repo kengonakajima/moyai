@@ -206,7 +206,21 @@ $ ./demo2d
 $ ./demo3d
 </pre>
 
-Windows 7 VisualStudio 2012: use demowin/demowin.sln and modify lib PATHs of vcxproj.
+Windows 7 VisualStudio 2012 :
+
+1. git clone https://github.com/kengonakajima/moyai   or use Github For Windows from github.com
+2. Start from demowin/demowin.sln
+3. Build a project "demowin" 
+4. You will find an error: "zlib.h not found"
+   -  unzip zlib-1.2.7.tar.gz in the top directory of this repository 
+5. Next error: "GL/glew.h not found"
+   - unzip glew-1.10.0.zip 
+6. Next error: "GL/glfw.h not found"
+   - unzip glfw-2.7.7.zip 
+7. Build shold ok here
+8. Run(Debug) the program and next error: "fmodex.dll is not found"
+10. Copy demowin/fmodex.dll to demowin/Debug/fmodex.dll
+</pre>
 
 
 Classes
