@@ -497,7 +497,7 @@ int main(int argc, char **argv )
 #if 0
     {
         Texture *sss = new Texture();
-        sss->load( "./assets/dragon16.png" );
+        sss->load( "./assets/dragon8.png" );
         for(int y=0;y<sss->image->height;y++) {
             for(int x=0;x<sss->image->width;x++) {
                 Color c = sss->image->getPixel(x,y);
@@ -663,7 +663,7 @@ int main(int argc, char **argv )
     
     // Image manipulation
     Image *dragonimg = new Image();
-    dragonimg->loadPNG( "assets/dragon16.png" );
+    dragonimg->loadPNG( "assets/dragon8.png" );
     assert( dragonimg->width == 8 );
     assert( dragonimg->height == 8 );
 
@@ -681,7 +681,7 @@ int main(int argc, char **argv )
     dragontex0->setImage( dragonimg );
     
     Texture *dragontex1 = new Texture();
-    dragontex1->load( "assets/dragon16.png" );
+    dragontex1->load( "assets/dragon8.png" );
 
 #if 1
     Prop2D *dragonp1 = new Prop2D();

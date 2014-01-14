@@ -279,7 +279,7 @@ void setupCube() {
     g_wood_tex = new Texture();
     g_wood_tex->load( "assets/wood256.png" );
     g_sol_tex = new Texture();
-    g_sol_tex->load( "assets/sol.png" );    
+    g_sol_tex->load( "assets/dragon8.png" );    
     
 
     g_prop_col = new Prop3D();
@@ -341,49 +341,8 @@ void setupCube() {
     
 }
 
-void memTestDebug() {
-    int objcnt;
-    
-    char *pointers[100000];
-    for(int i=0;i<elementof(pointers);i++){
-        size_t sz = irange(1,10)*103;
-        pointers[i] = (char*) MALLOC(sz); 
-        memset(pointers[i],0xff,sz);
-    }
-    objcnt = cuminoPrintMemStat(1); 
-    assertmsg( objcnt == 100000, "real:%d", objcnt );    
-    
-    for(int i=0;i<elementof(pointers)-1;i++){
-        FREE(pointers[i]);
-    }
-
-    objcnt = cuminoPrintMemStat(1); 
-    assertmsg( objcnt == 1, "real:%d", objcnt );
-    
-    Vec3 *vecs[100000];
-    for(int i=0;i<elementof(vecs);i++){
-        vecs[i] = new Vec3(0,0,0);
-    }
-
-    objcnt = cuminoPrintMemStat(1); 
-    assertmsg( objcnt == 100001, "real:%d", objcnt );
-    
-    for(int i=0;i<elementof(vecs)-1;i++){
-        delete vecs[i];
-    }
-    objcnt = cuminoPrintMemStat(1); 
-    assert( objcnt == 2 );
-
-    FREE( pointers[elementof(pointers)-1] );
-    delete vecs[elementof(vecs)-1];
-
-    objcnt = cuminoPrintMemStat(1); 
-    assert( objcnt == 0 );
-}
 
 int main() {
-    g_cumino_mem_debug = true;
-    memTestDebug();
     
     g_moyai_client = new MoyaiClient();
 
@@ -432,7 +391,7 @@ int main() {
 
     g_deck = new TileDeck();
     g_deck->setTexture(t);
-    g_deck->setSize(16,16,16,16);
+    g_deck->setSize(32,32,8,8);
 
     Prop2D *p = new Prop2D();
     p->setDeck( g_deck );
