@@ -230,6 +230,10 @@ An example screenshot of a program "demo2d" :
 
 <img src="https://raw.github.com/kengonakajima/moyai/master/screen_shot_2d.png" width=800>
 
+Screenshot of "demo3d" : 
+<img src="https://raw.github.com/kengonakajima/moyai/master/screen_shot_3d.png" width=800>
+
+
 Classes
 =====
 List of classes defined in moyai.h :
