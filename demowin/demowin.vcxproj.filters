@@ -19,6 +19,15 @@
     <Filter Include="ソース ファイル\lz4">
       <UniqueIdentifier>{f7bf439b-e526-4489-abc0-0e8f6d3c50aa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\soil">
+      <UniqueIdentifier>{6a67f00a-fa16-45f1-9357-030cfece46a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\lodepng">
+      <UniqueIdentifier>{e463054d-9733-4204-b603-fb3be591869b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\moyai">
+      <UniqueIdentifier>{c4a3afeb-506f-499c-afa5-8745613551f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -44,31 +53,7 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="demowin.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="..\demo2d.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\cumino.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\client.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\image_DXT.c">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\image_helper.c">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\SOIL.c">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\stb_image_aug.c">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="..\zlib-1.2.7\deflate.c">
@@ -104,8 +89,29 @@
     <ClCompile Include="..\lz4\lz4hc.c">
       <Filter>ソース ファイル\lz4</Filter>
     </ClCompile>
+    <ClCompile Include="..\soil\src\image_DXT.c">
+      <Filter>ソース ファイル\soil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\soil\src\image_helper.c">
+      <Filter>ソース ファイル\soil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\soil\src\SOIL.c">
+      <Filter>ソース ファイル\soil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\soil\src\stb_image_aug.c">
+      <Filter>ソース ファイル\soil</Filter>
+    </ClCompile>
     <ClCompile Include="..\lodepng.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\lodepng</Filter>
+    </ClCompile>
+    <ClCompile Include="..\client.cpp">
+      <Filter>ソース ファイル\moyai</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common.cpp">
+      <Filter>ソース ファイル\moyai</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cumino.cpp">
+      <Filter>ソース ファイル\moyai</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

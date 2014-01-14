@@ -41,8 +41,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\win7\moyai\glfw-2.7.7\include;C:\Users\win7\moyai\zlib-1.2.7;C:\Users\win7\moyai\libpng-1.5.13;C:\Users\win7\moyai\glew-1.10.0\include;C:\Users\win7\moyai\glut-3.7.6-bin;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\win7\moyai\windeps_compiled\vs2012;C:\Users\win7\moyai\fmodwin\api\lib;C:\Users\win7\moyai\glut-3.7.6-bin;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)\..\glfw-2.7.7\include;$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2012;$(ProjectDir)\..\fmodwin\api\lib;$(ProjectDir)\..\glut-3.7.6-bin;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -59,7 +59,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glew32sd.lib;libpng15.lib;glut32.lib;GLFW.lib;wsock32.lib;freetype-gl.lib;freetype2410_D.lib;fmodex_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32sd.lib;glut32.lib;GLFW.lib;wsock32.lib;freetype-gl.lib;freetype2410_D.lib;fmodex_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -110,7 +110,6 @@
     <ClCompile Include="..\zlib-1.2.7\inftrees.c" />
     <ClCompile Include="..\zlib-1.2.7\trees.c" />
     <ClCompile Include="..\zlib-1.2.7\zutil.c" />
-    <ClCompile Include="demowin.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
