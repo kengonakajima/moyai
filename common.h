@@ -18,7 +18,6 @@
 
 #include "cumino.h"
 #include "zlib.h"
-#include "png.h"
 
 #ifdef WIN32
 #undef min
