@@ -80,12 +80,19 @@ int MoyaiClient::render(){
         Group *g = groups[i];
         if( g && g->to_render ) {
             Layer *l = (Layer*) g;
+            double st,et;
+            if( l->enable_record_time ) st = now();
             cnt += l->renderAllProps();
+            if( l->enable_record_time ) {
+                et = now();
+                l->last_render_time = (et-st);
+            }
         }
     }
 
     glfwSwapBuffers();
     glFlush();
+
     return cnt;
 }
 inline void Layer::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc, Vec3 *scl  ) {

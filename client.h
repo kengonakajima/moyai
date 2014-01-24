@@ -997,9 +997,11 @@ class Layer : public Group {
     // working area to avoid allocation in inner loops
     SorterEntry sorter_opaque[Prop::CHILDREN_ABS_MAX];
     SorterEntry sorter_transparent[Prop::CHILDREN_ABS_MAX];
-    
 
-    Layer() : Group(), camera(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL) {
+    bool enable_record_time;
+    double last_render_time;
+
+    Layer() : Group(), camera(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL), enable_record_time(false), last_render_time(0) {
         to_render = true;
     }
     inline void setViewport( Viewport *vp ){
