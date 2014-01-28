@@ -237,7 +237,7 @@ void Image::copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0,
 bool Image::writePNG(const char *path) {
 
     assertmsg( buffer!=0 , "image not initialized?" );
-    assertmsg( width <= 1024 && height <= 1024, "image too big" );
+    assertmsg( width <= 2048 && height <= 2048, "image too big" );
     
 
     /*Same as lodepng_encode_file, but always encodes from 32-bit RGBA raw image.*/
