@@ -311,7 +311,7 @@ int Layer::renderAllProps(){
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();        
 
-        static SorterEntry tosort[1024*32];
+        static SorterEntry tosort[1024*32]; // TODO: make dynamic..
         
         int cnt = 0;
         int drawn = 0;
@@ -350,7 +350,6 @@ int Layer::renderAllProps(){
         }
     
         quickSortF( tosort, 0, cnt-1 );
-        //        for(int i=cnt-1;i>=0;i--){
         for(int i=0;i<cnt;i++) {
             Prop2D *p = (Prop2D*) tosort[i].ptr;
             if(p->visible){
@@ -628,10 +627,7 @@ void Prop2D::render(Camera *cam) {
     }
 
     if( children_num > 0 && render_children_first ){
-        for(int i=0;i<children_num;i++){
-            Prop2D *p = (Prop2D*) children[i];
-            if(p->visible) p->render( cam );
-        }
+        renderChildren( cam );
     }
 
     // TODO: use vbo for grids
@@ -727,15 +723,32 @@ void Prop2D::render(Camera *cam) {
     }
 
     if( children_num > 0 && (render_children_first == false) ){
-        for(int i=0;i<children_num;i++){
-            Prop2D *p = (Prop2D*) children[i];
-            if(p->visible) p->render( cam );
-        }
+        renderChildren( cam );
     }
     
     // primitives should go over image sprites
     if( prim_drawer ){
         prim_drawer->drawAll(loc.add(camx,camy) );
+    }
+}
+void Prop2D::renderChildren( Camera *cam ) {
+    static SorterEntry tosort[1024*32];
+    assert( elementof(tosort) >= children_num );
+    
+    if(children_num > 1 ) {
+        for(int i=0;i<children_num;i++) {
+            Prop2D *p = (Prop2D*) children[i];
+            tosort[i].val = p->priority;
+            tosort[i].ptr = p;
+        }
+        quickSortF( tosort, 0, children_num-1 );
+        for(int i=0;i<children_num;i++){
+            Prop2D *p = (Prop2D*) tosort[i].ptr;
+            if(p->visible) p->render( cam );
+        }
+    } else {
+        Prop2D *p = (Prop2D*) children[0];
+        if( p->visible ) p->render(cam);
     }
 }
 

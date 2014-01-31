@@ -849,6 +849,7 @@ class Prop2D : public Prop, public Renderable {
     }    
 
     virtual void render(Camera *cam);
+    void renderChildren(Camera *cam);
 
     inline void getRect( Vec2 *min_out, Vec2 *max_out ) {
         min_out->x = loc.x - scl.x/2;
