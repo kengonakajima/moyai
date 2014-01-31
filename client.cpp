@@ -619,7 +619,7 @@ void Prop2D::drawIndex( TileDeck *dk, int ind, float minx, float miny, float max
 
 
 void Prop2D::render(Camera *cam) {
-    assertmsg(deck || grid_used_num > 0 || children_num > 0 || prim_drawer , "no deck/grid/prim_drawer is set ");
+    assertmsg(deck || grid_used_num > 0 || children_num > 0 || prim_drawer , "no deck/grid/prim_drawer is set. deck:%p grid_used_num:%d children_num:%d prim_drawer:%p ", deck, grid_used_num, children_num, prim_drawer );
     float camx=0.0f;
     float camy=0.0f;
     if(cam){
