@@ -13,21 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="ソース ファイル\zlib">
-      <UniqueIdentifier>{5a4a1e50-febe-4e20-bb76-55a0c10f8dc2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\lz4">
-      <UniqueIdentifier>{f7bf439b-e526-4489-abc0-0e8f6d3c50aa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\soil">
-      <UniqueIdentifier>{6a67f00a-fa16-45f1-9357-030cfece46a7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\lodepng">
-      <UniqueIdentifier>{e463054d-9733-4204-b603-fb3be591869b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\moyai">
-      <UniqueIdentifier>{c4a3afeb-506f-499c-afa5-8745613551f4}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -39,15 +24,6 @@
     <ClInclude Include="targetver.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\client.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\cumino.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -55,63 +31,6 @@
     </ClCompile>
     <ClCompile Include="..\demo2d.cpp">
       <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\deflate.c">
-      <Filter>ソース ファイル\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\compress.c">
-      <Filter>ソース ファイル\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\crc32.c">
-      <Filter>ソース ファイル\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\inflate.c">
-      <Filter>ソース ファイル\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\inftrees.c">
-      <Filter>ソース ファイル\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\trees.c">
-      <Filter>ソース ファイル\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\zutil.c">
-      <Filter>ソース ファイル\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\adler32.c">
-      <Filter>ソース ファイル\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\inffast.c">
-      <Filter>ソース ファイル\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lz4\lz4.c">
-      <Filter>ソース ファイル\lz4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lz4\lz4hc.c">
-      <Filter>ソース ファイル\lz4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\image_DXT.c">
-      <Filter>ソース ファイル\soil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\image_helper.c">
-      <Filter>ソース ファイル\soil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\SOIL.c">
-      <Filter>ソース ファイル\soil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\stb_image_aug.c">
-      <Filter>ソース ファイル\soil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lodepng.cpp">
-      <Filter>ソース ファイル\lodepng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\client.cpp">
-      <Filter>ソース ファイル\moyai</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common.cpp">
-      <Filter>ソース ファイル\moyai</Filter>
-    </ClCompile>
-    <ClCompile Include="..\cumino.cpp">
-      <Filter>ソース ファイル\moyai</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

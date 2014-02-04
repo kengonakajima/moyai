@@ -1,0 +1,13 @@
+#pragma once
+
+typedef enum {
+	DIMENSION_INVAL = 0,
+	DIMENSION_2D = 2,    
+	DIMENSION_3D = 3,
+} DIMENSION;
+
+typedef enum{
+	PRIMTYPE_NONE = 0,
+	PRIMTYPE_LINE = 1,
+	PRIMTYPE_RECTANGLE = 2,
+} PRIMTYPE;

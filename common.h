@@ -328,6 +328,8 @@ public:
         id = idgen++;        
     }
 
+	virtual ~Group() {}
+
     inline void insertProp(Prop*p){
         //        assert(p->deck);
         assertmsg( !p->parent_group, "inserting prop twice");
@@ -396,6 +398,8 @@ public:
     Moyai(){
         for(int i=0;i<MAXGROUPS;i++) groups[i] = NULL;
     }
+
+	virtual ~Moyai() {}
     
     void insertGroup( Group *g ) {
         int freei = findFreeGroupIndex(); // 後から追加したレイヤの描画順が後ろ

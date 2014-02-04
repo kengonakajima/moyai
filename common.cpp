@@ -187,7 +187,7 @@ bool Image::loadPNG( const char *path ) {
 
     for(int i=0;i<width*height;i++){
         int x = i % width;
-        int y = height - 1 - (i / width);
+        int y = (i / width);
         int ii = y * width + x;
         buffer[ii*4+0] = image_data[i*4+0]; // r
         buffer[ii*4+1] = image_data[i*4+1]; // g
