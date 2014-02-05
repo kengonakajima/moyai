@@ -5,6 +5,8 @@
 #include "FragmentShader_D3D.h"
 #include "KeyBindings.h"
 
+#include <Xinput.h>
+
 Context_D3D g_context;
 
 const static char default_shader[] = 
@@ -358,17 +360,93 @@ namespace glfw_d3d
 
 	int glfwGetJoystickPos( int joy, float *pos, int numaxes )
 	{
-		*pos = 0.0f;
+		int assignedAxes = 0;
+		ZeroMemory(pos, sizeof(float) * numaxes);
+
+		if (joy < GLFW_JOYSTICK_5)
+		{
+			XINPUT_STATE state;
+			if (XInputGetState(joy, &state) == ERROR_SUCCESS)
+			{
+				// TODO: Add dead zone
+
+				if (numaxes > 0) { ++assignedAxes; pos[0] = state.Gamepad.sThumbLX / float(SHRT_MAX); }
+				if (numaxes > 1) { ++assignedAxes; pos[1] = state.Gamepad.sThumbLY / float(SHRT_MAX); }
+				if (numaxes > 2) { ++assignedAxes; pos[2] = state.Gamepad.sThumbRX / float(SHRT_MAX); }
+				if (numaxes > 3) { ++assignedAxes; pos[3] = -state.Gamepad.sThumbRY / float(SHRT_MAX); }
+
+				return assignedAxes;
+			}
+		}
+		
 		return 0;
 	}
 
 	int glfwGetJoystickParam( int joy, int param )
 	{
+		switch (param)
+		{
+		case GLFW_PRESENT:
+			{
+				if (joy < GLFW_JOYSTICK_5)
+				{
+					XINPUT_STATE state;
+					return XInputGetState(joy, &state) == ERROR_SUCCESS ? 1 : 0;
+				}
+
+				return 0;
+			}
+		case GLFW_AXES:
+			{
+				if (joy < GLFW_JOYSTICK_5)
+				{
+					XINPUT_STATE state;
+					if (XInputGetState(joy, &state) == ERROR_SUCCESS)
+					{
+						return 4;
+					}
+				}
+
+				return 0;
+			}
+		case GLFW_BUTTONS:
+			{
+				if (joy < GLFW_JOYSTICK_5)
+				{
+					XINPUT_STATE state;
+					if (XInputGetState(joy, &state) == ERROR_SUCCESS)
+					{
+						return 14;
+					}
+				}
+
+				return 0;
+			}
+		}
+		
 		return 0;
 	}
 
 	int glfwGetJoystickButtons( int joy, unsigned char *buttons, int numbuttons )
 	{
+		int assignedButtons = 0;
+		ZeroMemory(buttons, numbuttons);
+
+		if (joy < GLFW_JOYSTICK_5)
+		{
+			XINPUT_STATE state;
+			if (XInputGetState(joy, &state) == ERROR_SUCCESS)
+			{
+				if (numbuttons > 1) { ++assignedButtons; buttons[1] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) ? 1 : 0; }
+				if (numbuttons > 2) { ++assignedButtons; buttons[2] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) ? 1 : 0; }
+				if (numbuttons > 3) { ++assignedButtons; buttons[3] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) ? 1 : 0; }
+				if (numbuttons > 4) { ++assignedButtons; buttons[4] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) ? 1 : 0; }
+				if (numbuttons > 5) { ++assignedButtons; buttons[5] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) ? 1 : 0; }
+
+				return assignedButtons;
+			}
+		}
+
 		return 0;
 	}
 
