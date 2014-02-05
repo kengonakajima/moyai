@@ -6,4 +6,6 @@
 
 #if defined(USE_OPENGL)
 	#include "../opengl/Dependencies_OGL.h"
+#elif defined(USE_D3D)
+	#include "../direct3d/Dependencies_D3D.h"
 #endif

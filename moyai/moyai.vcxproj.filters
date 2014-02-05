@@ -204,6 +204,9 @@
     <ClCompile Include="..\common\VertexFormat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\PerformanceCounter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\ColorReplacerShader.h">
@@ -400,6 +403,15 @@
     </ClInclude>
     <ClInclude Include="..\opengl\Dependencies_OGL.h">
       <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\direct3d\Dependencies_D3D.h">
+      <Filter>Header Files\Direct3D</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\PerformanceCounter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\direct3d\KeyBindings.h">
+      <Filter>Header Files\Direct3D</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

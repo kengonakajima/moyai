@@ -41,6 +41,7 @@
 #include "common/SoundSystem.h"
 #include "common/TileDeck.h"
 #include "common/VertexFormat.h"
+#include "common/PerformanceCounter.h"
 
 #if defined(_MSC_VER)
 	#include "common/Dependencies.h"

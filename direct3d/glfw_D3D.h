@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Context_D3D.h"
+
 // Our own implementation of GLFW using Direct3D. 
 // Used to make sure game code does not have to change at all.
 
@@ -156,7 +158,6 @@ namespace glfw_d3d
 	#define GLFW_JOYSTICK_LAST       GLFW_JOYSTICK_16
 
 	/* Input handling */
-	typedef void (* GLFWkeyfun)(int,int);
 	void glfwSetKeyCallback( GLFWkeyfun cbfun );
 	int glfwGetKey( int key );
 	int glfwGetJoystickPos( int joy, float *pos, int numaxes );

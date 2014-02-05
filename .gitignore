@@ -26,3 +26,7 @@ _captured.png
 dynamic_out.png
 .DS_Store
 
+demowin/DebugD3D/
+demowin/DebugOGL/
+moyai/DebugD3D/
+moyai/DebugOGL/

@@ -4,13 +4,16 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <unordered_map>
 #include <d3d11.h>
 
 #include "Vertex_D3D.h"
+#include "../common/PerformanceCounter.h"
 
 class FragmentShader_D3D;
 class VertexBuffer_D3D;
 
+typedef void (*GLFWkeyfun)(int, int);
 
 moyai_align(16) struct CBufferMVP
 {
@@ -26,6 +29,16 @@ moyai_align(16) struct CBufferMVP
 	XMMATRIX MVP;
 };
 
+typedef int KeyCode;
+struct KeyState
+{
+	KeyState() : win32KeyCode(0), glfwKeyCode(0), isPressed(false) {}
+
+	KeyCode win32KeyCode;
+	KeyCode glfwKeyCode;
+	bool isPressed;
+};
+
 struct Context_D3D
 {
 	Context_D3D()
@@ -38,6 +51,8 @@ struct Context_D3D
 		, m_hInstance(nullptr)
 		, m_hWindowHandle(nullptr)
 		, m_swapInterval(0) 
+		, m_keyCallbackFunct(nullptr)
+		, m_mouseWheelDelta(0)
 	{
 		m_clearColorRGBA[0] = 0.0f;
 		m_clearColorRGBA[1] = 0.0f;
@@ -63,6 +78,10 @@ struct Context_D3D
 
 	int m_swapInterval;
 	float m_clearColorRGBA[4];
+
+	GLFWkeyfun m_keyCallbackFunct;
+	std::unordered_map<KeyCode, KeyState> m_keyStates;
+	int m_mouseWheelDelta;
 };
 
 extern Context_D3D g_context;

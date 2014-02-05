@@ -146,6 +146,7 @@
     <ClCompile Include="..\common\Grid.cpp" />
     <ClCompile Include="..\common\Mesh.cpp" />
     <ClCompile Include="..\common\Pad.cpp" />
+    <ClCompile Include="..\common\PerformanceCounter.cpp" />
     <ClCompile Include="..\common\PrimDrawer.cpp" />
     <ClCompile Include="..\common\Sound.cpp" />
     <ClCompile Include="..\common\SoundSystem.cpp" />
@@ -226,6 +227,7 @@
     <ClInclude Include="..\common\Mesh.h" />
     <ClInclude Include="..\common\MoyaiClient.h" />
     <ClInclude Include="..\common\Pad.h" />
+    <ClInclude Include="..\common\PerformanceCounter.h" />
     <ClInclude Include="..\common\Prim.h" />
     <ClInclude Include="..\common\PrimDrawer.h" />
     <ClInclude Include="..\common\Prop2D.h" />
@@ -242,10 +244,12 @@
     <ClInclude Include="..\cumino.h" />
     <ClInclude Include="..\direct3d\ColorReplacerShader_D3D.h" />
     <ClInclude Include="..\direct3d\Context_D3D.h" />
+    <ClInclude Include="..\direct3d\Dependencies_D3D.h" />
     <ClInclude Include="..\direct3d\Font_D3D.h" />
     <ClInclude Include="..\direct3d\FragmentShader_D3D.h" />
     <ClInclude Include="..\direct3d\glfw_D3D.h" />
     <ClInclude Include="..\direct3d\IndexBuffer_D3D.h" />
+    <ClInclude Include="..\direct3d\KeyBindings.h" />
     <ClInclude Include="..\direct3d\Layer_D3D.h" />
     <ClInclude Include="..\direct3d\Macro.h" />
     <ClInclude Include="..\direct3d\MoyaiClient_D3D.h" />

@@ -1,9 +1,9 @@
 #ifdef USE_D3D
 
 #include "glfw_D3D.h"
-#include "Context_D3D.h"
 #include "VertexBuffer_D3D.h"
 #include "FragmentShader_D3D.h"
+#include "KeyBindings.h"
 
 Context_D3D g_context;
 
@@ -51,6 +51,45 @@ const static char default_shader[] =
 
 static LRESULT CALLBACK WindowProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
+	switch (iMsg)
+	{
+	case WM_KEYUP:
+		{
+			KeyCode win32 = wParam;
+			KeyCode glfw = KEY_Win32_GLFW[wParam];
+			g_context.m_keyStates[glfw].glfwKeyCode = glfw;
+			g_context.m_keyStates[glfw].win32KeyCode = win32;
+			g_context.m_keyStates[glfw].isPressed = false;
+
+			if (g_context.m_keyCallbackFunct)
+			{
+				g_context.m_keyCallbackFunct(glfw, GLFW_RELEASE);
+			}
+
+			return 0;
+		}
+	case WM_KEYDOWN:
+		{
+			KeyCode win32 = wParam;
+			KeyCode glfw = KEY_Win32_GLFW[wParam];
+			g_context.m_keyStates[glfw].glfwKeyCode = glfw;
+			g_context.m_keyStates[glfw].win32KeyCode = win32;
+			g_context.m_keyStates[glfw].isPressed = true;
+
+			if (g_context.m_keyCallbackFunct)
+			{
+				g_context.m_keyCallbackFunct(glfw, GLFW_PRESS);
+			}
+
+			return 0;
+		}
+	case WM_MOUSEWHEEL:
+		{
+			g_context.m_mouseWheelDelta += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+			return 0;
+		}
+	}
+
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
 }
 
@@ -309,12 +348,12 @@ namespace glfw_d3d
 
 	void glfwSetKeyCallback( GLFWkeyfun cbfun )
 	{
-
+		g_context.m_keyCallbackFunct = cbfun;
 	}
 
 	int glfwGetKey( int key )
 	{
-		return 0;
+		return g_context.m_keyStates[key].isPressed ? GLFW_PRESS : GLFW_RELEASE;
 	}
 
 	int glfwGetJoystickPos( int joy, float *pos, int numaxes )
@@ -335,7 +374,7 @@ namespace glfw_d3d
 
 	int glfwGetMouseWheel( void )
 	{
-		return 0;
+		return g_context.m_mouseWheelDelta;
 	}
 
 	void glClearColor(float r, float g, float b, float a)
