@@ -139,7 +139,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\client.cpp" />
     <ClCompile Include="..\common.cpp" />
     <ClCompile Include="..\common\Camera.cpp" />
     <ClCompile Include="..\common\CharGrid.cpp" />

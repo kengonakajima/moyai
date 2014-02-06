@@ -120,9 +120,6 @@
     <ClCompile Include="..\direct3d\Viewport_D3D.cpp">
       <Filter>Source Files\Direct3D</Filter>
     </ClCompile>
-    <ClCompile Include="..\client.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\common.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

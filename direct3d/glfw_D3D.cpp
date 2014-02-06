@@ -92,6 +92,12 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM l
 			g_context.m_mouseWheelDelta += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
 			return 0;
 		}
+	case WM_QUIT:
+	case WM_CLOSE:
+		{
+			// This is not clean and should be changed.
+			exit(0);
+		}
 	}
 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
