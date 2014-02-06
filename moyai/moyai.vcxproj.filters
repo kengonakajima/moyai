@@ -207,6 +207,9 @@
     <ClCompile Include="..\common\PerformanceCounter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\direct3d\GPUMarker_D3D.cpp">
+      <Filter>Source Files\Direct3D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\ColorReplacerShader.h">
@@ -412,6 +415,15 @@
     </ClInclude>
     <ClInclude Include="..\direct3d\KeyBindings.h">
       <Filter>Header Files\Direct3D</Filter>
+    </ClInclude>
+    <ClInclude Include="..\direct3d\GPUMarker_D3D.h">
+      <Filter>Header Files\Direct3D</Filter>
+    </ClInclude>
+    <ClInclude Include="..\opengl\GPUMarker_OGL.h">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\GPUMarker.h">
+      <Filter>Header Files\GFX API Specific</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

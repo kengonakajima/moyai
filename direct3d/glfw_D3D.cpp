@@ -3,7 +3,9 @@
 #include "glfw_D3D.h"
 #include "VertexBuffer_D3D.h"
 #include "FragmentShader_D3D.h"
+#include "GPUMarker_D3D.h"
 #include "KeyBindings.h"
+#include "../common.h"
 
 #include <Xinput.h>
 
@@ -142,9 +144,13 @@ namespace glfw_d3d
 		SafeRelease(g_context.m_pDevice);
 
 		SafeDelete(g_context.m_pDefaultShader);
+		SafeDelete(g_context.m_pGPUMarker);
 
 		SafeRelease(g_context.m_pNoDepthTestState);
 		SafeRelease(g_context.m_pDepthStencilState);
+
+		SafeRelease(g_context.m_pRasterizerState);
+		SafeRelease(g_context.m_pNoCullingRasterizerState);
 	}
 
 	void glfwEnable( int token )
@@ -271,7 +277,7 @@ namespace glfw_d3d
 			g_context.m_pDefaultShader->load(default_shader);
 		}
 
-		// Create rasterizer state
+		// Create rasterizer states
 		{
 			D3D11_RASTERIZER_DESC desc;
 			desc.FillMode = D3D11_FILL_SOLID;
@@ -285,10 +291,11 @@ namespace glfw_d3d
 			desc.MultisampleEnable = FALSE;
 			desc.AntialiasedLineEnable = FALSE;
 
-			ID3D11RasterizerState *state;
-			g_context.m_pDevice->CreateRasterizerState(&desc, &state);
-			g_context.m_pDeviceContext->RSSetState(state);
-			state->Release();
+			g_context.m_pDevice->CreateRasterizerState(&desc, &g_context.m_pRasterizerState);
+			g_context.m_pDeviceContext->RSSetState(g_context.m_pRasterizerState);
+
+			desc.CullMode = D3D11_CULL_NONE;
+			g_context.m_pDevice->CreateRasterizerState(&desc, &g_context.m_pNoCullingRasterizerState);
 		}
 
 		// Create depth-stencil states
@@ -310,6 +317,11 @@ namespace glfw_d3d
 
 		ShowWindow(g_context.m_hWindowHandle, SW_SHOW);
 		UpdateWindow(g_context.m_hWindowHandle);
+
+		// Create GPU Marker
+		{
+			g_context.m_pGPUMarker = new GPUMarker_D3D(g_context.m_pDeviceContext);
+		}
 
 		return 1;
 	}
@@ -358,6 +370,21 @@ namespace glfw_d3d
 		return g_context.m_keyStates[key].isPressed ? GLFW_PRESS : GLFW_RELEASE;
 	}
 
+	Vec2 applyDeadZone(float x, float y)
+	{
+		static const unsigned int INPUT_DEAD_ZONE = 10000;
+
+		Vec2 output;
+		float magnitude = sqrt(x * x + y * y);
+		
+		if (magnitude < INPUT_DEAD_ZONE)
+		{
+			return Vec2(0.0f, 0.0f);
+		}
+
+		return Vec2(x, y);
+	}
+
 	int glfwGetJoystickPos( int joy, float *pos, int numaxes )
 	{
 		int assignedAxes = 0;
@@ -368,12 +395,13 @@ namespace glfw_d3d
 			XINPUT_STATE state;
 			if (XInputGetState(joy, &state) == ERROR_SUCCESS)
 			{
-				// TODO: Add dead zone
+				Vec2 leftStick = applyDeadZone((float)state.Gamepad.sThumbLX, (float)state.Gamepad.sThumbLY);
+				Vec2 rightStick = applyDeadZone((float)state.Gamepad.sThumbRX, -(float)state.Gamepad.sThumbRY);
 
-				if (numaxes > 0) { ++assignedAxes; pos[0] = state.Gamepad.sThumbLX / float(SHRT_MAX); }
-				if (numaxes > 1) { ++assignedAxes; pos[1] = state.Gamepad.sThumbLY / float(SHRT_MAX); }
-				if (numaxes > 2) { ++assignedAxes; pos[2] = state.Gamepad.sThumbRX / float(SHRT_MAX); }
-				if (numaxes > 3) { ++assignedAxes; pos[3] = -state.Gamepad.sThumbRY / float(SHRT_MAX); }
+				if (numaxes > 0) { ++assignedAxes; pos[0] = leftStick.x / SHRT_MAX; }
+				if (numaxes > 1) { ++assignedAxes; pos[1] = leftStick.y / SHRT_MAX; }
+				if (numaxes > 2) { ++assignedAxes; pos[2] = rightStick.x / SHRT_MAX; }
+				if (numaxes > 3) { ++assignedAxes; pos[3] = rightStick.y / SHRT_MAX; }
 
 				return assignedAxes;
 			}

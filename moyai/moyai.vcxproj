@@ -156,6 +156,7 @@
     <ClCompile Include="..\direct3d\Font_D3D.cpp" />
     <ClCompile Include="..\direct3d\FragmentShader_D3D.cpp" />
     <ClCompile Include="..\direct3d\glfw_D3D.cpp" />
+    <ClCompile Include="..\direct3d\GPUMarker_D3D.cpp" />
     <ClCompile Include="..\direct3d\IndexBuffer_D3D.cpp" />
     <ClCompile Include="..\direct3d\Layer_D3D.cpp" />
     <ClCompile Include="..\direct3d\MoyaiClient_D3D.cpp" />
@@ -219,6 +220,7 @@
     <ClInclude Include="..\common\Enums.h" />
     <ClInclude Include="..\common\Font.h" />
     <ClInclude Include="..\common\FragmentShader.h" />
+    <ClInclude Include="..\common\GPUMarker.h" />
     <ClInclude Include="..\common\Grid.h" />
     <ClInclude Include="..\common\IndexBuffer.h" />
     <ClInclude Include="..\common\Layer.h" />
@@ -248,6 +250,7 @@
     <ClInclude Include="..\direct3d\Font_D3D.h" />
     <ClInclude Include="..\direct3d\FragmentShader_D3D.h" />
     <ClInclude Include="..\direct3d\glfw_D3D.h" />
+    <ClInclude Include="..\direct3d\GPUMarker_D3D.h" />
     <ClInclude Include="..\direct3d\IndexBuffer_D3D.h" />
     <ClInclude Include="..\direct3d\KeyBindings.h" />
     <ClInclude Include="..\direct3d\Layer_D3D.h" />
@@ -266,6 +269,7 @@
     <ClInclude Include="..\opengl\Dependencies_OGL.h" />
     <ClInclude Include="..\opengl\Font_OGL.h" />
     <ClInclude Include="..\opengl\FragmentShader_OGL.h" />
+    <ClInclude Include="..\opengl\GPUMarker_OGL.h" />
     <ClInclude Include="..\opengl\IndexBuffer_OGL.h" />
     <ClInclude Include="..\opengl\Layer_OGL.h" />
     <ClInclude Include="..\opengl\MoyaiClient_OGL.h" />

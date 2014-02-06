@@ -12,6 +12,7 @@
 
 class FragmentShader_D3D;
 class VertexBuffer_D3D;
+class GPUMarker_D3D;
 
 typedef void (*GLFWkeyfun)(int, int);
 
@@ -48,6 +49,13 @@ struct Context_D3D
 		, m_pDeviceContext(nullptr)
 		, m_pRenderTargetView(nullptr)
 		, m_pDepthStencil(nullptr)
+		, m_pDepthStencilView(nullptr)
+		, m_pNoDepthTestState(nullptr)
+		, m_pDepthStencilState(nullptr)
+		, m_pRasterizerState(nullptr)
+		, m_pNoCullingRasterizerState(nullptr)
+		, m_pDefaultShader(nullptr)
+		, m_pGPUMarker(nullptr)
 		, m_hInstance(nullptr)
 		, m_hWindowHandle(nullptr)
 		, m_swapInterval(0) 
@@ -71,7 +79,11 @@ struct Context_D3D
 	ID3D11DepthStencilState *m_pNoDepthTestState;
 	ID3D11DepthStencilState *m_pDepthStencilState;
 
+	ID3D11RasterizerState *m_pRasterizerState;
+	ID3D11RasterizerState *m_pNoCullingRasterizerState;
+
 	FragmentShader_D3D *m_pDefaultShader;
+	GPUMarker_D3D *m_pGPUMarker;
 
 	HINSTANCE m_hInstance;
 	HWND m_hWindowHandle;

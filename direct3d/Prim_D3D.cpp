@@ -3,6 +3,7 @@
 #include "Prim_D3D.h"
 #include "VertexBuffer_D3D.h"
 #include "FragmentShader_D3D.h"
+#include "GPUMarker_D3D.h"
 #include "../common/VertexFormat.h"
 #include "../common/Enums.h"
 
@@ -154,7 +155,13 @@ void Prim_D3D::drawRectangle(Vec2 ofs)
 	m_pVertexBuffer->setTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pVertexBuffer->bind();
 
+	g_context.m_pDeviceContext->RSSetState(g_context.m_pNoCullingRasterizerState);
+
+	GPU_BEGIN_EVENT("Prim_D3D::drawRectangle");
 	g_context.m_pDeviceContext->Draw(6, 0);
+	GPU_END_EVENT();
+
+	g_context.m_pDeviceContext->RSSetState(g_context.m_pRasterizerState);
 }
 
 #endif

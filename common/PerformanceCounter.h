@@ -1,8 +1,8 @@
 #pragma once
 
-#define PROFILE (0)
+#define CPU_PROFILE (0)
 
-#if defined(WIN32) && PROFILE
+#if defined(WIN32) && CPU_PROFILE
 
 	#include <windows.h>
 

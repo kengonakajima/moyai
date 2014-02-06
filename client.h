@@ -23,6 +23,7 @@
 #include "common/Font.h"
 #include "common/TextBox.h"
 #include "common/MoyaiClient.h"
+#include "common/GPUMarker.h"
 
 // Common includes
 #include "common/Animation.h"
