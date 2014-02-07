@@ -3,7 +3,7 @@
 #include "Prim_D3D.h"
 #include "VertexBuffer_D3D.h"
 #include "FragmentShader_D3D.h"
-#include "GPUMarker_D3D.h"
+#include "../common/GPUMarker.h"
 #include "../common/VertexFormat.h"
 #include "../common/Enums.h"
 

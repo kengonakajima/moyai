@@ -3,9 +3,9 @@
 #include "glfw_D3D.h"
 #include "VertexBuffer_D3D.h"
 #include "FragmentShader_D3D.h"
-#include "GPUMarker_D3D.h"
 #include "KeyBindings.h"
 #include "../common.h"
+#include "../common/GPUMarker.h"
 
 #include <Xinput.h>
 
@@ -150,13 +150,16 @@ namespace glfw_d3d
 		SafeRelease(g_context.m_pDevice);
 
 		SafeDelete(g_context.m_pDefaultShader);
-		SafeDelete(g_context.m_pGPUMarker);
 
 		SafeRelease(g_context.m_pNoDepthTestState);
 		SafeRelease(g_context.m_pDepthStencilState);
 
 		SafeRelease(g_context.m_pRasterizerState);
 		SafeRelease(g_context.m_pNoCullingRasterizerState);
+
+		#if GPU_DEBUG
+			SafeDelete(g_context.m_pGPUMarker);
+		#endif
 	}
 
 	void glfwEnable( int token )
@@ -325,9 +328,9 @@ namespace glfw_d3d
 		UpdateWindow(g_context.m_hWindowHandle);
 
 		// Create GPU Marker
-		{
+		#if GPU_DEBUG
 			g_context.m_pGPUMarker = new GPUMarker_D3D(g_context.m_pDeviceContext);
-		}
+		#endif
 
 		return 1;
 	}
