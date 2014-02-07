@@ -4,4 +4,8 @@
     <LocalDebuggerWorkingDirectory>..</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugOGL|Win32'">
+    <LocalDebuggerWorkingDirectory>$(ProjectDir)\..\..</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>
