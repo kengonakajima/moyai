@@ -185,8 +185,8 @@ namespace glfw_d3d
 				WS_OVERLAPPEDWINDOW,	// Window style
 				0,						// x position
 				0,						// y position
-				width,	
-				height,
+				adjustedRect.right - adjustedRect.left,
+				adjustedRect.bottom - adjustedRect.top,
 				nullptr,				// Parent window handle
 				nullptr,				// Window menu handle
 				g_context.m_hInstance,
