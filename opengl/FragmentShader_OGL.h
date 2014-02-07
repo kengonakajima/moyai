@@ -1,6 +1,10 @@
 #pragma once
-
+#ifdef WIN32
 #include "GL/glew.h"
+#endif
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#endif
 
 class FragmentShader_OGL {
 public:

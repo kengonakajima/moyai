@@ -1,5 +1,9 @@
 #ifdef USE_OPENGL
 
+#ifdef __APPLE__
+#include <OpenGL/glu.h>
+#endif
+
 #include "Layer_OGL.h"
 
 #include "../common.h"

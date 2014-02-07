@@ -8,6 +8,10 @@
 
 #if defined(USE_OPENGL)
 	#define GLEW_STATIC
+
+#if defined(__APPLE__)
+#include <OpenGL/gl.h>
+#endif
 #endif
 
 // GFX API specific includes

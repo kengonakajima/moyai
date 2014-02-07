@@ -1,5 +1,6 @@
 
-MOYAICLISRCS=common.cpp client.cpp cumino.cpp  lodepng.cpp
+MOYAICLISRCS=common.cpp client.cpp cumino.cpp  lodepng.cpp opengl/Prop2D_OGL.cpp opengl/Prop3D_OGL.cpp opengl/ColorReplacerShader_OGL.cpp opengl/Font_OGL.cpp opengl/FragmentShader_OGL.cpp opengl/IndexBuffer_OGL.cpp opengl/Layer_OGL.cpp opengl/MoyaiClient_OGL.cpp opengl/TextBox_OGL.cpp opengl/Texture_OGL.cpp opengl/VertexBuffer_OGL.cpp opengl/Viewport_OGL.cpp common/Camera.cpp common/CharGrid.cpp common/Grid.cpp common/Mesh.cpp common/Pad.cpp common/PerformanceCounter.cpp common/PrimDrawer.cpp common/Sound.cpp common/SoundSystem.cpp common/VertexFormat.cpp
+
 MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o)
 MOYAISVSRCS=common.cpp cumino.cpp  lodepng.cpp
 MOYAISVOBJS=$(MOYAISVSRCS:.cpp=.o)
@@ -37,7 +38,7 @@ OUTSVLIB=libmoyaisv.a
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB)  $(LZ4LIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(GLFWLIB) 
 CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
-CFLAGS=-O0 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include
+CFLAGS=-O0 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -DUSE_OPENGL   $(CLILIBFLAGS)
 
 
 DEMO2D=demo2d
@@ -92,6 +93,51 @@ client.o : client.cpp
 	g++ -c client.cpp $(CFLAGS)
 cumino.o : cumino.cpp
 	g++ -c cumino.cpp $(CFLAGS)
+opengl/Prop2D_OGL.o : opengl/Prop2D_OGL.cpp
+	g++ -c $(CFLAGS) opengl/Prop2D_OGL.cpp  -o opengl/Prop2D_OGL.o
+opengl/Prop3D_OGL.o : opengl/Prop3D_OGL.cpp
+	g++ -c $(CFLAGS) opengl/Prop3D_OGL.cpp  -o opengl/Prop3D_OGL.o
+opengl/ColorReplacerShader_OGL.o : opengl/ColorReplacerShader_OGL.cpp
+	g++ -c $(CFLAGS) opengl/ColorReplacerShader_OGL.cpp -o opengl/ColorReplacerShader_OGL.o
+opengl/Font_OGL.o : opengl/Font_OGL.cpp
+	g++ -c $(CFLAGS) opengl/Font_OGL.cpp -o opengl/Font_OGL.o
+opengl/FragmentShader_OGL.o : opengl/FragmentShader_OGL.o
+	g++ -c $(CFLAGS) opengl/FragmentShader_OGL.cpp -o opengl/FragmentShader_OGL.o
+opengl/IndexBuffer_OGL.o : opengl/IndexBuffer_OGL.cpp
+	g++ -c $(CFLAGS) opengl/IndexBuffer_OGL.cpp -o opengl/IndexBuffer_OGL.o
+opengl/Layer_OGL.o : opengl/Layer_OGL.cpp
+	g++ -c $(CFLAGS) opengl/Layer_OGL.cpp -o opengl/Layer_OGL.o
+opengl/MoyaiClient_OGL.o : opengl/MoyaiClient_OGL.cpp
+	g++ -c $(CFLAGS) opengl/MoyaiClient_OGL.cpp -o opengl/MoyaiClient_OGL.o
+opengl/TextBox_OGL.o : opengl/TextBox_OGL.cpp
+	g++ -c $(CFLAGS) opengl/TextBox_OGL.cpp -o opengl/TextBox_OGL.o
+opengl/Texture_OGL.o : opengl/Texture_OGL.cpp
+	g++ -c $(CFLAGS) opengl/Texture_OGL.cpp -o opengl/Texture_OGL.o
+opengl/VertexBuffer_OGL.o : opengl/VertexBuffer_OGL.cpp
+	g++ -c $(CFLAGS) opengl/VertexBuffer_OGL.cpp -o opengl/VertexBuffer_OGL.o
+opengl/Viewport_OGL.o : opengl/Viewport_OGL.cpp
+	g++ -c $(CFLAGS) opengl/Viewport_OGL.cpp -o opengl/Viewport_OGL.o
+common/Camera.o : common/Camera.cpp
+	g++ -c $(CFLAGS) common/Camera.cpp -o common/Camera.o
+common/CharGrid.o : common/CharGrid.cpp
+	g++ -c $(CFLAGS) common/CharGrid.cpp -o common/CharGrid.o
+common/Grid.o : common/Grid.cpp
+	g++ -c $(CFLAGS) common/Grid.cpp -o common/Grid.o
+common/Mesh.o : common/Mesh.cpp
+	g++ -c $(CFLAGS) common/Mesh.cpp -o common/Mesh.o
+common/Pad.o : common/Pad.cpp
+	g++ -c $(CFLAGS) common/Pad.cpp -o common/Pad.o
+common/PerformanceCounter.o : common/PerformanceCounter.cpp
+	g++ -c $(CFLAGS) common/PerformanceCounter.cpp -o common/PerformanceCounter.o
+common/PrimDrawer.o : common/PrimDrawer.cpp
+	g++ -c $(CFLAGS) common/PrimDrawer.cpp -o common/PrimDrawer.o
+common/Sound.o : common/Sound.cpp
+	g++ -c $(CFLAGS) common/Sound.cpp -o common/Sound.o
+common/SoundSystem.o : common/SoundSystem.cpp
+	g++ -c $(CFLAGS) common/SoundSystem.cpp -o common/SoundSystem.o
+common/VertexFormat.o : common/VertexFormat.cpp
+	g++ -c $(CFLAGS) common/VertexFormat.cpp -o common/VertexFormat.o
+
 
 # freetype-gl
 texture-atlas.o :

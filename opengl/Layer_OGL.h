@@ -3,7 +3,9 @@
 #include "Viewport_OGL.h"
 #include "../common/Light.h"
 #include "../common/Mesh.h"
+#ifdef WIN32
 #include "GL/glew.h"
+#endif
 
 class Camera;
 class TileDeck;

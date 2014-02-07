@@ -2,7 +2,12 @@
 
 #include "../common.h"
 #include "../common/Enums.h"
+#ifdef WIN32
 #include "GL/glew.h"
+#endif
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#endif
 
 class Prim_OGL {
 public:

@@ -1,7 +1,12 @@
 #pragma once
 
 #include "../common.h"
+#ifdef WIN32
 #include "GL/glew.h"
+#endif
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#endif
 
 class Texture_OGL {
 public:

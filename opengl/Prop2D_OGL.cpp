@@ -1,4 +1,7 @@
 #ifdef USE_OPENGL
+#if defined(__APPLE__)
+#include <OpenGL/gl.h>
+#endif
 
 #include "Prop2D_OGL.h"
 #include "../common/FragmentShader.h"

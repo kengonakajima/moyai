@@ -1,8 +1,12 @@
 #ifdef USE_OPENGL
 
 #include "Viewport_OGL.h"
-
+#ifdef WIN32
 #include "GL/glew.h"
+#endif
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#endif
 
 void Viewport_OGL::setSize(int scrw, int scrh ) {
 	screen_width = scrw;
