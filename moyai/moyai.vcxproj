@@ -67,7 +67,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugD3D|Win32'">
-    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\..\glew-1.10.0\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D|Win32'">
     <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(IncludePath)</IncludePath>
