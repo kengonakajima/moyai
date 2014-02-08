@@ -38,7 +38,7 @@ OUTSVLIB=libmoyaisv.a
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB)  $(LZ4LIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(GLFWLIB) 
 CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
-CFLAGS=-O0 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -DUSE_OPENGL   $(CLILIBFLAGS)
+CFLAGS=-O0 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -DUSE_OPENGL  
 
 
 DEMO2D=demo2d
@@ -101,7 +101,7 @@ opengl/ColorReplacerShader_OGL.o : opengl/ColorReplacerShader_OGL.cpp
 	g++ -c $(CFLAGS) opengl/ColorReplacerShader_OGL.cpp -o opengl/ColorReplacerShader_OGL.o
 opengl/Font_OGL.o : opengl/Font_OGL.cpp
 	g++ -c $(CFLAGS) opengl/Font_OGL.cpp -o opengl/Font_OGL.o
-opengl/FragmentShader_OGL.o : opengl/FragmentShader_OGL.o
+opengl/FragmentShader_OGL.o : opengl/FragmentShader_OGL.cpp
 	g++ -c $(CFLAGS) opengl/FragmentShader_OGL.cpp -o opengl/FragmentShader_OGL.o
 opengl/IndexBuffer_OGL.o : opengl/IndexBuffer_OGL.cpp
 	g++ -c $(CFLAGS) opengl/IndexBuffer_OGL.cpp -o opengl/IndexBuffer_OGL.o
