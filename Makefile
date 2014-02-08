@@ -1,5 +1,5 @@
 
-MOYAICLISRCS=common.cpp client.cpp cumino.cpp  lodepng.cpp opengl/Prop2D_OGL.cpp opengl/Prop3D_OGL.cpp opengl/ColorReplacerShader_OGL.cpp opengl/Font_OGL.cpp opengl/FragmentShader_OGL.cpp opengl/IndexBuffer_OGL.cpp opengl/Layer_OGL.cpp opengl/MoyaiClient_OGL.cpp opengl/TextBox_OGL.cpp opengl/Texture_OGL.cpp opengl/VertexBuffer_OGL.cpp opengl/Viewport_OGL.cpp common/Camera.cpp common/CharGrid.cpp common/Grid.cpp common/Mesh.cpp common/Pad.cpp common/PerformanceCounter.cpp common/PrimDrawer.cpp common/Sound.cpp common/SoundSystem.cpp common/VertexFormat.cpp
+MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp opengl/Prop2D_OGL.cpp opengl/Prop3D_OGL.cpp opengl/ColorReplacerShader_OGL.cpp opengl/Font_OGL.cpp opengl/FragmentShader_OGL.cpp opengl/IndexBuffer_OGL.cpp opengl/Layer_OGL.cpp opengl/MoyaiClient_OGL.cpp opengl/TextBox_OGL.cpp opengl/Texture_OGL.cpp opengl/VertexBuffer_OGL.cpp opengl/Viewport_OGL.cpp common/Camera.cpp common/CharGrid.cpp common/Grid.cpp common/Mesh.cpp common/Pad.cpp common/PerformanceCounter.cpp common/PrimDrawer.cpp common/Sound.cpp common/SoundSystem.cpp common/VertexFormat.cpp
 
 MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o)
 MOYAISVSRCS=common.cpp cumino.cpp  lodepng.cpp
@@ -89,8 +89,7 @@ $(LZ4LIB) : $(LZ4OBJS)
 
 common.o : common.cpp
 	g++ -c common.cpp $(CFLAGS)
-client.o : client.cpp
-	g++ -c client.cpp $(CFLAGS)
+
 cumino.o : cumino.cpp
 	g++ -c cumino.cpp $(CFLAGS)
 opengl/Prop2D_OGL.o : opengl/Prop2D_OGL.cpp

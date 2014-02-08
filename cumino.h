@@ -14,22 +14,8 @@
 #ifndef WIN32
 #include <sys/time.h>
 
-
-
-typedef union _ULARGE_INTEGER {
-    struct {
-        unsigned int LowPart;
-        unsigned int HighPart;
-    };
-    struct {
-        unsigned int LowPart;
-        unsigned int HighPart;
-    } u;
-    unsigned long long QuadPart;
-} ULARGE_INTEGER;
-
-typedef ULARGE_INTEGER *PULARGE_INTEGER;
-
+typedef unsigned long long ULARGE_INTEGER;
+typedef long long LARGE_INTEGER;
 
 #endif
 
