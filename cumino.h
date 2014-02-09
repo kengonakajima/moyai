@@ -48,6 +48,11 @@ inline double now() {
     gettimeofday( &tmv, NULL );
     return tmv.tv_sec  + (double)(tmv.tv_usec) / 1000000.0f;
 }
+inline long long now_usec() {
+    struct timeval tmv;
+    gettimeofday( &tmv, NULL );
+    return tmv.tv_sec*1000000  + tmv.tv_usec;
+}
 
 inline float len(float x0, float y0, float x1, float y1 ){
     return sqrt( (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));
