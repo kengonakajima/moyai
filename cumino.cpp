@@ -561,4 +561,15 @@ int memDecompressLZ4( char *out, int outlen, char *in, int inlen ) {
 }
 
 
-
+unsigned int hash_pjw( const char* s ) {
+    char *p;
+    unsigned int h = 0 ,g;
+    for( p = (char*) s ; *p ; p ++ ){
+        h = ( h<< 4 ) + (*p);
+        if( (g = h & 0xf0000000) != 0){
+            h = h ^ (g>>24);
+            h = h ^ g;
+        }
+    }
+    return h;
+}   

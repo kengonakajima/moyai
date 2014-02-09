@@ -215,5 +215,6 @@ int memDecompressLZ4( char *out, int outlen, char *in, int inlen );
 #define INVALID_SOCKET (-1)
 #endif
 
+unsigned int hash_pjw( const char* s );
 
 #endif
