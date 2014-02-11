@@ -222,7 +222,7 @@ namespace glfw_d3d
 
 			HRESULT hr = D3D11CreateDeviceAndSwapChain(
 				nullptr,							// IDXGIAdapter (nullptr for default)
-				D3D_DRIVER_TYPE_REFERENCE,			// Driver Type
+				D3D_DRIVER_TYPE_HARDWARE,// REFERENCE,			// Driver Type
 				nullptr,							// Software renderer DLL handle
 #if defined(DEBUG) || defined(_DEBUG)	// Flags
 				D3D11_CREATE_DEVICE_DEBUG,
