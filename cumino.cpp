@@ -17,8 +17,6 @@
 #include <sys/stat.h>
 
 #include "zlib.h"
-#include "lz4/lz4.h"
-#include "lz4/lz4hc.h"
 
 #include "cumino.h"
 
@@ -551,15 +549,6 @@ int memCompress( char *out, int outlen, char *in, int inlen ) {
     deflateEnd(&z);
     return out_so_far;
 }
-
-
-int memCompressLZ4( char *out, int outlen, char *in, int inlen ) {
-    return LZ4_compressHC ( in, out, inlen );
-}
-int memDecompressLZ4( char *out, int outlen, char *in, int inlen ) {
-    return LZ4_decompress_safe ( in, out, inlen, outlen );
-}
-
 
 unsigned int hash_pjw( const char* s ) {
     char *p;

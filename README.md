@@ -280,6 +280,6 @@ License notes
  - freetype-gl : Copyright 2011,2012 Nicolas P. Rougier. All rights reserved.
  - GLFW Copyright (c) 2002-2006 Marcus Geelnard, 2006-2010 Camilla Berglund <elmindreda@elmindreda.org>
  - SOIL image loader : 2007 Jonathan Dummer
- - lz4 : GPL2
+
  
 

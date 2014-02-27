@@ -27,15 +27,13 @@ GLFWLIB=$(GLFW)/lib/cocoa/libglfw.a
 
 FTGLOBJS=vertex-attribute.o vertex-buffer.o vector.o texture-atlas.o texture-font.o
 SOILOBJS=SOIL.o stb_image_aug.o image_DXT.o image_helper.o
-LZ4OBJS=lz4.o lz4hc.o
 
 SOILLIB=libsoil.a
-LZ4LIB=liblz4.a
 FTGLLIB=libftgl.a
 OUTCLILIB=libmoyaicl.a
 OUTSVLIB=libmoyaisv.a
 
-EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB)  $(LZ4LIB)
+EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB)  
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(GLFWLIB) 
 CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
 CFLAGS=-O0 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -DUSE_OPENGL  
@@ -81,10 +79,6 @@ $(FTGLLIB) : $(FTGLOBJS)
 $(SOILLIB) : $(SOILOBJS)
 	ar cr $(SOILLIB) $(SOILOBJS)
 	ranlib $(SOILLIB)
-
-$(LZ4LIB) : $(LZ4OBJS)
-	ar cr $(LZ4LIB) $(LZ4OBJS)
-	ranlib $(LZ4LIB)
 
 
 common.o : common.cpp
@@ -163,11 +157,6 @@ image_DXT.o:
 image_helper.o:
 	g++ -c soil/src/image_helper.c $(CFLAGS)
 
-lz4.o:
-	g++ -c lz4/lz4.c $(CFLAGS)
-
-lz4hc.o:
-	g++ -c lz4/lz4hc.c $(CFLAGS)
 
 $(FREETYPELIB):
 	rm -rf $(FREETYPE)

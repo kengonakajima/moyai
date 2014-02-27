@@ -423,17 +423,12 @@ void comptest() {
     assert( strcmp( inflated, buf ) == 0 );
     print("zlib: %d bytes to %d byte", inflated_len, zipped_len );
 
-    // lz4
-    zipped_len = memCompressLZ4( zipped, sizeof(zipped), buf, strlen(buf) );
-    inflated_len = memDecompressLZ4( inflated, sizeof(inflated), zipped, zipped_len );
-    inflated[inflated_len] = '\0';
-    print("lz4: %d bytes to %d byte", inflated_len, zipped_len );
-    
-    
-    
 }
 
-
+int winclose_callback(){
+    exit(0);
+    return 1;
+}
 
 int main(int argc, char **argv )
 {
@@ -469,6 +464,7 @@ int main(int argc, char **argv )
         glfwTerminate();
         return 1;
     }
+    glfwSetWindowCloseCallback( winclose_callback );
     glfwSetWindowTitle( "demo2d" );
     glfwEnable( GLFW_STICKY_KEYS );
     glfwSwapInterval(1); // vsync
