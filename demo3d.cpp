@@ -341,6 +341,11 @@ void setupCube() {
     
 }
 
+int winclose_callback(){
+    exit(0);
+    return 1;
+}
+
 
 int main() {
     
@@ -348,6 +353,7 @@ int main() {
 
     glfwInit();
     glfwOpenWindow( SCRW,SCRH, 8,8,8,8, 16,0, GLFW_WINDOW );
+    glfwSetWindowCloseCallback( winclose_callback );
     glfwSetWindowTitle( "demo3d");
     glfwEnable( GLFW_STICKY_KEYS );
     glfwSwapInterval(1); // vsync
