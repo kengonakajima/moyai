@@ -434,6 +434,11 @@ void comptest() {
 }
 
 
+int winclose_callback(){
+    exit(0);
+    return 1;
+}
+
 
 int main(int argc, char **argv )
 {
@@ -470,6 +475,7 @@ int main(int argc, char **argv )
         return 1;
     }
     glfwSetWindowTitle( "demo2d" );
+    glfwSetWindowCloseCallback( winclose_callback );
     glfwEnable( GLFW_STICKY_KEYS );
     glfwSwapInterval(1); // vsync
 #ifdef WIN32
