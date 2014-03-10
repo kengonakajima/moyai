@@ -573,3 +573,9 @@ unsigned int hash_pjw( const char* s ) {
     }
     return h;
 }   
+
+int atoilen( const char *s, int l ) {
+    char buf[64];
+    strncpy( buf, s, l );
+    return atoi(buf);
+}
