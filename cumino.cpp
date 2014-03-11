@@ -579,3 +579,8 @@ int atoilen( const char *s, int l ) {
     strncpy( buf, s, l );
     return atoi(buf);
 }
+unsigned int strtoullen( const char *s, int l ) {
+    char buf[64];
+    strncpy( buf, s, l );
+    return strtoul( buf, NULL, 10 );
+}

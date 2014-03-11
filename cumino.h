@@ -222,5 +222,6 @@ int memDecompressLZ4( char *out, int outlen, char *in, int inlen );
 
 unsigned int hash_pjw( const char* s );
 int atoilen( const char *s, int l );
+unsigned int strtoullen( const char *s, int l );
 
 #endif
