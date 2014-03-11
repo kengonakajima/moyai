@@ -170,13 +170,15 @@ bool Image::loadPNG( const char *path ) {
     }
 
     unsigned error;
-    unsigned char* image_data = (unsigned char*) MALLOC( 1024 * 1024 * 4 );
+    unsigned char* image_data = (unsigned char*) MALLOC( 2048 * 2048 * 4 );
     unsigned w, h;
 
     error = lodepng_decode32_file(&image_data, &w, &h, path );
 
     if(error) {
         fprintf(stderr, "decoder error %u: %s\n", error, lodepng_error_text(error) );
+        FREE(image_data);
+        fclose(fp);
         return false;
     }
 
@@ -184,22 +186,41 @@ bool Image::loadPNG( const char *path ) {
     height = h;
     
     ensureBuffer();
-
-    for(int i=0;i<width*height;i++){
-        int x = i % width;
-        int y = (i / width);
-        int ii = y * width + x;
-        buffer[ii*4+0] = image_data[i*4+0]; // r
-        buffer[ii*4+1] = image_data[i*4+1]; // g
-        buffer[ii*4+2] = image_data[i*4+2]; // b
-        buffer[ii*4+3] = image_data[i*4+3]; // a
+#define IMAGE_BUFFER_COPY \
+    for(int i=0;i<width*height;i++){ \
+        int x = i % width; \
+        int y = (i / width); \
+        int ii = y * width + x; \
+        buffer[ii*4+0] = image_data[i*4+0]; /*r*/   \
+        buffer[ii*4+1] = image_data[i*4+1]; /*g*/   \
+        buffer[ii*4+2] = image_data[i*4+2]; /*b*/   \
+        buffer[ii*4+3] = image_data[i*4+3]; /*a*/   \
     }
 
+    IMAGE_BUFFER_COPY;
+    
     // clean up
     FREE(image_data);
     fclose(fp);
 
     return true;
+}
+bool Image::loadPNGMem( unsigned char *ptr, size_t sz ) {
+    unsigned error;
+    unsigned char* image_data = (unsigned char*) MALLOC( 2048 * 2048 * 4 );
+    unsigned w, h;    
+    error = lodepng_decode32( &image_data, &w, &h,  ptr,sz );
+    if(error) {
+        fprintf(stderr, "decoder error %u: %s\n", error, lodepng_error_text(error) );
+        FREE(image_data);
+        return false;
+    }
+    width = w;
+    height = h;
+    ensureBuffer();
+    IMAGE_BUFFER_COPY;
+    FREE(image_data);
+    return true;    
 }
 
 // copy inside image
@@ -233,7 +254,17 @@ void Image::copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0,
     }
 }
 
-
+bool Image::writePNGMem( unsigned char **out, size_t *outsize ) {
+    assertmsg( buffer!=0 , "image not initialized?" );
+    assertmsg( width <= 2048 && height <= 2048, "image too big" );
+    unsigned error;
+    error = lodepng_encode32( out, outsize, buffer, width, height );
+    if(error) {
+        fprintf(stderr, "lodepng_encode32_file failed%d", error );
+        return false;
+    }
+    return true;        
+}
 bool Image::writePNG(const char *path) {
 
     assertmsg( buffer!=0 , "image not initialized?" );
