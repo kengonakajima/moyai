@@ -140,6 +140,7 @@ inline bool isPowerOf2(unsigned int x) {
 void enablePrint(bool enable);
 void print( const char *fmt, ... );
 void prt(const char *fmt, ... );
+char *format( const char *fmt, ... );
 
 void assertmsg( bool cond, const char *fmt, ... );
 

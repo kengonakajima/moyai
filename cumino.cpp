@@ -108,13 +108,21 @@ void print( const char *fmt, ... ){
     char dest[1024*16];
     va_list argptr;
     va_start( argptr, fmt );
-    vsprintf( dest, fmt, argptr );
+    vsnprintf( dest, sizeof(dest), fmt, argptr );
     va_end( argptr );
     fprintf( stderr, "%s\n", dest );
 #ifdef WIN32
 	OutputDebugStringA(dest);
 	OutputDebugStringA("\n");
 #endif
+}
+char *format( const char *fmt, ... ) {
+    static char buf[1024*16];
+    va_list argptr;
+    va_start( argptr, fmt );
+    vsnprintf( buf, sizeof(buf), fmt, argptr );
+    va_end( argptr );
+    return buf;
 }
 
 void assertmsg( bool cond, const char *fmt, ... ) {
