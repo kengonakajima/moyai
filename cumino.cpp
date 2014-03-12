@@ -116,14 +116,8 @@ void print( const char *fmt, ... ){
 	OutputDebugStringA("\n");
 #endif
 }
-char *format( const char *fmt, ... ) {
-    static char buf[1024*16];
-    va_list argptr;
-    va_start( argptr, fmt );
-    vsnprintf( buf, sizeof(buf), fmt, argptr );
-    va_end( argptr );
-    return buf;
-}
+
+
 
 void assertmsg( bool cond, const char *fmt, ... ) {
     if(!cond){
