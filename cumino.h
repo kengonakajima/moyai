@@ -224,4 +224,15 @@ unsigned int hash_pjw( const char* s );
 int atoilen( const char *s, int l );
 unsigned int strtoullen( const char *s, int l );
 
+class Format {
+public:
+    char buf[1024];
+    Format( const char *fmt, ... ) {
+        va_list argptr;
+        va_start( argptr, fmt );
+        vsnprintf( buf, sizeof(buf), fmt, argptr );
+        va_end( argptr );
+    }
+};
+
 #endif
