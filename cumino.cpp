@@ -464,7 +464,7 @@ void endMeasure() {
 
 ///////////
 
-int memDecompress( char *out, int outlen, char *in, int inlen ) {
+int memDecompress( char *out, int outlen, const char *in, int inlen ) {
     char buf[4096];
     int out_so_far =0;
     z_stream z;
@@ -507,7 +507,7 @@ int memDecompress( char *out, int outlen, char *in, int inlen ) {
     return out_so_far;
 }
 
-int memCompress( char *out, int outlen, char *in, int inlen ) {
+int memCompress( char *out, int outlen, const char *in, int inlen ) {
     char buf[4096];
     int out_so_far = 0;
     z_stream z;
@@ -555,10 +555,10 @@ int memCompress( char *out, int outlen, char *in, int inlen ) {
 }
 
 
-int memCompressLZ4( char *out, int outlen, char *in, int inlen ) {
+int memCompressLZ4( char *out, int outlen, const char *in, int inlen ) {
     return LZ4_compressHC ( in, out, inlen );
 }
-int memDecompressLZ4( char *out, int outlen, char *in, int inlen ) {
+int memDecompressLZ4( char *out, int outlen, const char *in, int inlen ) {
     return LZ4_decompress_safe ( in, out, inlen, outlen );
 }
 

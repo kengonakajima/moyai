@@ -210,10 +210,10 @@ bool findChar( const char *s, char ch );
 void startMeasure(const char *name);
 void endMeasure();
 
-int memCompress( char *out, int outlen, char *in, int inlen );
-int memDecompress( char *out, int outlen, char *in, int inlen );
-int memCompressLZ4( char *out, int outlen, char *in, int inlen );
-int memDecompressLZ4( char *out, int outlen, char *in, int inlen );
+int memCompress( char *out, int outlen, const char *in, int inlen );
+int memDecompress( char *out, int outlen, const char *in, int inlen );
+int memCompressLZ4( char *out, int outlen, const char *in, int inlen );
+int memDecompressLZ4( char *out, int outlen, const char *in, int inlen );
 
 
 #ifndef INVALID_SOCKET // winsock
