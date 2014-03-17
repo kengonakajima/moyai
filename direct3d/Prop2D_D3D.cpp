@@ -241,7 +241,7 @@ void Prop2D_D3D::render(Camera *cam)
 		for(int i=0;i<children_num;i++)
 		{
 			Prop2D_D3D *p = (Prop2D_D3D*) children[i];
-			p->render( cam );
+            if( p->visible ) p->render( cam );
 		}
 	}
 
@@ -347,7 +347,7 @@ void Prop2D_D3D::render(Camera *cam)
 		for(int i=0;i<children_num;i++)
 		{
 			Prop2D_D3D *p = (Prop2D_D3D*) children[i];
-			p->render( cam );
+			if( p->visible ) p->render( cam );
 		}
 	}
 

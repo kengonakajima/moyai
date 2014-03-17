@@ -154,7 +154,7 @@ void Prop2D_OGL::render(Camera *cam) {
 	if( children_num > 0 && render_children_first ){
 		for(int i=0;i<children_num;i++){
 			Prop2D_OGL *p = (Prop2D_OGL*) children[i];
-			p->render( cam );
+            if( p->visible ) p->render( cam );
 		}
 	}
 
@@ -253,7 +253,7 @@ void Prop2D_OGL::render(Camera *cam) {
 	if( children_num > 0 && (render_children_first == false) ){
 		for(int i=0;i<children_num;i++){
 			Prop2D_OGL *p = (Prop2D_OGL*) children[i];
-			p->render( cam );
+			if(p->visible) p->render( cam );
 		}
 	}
 
