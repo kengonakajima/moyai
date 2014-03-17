@@ -15,6 +15,8 @@ SoundSystem::SoundSystem()  : sys(0) {
 	}
 	r = FMOD_System_Init( sys, 32, FMOD_INIT_NORMAL, NULL );
 	FMOD_ERRCHECK(r);
+
+    for(int i=0;i<elementof(sounds);i++) sounds[i] = NULL;
 }
 
 Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_currently_ignored ) {
@@ -26,9 +28,32 @@ Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_curre
 	FMOD_Sound_SetMode( s, FMOD_LOOP_OFF );
 	out->sound = s;
 	out->default_volume = vol;
+    out->id = id_gen;
+    id_gen++;
+    append(out);
 	return out;
 }
 
 Sound *SoundSystem::newSound( const char *path ){
 	return newSound( path, 1.0, false );
 }
+
+void SoundSystem::append( Sound *s ) {
+    for(int i=0;i<elementof(sounds);i++) {
+        if( sounds[i] == NULL ) {
+            sounds[i] = s;
+            return;
+        }
+    }
+    assertmsg(false, "sound full");
+}
+
+Sound *SoundSystem::getById( int id ) {
+    for(int i=0;i<elementof(sounds);i++) {
+        if( sounds[i] && sounds[i]->id == id ) {
+            return sounds[i];
+        }
+    }
+    return NULL;
+}
+

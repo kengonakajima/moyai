@@ -14,7 +14,9 @@ inline void FMOD_ERRCHECK(FMOD_RESULT result){
 
 class SoundSystem {
 public:
+    int id_gen;
 	FMOD_SYSTEM *sys;
+    Sound *sounds[1024];
 	SoundSystem();
 
 	Sound * newSE( const char *path ) { return newSE(path,1.0f); }
@@ -24,4 +26,7 @@ public:
 
 	Sound *newSound( const char *path, float vol, bool use_stream_currently_ignored );
 	Sound *newSound( const char *path );
+
+    void append( Sound*s );
+    Sound *getById( int id );
 };

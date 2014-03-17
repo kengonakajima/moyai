@@ -6,11 +6,12 @@ class SoundSystem;
 
 class Sound {
 public:
+    int id;
 	FMOD_SOUND *sound;
 	SoundSystem *parent;
 	FMOD_CHANNEL *ch;
 
-	float default_volume;
+	float default_volume;    
 	Sound( SoundSystem *s);
 	void setLoop( bool flag );
 	void play();
