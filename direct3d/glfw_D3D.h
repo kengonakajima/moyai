@@ -159,6 +159,7 @@ namespace glfw_d3d
 
 	/* Input handling */
 	void glfwSetKeyCallback( GLFWkeyfun cbfun );
+    void glfwSetWindowCloseCallback( GLFWwindowclosefun cbfun );
 	int glfwGetKey( int key );
 	int glfwGetJoystickPos( int joy, float *pos, int numaxes );
 	int glfwGetJoystickParam( int joy, int param );

@@ -95,6 +95,7 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM l
 	case WM_QUIT:
 	case WM_CLOSE:
 		{
+            if( g_context.m_windowCloseCallbackFunct ) g_context.m_windowCloseCallbackFunct();
 			// This is not clean and should be changed.
 			exit(0);
 		}
@@ -349,6 +350,10 @@ namespace glfw_d3d
 			*height = windowRect.bottom - windowRect.top;
 		}
 	}
+    void glfwSetWindowCloseCallback( GLFWwindowclosefun  cbfun )
+    {
+        g_context.m_windowCloseCallbackFunct = cbfun;
+    }
 
 	void glfwSwapInterval( int interval )
 	{

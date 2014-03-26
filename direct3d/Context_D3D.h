@@ -15,6 +15,7 @@ class VertexBuffer_D3D;
 class GPUMarker_D3D;
 
 typedef void (*GLFWkeyfun)(int, int);
+typedef int (*GLFWwindowclosefun)(void);
 
 moyai_align(16) struct CBufferMVP
 {
@@ -60,6 +61,7 @@ struct Context_D3D
 		, m_hWindowHandle(nullptr)
 		, m_swapInterval(0) 
 		, m_keyCallbackFunct(nullptr)
+        , m_windowCloseCallbackFunct(nullptr)
 		, m_mouseWheelDelta(0)
 	{
 		m_clearColorRGBA[0] = 0.0f;
@@ -92,6 +94,7 @@ struct Context_D3D
 	float m_clearColorRGBA[4];
 
 	GLFWkeyfun m_keyCallbackFunct;
+    GLFWwindowclosefun m_windowCloseCallbackFunct;
 	std::unordered_map<KeyCode, KeyState> m_keyStates;
 	int m_mouseWheelDelta;
 };
