@@ -19,4 +19,5 @@ public:
 	void playDistance(float mindist, float maxdist, float dist, float relvol );
 	void stop();
 	bool isPlaying();
+    void setVolume(float v);
 };

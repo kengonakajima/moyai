@@ -44,7 +44,9 @@ bool Sound::isPlaying() {
 	if( r != FMOD_OK ) return false;
 	return val;
 }
-
+void Sound::setVolume( float v ) {
+	FMOD_Channel_SetVolume(this->ch, v );
+}
 void Sound::setLoop( bool flag ) {
 	if( flag ) {
 		FMOD_Sound_SetMode( sound, FMOD_LOOP_NORMAL );            
