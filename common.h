@@ -273,6 +273,12 @@ public:
     inline unsigned int toCode() {
         return  ( (int)(r * 255) << 16 ) + ( (int)(g * 255) << 8 ) + (int)( b * 255);
     }
+    inline void toRGB( unsigned char *r, unsigned char *g, unsigned char *b ) {
+        unsigned int code = toCode();
+        *r = (code >> 16) & 0xff;
+        *g = (code >> 8) & 0xff;
+        *b = (code) & 0xff;
+    }
     inline Color operator*(float f) { return Color( r*f, g*f, b*f, a*f ); }
     inline Color operator+( Color c) { return Color(r+c.r, g+c.g, b+c.b, a+c.a); }
 };
