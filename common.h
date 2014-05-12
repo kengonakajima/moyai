@@ -3,7 +3,11 @@
 
 #include <stdlib.h>
 
+#ifdef __linux__
+#include <map>
+#else
 #include <unordered_map>
+#endif
 
 #ifdef WIN32
 #define _USE_MATH_DEFINES
@@ -328,7 +332,11 @@ public:
     int last_poll_num;
     bool to_render;
     bool skip_poll;
+#ifdef __linux__
+    std::map<int,Prop*> idmap;
+#else    
     std::unordered_map<int,Prop*> idmap;
+#endif    
     
     Group() : prop_top(NULL), last_poll_num(0), to_render(false), skip_poll(false) {
         id = idgen++;        
