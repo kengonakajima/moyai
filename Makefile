@@ -171,7 +171,7 @@ lz4hc.o:
 
 $(FREETYPELIB):
 	rm -rf $(FREETYPE)
-	tar zxf $(FREETYPE).tar.bz2
+	tar jxf $(FREETYPE).tar.bz2
 	cd $(FREETYPE); ./configure; make
 
 $(BZ2LIB):
