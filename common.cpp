@@ -59,8 +59,11 @@ int Group::pollAllProps(double dt ){
         }
         p->next = NULL;
         p->onDelete();
-
+#ifdef __linux__
+        std::map<int,Prop*>::iterator ii = idmap.find(p->id);
+#else        
         std::unordered_map<int,Prop*>::iterator ii = idmap.find(p->id);
+#endif        
         idmap.erase(ii);
         delete p;
     }
