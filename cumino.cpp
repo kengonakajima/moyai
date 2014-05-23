@@ -589,3 +589,11 @@ unsigned int strtoullen( const char *s, int l ) {
     buf[copylen] = '\0';
     return strtoul( buf, NULL, 10 );
 }
+unsigned long long strtoulllen( const char *s, int l ) {
+    char buf[64];
+    int copylen = l;
+    if( copylen >= sizeof(buf) ) copylen = sizeof(buf)-1;
+    strncpy( buf, s, copylen );
+    buf[copylen] = '\0';
+    return strtoull( buf, NULL, 10 );    
+}

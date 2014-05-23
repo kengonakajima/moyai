@@ -48,6 +48,11 @@ inline double now() {
     gettimeofday( &tmv, NULL );
     return tmv.tv_sec  + (double)(tmv.tv_usec) / 1000000.0f;
 }
+inline long long now_msec() {
+    struct timeval tmv;
+    gettimeofday( &tmv, NULL );
+    return tmv.tv_sec*1000  + tmv.tv_usec/1000;    
+}
 inline long long now_usec() {
     struct timeval tmv;
     gettimeofday( &tmv, NULL );
@@ -223,6 +228,7 @@ int memDecompressLZ4( char *out, int outlen, const char *in, int inlen );
 unsigned int hash_pjw( const char* s );
 int atoilen( const char *s, int l );
 unsigned int strtoullen( const char *s, int l );
+unsigned long long strtoulllen( const char *s, int l );
 
 class Format {
 public:
