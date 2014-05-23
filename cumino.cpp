@@ -583,6 +583,9 @@ int atoilen( const char *s, int l ) {
 }
 unsigned int strtoullen( const char *s, int l ) {
     char buf[64];
-    strncpy( buf, s, l );
+    int copylen = l;
+    if( copylen >= sizeof(buf) ) copylen = sizeof(buf)-1;
+    strncpy( buf, s, copylen );
+    buf[copylen] = '\0';
     return strtoul( buf, NULL, 10 );
 }
