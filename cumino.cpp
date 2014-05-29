@@ -605,5 +605,9 @@ unsigned long long strtoulllen( const char *s, int l ) {
     if( copylen >= sizeof(buf) ) copylen = sizeof(buf)-1;
     strncpy( buf, s, copylen );
     buf[copylen] = '\0';
-    return strtoull( buf, NULL, 10 );    
+#if defined(WIN32)
+    return _strtoui64( buf, NULL, 10 );
+#else    
+    return strtoull( buf, NULL, 10 );
+#endif    
 }
