@@ -18,6 +18,7 @@ public:
 	void play(float vol);
 	void playDistance(float mindist, float maxdist, float dist, float relvol );
 	void stop();
+    void pause( bool to_pause );
 	bool isPlaying();
     void setVolume(float v);
 };

@@ -35,6 +35,9 @@ void Sound::playDistance(float mindist, float maxdist, float dist, float relvol)
 void Sound::stop() {
 	FMOD_Channel_Stop( this->ch );
 }
+void Sound::pause( bool to_pause ) {
+    FMOD_Channel_SetPaused( this->ch, to_pause );
+}
 
 bool Sound::isPlaying() {
 	if(!this->ch)return false;
