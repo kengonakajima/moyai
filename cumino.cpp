@@ -611,3 +611,12 @@ unsigned long long strtoulllen( const char *s, int l ) {
     return strtoull( buf, NULL, 10 );
 #endif    
 }
+void truncateString( char *out, const char *in, int outlen ) {
+    strncpy( out, in, outlen );
+    int in_l = strlen(in);
+    if(in_l>outlen) {
+        out[outlen] = '\0';
+    } else {
+        out[in_l] = '\0';
+    }
+}

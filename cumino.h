@@ -242,4 +242,6 @@ public:
     }
 };
 
+void truncateString( char *out, const char *in, int outlen );
+
 #endif
