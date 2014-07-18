@@ -41,7 +41,7 @@ public:
 			for(int i=0;i<prim_num;i++){
 				delete prims[i];
 			}
-			delete prims;
+			FREE(prims);
 		}
 		prims = NULL;
 		prim_num = 0;
