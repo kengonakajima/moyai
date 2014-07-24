@@ -240,6 +240,14 @@ public:
         vsnprintf( buf, sizeof(buf), fmt, argptr );
         va_end( argptr );
     }
+    void trimWith( int len, char ch = '.' ) {
+        int l = strlen(buf);
+        if( l < len )return;
+        for(int i=len-3;i<len;i++) {
+            buf[i] = ch;
+        }
+        buf[len] = '\0';
+    }
 };
 
 void truncateString( char *out, const char *in, int outlen );
