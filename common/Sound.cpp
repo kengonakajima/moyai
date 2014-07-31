@@ -10,10 +10,8 @@ void Sound::play(float vol){
 	if(vol==0)return;
 	FMOD_RESULT r;
 	if( !this->ch ){
-		//            print("free:%p",this); // FMOD‚Å‚ÍAFREE‚ð‚Â‚©‚Á‚Ächannel‚ðŠ„‚è“–‚Ä‚½ŒãAreuse‚·‚éB
 		r = FMOD_System_PlaySound( parent->sys, FMOD_CHANNEL_FREE, sound, 0, & this->ch );
 	} else {
-		//            print("reuse:%p",this);            
 		r = FMOD_System_PlaySound( parent->sys, FMOD_CHANNEL_REUSE, sound, 0, & this->ch );            
 	}
 	FMOD_ERRCHECK(r);
@@ -32,8 +30,11 @@ void Sound::playDistance(float mindist, float maxdist, float dist, float relvol)
 	}
 }
 
+
 void Sound::stop() {
+    //    print("Sound::stop! %p debugid:%d ch:%p",this, this->debug_id ,this->ch);
 	FMOD_Channel_Stop( this->ch );
+    this->ch = NULL;
 }
 void Sound::pause( bool to_pause ) {
     FMOD_Channel_SetPaused( this->ch, to_pause );
@@ -49,6 +50,11 @@ bool Sound::isPlaying() {
 }
 void Sound::setVolume( float v ) {
 	FMOD_Channel_SetVolume(this->ch, v );
+}
+float Sound::getVolume() {
+    float v;
+    FMOD_Channel_GetVolume(this->ch,&v);
+    return v;
 }
 void Sound::setLoop( bool flag ) {
 	if( flag ) {

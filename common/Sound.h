@@ -11,7 +11,8 @@ public:
 	SoundSystem *parent;
 	FMOD_CHANNEL *ch;
 
-	float default_volume;    
+	float default_volume;
+    
 	Sound( SoundSystem *s);
 	void setLoop( bool flag );
 	void play();
@@ -21,4 +22,5 @@ public:
     void pause( bool to_pause );
 	bool isPlaying();
     void setVolume(float v);
+    float getVolume();
 };
