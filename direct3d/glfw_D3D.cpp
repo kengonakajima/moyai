@@ -374,6 +374,12 @@ namespace glfw_d3d
 		}
 	}
 
+	void glfwSleep( double time )
+	{
+		DWORD timeMS = static_cast<DWORD>(time * 1000);
+		Sleep(timeMS);
+	}
+
 	void glfwSetKeyCallback( GLFWkeyfun cbfun )
 	{
 		g_context.m_keyCallbackFunct = cbfun;

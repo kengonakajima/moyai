@@ -28,6 +28,9 @@ namespace glfw_d3d
 	void glfwSwapInterval( int interval );
 	void glfwSwapBuffers( void );
 
+	/* Threading */
+	void glfwSleep( double time );
+
 	#define GLFWCALL
 
 	/* glfwGetJoystickParam tokens */
