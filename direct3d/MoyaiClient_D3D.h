@@ -24,4 +24,5 @@ public:
 private:
 
 	ID3D11BlendState *m_pBlendState;
+	VertexBuffer_D3D *m_pQuadVertexBuffer;
 };

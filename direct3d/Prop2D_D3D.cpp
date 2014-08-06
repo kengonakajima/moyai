@@ -165,12 +165,12 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 	// if rot
 	Vec2 a,b,c,d;
 	if(rot==0){
-		if(uvrot){
+		if(uvrot){ // -pi/2 rotation
 			a = Vec2( maxx, miny );
 			b = Vec2( minx, miny );
 			c = Vec2( minx, maxy );
 			d = Vec2( maxx, maxy );
-		} else {
+		} else { // no rotation
 			a = Vec2( minx, miny );
 			b = Vec2( minx, maxy );
 			c = Vec2( maxx, maxy );
@@ -186,12 +186,12 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 		maxx -= center_x;
 		maxy -= center_y;
 
-		if(uvrot){
+		if(uvrot){ // -pi/2 + radrot rotation
 			a = Vec2( maxx * cs - miny * sn, maxx * sn + miny * cs );
 			b = Vec2( minx * cs - miny * sn, minx * sn + miny * cs );
 			c = Vec2( minx * cs - maxy * sn, minx * sn + maxy * cs );
 			d = Vec2( maxx * cs - maxy * sn, maxx * sn + maxy * cs );
-		} else {
+		} else { // radrot rotation
 			a = Vec2( minx * cs - miny * sn, minx * sn + miny * cs );
 			b = Vec2( minx * cs - maxy * sn, minx * sn + maxy * cs );
 			c = Vec2( maxx * cs - maxy * sn, maxx * sn + maxy * cs );

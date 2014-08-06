@@ -3,6 +3,45 @@
 #include "FragmentShader_D3D.h"
 #include <d3dcompiler.h>
 
+const static char default_vertex_shader[] = 
+	"struct VS_Input\n"
+	"{\n"
+	"   float3 pos : POSITION;\n"
+	"   float2 uv : TEXCOORD0;\n"
+	"   float4 color : COLOR0;\n"
+	"   float3 posRot : TEXCOORD1;\n"
+	"};\n"
+	"struct VS_Output\n"
+	"{\n"
+	"   float4 pos : SV_POSITION;\n"
+	"   float4 color : COLOR0;\n"
+	"   float2 uv : TEXCOORD0;\n"
+	"};\n"
+	"struct PS_Output\n"
+	"{\n"
+	"   float4 color : SV_Target;\n"
+	"};\n"
+	"cbuffer PerLayer : register(b0)\n"
+	"{\n"
+	"   float4x4 Projection;\n"
+	"}\n"
+	"VS_Output VSMain(VS_Input input)\n"
+	"{\n"
+	"   VS_Output output;\n"
+	"   output.color = input.color;\n"
+	"   output.uv = input.uv;\n"
+	"   float4 pos = float4(input.pos, 1.0f);\n"
+	"	float2 trans = input.posRot.xy;\n"
+	"	float rot = input.posRot.z;\n"
+	"	float cosRot = cos(rot);\n"
+	"	float sinRot = sin(rot);\n"
+	"	float3x2 rotTransMat = { cosRot, sinRot, -sinRot, cosRot, trans.x, trans.y };\n"
+	"   pos.xy = mul(float3(pos.xy, 1.0f), rotTransMat);\n"
+	"   pos = mul(pos, Projection);\n"
+	"   output.pos = pos;\n"
+	"   return output;\n"
+	"}\n";
+
 FragmentShader_D3D::FragmentShader_D3D()
 	: m_pPixelShader(nullptr)
 	, m_pVertexShader(nullptr)
