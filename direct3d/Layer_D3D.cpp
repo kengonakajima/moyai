@@ -217,12 +217,14 @@ int Layer_D3D::renderAllProps()
 
 int Layer_D3D::sendDrawCalls()
 {
+	/*
 	for (std::vector<RenderData>::const_iterator iter = m_renderData.cbegin(); iter != m_renderData.cend(); ++iter)
 	{
 		const RenderData &data = *iter;
 	}
 
 	m_pQuadVertexBuffer->bind();
+	*/
 
 	int spriteCount = m_renderData.size();
 	m_renderData.clear();
