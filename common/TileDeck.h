@@ -4,9 +4,9 @@
 
 class TileDeck {
 public:
-	int cell_width, cell_height;
-	int tile_width, tile_height;
-	int image_width, image_height;
+	int cell_width, cell_height; // Size in pixels of a single sprite
+	int tile_width, tile_height; // Number of sprites in the atlas
+	int image_width, image_height; // Size of the image in pixels
 	Texture *tex;
 	TileDeck() : cell_width(0), cell_height(0), tile_width(0), tile_height(0), image_width(0), image_height(0),tex(NULL) {}
 	void setTexture( Texture *t ){
@@ -21,9 +21,8 @@ public:
 		image_height = img->height;
 	}
 
-	// sprw,sprh : sprite size
-	// cellw,cellh : cell nums
-	// imgw,imgh : image size
+	// sprw,sprh : number of sprites in the atlas
+	// cellw,cellh : size in pixels of a single sprite 
 	inline void setSize( int sprw, int sprh, int cellw, int cellh ){
 		tile_width = sprw;
 		tile_height = sprh;

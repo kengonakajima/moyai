@@ -15,6 +15,7 @@ public:
 	~VertexBuffer_D3D(); 
 
 	void copyFromBuffer(void *data, int vert_cnt);
+
 	void setCoord(unsigned int index, Vec3 v );
 	Vec3 getCoord(unsigned index);
 	void setCoordBulk(Vec3 *v, unsigned int num);
@@ -33,6 +34,10 @@ public:
 	void bind();
 	void setTopology(D3D11_PRIMITIVE_TOPOLOGY topology);
 
+	// Instancing
+	void addInstanceData(size_t instanceSize, size_t maxInstanceCount);
+	void copyInstanceFromBuffer(void *data, size_t instanceCount);
+
 private:
 
 	void initD3DObjects();
@@ -42,6 +47,7 @@ private:
 	void setColorElement(D3D11_INPUT_ELEMENT_DESC &element);
 
 	ID3D11Buffer *m_pVertexBuffer;
+	ID3D11Buffer *m_pInstanceBuffer;
 	ID3D11InputLayout *m_pInputLayout;
 	const FragmentShader_D3D *m_pInputSignatureShader;
 	D3D11_PRIMITIVE_TOPOLOGY m_topology;

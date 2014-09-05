@@ -3,46 +3,11 @@
 #include "Prim_D3D.h"
 #include "VertexBuffer_D3D.h"
 #include "FragmentShader_D3D.h"
+#include "ShaderManager_D3D.h"
 #include "../common/GPUMarker.h"
 #include "../common/VertexFormat.h"
 #include "../common/Enums.h"
 
-
-const static char primitive_shader[] = 
-	"struct VS_Input\n"
-	"{\n"
-	"   float4 pos : POSITION;\n"
-	"   float4 color : COLOR0;\n"
-	"};\n"
-	"struct VS_Output\n"
-	"{\n"
-	"   float4 pos : SV_POSITION;\n"
-	"   float4 color : COLOR0;\n"
-	"};\n"
-	"struct PS_Output\n"
-	"{\n"
-	"   float4 color : SV_Target;\n"
-	"};\n"
-	"cbuffer Matrices : register(b0)\n"
-	"{\n"
-	"   float4x4 ModelView;\n"
-	"   float4x4 Projection;\n"
-	"   float4x4 MVP;\n"
-	"}\n"
-	"VS_Output VSMain(VS_Input input)\n"
-	"{\n"
-	"   VS_Output output;\n"
-	"   float3 pos = mul(input.pos, MVP);\n"
-	"   output.pos = float4(pos, 1.0f);\n"
-	"   output.color = input.color;\n"
-	"   return output;"
-	"}\n"
-	"PS_Output PSMain(VS_Output input)\n" 
-	"{\n"
-	"   PS_Output output;\n"
-	"	output.color = input.color;\n"
-	"   return output;\n"
-	"}\n";
 
 Prim_D3D::Prim_D3D(PRIMTYPE t, Vec2 a, Vec2 b, Color c, int line_width) 
 	: type(t)
@@ -55,8 +20,7 @@ Prim_D3D::Prim_D3D(PRIMTYPE t, Vec2 a, Vec2 b, Color c, int line_width)
 {
 	// Create primitive shader
 	{
-		m_pShader = new FragmentShader_D3D();
-		m_pShader->load(primitive_shader);
+		m_pShader = ShaderManager_D3D::GetInstance().GetShader(ShaderManager_D3D::SHADER_PRIMITIVE);
 	}
 
 	// Create vertex buffer

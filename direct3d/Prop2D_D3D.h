@@ -70,6 +70,7 @@ public:
 	virtual bool prop2DPoll(double dt){ return true;}
 	virtual bool propPoll(double dt);
 	virtual void onAnimFinished(){}
+	virtual void setParentGroup(Group *group);
 
 	inline void setIndex( int ind)
 	{
@@ -162,6 +163,7 @@ public:
 			return false;
 		}
 		children[children_num++] = p;
+		p->parent_group = parent_group;
 		updateMinMaxSizeCache();
 
 		return true;
@@ -235,7 +237,7 @@ public:
 	inline void setXFlip( bool flg){ xflip = flg; }
 	inline void setYFlip( bool flg){ yflip = flg; }
 
-	void drawIndex(TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot, const Color &color);
+	void drawIndex(TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot, Layer_D3D::RenderData &renderData);
 
 	virtual void onIndexChanged(int previndex ) { }
 
@@ -314,6 +316,7 @@ public:
 private:
 
 	void init();
+	Layer_D3D::RenderData& getNewRenderData();
 
 	VertexBuffer_D3D *m_pVertexBuffer;
 };

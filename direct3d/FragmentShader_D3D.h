@@ -14,8 +14,10 @@ public:
 	virtual ~FragmentShader_D3D();
 
 	bool load(const char *src);
-	virtual void updateUniforms() {};
+	bool load(const char *vsSrc, const char *psSrc);
+	bool isLoaded() const { return m_pVertexShader != nullptr; }
 
+	virtual void updateUniforms() {};
 	void bind();
 
 private:

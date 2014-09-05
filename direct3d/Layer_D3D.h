@@ -13,8 +13,22 @@ class VertexBuffer_D3D;
 
 class Layer_D3D : public Group 
 {
+	friend class Prop2D_D3D;
 
 public:
+
+	struct RenderData
+	{
+		RenderData() {}
+		Color color;
+		Vec2 offset;
+		Vec2 scale;
+		Vec2 uvOffset;
+		Vec2 uvScale;
+		float rotation;
+		FragmentShader_D3D *shader;
+		Texture_D3D *texture;
+	};
 
 	Camera *camera;
 	Viewport_D3D *viewport;
@@ -64,8 +78,11 @@ public:
 private:
 
 	void init();
+	int sendDrawCalls();
 
 	Texture_D3D *m_pLastTexture;
-	VertexBuffer_D3D *m_pVertexBuffer;
-	ID3D11Buffer *m_pMatrixConstantBuffer;
+	VertexBuffer_D3D *m_pBillboardVertexBuffer;
+	VertexBuffer_D3D *m_pQuadVertexBuffer;
+	ID3D11Buffer *m_pMatrixConstantBuffer;	
+	std::vector<RenderData> m_renderData;
 };

@@ -3,6 +3,7 @@
 #include "glfw_D3D.h"
 #include "VertexBuffer_D3D.h"
 #include "FragmentShader_D3D.h"
+#include "ShaderManager_D3D.h"
 #include "KeyBindings.h"
 #include "../common.h"
 #include "../common/GPUMarker.h"
@@ -10,48 +11,6 @@
 #include <Xinput.h>
 
 Context_D3D g_context;
-
-const static char default_shader[] = 
-	"Texture2D g_inputTexture : register(t0);\n"
-	"SamplerState g_inputSampler : register(s0);\n"
-	"struct VS_Input\n"
-	"{\n"
-	"   float3 pos : POSITION;\n"
-	"   float4 color : COLOR0;\n"
-	"   float2 uv : TEXCOORD0;\n"
-	"};\n"
-	"struct VS_Output\n"
-	"{\n"
-	"   float4 pos : SV_POSITION;\n"
-	"   float4 color : COLOR0;\n"
-	"   float2 uv : TEXCOORD0;\n"
-	"};\n"
-	"struct PS_Output\n"
-	"{\n"
-	"   float4 color : SV_Target;\n"
-	"};\n"
-	"cbuffer Matrices : register(b0)\n"
-	"{\n"
-	"   float4x4 ModelView;\n"
-	"   float4x4 Projection;\n"
-	"   float4x4 MVP;\n"
-	"}\n"
-	"VS_Output VSMain(VS_Input input)\n"
-	"{\n"
-	"   VS_Output output;\n"
-	"   output.color = input.color;\n"
-	"   output.uv = input.uv;\n"
-	"   float3 pos = mul(input.pos, MVP);\n"
-	"   output.pos = float4(pos, 1.0f);\n"
-	"   return output;"
-	"}\n"
-	"PS_Output PSMain(VS_Output input)\n" 
-	"{\n"
-	"   PS_Output output;\n"
-	"	float4 pixel = g_inputTexture.Sample(g_inputSampler, input.uv);\n"
-	"	output.color = pixel * input.color;\n"
-	"   return output;\n"
-	"}\n";
 
 static LRESULT CALLBACK WindowProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -283,8 +242,7 @@ namespace glfw_d3d
 
 		// Create default shader
 		{
-			g_context.m_pDefaultShader = new FragmentShader_D3D();
-			g_context.m_pDefaultShader->load(default_shader);
+			g_context.m_pDefaultShader = ShaderManager_D3D::GetInstance().GetShader(ShaderManager_D3D::SHADER_DEFAULT);
 		}
 
 		// Create rasterizer states

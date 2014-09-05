@@ -2,8 +2,10 @@
 
 #include "../cumino.h"
 
-class VertexFormat {
+class VertexFormat 
+{
 public:
+
 	// float only
 	char types[4]; // 'v': {f,f,f} 'c':{f,f,f,f}  't':{f,f}, 'n':{f,f,f} normal
 	int types_used;
@@ -68,4 +70,12 @@ public:
 		return num_float;
 	}
 	void dump();
+
+private:
+
+	static const int MAX_INSTANCE_ELEMENT_COUNT = 4;
+
+	int instanceFloatCount;
+	int instanceElementCount;
+	int instanceElements[MAX_INSTANCE_ELEMENT_COUNT];
 };

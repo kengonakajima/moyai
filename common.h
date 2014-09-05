@@ -298,7 +298,6 @@ public:
     int debug_id;
     Prop *next;
     Prop *prev;
-    Group *parent_group;
     
     bool to_clean;
     double accum_time;
@@ -319,7 +318,12 @@ public:
     }
     virtual void onDelete(){}
 
-    
+	virtual void setParentGroup(Group *group) { parent_group = group; }
+	Group* getParentGroup() const { return parent_group; }
+
+protected:
+
+	Group *parent_group;
 };
 
 
@@ -346,13 +350,13 @@ public:
 
     inline void insertProp(Prop*p){
         //        assert(p->deck);
-        assertmsg( !p->parent_group, "inserting prop twice");
+        assertmsg( !p->getParentGroup(), "inserting prop twice");
         if(prop_top){
             p->next = prop_top;
             prop_top->prev = p;
         }
         prop_top = p;
-        p->parent_group = this;
+        p->setParentGroup(this);
         p->prev = NULL;
 
         idmap[p->id] = p;

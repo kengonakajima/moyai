@@ -5,7 +5,6 @@
 MoyaiClient_D3D::MoyaiClient_D3D() 
 	: Moyai() 
 	, m_pBlendState(nullptr)
-	, m_pQuadVertexBuffer(nullptr)
 {
 	D3D11_BLEND_DESC blendDesc;
 	ZeroMemory(&blendDesc, sizeof(D3D11_BLEND_DESC));
@@ -23,12 +22,6 @@ MoyaiClient_D3D::MoyaiClient_D3D()
 
 	HRESULT hr = g_context.m_pDevice->CreateBlendState(&blendDesc, &m_pBlendState);
 	assert(SUCCEEDED(hr) && "Failed to create blend state");
-
-	VertexFormat format;
-	format.declareCoordVec3();
-	format.declareUV();
-
-	m_pQuadVertexBuffer = new VertexBuffer_D3D(&format, 6, g_context.m_pDefaultShader);
 }
 
 MoyaiClient_D3D::~MoyaiClient_D3D()
@@ -38,8 +31,6 @@ MoyaiClient_D3D::~MoyaiClient_D3D()
 		m_pBlendState->Release();
 		m_pBlendState = nullptr;
 	}
-
-	SafeDelete(m_pQuadVertexBuffer);
 }
 
 int MoyaiClient_D3D::render()

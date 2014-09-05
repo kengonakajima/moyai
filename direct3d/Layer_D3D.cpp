@@ -18,8 +18,10 @@ Layer_D3D::Layer_D3D()
 	, viewport(nullptr)
 	, light(nullptr)
 	, m_pLastTexture(nullptr)
-	, m_pVertexBuffer(nullptr)
+	, m_pBillboardVertexBuffer(nullptr)
+	, m_pQuadVertexBuffer(nullptr)
 	, m_pMatrixConstantBuffer(nullptr)
+	, m_renderData()
 {
 	to_render = true;
 	init();
@@ -28,7 +30,8 @@ Layer_D3D::Layer_D3D()
 Layer_D3D::~Layer_D3D()
 {
 	m_pLastTexture = nullptr;
-	SafeDelete(m_pVertexBuffer);
+	SafeDelete(m_pBillboardVertexBuffer);
+	SafeDelete(m_pQuadVertexBuffer);
 	SafeRelease(m_pMatrixConstantBuffer);
 }
 
@@ -41,7 +44,22 @@ void Layer_D3D::init()
 		format.declareColor();
 		format.declareUV();
 
-		m_pVertexBuffer = new VertexBuffer_D3D(&format, 6, g_context.m_pDefaultShader);
+		m_pBillboardVertexBuffer = new VertexBuffer_D3D(&format, 6, g_context.m_pDefaultShader);
+		m_pQuadVertexBuffer = new VertexBuffer_D3D(&format, 6, g_context.m_pDefaultShader);
+
+		Vertex_PCUV vertices[] = 
+		{
+			{ XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+			{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
+			{ XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+
+			{ XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+			{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
+			{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) }
+		};
+
+		m_pQuadVertexBuffer->copyFromBuffer(vertices, ARRAYSIZE(vertices));
+		m_pQuadVertexBuffer->copyToGPU();
 	}
 
 	// Create constant buffer
@@ -103,9 +121,9 @@ void Layer_D3D::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc, Ve
 		{ XMFLOAT3(p3.x, p3.y, p3.z), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(u0, v0) }
 	};
 
-	m_pVertexBuffer->copyFromBuffer(vertices, sizeof(vertices));
-	m_pVertexBuffer->copyToGPU();
-	m_pVertexBuffer->bind();
+	m_pBillboardVertexBuffer->copyFromBuffer(vertices, sizeof(vertices));
+	m_pBillboardVertexBuffer->copyToGPU();
+	m_pBillboardVertexBuffer->bind();
 
 	g_context.m_pDeviceContext->Draw(6, 0);
 }
@@ -139,7 +157,6 @@ int Layer_D3D::renderAllProps()
 		static SorterEntry tosort[1024*32];
 
 		int cnt = 0;
-		int drawn = 0;
 		Prop *cur = prop_top;
 
 		Vec2 minv, maxv;
@@ -175,8 +192,6 @@ int Layer_D3D::renderAllProps()
 					print("WARNING: too many props in a layer : %d", cnt );
 					break;
 				}
-
-				++drawn;
 			} 
 
 			cur = cur->next;
@@ -192,12 +207,26 @@ int Layer_D3D::renderAllProps()
 			}
 		}
 
-		return drawn;
+		return sendDrawCalls();
 	} 
 	else // 3D
 	{ 
 		return 0;
 	}
+}
+
+int Layer_D3D::sendDrawCalls()
+{
+	for (std::vector<RenderData>::const_iterator iter = m_renderData.cbegin(); iter != m_renderData.cend(); ++iter)
+	{
+		const RenderData &data = *iter;
+	}
+
+	m_pQuadVertexBuffer->bind();
+
+	int spriteCount = m_renderData.size();
+	m_renderData.clear();
+	return spriteCount;
 }
 
 void Layer_D3D::setupProjectionMatrix3D() 

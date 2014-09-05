@@ -207,6 +207,9 @@
     <ClCompile Include="..\direct3d\GPUMarker_D3D.cpp">
       <Filter>Source Files\Direct3D</Filter>
     </ClCompile>
+    <ClCompile Include="..\direct3d\ShaderManager_D3D.cpp">
+      <Filter>Source Files\Direct3D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\ColorReplacerShader.h">
@@ -421,6 +424,12 @@
     </ClInclude>
     <ClInclude Include="..\common\GPUMarker.h">
       <Filter>Header Files\GFX API Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="..\direct3d\ShaderManager_D3D.h">
+      <Filter>Source Files\Direct3D</Filter>
+    </ClInclude>
+    <ClInclude Include="..\direct3d\ShaderCode_D3D.h">
+      <Filter>Source Files\Direct3D</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

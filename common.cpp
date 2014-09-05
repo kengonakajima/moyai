@@ -84,6 +84,7 @@ Prop *Group::findPropById( int id ) {
     return idmap[id];
 #endif    
 }
+
 bool Prop::basePoll(double dt){
 
     if(to_clean){
@@ -101,7 +102,6 @@ bool Prop::basePoll(double dt){
     
     return true;
 }
-
 
 void Image::setSize(int w, int h ) {
     width = w; height = h;
