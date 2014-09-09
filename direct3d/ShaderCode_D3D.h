@@ -31,8 +31,8 @@ const static char default_vertex_shader[] =
 	"struct VS_Input\n"
 	"{\n"
 	"   float3 pos : POSITION;\n"
-	"   float4 color : COLOR0;\n"
 	"   float2 uv : TEXCOORD0;\n"
+	"   float4 color : COLOR0;\n"
 	"};\n"
 	"struct VS_Output\n"
 	"{\n"
@@ -56,14 +56,15 @@ const static char default_vertex_shader[] =
 	"   return output;"
 	"}\n";
 
-/*
-const static char default_vertex_shader[] = 
+const static char instancing_vertex_shader[] = 
 	"struct VS_Input\n"
 	"{\n"
 	"   float3 pos : POSITION;\n"
 	"   float2 uv : TEXCOORD0;\n"
 	"   float4 color : COLOR0;\n"
-	"   float3 posRot : TEXCOORD1;\n"
+	"   float4 offsetScale : TEXCOORD1;\n"
+	"   float4 uvOffsetScale : TEXCOORD2;\n"
+	"   float rotation : TEXCOORD3;\n"
 	"};\n"
 	"struct VS_Output\n"
 	"{\n"
@@ -85,8 +86,8 @@ const static char default_vertex_shader[] =
 	"   output.color = input.color;\n"
 	"   output.uv = input.uv;\n"
 	"   float4 pos = float4(input.pos, 1.0f);\n"
-	"   float2 trans = input.posRot.xy;\n"
-	"   float rot = input.posRot.z;\n"
+	"   float2 trans = input.offsetScale.xy;\n"
+	"   float rot = input.rotation;\n"
 	"   float cosRot = cos(rot);\n"
 	"   float sinRot = sin(rot);\n"
 	"   float3x2 rotTransMat = { cosRot, sinRot, -sinRot, cosRot, trans.x, trans.y };\n"
@@ -95,12 +96,11 @@ const static char default_vertex_shader[] =
 	"   output.pos = pos;\n"
 	"   return output;\n"
 	"}\n";
-*/
 
 const static char primitive_shader[] = 
 	"struct VS_Input\n"
 	"{\n"
-	"   float4 pos : POSITION;\n"
+	"   float3 pos : POSITION;\n"
 	"   float4 color : COLOR0;\n"
 	"};\n"
 	"struct VS_Output\n"
@@ -133,7 +133,7 @@ const static char primitive_shader[] =
 	"   return output;\n"
 	"}\n";
 
-const static char replacer_shader[] = 
+const static char replacer_pixel_shader[] = 
 	"Texture2D g_inputTexture : register(t0);\n"
 	"SamplerState g_inputSampler : register(s0);\n"
 	"struct VS_Output\n"

@@ -11,7 +11,7 @@ class VertexBuffer_D3D
 
 public:
 
-	VertexBuffer_D3D(VertexFormat *format, unsigned int maxVertexCount, const FragmentShader_D3D *inputSignatureShader);
+	VertexBuffer_D3D(VertexFormat &format, unsigned int maxVertexCount, const FragmentShader_D3D *inputSignatureShader, unsigned int maxInstanceCount = 0u);
 	~VertexBuffer_D3D(); 
 
 	void copyFromBuffer(void *data, int vert_cnt);
@@ -35,8 +35,8 @@ public:
 	void setTopology(D3D11_PRIMITIVE_TOPOLOGY topology);
 
 	// Instancing
-	void addInstanceData(size_t instanceSize, size_t maxInstanceCount);
-	void copyInstanceFromBuffer(void *data, size_t instanceCount);
+	void copyInstanceFromBuffer(void *data, unsigned int size);
+	void copyInstancesToGPU();
 
 private:
 
@@ -45,16 +45,21 @@ private:
 	void setUVElement(D3D11_INPUT_ELEMENT_DESC &element);
 	void setNormalElement(D3D11_INPUT_ELEMENT_DESC &element);
 	void setColorElement(D3D11_INPUT_ELEMENT_DESC &element);
+	void setInstanceElement(D3D11_INPUT_ELEMENT_DESC &element, const VertexFormat::Element &formatElement);
 
 	ID3D11Buffer *m_pVertexBuffer;
-	ID3D11Buffer *m_pInstanceBuffer;
+	ID3D11Buffer *m_pInstanceVertexBuffer;
 	ID3D11InputLayout *m_pInputLayout;
 	const FragmentShader_D3D *m_pInputSignatureShader;
 	D3D11_PRIMITIVE_TOPOLOGY m_topology;
 
-	VertexFormat *m_pVertexFormat;
+	VertexFormat m_pVertexFormat;
 	void *m_pBuffer;
+	void *m_pInstanceBuffer;
 	UINT m_vertexStride;
 	UINT m_vertexCount;
 	UINT m_bufferSize;
+	UINT m_instanceBufferSize;
+	UINT m_instanceAlignedByteOffset;
+	UINT m_maxInstanceCount;
 };

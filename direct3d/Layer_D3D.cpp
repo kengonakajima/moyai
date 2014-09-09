@@ -22,6 +22,7 @@ Layer_D3D::Layer_D3D()
 	, m_pQuadVertexBuffer(nullptr)
 	, m_pMatrixConstantBuffer(nullptr)
 	, m_renderData()
+	, m_instanceData()
 {
 	to_render = true;
 	init();
@@ -43,19 +44,26 @@ void Layer_D3D::init()
 		format.declareCoordVec3();
 		format.declareColor();
 		format.declareUV();
+		m_pBillboardVertexBuffer = new VertexBuffer_D3D(format, 6, g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_DEFAULT));
 
-		m_pBillboardVertexBuffer = new VertexBuffer_D3D(&format, 6, g_context.m_pDefaultShader);
-		m_pQuadVertexBuffer = new VertexBuffer_D3D(&format, 6, g_context.m_pDefaultShader);
+		VertexFormat instanceFormat;
+		instanceFormat.declareCoordVec3();
+		instanceFormat.declareUV();
+		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_COLOR, 0u, 4u);
+		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 1u, 4u);
+		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 2u, 4u);
+		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 3u, 1u);
+		m_pQuadVertexBuffer = new VertexBuffer_D3D(instanceFormat, 6, g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_DEFAULT), 2000u);
 
 		Vertex_PCUV vertices[] = 
 		{
-			{ XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-			{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
-			{ XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+			{ XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
 
-			{ XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-			{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
-			{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) }
+			{ XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) }
 		};
 
 		m_pQuadVertexBuffer->copyFromBuffer(vertices, ARRAYSIZE(vertices));
@@ -112,13 +120,13 @@ void Layer_D3D::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc, Ve
 
 	Vertex_PCUV vertices[] = 
 	{
-		{ XMFLOAT3(p1.x, p1.y, p1.z), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(u1, v1) },
-		{ XMFLOAT3(p3.x, p3.y, p3.z), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(u0, v0) },
-		{ XMFLOAT3(p2.x, p2.y, p2.z), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(u0, v1) },
+		{ XMFLOAT3(p1.x, p1.y, p1.z), XMFLOAT2(u1, v1), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(p3.x, p3.y, p3.z), XMFLOAT2(u0, v0), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(p2.x, p2.y, p2.z), XMFLOAT2(u0, v1), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
 
-		{ XMFLOAT3(p1.x, p1.y, p1.z), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(u1, v1) },
-		{ XMFLOAT3(p4.x, p4.y, p4.z), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(u1, v0) },
-		{ XMFLOAT3(p3.x, p3.y, p3.z), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT2(u0, v0) }
+		{ XMFLOAT3(p1.x, p1.y, p1.z), XMFLOAT2(u1, v1), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(p4.x, p4.y, p4.z), XMFLOAT2(u1, v0), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(p3.x, p3.y, p3.z), XMFLOAT2(u0, v0), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) }
 	};
 
 	m_pBillboardVertexBuffer->copyFromBuffer(vertices, sizeof(vertices));
@@ -215,19 +223,28 @@ int Layer_D3D::renderAllProps()
 	}
 }
 
+Layer_D3D::RenderData& Layer_D3D::getNewRenderData()
+{
+	m_instanceData.push_back(InstanceData());
+	m_renderData.push_back(RenderData());
+
+	InstanceData &instanceData = m_instanceData.back();
+	RenderData &renderData = m_renderData.back();
+	renderData.instanceData = &instanceData;
+
+	return renderData;
+}
+
 int Layer_D3D::sendDrawCalls()
 {
-	/*
-	for (std::vector<RenderData>::const_iterator iter = m_renderData.cbegin(); iter != m_renderData.cend(); ++iter)
-	{
-		const RenderData &data = *iter;
-	}
-
+	InstanceData *data = m_instanceData.data();
+	m_pQuadVertexBuffer->copyInstanceFromBuffer(data, sizeof(InstanceData) * m_instanceData.size());
+	m_pQuadVertexBuffer->copyInstancesToGPU();
 	m_pQuadVertexBuffer->bind();
-	*/
 
 	int spriteCount = m_renderData.size();
 	m_renderData.clear();
+	m_instanceData.clear();
 	return spriteCount;
 }
 

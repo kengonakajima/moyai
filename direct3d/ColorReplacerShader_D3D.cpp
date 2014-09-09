@@ -2,6 +2,7 @@
 
 #include "ColorReplacerShader_D3D.h"
 #include "ShaderCode_D3D.h"
+#include "ShaderManager_D3D.h"
 
 ColorReplacerShader_D3D::ColorReplacerShader_D3D()
 {
@@ -24,7 +25,10 @@ bool ColorReplacerShader_D3D::init()
 
 	g_context.m_pDevice->CreateBuffer(&desc, nullptr, &m_pConstantBuffer);
 
-	return load(default_vertex_shader, replacer_shader);
+	FragmentShader_D3D *shader = g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_INSTANCING_COLOR_REPLACE);
+	SetShaders(shader);
+
+	return true;
 }
 
 void ColorReplacerShader_D3D::setColor( Color from, Color to, float eps ) 

@@ -109,7 +109,7 @@ namespace glfw_d3d
 		SafeRelease(g_context.m_pDeviceContext);
 		SafeRelease(g_context.m_pDevice);
 
-		SafeDelete(g_context.m_pDefaultShader);
+		SafeDelete(g_context.m_pShaderManager);
 
 		SafeRelease(g_context.m_pNoDepthTestState);
 		SafeRelease(g_context.m_pDepthStencilState);
@@ -240,11 +240,6 @@ namespace glfw_d3d
 			CheckFailure(hr, "Unable to create depth-stencil view");
 		}
 
-		// Create default shader
-		{
-			g_context.m_pDefaultShader = ShaderManager_D3D::GetInstance().GetShader(ShaderManager_D3D::SHADER_DEFAULT);
-		}
-
 		// Create rasterizer states
 		{
 			D3D11_RASTERIZER_DESC desc;
@@ -290,6 +285,8 @@ namespace glfw_d3d
 		#if GPU_DEBUG
 			g_context.m_pGPUMarker = new GPUMarker_D3D(g_context.m_pDeviceContext);
 		#endif
+
+		g_context.m_pShaderManager = new ShaderManager_D3D();
 
 		return 1;
 	}

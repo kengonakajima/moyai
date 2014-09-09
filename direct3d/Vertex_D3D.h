@@ -8,23 +8,23 @@
 using namespace DirectX;
 using namespace DirectX::PackedVector;
 
-moyai_align(16) struct Vertex_PCUV
+struct Vertex_PCUV
 {
 	XMFLOAT3 pos;
-	XMFLOAT4 color;
 	XMFLOAT2 uv;
+	XMFLOAT4 color;
 };
 
-moyai_align(16) struct Vertex_PC
+struct Vertex_PC
 {
 	XMFLOAT3 pos;
 	XMFLOAT4 color;
 };
 
-moyai_align(16) struct Vertex_PNCUV
+struct Vertex_PNCUV
 {
 	XMFLOAT3 pos;
 	XMFLOAT3 normal;
-	XMFLOAT4 color;
 	XMFLOAT2 uv;
+	XMFLOAT4 color;
 };

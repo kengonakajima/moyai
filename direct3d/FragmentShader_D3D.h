@@ -7,20 +7,21 @@
 class FragmentShader_D3D 
 {
 	friend class VertexBuffer_D3D;
+	friend class ShaderManager_D3D;
 
 public:
 	
-	FragmentShader_D3D();
-	virtual ~FragmentShader_D3D();
-
-	bool load(const char *src);
-	bool load(const char *vsSrc, const char *psSrc);
 	bool isLoaded() const { return m_pVertexShader != nullptr; }
 
 	virtual void updateUniforms() {};
 	void bind();
 
-private:
+protected:
+
+	FragmentShader_D3D();
+	virtual ~FragmentShader_D3D();
+
+	void SetShaders(FragmentShader_D3D *shader);
 
 	ID3D11VertexShader *m_pVertexShader;
 	ID3D11PixelShader *m_pPixelShader;

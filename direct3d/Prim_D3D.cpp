@@ -20,7 +20,7 @@ Prim_D3D::Prim_D3D(PRIMTYPE t, Vec2 a, Vec2 b, Color c, int line_width)
 {
 	// Create primitive shader
 	{
-		m_pShader = ShaderManager_D3D::GetInstance().GetShader(ShaderManager_D3D::SHADER_PRIMITIVE);
+		m_pShader = g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_PRIMITIVE);
 	}
 
 	// Create vertex buffer
@@ -29,7 +29,7 @@ Prim_D3D::Prim_D3D(PRIMTYPE t, Vec2 a, Vec2 b, Color c, int line_width)
 		format.declareCoordVec3();
 		format.declareColor();
 
-		m_pVertexBuffer = new VertexBuffer_D3D(&format, 6, m_pShader);
+		m_pVertexBuffer = new VertexBuffer_D3D(format, 6, m_pShader);
 	}
 }
 

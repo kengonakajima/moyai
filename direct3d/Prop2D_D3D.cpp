@@ -69,10 +69,10 @@ void Prop2D_D3D::init()
 		format.declareColor();
 		format.declareUV();
 
-		m_pVertexBuffer = new VertexBuffer_D3D(&format, 6, g_context.m_pDefaultShader);
+		m_pVertexBuffer = new VertexBuffer_D3D(format, 6, g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_DEFAULT));
 	}
 
-	fragment_shader = g_context.m_pDefaultShader;
+	fragment_shader = g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_DEFAULT);
 }
 
 void Prop2D_D3D::setParentGroup(Group *group)
@@ -88,9 +88,7 @@ void Prop2D_D3D::setParentGroup(Group *group)
 
 Layer_D3D::RenderData& Prop2D_D3D::getNewRenderData()
 {
-	std::vector<Layer_D3D::RenderData> &renderData = static_cast<Layer_D3D*>(parent_group)->m_renderData;
-	renderData.push_back(Layer_D3D::RenderData());
-	return renderData.back();
+	return static_cast<Layer_D3D*>(parent_group)->getNewRenderData();
 }
 
 bool Prop2D_D3D::propPoll(double dt) 
@@ -156,16 +154,16 @@ bool Prop2D_D3D::propPoll(double dt)
 	return true;
 }
 
-void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot, Layer_D3D::RenderData &renderData) 
+void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot, Layer_D3D::InstanceData &instanceData) 
 {
 	float u0,v0,u1,v1;
 	dk->getUVFromIndex(ind, &u0, &v0, &u1, &v1, uofs, vofs, tex_epsilon );
 	float depth = 10;
 
-	renderData.uvOffset.x = u0;
-	renderData.uvOffset.y = v0;
-	renderData.uvScale.x = u1 - u0;
-	renderData.uvScale.y = v1 - v0;
+	instanceData.uvOffset.x = u0;
+	instanceData.uvOffset.y = v0;
+	instanceData.uvScale.x = u1 - u0;
+	instanceData.uvScale.y = v1 - v0;
 
 	if(debug_id) print("UV: ind:%d %f,%f %f,%f uo:%f vo:%f", ind, u0,v0, u1,v1, uofs, vofs );
 
@@ -175,7 +173,7 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 		u1 = u0;
 		u0 = tmp;
 
-		renderData.uvScale.x = -renderData.uvScale.x;
+		instanceData.uvScale.x = -instanceData.uvScale.x;
 	}
 	if(vrev)
 	{
@@ -183,7 +181,7 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 		v1 = v0;
 		v0 = tmp;
 
-		renderData.uvScale.y = -renderData.uvScale.y;
+		instanceData.uvScale.y = -instanceData.uvScale.y;
 	}
 
 	// if not rot 
@@ -196,15 +194,15 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 	Vec2 a,b,c,d;
 	float center_x = (minx+maxx)/2.0f;
 	float center_y = (miny+maxy)/2.0f;
-	renderData.offset.x = center_x;
-	renderData.offset.y = center_y;
-	renderData.scale.x = maxx - minx;
-	renderData.scale.y = maxy - miny;
-	renderData.rotation = 0.0f;
+	instanceData.offset.x = center_x;
+	instanceData.offset.y = center_y;
+	instanceData.scale.x = maxx - minx;
+	instanceData.scale.y = maxy - miny;
+	instanceData.rotation = 0.0f;
 
 	if(rot==0){
 		if(uvrot){ // -pi/2 rotation
-			renderData.rotation = -M_PI_2;
+			instanceData.rotation = -M_PI_2;
 			a = Vec2( maxx, miny );
 			b = Vec2( minx, miny );
 			c = Vec2( minx, maxy );
@@ -225,7 +223,7 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 
 		if(uvrot) // -pi/2 + radrot rotation
 		{ 
-			renderData.rotation = -M_PI_2 + radrot;
+			instanceData.rotation = -M_PI_2 + radrot;
 
 			a = Vec2( maxx * cs - miny * sn, maxx * sn + miny * cs );
 			b = Vec2( minx * cs - miny * sn, minx * sn + miny * cs );
@@ -234,7 +232,7 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 		} 
 		else // radrot rotation
 		{ 
-			renderData.rotation = radrot;
+			instanceData.rotation = radrot;
 
 			a = Vec2( minx * cs - miny * sn, minx * sn + miny * cs );
 			b = Vec2( minx * cs - maxy * sn, minx * sn + maxy * cs );
@@ -251,20 +249,22 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 	const UINT vertexCount = 6;
 	Vertex_PCUV vertices[] = 
 	{
-		{ XMFLOAT3(a.x, a.y, depth), XMFLOAT4(color.r, color.g, color.b, color.a), XMFLOAT2(u0, v1) },
-		{ XMFLOAT3(b.x, b.y, depth), XMFLOAT4(color.r, color.g, color.b, color.a), XMFLOAT2(u0, v0) },
-		{ XMFLOAT3(c.x, c.y, depth), XMFLOAT4(color.r, color.g, color.b, color.a), XMFLOAT2(u1, v0) },
+		{ XMFLOAT3(a.x, a.y, depth), XMFLOAT2(u0, v1), XMFLOAT4(color.r, color.g, color.b, color.a) },
+		{ XMFLOAT3(b.x, b.y, depth), XMFLOAT2(u0, v0), XMFLOAT4(color.r, color.g, color.b, color.a) },
+		{ XMFLOAT3(c.x, c.y, depth), XMFLOAT2(u1, v0), XMFLOAT4(color.r, color.g, color.b, color.a) },
 
-		{ XMFLOAT3(a.x, a.y, depth), XMFLOAT4(color.r, color.g, color.b, color.a), XMFLOAT2(u0, v1) },
-		{ XMFLOAT3(c.x, c.y, depth), XMFLOAT4(color.r, color.g, color.b, color.a), XMFLOAT2(u1, v0) },
-		{ XMFLOAT3(d.x, d.y, depth), XMFLOAT4(color.r, color.g, color.b, color.a), XMFLOAT2(u1, v1) }
+		{ XMFLOAT3(a.x, a.y, depth), XMFLOAT2(u0, v1), XMFLOAT4(color.r, color.g, color.b, color.a) },
+		{ XMFLOAT3(c.x, c.y, depth), XMFLOAT2(u1, v0), XMFLOAT4(color.r, color.g, color.b, color.a) },
+		{ XMFLOAT3(d.x, d.y, depth), XMFLOAT2(u1, v1), XMFLOAT4(color.r, color.g, color.b, color.a) }
 	};
 
+	/*
 	m_pVertexBuffer->copyFromBuffer(vertices, vertexCount);
 	m_pVertexBuffer->copyToGPU();
 	m_pVertexBuffer->bind();
 
 	g_context.m_pDeviceContext->Draw(6, 0);
+	*/
 }
 
 void Prop2D_D3D::render(Camera *cam) 
@@ -357,7 +357,7 @@ void Prop2D_D3D::render(Camera *cam)
 						Layer_D3D::RenderData &renderData = getNewRenderData();
 						renderData.shader = shader;
 						renderData.texture = texture;
-						renderData.color = currentColor;
+						renderData.instanceData->color = currentColor;
 
 						drawIndex( draw_deck,
 							ind,
@@ -371,7 +371,7 @@ void Prop2D_D3D::render(Camera *cam)
 							texofs_y,
 							uvrot,
 							0,
-							renderData);
+							*renderData.instanceData);
 					}
 				}
 			}
@@ -396,9 +396,9 @@ void Prop2D_D3D::render(Camera *cam)
 		Layer_D3D::RenderData &renderData = getNewRenderData();
 		renderData.shader = fragment_shader;
 		renderData.texture = deck->tex;
-		renderData.color = currentColor;
+		renderData.instanceData->color = currentColor;
 
-		drawIndex( deck, index, minx, miny, maxx, maxy, xflip, yflip, 0,0, uvrot, rot, renderData );
+		drawIndex( deck, index, minx, miny, maxx, maxy, xflip, yflip, 0,0, uvrot, rot, *renderData.instanceData );
 	}
 
 	if( children_num > 0 && (render_children_first == false) )

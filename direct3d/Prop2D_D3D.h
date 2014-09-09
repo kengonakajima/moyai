@@ -5,6 +5,7 @@
 #include "../common/Renderable.h"
 #include "../common/PrimDrawer.h"
 #include "../common/Layer.h"
+#include "ShaderManager_D3D.h"
 
 class AnimCurve;
 class FragmentShader_D3D;
@@ -137,7 +138,7 @@ public:
 
 		if (!g->fragment_shader)
 		{
-			g->fragment_shader = g_context.m_pDefaultShader;
+			g->fragment_shader = g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_DEFAULT);
 		}
 
 		return true;
@@ -237,7 +238,7 @@ public:
 	inline void setXFlip( bool flg){ xflip = flg; }
 	inline void setYFlip( bool flg){ yflip = flg; }
 
-	void drawIndex(TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot, Layer_D3D::RenderData &renderData);
+	void drawIndex(TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot, Layer_D3D::InstanceData &instanceData);
 
 	virtual void onIndexChanged(int previndex ) { }
 

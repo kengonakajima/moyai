@@ -6,16 +6,31 @@ class VertexFormat
 {
 public:
 
+	enum VertexSemantic
+	{
+		SEMANTIC_POS,
+		SEMANTIC_TEXCOORD,
+		SEMANTIC_COLOR,
+		SEMANTIC_NORMAL
+	};
+
+	struct Element
+	{
+		VertexSemantic semantic;
+		unsigned int semanticIndex;
+		unsigned int floatSize;
+	};
+
+	static const int MaxInstanceElementCount = 4;
+
 	// float only
 	char types[4]; // 'v': {f,f,f} 'c':{f,f,f,f}  't':{f,f}, 'n':{f,f,f} normal
 	int types_used;
 	int num_float;
 	int coord_offset, color_offset, texture_offset, normal_offset; // -1:not used
-	VertexFormat() : types_used(0), num_float(0), coord_offset(-1), color_offset(-1), texture_offset(-1), normal_offset(-1) {
-		for(unsigned int i=0;i<elementof(types);i++){
-			types[i] = 0;
-		}
-	}
+	
+	VertexFormat();
+
 	void declareCoordVec3(){ addType('v'); }
 	void declareColor(){ addType('c'); }
 	void declareUV(){ addType('t'); }
@@ -69,13 +84,18 @@ public:
 	inline size_t getNumFloat() {
 		return num_float;
 	}
+
 	void dump();
+
+	// Instancing
+	bool addInstanceElement(VertexSemantic semantic, unsigned int semanticIndex, unsigned int floatSize);
+	int getInstanceElementCount() const { return instanceElementCount; }
+	int getInstanceStride() const { return instanceFloatCount; }
+	const Element* getInstanceElement(int index) const;
 
 private:
 
-	static const int MAX_INSTANCE_ELEMENT_COUNT = 4;
-
 	int instanceFloatCount;
 	int instanceElementCount;
-	int instanceElements[MAX_INSTANCE_ELEMENT_COUNT];
+	Element instanceElements[MaxInstanceElementCount];
 };
