@@ -17,23 +17,6 @@ class Layer_D3D : public Group
 
 public:
 
-	struct InstanceData
-	{
-		Color color;
-		Vec2 offset;
-		Vec2 scale;
-		Vec2 uvOffset;
-		Vec2 uvScale;
-		float rotation;
-	};
-
-	struct RenderData
-	{
-		InstanceData *instanceData;
-		FragmentShader_D3D *shader;
-		Texture_D3D *texture;
-	};
-
 	Camera *camera;
 	Viewport_D3D *viewport;
 	Light *light;
@@ -81,8 +64,52 @@ public:
 
 private:
 
+	struct InstanceData
+	{
+		Color color;
+		Vec2 offset;
+		Vec2 scale;
+		Vec2 uvOffset;
+		Vec2 uvScale;
+		float rotation;
+	};
+
+	struct MaterialData
+	{
+		FragmentShader_D3D *shader;
+		Texture_D3D *texture;
+	};
+
+	struct RenderData
+	{
+		InstanceData instanceData;
+		MaterialData materialData;
+	};
+
+	struct MaterialHash
+	{
+		size_t operator()(const MaterialData &data)
+		{
+			static const size_t shaderMask = size_t(-1) << (sizeof(size_t) >> 1u);
+			static const size_t textureMask = size_t(-1) >> (sizeof(size_t) >> 1u);
+
+			size_t shaderPtr = reinterpret_cast<size_t>(data.shader);
+			size_t texturePtr = reinterpret_cast<size_t>(data.texture);
+			return (shaderPtr & shaderMask) | (texturePtr & textureMask);
+		}
+
+		bool operator()(const MaterialData &data0, const MaterialData &data1)
+		{
+			return (data0.shader == data1.shader) && (data0.texture == data1.texture);
+		}
+	};
+
+	typedef std::unordered_map<MaterialData, std::vector<InstanceData>, MaterialHash, MaterialHash> SortedRenderData;
+	typedef std::pair<const MaterialData, std::vector<InstanceData> > SortedRenderDataPair;
+
 	void init();
 	int sendDrawCalls();
+	void clearRenderData();
 	RenderData& getNewRenderData();
 
 	Texture_D3D *m_pLastTexture;
@@ -90,5 +117,5 @@ private:
 	VertexBuffer_D3D *m_pQuadVertexBuffer;
 	ID3D11Buffer *m_pMatrixConstantBuffer;	
 	std::vector<RenderData> m_renderData;
-	std::vector<InstanceData> m_instanceData;
+	SortedRenderData m_sortedRenderData;
 };

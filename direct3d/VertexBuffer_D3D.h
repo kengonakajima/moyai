@@ -35,7 +35,7 @@ public:
 	void setTopology(D3D11_PRIMITIVE_TOPOLOGY topology);
 
 	// Instancing
-	void copyInstanceFromBuffer(void *data, unsigned int size);
+	void copyInstanceFromBuffer(const void *data, unsigned int size);
 	void copyInstancesToGPU();
 
 private:
@@ -55,11 +55,10 @@ private:
 
 	VertexFormat m_pVertexFormat;
 	void *m_pBuffer;
-	void *m_pInstanceBuffer;
+	const void *m_pInstanceBuffer;
 	UINT m_vertexStride;
 	UINT m_vertexCount;
 	UINT m_bufferSize;
 	UINT m_instanceBufferSize;
-	UINT m_instanceAlignedByteOffset;
 	UINT m_maxInstanceCount;
 };

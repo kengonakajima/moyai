@@ -96,6 +96,7 @@ void Prim_D3D::drawLine(Vec2 ofs)
 
 		m_pVertexBuffer->copyFromBuffer(vertices, 6);
 		m_pVertexBuffer->copyToGPU();
+		m_pVertexBuffer->setTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		m_pVertexBuffer->bind();
 		g_context.m_pDeviceContext->Draw(6, 0);
 	}

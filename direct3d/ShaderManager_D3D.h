@@ -40,6 +40,11 @@ private:
 
 	struct VertexShader
 	{
+		~VertexShader()
+		{
+			SafeRelease(vertexShader);
+			SafeRelease(vsByteCode);
+		}
 		ID3D11VertexShader *vertexShader;
 		ID3DBlob *vsByteCode;
 	};

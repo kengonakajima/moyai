@@ -90,7 +90,7 @@ public:
 	// Instancing
 	bool addInstanceElement(VertexSemantic semantic, unsigned int semanticIndex, unsigned int floatSize);
 	int getInstanceElementCount() const { return instanceElementCount; }
-	int getInstanceStride() const { return instanceFloatCount; }
+	int getInstanceStride() const { return instanceFloatCount * sizeof(float); }
 	const Element* getInstanceElement(int index) const;
 
 private:

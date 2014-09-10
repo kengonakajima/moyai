@@ -22,7 +22,7 @@ Layer_D3D::Layer_D3D()
 	, m_pQuadVertexBuffer(nullptr)
 	, m_pMatrixConstantBuffer(nullptr)
 	, m_renderData()
-	, m_instanceData()
+	, m_sortedRenderData()
 {
 	to_render = true;
 	init();
@@ -53,7 +53,7 @@ void Layer_D3D::init()
 		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 1u, 4u);
 		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 2u, 4u);
 		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 3u, 1u);
-		m_pQuadVertexBuffer = new VertexBuffer_D3D(instanceFormat, 6, g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_DEFAULT), 2000u);
+		m_pQuadVertexBuffer = new VertexBuffer_D3D(instanceFormat, 6, g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_INSTANCING), 2000u);
 
 		Vertex_PCUV vertices[] = 
 		{
@@ -225,26 +225,55 @@ int Layer_D3D::renderAllProps()
 
 Layer_D3D::RenderData& Layer_D3D::getNewRenderData()
 {
-	m_instanceData.push_back(InstanceData());
 	m_renderData.push_back(RenderData());
-
-	InstanceData &instanceData = m_instanceData.back();
 	RenderData &renderData = m_renderData.back();
-	renderData.instanceData = &instanceData;
-
 	return renderData;
+}
+
+void Layer_D3D::clearRenderData()
+{
+	for (SortedRenderData::iterator iter = m_sortedRenderData.begin(); iter != m_sortedRenderData.end(); ++iter)
+	{
+		SortedRenderDataPair &instances = *iter;
+		instances.second.clear();
+	}
+
+	m_renderData.clear();
 }
 
 int Layer_D3D::sendDrawCalls()
 {
-	InstanceData *data = m_instanceData.data();
-	m_pQuadVertexBuffer->copyInstanceFromBuffer(data, sizeof(InstanceData) * m_instanceData.size());
-	m_pQuadVertexBuffer->copyInstancesToGPU();
-	m_pQuadVertexBuffer->bind();
+	//m_pQuadVertexBuffer->copyInstanceFromBuffer(data, sizeof(InstanceData) * m_instanceData.size());
+	//m_pQuadVertexBuffer->copyInstancesToGPU();
+	//m_pQuadVertexBuffer->bind();
+	//g_context.m_pDeviceContext->DrawInstanced(6, m_instanceData.size(), 0, 0);
+
+	for (std::vector<RenderData>::const_iterator iter = m_renderData.cbegin(); iter != m_renderData.cend(); ++iter)
+	{
+		const RenderData &renderData = *iter;
+		std::vector<InstanceData> &instances = m_sortedRenderData[renderData.materialData];
+		instances.push_back(renderData.instanceData);
+	}
+
+	for (SortedRenderData::const_iterator iter = m_sortedRenderData.cbegin(); iter != m_sortedRenderData.cend(); ++iter)
+	{
+		const SortedRenderDataPair &pair = *iter;
+		const MaterialData &material = pair.first;
+		const std::vector<InstanceData> &instances = pair.second;
+		UINT instanceCount = instances.size();
+
+		material.shader->bind();
+		material.texture->bind();
+
+		m_pQuadVertexBuffer->copyInstanceFromBuffer(instances.data(), sizeof(InstanceData) * instanceCount);
+		m_pQuadVertexBuffer->copyInstancesToGPU();
+		m_pQuadVertexBuffer->bind();
+		g_context.m_pDeviceContext->DrawInstanced(6, instanceCount, 0, 0);
+	}
 
 	int spriteCount = m_renderData.size();
-	m_renderData.clear();
-	m_instanceData.clear();
+	clearRenderData();
+
 	return spriteCount;
 }
 

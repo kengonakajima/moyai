@@ -12,7 +12,10 @@ ShaderManager_D3D::ShaderManager_D3D()
 
 ShaderManager_D3D::~ShaderManager_D3D()
 {
-	// HERE!!!!!!
+	for (int i = 0; i < PS_COUNT; ++i)
+	{
+		SafeRelease(m_pixelShader[i]);
+	}
 }
 
 bool ShaderManager_D3D::CreateVertexShader(VertexShaderId id, const char *src)

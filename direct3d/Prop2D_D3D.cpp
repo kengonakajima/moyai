@@ -355,9 +355,9 @@ void Prop2D_D3D::render(Camera *cam)
 						}
 
 						Layer_D3D::RenderData &renderData = getNewRenderData();
-						renderData.shader = shader;
-						renderData.texture = texture;
-						renderData.instanceData->color = currentColor;
+						renderData.materialData.shader = shader;
+						renderData.materialData.texture = texture;
+						renderData.instanceData.color = currentColor;
 
 						drawIndex( draw_deck,
 							ind,
@@ -371,7 +371,7 @@ void Prop2D_D3D::render(Camera *cam)
 							texofs_y,
 							uvrot,
 							0,
-							*renderData.instanceData);
+							renderData.instanceData);
 					}
 				}
 			}
@@ -394,11 +394,11 @@ void Prop2D_D3D::render(Camera *cam)
 		maxy = camy + loc.y + scl.y/2 + draw_offset.y + enfat_epsilon;
 
 		Layer_D3D::RenderData &renderData = getNewRenderData();
-		renderData.shader = fragment_shader;
-		renderData.texture = deck->tex;
-		renderData.instanceData->color = currentColor;
+		renderData.materialData.shader = fragment_shader;
+		renderData.materialData.texture = deck->tex;
+		renderData.instanceData.color = currentColor;
 
-		drawIndex( deck, index, minx, miny, maxx, maxy, xflip, yflip, 0,0, uvrot, rot, *renderData.instanceData );
+		drawIndex( deck, index, minx, miny, maxx, maxy, xflip, yflip, 0,0, uvrot, rot, renderData.instanceData );
 	}
 
 	if( children_num > 0 && (render_children_first == false) )

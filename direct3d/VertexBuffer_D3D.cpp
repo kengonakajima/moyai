@@ -16,7 +16,6 @@ VertexBuffer_D3D::VertexBuffer_D3D(VertexFormat &format, unsigned int maxVertexC
 	, m_vertexCount(maxVertexCount)
 	, m_bufferSize(m_vertexStride * m_vertexCount)
 	, m_instanceBufferSize(0u)
-	, m_instanceAlignedByteOffset(0u)
 	, m_maxInstanceCount(maxInstanceCount)
 {
 	assert(maxVertexCount > 0);
@@ -60,7 +59,7 @@ void VertexBuffer_D3D::initD3DObjects()
 	{
 		D3D11_BUFFER_DESC desc;
 		ZeroMemory(&desc, sizeof(desc));
-		desc.ByteWidth = m_maxInstanceCount * m_pVertexFormat.getInstanceStride() * sizeof(float);
+		desc.ByteWidth = m_maxInstanceCount * m_pVertexFormat.getInstanceStride();
 		desc.Usage = D3D11_USAGE_DYNAMIC;
 		desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -111,7 +110,7 @@ void VertexBuffer_D3D::setPositionElement(D3D11_INPUT_ELEMENT_DESC &element)
 	element.SemanticIndex = 0;
 	element.Format = DXGI_FORMAT_R32G32B32_FLOAT;
 	element.InputSlot = 0;
-	element.AlignedByteOffset = 0;
+	element.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	element.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	element.InstanceDataStepRate = 0;
 }
@@ -122,7 +121,7 @@ void VertexBuffer_D3D::setUVElement(D3D11_INPUT_ELEMENT_DESC &element)
 	element.SemanticIndex = 0;
 	element.Format = DXGI_FORMAT_R32G32_FLOAT;
 	element.InputSlot = 0;
-	element.AlignedByteOffset = 12;
+	element.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT ;
 	element.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	element.InstanceDataStepRate = 0;
 }
@@ -136,7 +135,7 @@ void VertexBuffer_D3D::setNormalElement(D3D11_INPUT_ELEMENT_DESC &element)
 	element.SemanticIndex = 1;
 	element.Format = DXGI_FORMAT_R32G32B32_FLOAT;
 	element.InputSlot = 0;
-	element.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT; //sizeof(VertexNormal);
+	element.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	element.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	element.InstanceDataStepRate = 0;
 	*/
@@ -148,7 +147,7 @@ void VertexBuffer_D3D::setColorElement(D3D11_INPUT_ELEMENT_DESC &element)
 	element.SemanticIndex = 0;
 	element.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	element.InputSlot = 0;
-	element.AlignedByteOffset = 20;
+	element.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT ;
 	element.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	element.InstanceDataStepRate = 0;
 }
@@ -166,7 +165,7 @@ void VertexBuffer_D3D::setInstanceElement(D3D11_INPUT_ELEMENT_DESC &element, con
 
 	element.SemanticIndex = formatElement.semanticIndex;
 	element.InputSlot = 1;
-	element.AlignedByteOffset = m_instanceAlignedByteOffset;
+	element.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	element.InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
 	element.InstanceDataStepRate = 1;
 
@@ -188,8 +187,6 @@ void VertexBuffer_D3D::setInstanceElement(D3D11_INPUT_ELEMENT_DESC &element, con
 		assertmsg(false, "Invalid vertex element size");
 		element.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	}
-	
-	m_instanceAlignedByteOffset += formatElement.floatSize;
 }
 
 void VertexBuffer_D3D::copyFromBuffer(void *data, int vert_cnt) 
@@ -202,9 +199,9 @@ void VertexBuffer_D3D::copyFromBuffer(void *data, int vert_cnt)
 	memcpy(m_pBuffer, data, size);
 }
 
-void VertexBuffer_D3D::copyInstanceFromBuffer(void *data, unsigned int size)
+void VertexBuffer_D3D::copyInstanceFromBuffer(const void *data, unsigned int size)
 {
-	assertmsg(size <= m_maxInstanceCount * m_pVertexFormat.getInstanceStride() * sizeof(float), "Too much data from buffer size");
+	assertmsg(size <= m_maxInstanceCount * m_pVertexFormat.getInstanceStride(), "Too much data from buffer size");
 
 	m_instanceBufferSize = size;
 	m_pInstanceBuffer = data;
