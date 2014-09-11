@@ -38,9 +38,13 @@ public:
 	void copyInstanceFromBuffer(const void *data, unsigned int size);
 	void copyInstancesToGPU();
 
+	void resetMaxInstanceCount(unsigned int count);
+	unsigned int getMaxInstanceCount() const { return m_maxInstanceCount; }
+
 private:
 
 	void initD3DObjects();
+	void createInstanceBuffer();
 	void setPositionElement(D3D11_INPUT_ELEMENT_DESC &element);
 	void setUVElement(D3D11_INPUT_ELEMENT_DESC &element);
 	void setNormalElement(D3D11_INPUT_ELEMENT_DESC &element);
@@ -61,4 +65,6 @@ private:
 	UINT m_bufferSize;
 	UINT m_instanceBufferSize;
 	UINT m_maxInstanceCount;
+	UINT m_nextAlignedOffset;
+	UINT m_nextInstanceAlignedOffset;
 };

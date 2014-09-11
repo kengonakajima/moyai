@@ -7,7 +7,6 @@
 
 Prop2D_D3D::Prop2D_D3D()
 	: Prop(), Renderable() 
-	, m_pVertexBuffer(nullptr)
 {
 	priority = id;
 	dimension = DIMENSION_2D;
@@ -56,23 +55,11 @@ Prop2D_D3D::~Prop2D_D3D()
 	}        
 
 	if(prim_drawer) delete prim_drawer;
-
-	SafeDelete(m_pVertexBuffer);
 }
 
 void Prop2D_D3D::init()
 {
-	// Create vertex buffer
-	{
-		VertexFormat format;
-		format.declareCoordVec3();
-		format.declareColor();
-		format.declareUV();
-
-		m_pVertexBuffer = new VertexBuffer_D3D(format, 6, g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_DEFAULT));
-	}
-
-	fragment_shader = g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_DEFAULT);
+	fragment_shader = g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_INSTANCING);
 }
 
 void Prop2D_D3D::setParentGroup(Group *group)
@@ -169,29 +156,13 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 
 	if(hrev)
 	{
-		float tmp = u1;
-		u1 = u0;
-		u0 = tmp;
-
 		instanceData.uvScale.x = -instanceData.uvScale.x;
 	}
 	if(vrev)
 	{
-		float tmp = v1;
-		v1 = v0;
-		v0 = tmp;
-
 		instanceData.uvScale.y = -instanceData.uvScale.y;
 	}
 
-	// if not rot 
-	// B-----C       A:min C:max
-	// |     |
-	// A-----D
-	//
-	// if rot
-
-	Vec2 a,b,c,d;
 	float center_x = (minx+maxx)/2.0f;
 	float center_y = (miny+maxy)/2.0f;
 	instanceData.offset.x = center_x;
@@ -203,15 +174,6 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 	if(rot==0){
 		if(uvrot){ // -pi/2 rotation
 			instanceData.rotation = -M_PI_2;
-			a = Vec2( maxx, miny );
-			b = Vec2( minx, miny );
-			c = Vec2( minx, maxy );
-			d = Vec2( maxx, maxy );
-		} else { // no rotation
-			a = Vec2( minx, miny );
-			b = Vec2( minx, maxy );
-			c = Vec2( maxx, maxy );
-			d = Vec2( maxx, miny );
 		}
 	} else {
 		float sn = sin(radrot);
@@ -224,47 +186,12 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 		if(uvrot) // -pi/2 + radrot rotation
 		{ 
 			instanceData.rotation = -M_PI_2 + radrot;
-
-			a = Vec2( maxx * cs - miny * sn, maxx * sn + miny * cs );
-			b = Vec2( minx * cs - miny * sn, minx * sn + miny * cs );
-			c = Vec2( minx * cs - maxy * sn, minx * sn + maxy * cs );
-			d = Vec2( maxx * cs - maxy * sn, maxx * sn + maxy * cs );
 		} 
 		else // radrot rotation
 		{ 
 			instanceData.rotation = radrot;
-
-			a = Vec2( minx * cs - miny * sn, minx * sn + miny * cs );
-			b = Vec2( minx * cs - maxy * sn, minx * sn + maxy * cs );
-			c = Vec2( maxx * cs - maxy * sn, maxx * sn + maxy * cs );
-			d = Vec2( maxx * cs - miny * sn, maxx * sn + miny * cs );
 		}
-
-		a = a.add( center_x, center_y );
-		b = b.add( center_x, center_y );
-		c = c.add( center_x, center_y );
-		d = d.add( center_x, center_y );                    
 	}
-
-	const UINT vertexCount = 6;
-	Vertex_PCUV vertices[] = 
-	{
-		{ XMFLOAT3(a.x, a.y, depth), XMFLOAT2(u0, v1), XMFLOAT4(color.r, color.g, color.b, color.a) },
-		{ XMFLOAT3(b.x, b.y, depth), XMFLOAT2(u0, v0), XMFLOAT4(color.r, color.g, color.b, color.a) },
-		{ XMFLOAT3(c.x, c.y, depth), XMFLOAT2(u1, v0), XMFLOAT4(color.r, color.g, color.b, color.a) },
-
-		{ XMFLOAT3(a.x, a.y, depth), XMFLOAT2(u0, v1), XMFLOAT4(color.r, color.g, color.b, color.a) },
-		{ XMFLOAT3(c.x, c.y, depth), XMFLOAT2(u1, v0), XMFLOAT4(color.r, color.g, color.b, color.a) },
-		{ XMFLOAT3(d.x, d.y, depth), XMFLOAT2(u1, v1), XMFLOAT4(color.r, color.g, color.b, color.a) }
-	};
-
-	/*
-	m_pVertexBuffer->copyFromBuffer(vertices, vertexCount);
-	m_pVertexBuffer->copyToGPU();
-	m_pVertexBuffer->bind();
-
-	g_context.m_pDeviceContext->Draw(6, 0);
-	*/
 }
 
 void Prop2D_D3D::render(Camera *cam) 
@@ -308,25 +235,17 @@ void Prop2D_D3D::render(Camera *cam)
 			{
 				draw_deck = grid->deck;
 				texture = grid->deck->tex;
-
-				grid->deck->tex->bind();
 			} 
 			else 
 			{
 				assertmsg( deck != nullptr, "need deck when grid has no deck" );
 				draw_deck = deck;
 				texture = deck->tex;
-
-				deck->tex->bind();
 			}
 
 			assertmsg(grid->fragment_shader, "Grid needs a fragment shader assigned");
 			shader = grid->fragment_shader;
 
-			grid->fragment_shader->bind();
-			grid->fragment_shader->updateUniforms();
-
-			
 			for(int y=0;y<grid->height;y++)
 			{
 				for(int x=0;x<grid->width;x++)
@@ -383,9 +302,6 @@ void Prop2D_D3D::render(Camera *cam)
 	{
 		assertmsg(fragment_shader, "Prop2D needs a fragment shader assigned");
 		currentColor = color;
-
-		fragment_shader->bind();
-		fragment_shader->updateUniforms();
 
 		float minx, miny, maxx, maxy;
 		minx = camx + loc.x - scl.x/2 + draw_offset.x - enfat_epsilon;

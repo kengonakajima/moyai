@@ -55,15 +55,15 @@ void Layer_D3D::init()
 		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 3u, 1u);
 		m_pQuadVertexBuffer = new VertexBuffer_D3D(instanceFormat, 6, g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_INSTANCING), 2000u);
 
-		Vertex_PCUV vertices[] = 
+		Vertex_PUV vertices[] = 
 		{
-			{ XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(-0.5f,  0.5f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+			{ XMFLOAT3( 0.5f, -0.5f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+			{ XMFLOAT3(-0.5f, -0.5f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
 
-			{ XMFLOAT3(0.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(1.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) }
+			{ XMFLOAT3( 0.5f, -0.5f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+			{ XMFLOAT3(-0.5f,  0.5f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+			{ XMFLOAT3( 0.5f,  0.5f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
 		};
 
 		m_pQuadVertexBuffer->copyFromBuffer(vertices, ARRAYSIZE(vertices));
@@ -243,11 +243,6 @@ void Layer_D3D::clearRenderData()
 
 int Layer_D3D::sendDrawCalls()
 {
-	//m_pQuadVertexBuffer->copyInstanceFromBuffer(data, sizeof(InstanceData) * m_instanceData.size());
-	//m_pQuadVertexBuffer->copyInstancesToGPU();
-	//m_pQuadVertexBuffer->bind();
-	//g_context.m_pDeviceContext->DrawInstanced(6, m_instanceData.size(), 0, 0);
-
 	for (std::vector<RenderData>::const_iterator iter = m_renderData.cbegin(); iter != m_renderData.cend(); ++iter)
 	{
 		const RenderData &renderData = *iter;
@@ -263,7 +258,13 @@ int Layer_D3D::sendDrawCalls()
 		UINT instanceCount = instances.size();
 
 		material.shader->bind();
+		material.shader->updateUniforms();
 		material.texture->bind();
+
+		if (m_pQuadVertexBuffer->getMaxInstanceCount() < instanceCount)
+		{
+			m_pQuadVertexBuffer->resetMaxInstanceCount(instanceCount);
+		}
 
 		m_pQuadVertexBuffer->copyInstanceFromBuffer(instances.data(), sizeof(InstanceData) * instanceCount);
 		m_pQuadVertexBuffer->copyInstancesToGPU();

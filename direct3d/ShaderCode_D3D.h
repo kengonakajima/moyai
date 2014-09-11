@@ -53,9 +53,10 @@ const static char default_vertex_shader[] =
 	"   output.uv = input.uv;\n"
 	"   float3 pos = mul(input.pos, MVP);\n"
 	"   output.pos = float4(pos, 1.0f);\n"
-	"   return output;"
+	"   return output;\n"
 	"}\n";
 
+/*
 const static char instancing_vertex_shader[] = 
 	"struct VS_Input\n"
 	"{\n"
@@ -91,11 +92,56 @@ const static char instancing_vertex_shader[] =
 	"   float cosRot = cos(rot);\n"
 	"   float sinRot = sin(rot);\n"
 	"   float3x2 rotTransMat = { cosRot, sinRot, -sinRot, cosRot, trans.x, trans.y };\n"
-	"   pos.xy = mul(float3(pos.xy, 1.0f), rotTransMat);\n"
+	"   pos.xy = mul(float3(pos.xy, 1.0f), rotTransMat).xy;\n"
 	"   pos = mul(pos, Projection);\n"
 	"   output.pos = pos;\n"
 	"   return output;\n"
 	"}\n";
+//*/
+
+//*
+const static char instancing_vertex_shader[] = 
+	"struct VS_Input\n"
+	"{\n"
+	"   float3 pos : POSITION;\n"
+	"   float2 uv : TEXCOORD0;\n"
+	"   float4 color : COLOR0;\n"
+	"   float4 offsetScale : TEXCOORD1;\n"
+	"   float4 uvOffsetScale : TEXCOORD2;\n"
+	"   float rotation : TEXCOORD3;\n"
+	"};\n"
+	"struct VS_Output\n"
+	"{\n"
+	"   float4 pos : SV_POSITION;\n"
+	"   float4 color : COLOR0;\n"
+	"   float2 uv : TEXCOORD0;\n"
+	"};\n"
+	"struct PS_Output\n"
+	"{\n"
+	"   float4 color : SV_Target;\n"
+	"};\n"
+	"cbuffer Matrices : register(b0)\n"
+	"{\n"
+	"   float4x4 ModelView;\n"
+	"   float4x4 Projection;\n"
+	"   float4x4 MVP;\n"
+	"}\n"
+	"VS_Output VSMain(VS_Input input)\n"
+	"{\n"
+	"   VS_Output output;\n"
+	"   output.color = input.color;\n"
+	"   float2 uv = input.uv;\n"
+	"   uv *= input.uvOffsetScale.z;\n"
+	"   uv += input.uvOffsetScale.xy;\n"
+	"   output.uv = uv;\n"
+	"   float2 pos = input.pos.xy;\n"
+	"   pos *= input.offsetScale.z;\n"
+	"   pos += input.offsetScale.xy;\n"
+	"   float4 projPos = float4(pos, input.pos.z, 1.0f);\n"
+	"   output.pos = mul(projPos, Projection);\n"
+	"   return output;\n"
+	"}\n";
+//*/
 
 const static char primitive_shader[] = 
 	"struct VS_Input\n"
@@ -124,7 +170,7 @@ const static char primitive_shader[] =
 	"   float3 pos = mul(input.pos, MVP);\n"
 	"   output.pos = float4(pos, 1.0f);\n"
 	"   output.color = input.color;\n"
-	"   return output;"
+	"   return output;\n"
 	"}\n"
 	"PS_Output PSMain(VS_Output input)\n" 
 	"{\n"

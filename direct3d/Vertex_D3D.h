@@ -8,6 +8,12 @@
 using namespace DirectX;
 using namespace DirectX::PackedVector;
 
+struct Vertex_PUV
+{
+	XMFLOAT3 pos;
+	XMFLOAT2 uv;
+};
+
 struct Vertex_PCUV
 {
 	XMFLOAT3 pos;

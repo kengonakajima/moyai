@@ -138,7 +138,7 @@ public:
 
 		if (!g->fragment_shader)
 		{
-			g->fragment_shader = g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_DEFAULT);
+			g->fragment_shader = g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_INSTANCING);
 		}
 
 		return true;
@@ -318,6 +318,4 @@ private:
 
 	void init();
 	Layer_D3D::RenderData& getNewRenderData();
-
-	VertexBuffer_D3D *m_pVertexBuffer;
 };
