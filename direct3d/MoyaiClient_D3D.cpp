@@ -36,7 +36,7 @@ MoyaiClient_D3D::~MoyaiClient_D3D()
 int MoyaiClient_D3D::render()
 {
 	g_context.m_pDeviceContext->ClearRenderTargetView(g_context.m_pRenderTargetView, g_context.m_clearColorRGBA);
-	g_context.m_pDeviceContext->ClearDepthStencilView(g_context.m_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	g_context.m_pDeviceContext->ClearDepthStencilView(g_context.m_pDepthStencilView, D3D11_CLEAR_DEPTH, 0.0f, 0);
 	g_context.m_pDeviceContext->OMSetBlendState(m_pBlendState, NULL, 0xFFFFFFFF);
 
 	int cnt=0;
@@ -46,7 +46,7 @@ int MoyaiClient_D3D::render()
 		if( g && g->to_render ) 
 		{
 			Layer *l = (Layer*) g;
-			cnt += l->renderAllProps();
+			cnt += l->renderAllProps(cnt);
 		}
 	}
 

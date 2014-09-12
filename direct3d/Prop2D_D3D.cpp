@@ -78,6 +78,11 @@ Layer_D3D::RenderData& Prop2D_D3D::getNewRenderData()
 	return static_cast<Layer_D3D*>(parent_group)->getNewRenderData();
 }
 
+Layer_D3D::PrimitiveData& Prop2D_D3D::getNewPrimitiveData()
+{
+	return static_cast<Layer_D3D*>(parent_group)->getNewPrimitiveData();
+}
+
 bool Prop2D_D3D::propPoll(double dt) 
 {
 	if( prop2DPoll(dt) == false ) return false;
@@ -169,11 +174,11 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 	instanceData.offset.y = center_y;
 	instanceData.scale.x = maxx - minx;
 	instanceData.scale.y = maxy - miny;
-	instanceData.rotation = 0.0f;
+	instanceData.rotationDepth.x = 0.0f;
 
 	if(rot==0){
 		if(uvrot){ // -pi/2 rotation
-			instanceData.rotation = -M_PI_2;
+			instanceData.rotationDepth.x = -M_PI_2;
 		}
 	} else {
 		float sn = sin(radrot);
@@ -185,11 +190,11 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 
 		if(uvrot) // -pi/2 + radrot rotation
 		{ 
-			instanceData.rotation = -M_PI_2 + radrot;
+			instanceData.rotationDepth.x = -M_PI_2 + radrot;
 		} 
 		else // radrot rotation
 		{ 
-			instanceData.rotation = radrot;
+			instanceData.rotationDepth.x = radrot;
 		}
 	}
 }
@@ -326,10 +331,11 @@ void Prop2D_D3D::render(Camera *cam)
 		}
 	}
 
-	// primitives should go over image sprites
 	if( prim_drawer )
 	{
-		prim_drawer->drawAll(loc.add(camx,camy) );
+		Layer_D3D::PrimitiveData &primData = getNewPrimitiveData();
+		primData.drawer = prim_drawer;
+		primData.offset = loc.add(camx,camy);
 	}
 }
 

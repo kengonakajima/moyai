@@ -24,6 +24,7 @@ const static char default_pixel_shader[] =
 	"   PS_Output output;\n"
 	"	float4 pixel = g_inputTexture.Sample(g_inputSampler, input.uv);\n"
 	"	output.color = pixel * input.color;\n"
+	"   if (output.color.w == 0.0f) discard;\n"
 	"   return output;\n"
 	"}\n";
 
@@ -56,7 +57,6 @@ const static char default_vertex_shader[] =
 	"   return output;\n"
 	"}\n";
 
-/*
 const static char instancing_vertex_shader[] = 
 	"struct VS_Input\n"
 	"{\n"
@@ -65,50 +65,7 @@ const static char instancing_vertex_shader[] =
 	"   float4 color : COLOR0;\n"
 	"   float4 offsetScale : TEXCOORD1;\n"
 	"   float4 uvOffsetScale : TEXCOORD2;\n"
-	"   float rotation : TEXCOORD3;\n"
-	"};\n"
-	"struct VS_Output\n"
-	"{\n"
-	"   float4 pos : SV_POSITION;\n"
-	"   float4 color : COLOR0;\n"
-	"   float2 uv : TEXCOORD0;\n"
-	"};\n"
-	"struct PS_Output\n"
-	"{\n"
-	"   float4 color : SV_Target;\n"
-	"};\n"
-	"cbuffer PerLayer : register(b0)\n"
-	"{\n"
-	"   float4x4 Projection;\n"
-	"}\n"
-	"VS_Output VSMain(VS_Input input)\n"
-	"{\n"
-	"   VS_Output output;\n"
-	"   output.color = input.color;\n"
-	"   output.uv = input.uv;\n"
-	"   float4 pos = float4(input.pos, 1.0f);\n"
-	"   float2 trans = input.offsetScale.xy;\n"
-	"   float rot = input.rotation;\n"
-	"   float cosRot = cos(rot);\n"
-	"   float sinRot = sin(rot);\n"
-	"   float3x2 rotTransMat = { cosRot, sinRot, -sinRot, cosRot, trans.x, trans.y };\n"
-	"   pos.xy = mul(float3(pos.xy, 1.0f), rotTransMat).xy;\n"
-	"   pos = mul(pos, Projection);\n"
-	"   output.pos = pos;\n"
-	"   return output;\n"
-	"}\n";
-//*/
-
-//*
-const static char instancing_vertex_shader[] = 
-	"struct VS_Input\n"
-	"{\n"
-	"   float3 pos : POSITION;\n"
-	"   float2 uv : TEXCOORD0;\n"
-	"   float4 color : COLOR0;\n"
-	"   float4 offsetScale : TEXCOORD1;\n"
-	"   float4 uvOffsetScale : TEXCOORD2;\n"
-	"   float rotation : TEXCOORD3;\n"
+	"   float2 rotationDepth : TEXCOORD3;\n"
 	"};\n"
 	"struct VS_Output\n"
 	"{\n"
@@ -137,11 +94,10 @@ const static char instancing_vertex_shader[] =
 	"   float2 pos = input.pos.xy;\n"
 	"   pos *= input.offsetScale.z;\n"
 	"   pos += input.offsetScale.xy;\n"
-	"   float4 projPos = float4(pos, input.pos.z, 1.0f);\n"
+	"   float4 projPos = float4(pos, input.rotationDepth.y * 0.01f, 1.0f);\n"
 	"   output.pos = mul(projPos, Projection);\n"
 	"   return output;\n"
 	"}\n";
-//*/
 
 const static char primitive_shader[] = 
 	"struct VS_Input\n"

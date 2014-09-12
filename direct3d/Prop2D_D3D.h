@@ -318,4 +318,5 @@ private:
 
 	void init();
 	Layer_D3D::RenderData& getNewRenderData();
+	Layer_D3D::PrimitiveData& getNewPrimitiveData();
 };

@@ -5,6 +5,7 @@
 #include "../common/Mesh.h"
 #include "Context_D3D.h"
 
+class PrimDrawer;
 class Camera;
 class TileDeck;
 class Material;
@@ -20,10 +21,6 @@ public:
 	Camera *camera;
 	Viewport_D3D *viewport;
 	Light *light;
-
-	// working area to avoid allocation in inner loops
-	SorterEntry sorter_opaque[Prop::CHILDREN_ABS_MAX];
-	SorterEntry sorter_transparent[Prop::CHILDREN_ABS_MAX];
 
 	Layer_D3D();
 	virtual ~Layer_D3D();
@@ -43,7 +40,7 @@ public:
 		light = l;
 	}
 
-	int renderAllProps();
+	int renderAllProps(int layerIndex);
 	void selectCenterInside( Vec2 minloc, Vec2 maxloc, Prop*out[], int *outlen );
 
 	inline void selectCenterInside( Vec2 center, float dia, Prop *out[], int *outlen)
@@ -71,7 +68,7 @@ private:
 		Vec2 scale;
 		Vec2 uvOffset;
 		Vec2 uvScale;
-		float rotation;
+		Vec2 rotationDepth;
 	};
 
 	struct MaterialData
@@ -84,6 +81,12 @@ private:
 	{
 		InstanceData instanceData;
 		MaterialData materialData;
+	};
+
+	struct PrimitiveData
+	{
+		PrimDrawer *drawer;
+		Vec2 offset;
 	};
 
 	struct MaterialHash
@@ -111,11 +114,14 @@ private:
 	int sendDrawCalls();
 	void clearRenderData();
 	RenderData& getNewRenderData();
+	PrimitiveData& getNewPrimitiveData();
 
 	Texture_D3D *m_pLastTexture;
 	VertexBuffer_D3D *m_pBillboardVertexBuffer;
 	VertexBuffer_D3D *m_pQuadVertexBuffer;
 	ID3D11Buffer *m_pMatrixConstantBuffer;	
 	std::vector<RenderData> m_renderData;
+	std::vector<PrimitiveData> m_primitiveData;
 	SortedRenderData m_sortedRenderData;
+	int m_layerIndex;
 };

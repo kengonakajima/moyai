@@ -272,7 +272,7 @@ namespace glfw_d3d
 
 			desc.DepthEnable = TRUE;
 			desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-			desc.DepthFunc = D3D11_COMPARISON_LESS;
+			desc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
 			g_context.m_pDevice->CreateDepthStencilState(&desc, &g_context.m_pDepthStencilState);
 		}
 

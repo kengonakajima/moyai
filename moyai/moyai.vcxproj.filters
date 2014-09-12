@@ -429,7 +429,7 @@
       <Filter>Source Files\Direct3D</Filter>
     </ClInclude>
     <ClInclude Include="..\direct3d\ShaderCode_D3D.h">
-      <Filter>Source Files\Direct3D</Filter>
+      <Filter>Header Files\Direct3D</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

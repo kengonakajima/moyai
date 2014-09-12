@@ -8,6 +8,7 @@
 #include "../common/Material.h"
 #include "../common/Prop2D.h"
 #include "../common/Prop3D.h"
+#include "../common/GPUMarker.h"
 
 #include "VertexBuffer_D3D.h"
 
@@ -22,7 +23,9 @@ Layer_D3D::Layer_D3D()
 	, m_pQuadVertexBuffer(nullptr)
 	, m_pMatrixConstantBuffer(nullptr)
 	, m_renderData()
+	, m_primitiveData()
 	, m_sortedRenderData()
+	, m_layerIndex(0)
 {
 	to_render = true;
 	init();
@@ -52,7 +55,7 @@ void Layer_D3D::init()
 		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_COLOR, 0u, 4u);
 		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 1u, 4u);
 		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 2u, 4u);
-		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 3u, 1u);
+		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 3u, 2u);
 		m_pQuadVertexBuffer = new VertexBuffer_D3D(instanceFormat, 6, g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_INSTANCING), 2000u);
 
 		Vertex_PUV vertices[] = 
@@ -141,16 +144,15 @@ void Layer_D3D::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *
 	
 }
 
-int Layer_D3D::renderAllProps()
+int Layer_D3D::renderAllProps(int layerIndex)
 {
 	assertmsg( viewport != nullptr, "no viewport in a layer id:%d setViewport missed?", id );
 
+	m_layerIndex = layerIndex;
+
 	if( viewport->dimension == DIMENSION_2D ) 
 	{
-		// Disable depth test
-		g_context.m_pDeviceContext->OMSetDepthStencilState(g_context.m_pNoDepthTestState, 0);
-
-		XMMATRIX orthoProjMatrix = XMMatrixOrthographicLH(viewport->scl.x, viewport->scl.y, 0.0f, 100.0f);
+		XMMATRIX orthoProjMatrix = XMMatrixOrthographicLH(viewport->scl.x, viewport->scl.y, 0.0f, 1000.0f);
 		XMMATRIX identityMatrix = XMMatrixIdentity();
 		CBufferMVP cbuffer(identityMatrix, orthoProjMatrix);
 
@@ -227,7 +229,14 @@ Layer_D3D::RenderData& Layer_D3D::getNewRenderData()
 {
 	m_renderData.push_back(RenderData());
 	RenderData &renderData = m_renderData.back();
+	renderData.instanceData.rotationDepth.y = (float)m_layerIndex++;
 	return renderData;
+}
+
+Layer_D3D::PrimitiveData& Layer_D3D::getNewPrimitiveData()
+{
+	m_primitiveData.push_back(PrimitiveData());
+	return m_primitiveData.back();
 }
 
 void Layer_D3D::clearRenderData()
@@ -239,16 +248,21 @@ void Layer_D3D::clearRenderData()
 	}
 
 	m_renderData.clear();
+	m_primitiveData.clear();
 }
 
 int Layer_D3D::sendDrawCalls()
 {
+	// Sort draw calls per material (shader/texture)
 	for (std::vector<RenderData>::const_iterator iter = m_renderData.cbegin(); iter != m_renderData.cend(); ++iter)
 	{
 		const RenderData &renderData = *iter;
 		std::vector<InstanceData> &instances = m_sortedRenderData[renderData.materialData];
 		instances.push_back(renderData.instanceData);
 	}
+
+	GPU_BEGIN_EVENT("Layer_D3D::sendDrawCalls");
+	g_context.m_pDeviceContext->OMSetDepthStencilState(g_context.m_pDepthStencilState, 0);
 
 	for (SortedRenderData::const_iterator iter = m_sortedRenderData.cbegin(); iter != m_sortedRenderData.cend(); ++iter)
 	{
@@ -257,20 +271,35 @@ int Layer_D3D::sendDrawCalls()
 		const std::vector<InstanceData> &instances = pair.second;
 		UINT instanceCount = instances.size();
 
-		material.shader->bind();
-		material.shader->updateUniforms();
-		material.texture->bind();
-
-		if (m_pQuadVertexBuffer->getMaxInstanceCount() < instanceCount)
+		if (instanceCount > 0)
 		{
-			m_pQuadVertexBuffer->resetMaxInstanceCount(instanceCount);
-		}
+			material.shader->bind();
+			material.shader->updateUniforms();
+			material.texture->bind();
 
-		m_pQuadVertexBuffer->copyInstanceFromBuffer(instances.data(), sizeof(InstanceData) * instanceCount);
-		m_pQuadVertexBuffer->copyInstancesToGPU();
-		m_pQuadVertexBuffer->bind();
-		g_context.m_pDeviceContext->DrawInstanced(6, instanceCount, 0, 0);
+			if (m_pQuadVertexBuffer->getMaxInstanceCount() < instanceCount)
+			{
+				m_pQuadVertexBuffer->resetMaxInstanceCount(instanceCount);
+			}
+
+			m_pQuadVertexBuffer->copyInstanceFromBuffer(instances.data(), sizeof(InstanceData) * instanceCount);
+			m_pQuadVertexBuffer->copyInstancesToGPU();
+			m_pQuadVertexBuffer->bind();
+			g_context.m_pDeviceContext->DrawInstanced(6, instanceCount, 0, 0);
+		}
 	}
+
+	// Primitives should go over image sprites
+	g_context.m_pDeviceContext->OMSetDepthStencilState(g_context.m_pNoDepthTestState, 0);
+	for (std::vector<PrimitiveData>::const_iterator iter = m_primitiveData.cbegin(); iter != m_primitiveData.cend(); ++iter)
+	{
+		const PrimitiveData &primData = *iter;
+		if (primData.drawer)
+		{
+			primData.drawer->drawAll(primData.offset);
+		}
+	}
+	GPU_END_EVENT();
 
 	int spriteCount = m_renderData.size();
 	clearRenderData();
