@@ -181,8 +181,6 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 			instanceData.rotationDepth.x = -M_PI_2;
 		}
 	} else {
-		float sn = sin(radrot);
-		float cs = cos(radrot);
 		minx -= center_x;
 		miny -= center_y;
 		maxx -= center_x;
