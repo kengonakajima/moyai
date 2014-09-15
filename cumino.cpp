@@ -119,7 +119,9 @@ void print( const char *fmt, ... ){
 
 
 
-void assertmsg( bool cond, const char *fmt, ... ) {
+void assertmsg( bool cond, const char *fmt, ... ) 
+{
+#if !defined(WIN32) || defined(DEBUG) || defined(_DEBUG)
     if(!cond){
         char dest[1024*16];
         va_list argptr;
@@ -129,6 +131,7 @@ void assertmsg( bool cond, const char *fmt, ... ) {
         fprintf( stderr, "%s\n", dest );
         assert(cond);
     }
+#endif
 }
 
 
