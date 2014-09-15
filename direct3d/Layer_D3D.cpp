@@ -23,7 +23,7 @@ Layer_D3D::Layer_D3D()
 	, m_pQuadVertexBuffer(nullptr)
 	, m_pMatrixConstantBuffer(nullptr)
 	, m_renderData()
-	, m_primitiveData()
+	, m_sortedMaterialData()
 	, m_sortedRenderData()
 	, m_layerIndex(0)
 {
@@ -233,22 +233,29 @@ Layer_D3D::RenderData& Layer_D3D::getNewRenderData()
 	return renderData;
 }
 
-Layer_D3D::PrimitiveData& Layer_D3D::getNewPrimitiveData()
+const Layer_D3D::MaterialData* Layer_D3D::getLastMaterial() const
 {
-	m_primitiveData.push_back(PrimitiveData());
-	return m_primitiveData.back();
+	if (m_renderData.empty())
+	{
+		return nullptr;
+	}
+
+	const Layer_D3D::RenderData &data = m_renderData.back();
+	return &data.materialData;
 }
 
 void Layer_D3D::clearRenderData()
 {
 	for (SortedRenderData::iterator iter = m_sortedRenderData.begin(); iter != m_sortedRenderData.end(); ++iter)
 	{
-		SortedRenderDataPair &instances = *iter;
-		instances.second.clear();
+		SortedRenderDataPair &data = *iter;
+		data.second.instances.clear();
+		data.second.primitives.clear();
 	}
 
+	m_sortedRenderData.clear();
 	m_renderData.clear();
-	m_primitiveData.clear();
+	m_sortedMaterialData.clear();
 }
 
 int Layer_D3D::sendDrawCalls()
@@ -257,22 +264,37 @@ int Layer_D3D::sendDrawCalls()
 	for (std::vector<RenderData>::const_iterator iter = m_renderData.cbegin(); iter != m_renderData.cend(); ++iter)
 	{
 		const RenderData &renderData = *iter;
-		std::vector<InstanceData> &instances = m_sortedRenderData[renderData.materialData];
-		instances.push_back(renderData.instanceData);
+
+		std::vector<MaterialData>::const_iterator matIter = std::find(m_sortedMaterialData.cbegin(), m_sortedMaterialData.cend(), renderData.materialData);
+		if (matIter == m_sortedMaterialData.cend())
+		{
+			m_sortedMaterialData.push_back(renderData.materialData);
+		}
+
+		CallData &callData = m_sortedRenderData[renderData.materialData];
+
+		if (renderData.materialData.shader)
+		{
+			callData.instances.push_back(renderData.instanceData);
+		}
+
+		if (renderData.primitiveData.drawer)
+		{
+			callData.primitives.push_back(renderData.primitiveData);
+		}
 	}
 
 	GPU_BEGIN_EVENT("Layer_D3D::sendDrawCalls");
-	g_context.m_pDeviceContext->OMSetDepthStencilState(g_context.m_pDepthStencilState, 0);
-
-	for (SortedRenderData::const_iterator iter = m_sortedRenderData.cbegin(); iter != m_sortedRenderData.cend(); ++iter)
+	for (std::vector<MaterialData>::const_iterator iter = m_sortedMaterialData.cbegin(); iter != m_sortedMaterialData.cend(); ++iter)
 	{
-		const SortedRenderDataPair &pair = *iter;
-		const MaterialData &material = pair.first;
-		const std::vector<InstanceData> &instances = pair.second;
-		UINT instanceCount = instances.size();
+		const MaterialData &material = *iter;
+		CallData &callData = m_sortedRenderData[material];
+		UINT instanceCount = callData.instances.size();
 
 		if (instanceCount > 0)
 		{
+			g_context.m_pDeviceContext->OMSetDepthStencilState(g_context.m_pDepthStencilState, 0);
+
 			material.shader->bind();
 			material.shader->updateUniforms();
 			material.texture->bind();
@@ -282,22 +304,22 @@ int Layer_D3D::sendDrawCalls()
 				m_pQuadVertexBuffer->resetMaxInstanceCount(instanceCount);
 			}
 
-			m_pQuadVertexBuffer->copyInstanceFromBuffer(instances.data(), sizeof(InstanceData) * instanceCount);
+			m_pQuadVertexBuffer->copyInstanceFromBuffer(callData.instances.data(), sizeof(InstanceData) * instanceCount);
 			m_pQuadVertexBuffer->copyInstancesToGPU();
 			m_pQuadVertexBuffer->bind();
 			g_context.m_pDeviceContext->DrawInstanced(6, instanceCount, 0, 0);
 		}
-	}
 
-	// Primitives should go over image sprites
-	g_context.m_pDeviceContext->OMSetDepthStencilState(g_context.m_pNoDepthTestState, 0);
-	for (std::vector<PrimitiveData>::const_iterator iter = m_primitiveData.cbegin(); iter != m_primitiveData.cend(); ++iter)
-	{
-		const PrimitiveData &primData = *iter;
-		if (primData.drawer)
+		// Primitives should go over image sprites
+		g_context.m_pDeviceContext->OMSetDepthStencilState(g_context.m_pNoDepthTestState, 0);
+		for (std::vector<PrimitiveData>::const_iterator iter = callData.primitives.cbegin(); iter != callData.primitives.cend(); ++iter)
 		{
-			primData.drawer->drawAll(primData.offset);
-		}
+			const PrimitiveData &primData = *iter;
+			if (primData.drawer)
+			{
+				primData.drawer->drawAll(primData.offset);
+			}
+		}		
 	}
 	GPU_END_EVENT();
 

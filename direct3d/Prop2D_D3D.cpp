@@ -78,9 +78,9 @@ Layer_D3D::RenderData& Prop2D_D3D::getNewRenderData()
 	return static_cast<Layer_D3D*>(parent_group)->getNewRenderData();
 }
 
-Layer_D3D::PrimitiveData& Prop2D_D3D::getNewPrimitiveData()
+const Layer_D3D::MaterialData* Prop2D_D3D::getLastMaterial() const
 {
-	return static_cast<Layer_D3D*>(parent_group)->getNewPrimitiveData();
+	return static_cast<Layer_D3D*>(parent_group)->getLastMaterial();
 }
 
 bool Prop2D_D3D::propPoll(double dt) 
@@ -329,11 +329,23 @@ void Prop2D_D3D::render(Camera *cam)
 		}
 	}
 
-	if( prim_drawer )
+	if (prim_drawer)
 	{
-		Layer_D3D::PrimitiveData &primData = getNewPrimitiveData();
-		primData.drawer = prim_drawer;
-		primData.offset = loc.add(camx,camy);
+		const Layer_D3D::MaterialData *materialData = getLastMaterial();
+		Layer_D3D::RenderData &renderData = getNewRenderData();
+
+		if (materialData)
+		{
+			renderData.materialData = *materialData;
+		}
+		else
+		{
+			// Prop::id is unique per prop so we use it as material id in case the primitive drawer needs its own material.
+			renderData.materialData.id = id;
+		}
+
+		renderData.primitiveData.drawer = prim_drawer;
+		renderData.primitiveData.offset = loc.add(camx,camy);
 	}
 }
 

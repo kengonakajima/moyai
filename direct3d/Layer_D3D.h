@@ -73,20 +73,38 @@ private:
 
 	struct MaterialData
 	{
+		static const unsigned int DEFAULT_ID = -1;
+
+		MaterialData() : id(DEFAULT_ID), shader(nullptr), texture(nullptr) {}
+
+		unsigned int id;
 		FragmentShader_D3D *shader;
 		Texture_D3D *texture;
+
+		bool operator==(const MaterialData &data) const
+		{
+			return (id == data.id) && (shader == data.shader) && (texture == data.texture);
+		}
+	};
+
+	struct PrimitiveData
+	{
+		PrimitiveData() :drawer(nullptr), offset() {}
+		PrimDrawer *drawer;
+		Vec2 offset;
 	};
 
 	struct RenderData
 	{
 		InstanceData instanceData;
 		MaterialData materialData;
+		PrimitiveData primitiveData;
 	};
 
-	struct PrimitiveData
+	struct CallData
 	{
-		PrimDrawer *drawer;
-		Vec2 offset;
+		std::vector<InstanceData> instances;
+		std::vector<PrimitiveData> primitives;
 	};
 
 	struct MaterialHash
@@ -103,25 +121,26 @@ private:
 
 		bool operator()(const MaterialData &data0, const MaterialData &data1)
 		{
-			return (data0.shader == data1.shader) && (data0.texture == data1.texture);
+			return data0 == data1;
 		}
 	};
 
-	typedef std::unordered_map<MaterialData, std::vector<InstanceData>, MaterialHash, MaterialHash> SortedRenderData;
-	typedef std::pair<const MaterialData, std::vector<InstanceData> > SortedRenderDataPair;
+	typedef std::unordered_map<MaterialData, CallData, MaterialHash, MaterialHash> SortedRenderData;
+	typedef std::pair<const MaterialData, CallData> SortedRenderDataPair;
+
 
 	void init();
 	int sendDrawCalls();
 	void clearRenderData();
 	RenderData& getNewRenderData();
-	PrimitiveData& getNewPrimitiveData();
+	const MaterialData* getLastMaterial() const;
 
 	Texture_D3D *m_pLastTexture;
 	VertexBuffer_D3D *m_pBillboardVertexBuffer;
 	VertexBuffer_D3D *m_pQuadVertexBuffer;
 	ID3D11Buffer *m_pMatrixConstantBuffer;	
 	std::vector<RenderData> m_renderData;
-	std::vector<PrimitiveData> m_primitiveData;
+	std::vector<MaterialData> m_sortedMaterialData;
 	SortedRenderData m_sortedRenderData;
 	int m_layerIndex;
 };

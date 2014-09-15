@@ -318,5 +318,5 @@ private:
 
 	void init();
 	Layer_D3D::RenderData& getNewRenderData();
-	Layer_D3D::PrimitiveData& getNewPrimitiveData();
+	const Layer_D3D::MaterialData* Prop2D_D3D::getLastMaterial() const;
 };
