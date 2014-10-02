@@ -17,6 +17,7 @@ public:
 	int line_width;
 
 	Prim_D3D(PRIMTYPE t, Vec2 a, Vec2 b, Color c, int line_width = 1);
+	~Prim_D3D();
 
 	void draw(Vec2 ofs);
 
