@@ -49,6 +49,7 @@ private:
 	void setUVElement(D3D11_INPUT_ELEMENT_DESC &element);
 	void setNormalElement(D3D11_INPUT_ELEMENT_DESC &element);
 	void setColorElement(D3D11_INPUT_ELEMENT_DESC &element);
+	void set2DPosElement(D3D11_INPUT_ELEMENT_DESC &element);
 	void setInstanceElement(D3D11_INPUT_ELEMENT_DESC &element, const VertexFormat::Element &formatElement);
 
 	ID3D11Buffer *m_pVertexBuffer;

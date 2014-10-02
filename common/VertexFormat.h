@@ -24,10 +24,10 @@ public:
 	static const int MaxInstanceElementCount = 4;
 
 	// float only
-	char types[4]; // 'v': {f,f,f} 'c':{f,f,f,f}  't':{f,f}, 'n':{f,f,f} normal
+	char types[5]; // 'v': {f,f,f} 'c':{f,f,f,f}  't':{f,f}, 'n':{f,f,f} normal, 'p':{f,f} 2d position
 	int types_used;
 	int num_float;
-	int coord_offset, color_offset, texture_offset, normal_offset; // -1:not used
+	int coord_offset, color_offset, texture_offset, normal_offset, pos_offset; // -1:not used
 	
 	VertexFormat();
 
@@ -35,6 +35,7 @@ public:
 	void declareColor(){ addType('c'); }
 	void declareUV(){ addType('t'); }
 	void declareNormal(){ addType('n'); }
+	void declare2DPos() { addType('p'); }
 	void addType(char t){
 		assertmsg( types_used < elementof(types), "too many types");
 		types[types_used++] = t;
@@ -56,6 +57,10 @@ public:
 		assert(index>=0 && index<types_used);
 		return types[index] == 'n';
 	}
+	bool is2DPosDeclared( int index ) {
+		assert(index>=0 && index<types_used);
+		return types[index] == 'p';
+	}
 	void updateSize(){
 		num_float = 0;
 		for(int i=0;i<types_used;i++){
@@ -74,6 +79,10 @@ public:
 				break;
 			case 't':
 				texture_offset = num_float;
+				num_float += 2;
+				break;
+			case 'p':
+				pos_offset = num_float;
 				num_float += 2;
 				break;
 			default:

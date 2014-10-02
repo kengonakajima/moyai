@@ -431,5 +431,8 @@
     <ClInclude Include="..\direct3d\ShaderCode_D3D.h">
       <Filter>Header Files\Direct3D</Filter>
     </ClInclude>
+    <ClInclude Include="..\direct3d\Color_D3D.h">
+      <Filter>Header Files\Direct3D</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

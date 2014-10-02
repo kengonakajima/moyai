@@ -72,9 +72,9 @@ void VertexBuffer_D3D::initD3DObjects()
 		D3D11_BUFFER_DESC desc;
 		ZeroMemory(&desc, sizeof(desc));
 		desc.ByteWidth = m_bufferSize;
-		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		desc.CPUAccessFlags = 0;
 
 		HRESULT hr = g_context.m_pDevice->CreateBuffer(&desc, nullptr, &m_pVertexBuffer);
 		assert(SUCCEEDED(hr) && "Unable to create vertex buffer");
@@ -101,6 +101,8 @@ void VertexBuffer_D3D::initD3DObjects()
 				setUVElement(elements[elementIndex]); break;
 			case 'n':
 				setNormalElement(elements[elementIndex]); break;
+			case 'p':
+				set2DPosElement(elements[elementIndex]); break;
 			default:
 				assert(false && "Invalid vertex format element");
 			}
@@ -178,6 +180,19 @@ void VertexBuffer_D3D::setColorElement(D3D11_INPUT_ELEMENT_DESC &element)
 	m_nextAlignedOffset += 16u;
 }
 
+void VertexBuffer_D3D::set2DPosElement(D3D11_INPUT_ELEMENT_DESC &element)
+{
+	element.SemanticName = "POSITION";
+	element.SemanticIndex = 0;
+	element.Format = DXGI_FORMAT_R32G32_FLOAT;
+	element.InputSlot = 0;
+	element.AlignedByteOffset = m_nextAlignedOffset;
+	element.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	element.InstanceDataStepRate = 0;
+
+	m_nextAlignedOffset += 8u;
+}
+
 void VertexBuffer_D3D::setInstanceElement(D3D11_INPUT_ELEMENT_DESC &element, const VertexFormat::Element &formatElement)
 {
 	if (formatElement.semantic == VertexFormat::SEMANTIC_COLOR)
@@ -198,7 +213,7 @@ void VertexBuffer_D3D::setInstanceElement(D3D11_INPUT_ELEMENT_DESC &element, con
 	switch (formatElement.floatSize)
 	{
 	case 1:
-		element.Format = DXGI_FORMAT_R32_FLOAT;
+		element.Format = (formatElement.semantic == VertexFormat::SEMANTIC_COLOR) ? DXGI_FORMAT_R8G8B8A8_UNORM : DXGI_FORMAT_R32_FLOAT;
 		m_nextInstanceAlignedOffset += 4u;
 		break;
 	case 2:
@@ -381,9 +396,7 @@ void VertexBuffer_D3D::dump()
 void VertexBuffer_D3D::copyToGPU()
 {
 	D3D11_MAPPED_SUBRESOURCE map;
-	g_context.m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-	memcpy(map.pData, m_pBuffer, m_bufferSize);
-	g_context.m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
+	g_context.m_pDeviceContext->UpdateSubresource(m_pVertexBuffer, 0, nullptr, m_pBuffer, m_bufferSize, 0);
 }
 
 void VertexBuffer_D3D::copyInstancesToGPU()

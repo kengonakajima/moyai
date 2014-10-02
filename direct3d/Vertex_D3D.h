@@ -10,7 +10,7 @@ using namespace DirectX::PackedVector;
 
 struct Vertex_PUV
 {
-	XMFLOAT3 pos;
+	XMFLOAT2 pos;
 	XMFLOAT2 uv;
 };
 

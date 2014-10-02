@@ -253,6 +253,7 @@
     <ClInclude Include="..\common\Viewport.h" />
     <ClInclude Include="..\cumino.h" />
     <ClInclude Include="..\direct3d\ColorReplacerShader_D3D.h" />
+    <ClInclude Include="..\direct3d\Color_D3D.h" />
     <ClInclude Include="..\direct3d\Context_D3D.h" />
     <ClInclude Include="..\direct3d\Dependencies_D3D.h" />
     <ClInclude Include="..\direct3d\Font_D3D.h" />
