@@ -53,5 +53,5 @@ const VertexFormat::Element* VertexFormat::getInstanceElement(int index) const
 		return &instanceElements[index];
 	}
 
-	return nullptr;
+	return NULL;
 }
