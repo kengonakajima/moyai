@@ -306,7 +306,7 @@ public:
     static const int CHILDREN_ABS_MAX = 64;
 
 
-    inline Prop() : id(++idgen), debug_id(0), next(NULL), prev(NULL), to_clean(false), parent_group(NULL), accum_time(0),  poll_count(0) {
+    inline Prop() : id(++idgen), debug_id(0), next(NULL), prev(NULL), to_clean(false), accum_time(0),  poll_count(0), parent_group(NULL)  {
     }
     virtual ~Prop() {
 
