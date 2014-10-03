@@ -1,6 +1,6 @@
 /*===============================================================================================
  DSP Effect per speaker Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how to manipulate a DSP network and as an example, creates 2 dsp effects,
  and splits a single sound into 2 audio paths, which it then filters seperately.
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     ERRCHECK(result);
 
     printf("===============================================================================\n");
-    printf("DSP effect per speaker example. Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("DSP effect per speaker example. Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("===============================================================================\n");
     printf("Press 'L' to toggle lowpass on/off on left speaker only\n");
     printf("Press 'R' to toggle chorus on/off on right speaker only\n");

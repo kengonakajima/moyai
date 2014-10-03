@@ -1,6 +1,6 @@
 /* ============================================================================================ */
 /* FMOD Ex - Main C/C++ Network event system header file.                                       */
-/* Copyright (c), Firelight Technologies Pty, Ltd. 2004-2011.                                   */
+/* Copyright (c), Firelight Technologies Pty, Ltd. 2004-2014.                                   */
 /*                                                                                              */
 /* Use this header to enable network tweaking and auditioning in realtime from FMOD Designer.   */
 /* If you are programming in C use FMOD_EVENT_NET.H                                             */

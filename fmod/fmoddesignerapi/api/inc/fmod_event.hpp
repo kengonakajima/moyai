@@ -1,6 +1,6 @@
 /*
     fmod_event.hpp - Data-driven event classes
-    Copyright (c), Firelight Technologies Pty, Ltd. 2004-2011.
+    Copyright (c), Firelight Technologies Pty, Ltd. 2004-2014.
 
     This header is the base header for all other FMOD EventSystem headers. If you are programming in C use FMOD_EVENT.H
 */

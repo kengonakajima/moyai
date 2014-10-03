@@ -1,6 +1,6 @@
 /*===============================================================================================
  PlayStream Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how to simply play a stream, such as an mp3 or wav.
  The stream behaviour is achieved by specifying FMOD_CREATESTREAM in the call to 
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     ERRCHECK(result);
 
     printf("====================================================================\n");
-    printf("PlayStream Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("PlayStream Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("====================================================================\n");
     printf("\n");
     printf("Press space to pause, Esc to quit\n");

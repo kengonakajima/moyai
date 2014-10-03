@@ -2,7 +2,7 @@
 
 /* ============================================================================================ */
 /* FMOD Ex - Main C/C++ event/data driven system header file.                                   */
-/* Copyright (c), Firelight Technologies Pty, Ltd. 2004-2011.                                   */
+/* Copyright (c), Firelight Technologies Pty, Ltd. 2004-2014.                                   */
 /*                                                                                              */
 /* This header is the base header for all other FMOD EventSystem headers. If you are            */
 /* programming in C use this exclusively, or if you are programming C++ use this in             */
@@ -21,7 +21,7 @@
     0xaaaabbcc -> aaaa = major version number.  bb = minor version number.  cc = development version number.
 */
 
-#define FMOD_EVENT_VERSION 0x00044203
+#define FMOD_EVENT_VERSION 0x00044444
 
 /*
     FMOD event types
@@ -118,6 +118,7 @@ typedef FMOD_MUSIC_ID               FMOD_MUSIC_PARAM_ID;
 #define FMOD_EVENT_NONBLOCKING_THREAD2   (FMOD_EVENT_NONBLOCKING | 0x00020000)  /* FMOD_EVENT_NONBLOCKING, execute on thread 2.  See remarks. */
 #define FMOD_EVENT_NONBLOCKING_THREAD3   (FMOD_EVENT_NONBLOCKING | 0x00040000)  /* FMOD_EVENT_NONBLOCKING, execute on thread 3.  See remarks. */
 #define FMOD_EVENT_NONBLOCKING_THREAD4   (FMOD_EVENT_NONBLOCKING | 0x00080000)  /* FMOD_EVENT_NONBLOCKING, execute on thread 4.  See remarks. */
+#define FMOD_EVENT_NONBLOCKING_THREAD_MAX 5
 /* [DEFINE_END] */
 
 
@@ -212,7 +213,7 @@ typedef enum
     FMOD_EVENTPROPERTY_TIMEOFFSET,                      /* Type : float     - Time offset of sound start in seconds. */
     FMOD_EVENTPROPERTY_SPAWNINTENSITY,                  /* Type : float     - Multiplier for spawn frequency of all sounds in this event. */
     FMOD_EVENTPROPERTY_SPAWNINTENSITY_RANDOMIZATION,    /* Type : float     - Random deviation in spawn intensity of event. */
-    FMOD_EVENTPROPERTY_WII_CONTROLLERSPEAKERS,          /* Type : int       - Wii only. Use FMOD_WII_CONTROLLER flags defined in fmodwii.h to set which Wii Controller Speaker(s) to play this event on. */
+    FMOD_EVENTPROPERTY_WII_CONTROLLERSPEAKERS,          /* Type : int       - Wii/WiiU only. Use FMOD_WII_CONTROLLER from fmodwii.h or FMOD_WIIU_CONTROLLER from fmodwiiu.h to set which Wii Controller Speaker(s) to play this event on. */
 	FMOD_EVENTPROPERTY_3D_POSRANDOMIZATION_MIN,         /* Type : unsigned int   - Minimum radius of random deviation in the 3D position of event. */
 	FMOD_EVENTPROPERTY_3D_POSRANDOMIZATION_MAX,         /* Type : unsigned int   - Maximum radius of random deviation in the 3D position of event. */
     FMOD_EVENTPROPERTY_EVENTTYPE,                       /* Type : int       - (<b>Readonly</b>) 0 = simple event, 1 = complex event */
@@ -427,6 +428,16 @@ typedef enum
     An FMOD_EVENT_CALLBACKTYPE_OCCLUSION callback is generated whenever an channel has its occlusion updated via the geometry system.
     <p>&nbsp;<p>
 
+    <b>FMOD_EVENT_CALLBACKTYPE_MAXSTREAMS</b>
+    <p>
+    param1 [out] = (int) wavebank stream reference count when attempting to create this event.<br>
+    param2 [out] = (int) max streams value for the wavebank that has been exceeded.<br>
+    <p>
+    An FMOD_EVENT_CALLBACKTYPE_MAXSTREAMS callback is generated whenever an event is retrieved and causes the 'max streams' limit for a wavebank to be reached/exceeded.<br>
+    Side effect is that stream playback will be delayed until a slot is free.<br>
+    Make sure the event has the callback set on its 'info only' event handle (FMOD_EVENT_INFOONLY) because the event instance in question may not be fully created at the time the callback is issued.
+    <p>&nbsp;<p>    
+
     [PLATFORMS]
     Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii, iPhone, 3GS, NGP, Android
 
@@ -451,7 +462,8 @@ typedef enum
     FMOD_EVENT_CALLBACKTYPE_SOUNDDEF_INFO,        /* Called when a sound definition entry is loaded. */
     FMOD_EVENT_CALLBACKTYPE_EVENTSTARTED,         /* Called when an event is started. */
     FMOD_EVENT_CALLBACKTYPE_SOUNDDEF_SELECTINDEX, /* Called when a sound definition entry needs to be chosen from a "ProgrammerSelected" sound definition. */
-    FMOD_EVENT_CALLBACKTYPE_OCCLUSION             /* Called when an event's channel is occluded with the geometry engine. */
+    FMOD_EVENT_CALLBACKTYPE_OCCLUSION,            /* Called when an event's channel is occluded with the geometry engine. */
+    FMOD_EVENT_CALLBACKTYPE_MAXSTREAMS            /* Called when an event causes the max streams limit for a bank to be reached.  Side effect is that stream playback will be delayed until a slot is free. */
 } FMOD_EVENT_CALLBACKTYPE;
 
 
@@ -510,7 +522,7 @@ typedef struct FMOD_EVENT_WAVEBANKINFO
 typedef struct FMOD_EVENT_SYSTEMINFO
 {
 #ifdef __cplusplus
-    FMOD_EVENT_SYSTEMINFO() : numevents(0), numinstances(0), maxwavebanks(0), wavebankinfo(0), numplayingevents(0), playingevents(0) {}
+    FMOD_EVENT_SYSTEMINFO() : numevents(0), numinstances(0), maxwavebanks(0), wavebankinfo(0), numplayingevents(0), playingevents(0) { numloadsqueued[0] = numloadsqueued[1] = numloadsqueued[2] = numloadsqueued[3] = numloadsqueued[4] = 0; }
 #endif
 
     int                      numevents;          /* [out] Total number of events in all event groups in this event system. */
@@ -519,7 +531,7 @@ typedef struct FMOD_EVENT_SYSTEMINFO
     FMOD_EVENT_WAVEBANKINFO *wavebankinfo;       /* [in] Pointer to array FMOD_EVENT_WAVEBANKINFO structures (max size defined by maxwavebanks).  FMOD will fill these in with detailed information on each wave bank. Optional. */
     int                      numplayingevents;   /* [in/out] On entry, maximum number of entries in playingevents array. On exit, actual number of entries in playingevents array, or if playingevents is null, then it is just the number of currently playing events. Optional. */
     FMOD_EVENT             **playingevents;      /* [in/out] Pointer to an array that will be filled with the event handles of all playing events. Optional. Specify 0 if not needed. Must be used in conjunction with numplayingevents. */
-    int                      numloadsqueued[5];  /* [out] Current number of sound banks queued for loading due to using FMOD_EVENT_NONBLOCKING flag.  Note there are 5 because there are 5 possible loading threads.  Add all values together for total. */
+    int                      numloadsqueued[FMOD_EVENT_NONBLOCKING_THREAD_MAX];  /* [out] Current number of sound banks queued for loading due to using FMOD_EVENT_NONBLOCKING flag.  Note there are multple possible loading threads depending on what the programmer specified with EventGroup::loadEventData/getEvent/getEventByIndex.  Add all queue values together for total. */
 } FMOD_EVENT_SYSTEMINFO;
 
 

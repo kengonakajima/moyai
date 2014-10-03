@@ -1,6 +1,6 @@
 /*===============================================================================================
  Custom DSP Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how to add a user created DSP callback to process audio data.
  A read callback is generated at runtime, and can be added anywhere in the DSP network.
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
     ERRCHECK(result);
 
     printf("===============================================================================\n");
-    printf("Custom DSP example. Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("Custom DSP example. Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("===============================================================================\n");
     printf("Press 'f' to activate, deactivate user filter\n");
     printf("Press 'Esc' to quit\n");

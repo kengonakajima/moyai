@@ -1,6 +1,6 @@
 /*==============================================================================
  Programmer Sound Example
- Copyright (c), Firelight Technologies Pty, Ltd 2006-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2006-2014.
 
  Demonstrates how to use the "programmer sound" feature of the FMOD event system
 ==============================================================================*/
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     int                key;
 
     printf("======================================================================\n");
-    printf("Programmer Sound. Copyright (c) Firelight Technologies 2006-2011.\n");
+    printf("Programmer Sound. Copyright (c) Firelight Technologies 2006-2014.\n");
     printf("======================================================================\n");
 
     ERRCHECK(result = FMOD::EventSystem_Create(&eventsystem));

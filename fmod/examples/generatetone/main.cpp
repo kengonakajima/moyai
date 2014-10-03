@@ -1,6 +1,6 @@
 /*===============================================================================================
  GenerateTone Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how simply play generated tones using FMOD::System::payDSP instead of 
  manually connecting and disconnecting DSP units.
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     ERRCHECK(result);
 
     printf("======================================================================\n");
-    printf("GenerateTone Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("GenerateTone Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("======================================================================\n\n");
     printf("\n");
     printf("Press '1' to play a sine wave\n");

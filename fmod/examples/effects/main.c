@@ -1,6 +1,6 @@
 /*===============================================================================================
  Effects Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how to apply some of the built in software effects to sounds. 
  This example filters the global mix.  All software sounds played here would be filtered in the 
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     ERRCHECK(result);
 
     printf("===================================================================\n");
-    printf("Effects Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("Effects Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("===================================================================\n");
     printf("\n");
     printf("Press SPACE to paused/unpause sound.\n");

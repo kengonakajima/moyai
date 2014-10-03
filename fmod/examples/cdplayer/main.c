@@ -1,6 +1,6 @@
 /*===============================================================================================
  CDPlayer Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how to play CD tracks digitally and generate a CDDB query
 ===============================================================================================*/
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     }
 
     printf("==================================================================\n");
-    printf("CDPlayer Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("CDPlayer Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("==================================================================\n\n");
 
     /*

@@ -1,6 +1,6 @@
 /*===============================================================================================
  ReadTags Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how to read tags from sound files
 ===============================================================================================*/
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     unsigned int     version;
 
     printf("==================================================================\n");
-    printf("ReadTags Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("ReadTags Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("==================================================================\n\n");
 
     /*

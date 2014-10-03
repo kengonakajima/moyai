@@ -1,6 +1,6 @@
 /*===============================================================================================
  Pitch detection example.
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example combines recording with spectrum analysis to determine the pitch of the sound 
  being recorded.
@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
         Start the interface
     */
     printf("=========================================================================\n");
-    printf("Pitch detection example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("Pitch detection example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("=========================================================================\n");
     printf("\n");
     printf("Record something through the selected recording device and FMOD will\n");

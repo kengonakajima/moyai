@@ -1,6 +1,6 @@
 /*===============================================================================================
  Parameters Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  Demonstrates basic usage of event parameters
 ===============================================================================================*/
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     float                 rpm_val, rpm_min, rpm_max, rpm_increment, load_val, load_min, load_max, load_increment;
 
     printf("======================================================================\n");
-    printf("Parameters Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("Parameters Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("==============================-------=================================\n");
     printf("This demonstrates the use of FMOD event parameters. It simply plays an\n");
     printf("event, retrieves the parameters and allows the user to adjust them.\n");

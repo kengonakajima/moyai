@@ -1,6 +1,6 @@
 /*===============================================================================================
  Load from memory example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example is simply a variant of the play sound example, but it loads the data into memory
  then uses the 'load from memory' feature of System::createSound.
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
     free(buff); // don't need the original memory any more.  Note!  If loading as a stream, the memory must stay active so do not free it!
 
     printf("==========================================================================\n");
-    printf("Load from memory example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("Load from memory example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("==========================================================================\n");
     printf("\n");
     printf("Press '1' to play a mono sound using hardware mixing\n");

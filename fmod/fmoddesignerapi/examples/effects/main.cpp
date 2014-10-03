@@ -1,6 +1,6 @@
 /*===============================================================================================
  Effects Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  Demonstrates basic usage of event effects
 ===============================================================================================*/
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     float                 param00_val, param00_min, param00_max, param00_increment;
 
     printf("======================================================================\n");
-    printf("Effects Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("Effects Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("==============================-------=================================\n");
     printf("This demonstrates the use of FMOD event effects. It simply plays an\n");
     printf("event with effects applied and allows the user to adjust the parameters.\n");

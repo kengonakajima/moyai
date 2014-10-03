@@ -1,7 +1,7 @@
 LIB_PATH 			= ../../api/lib
 LIB_NAME_RELEASE	= libfmodex.dylib
 LIB_NAME_LOGGING	= libfmodexL.dylib
-ARCH				= -arch i386  -arch x86_64
+ARCH				= -arch i386 -arch ppc -arch x86_64
 
 release: main.cpp
 	g++ -O3 ${ARCH} -o example main.cpp ${LIB_PATH}/${LIB_NAME_RELEASE}

@@ -1,6 +1,6 @@
 /*===============================================================================================
  RipNetStream Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how to rip streaming audio from the internet to local files, using
  System::attachFileSystem.
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
     strcpy(gOutputFileName, "output.mp3");   /* Start off like this then rename if a title tag comes along */
 
     printf("======================================================================\n");
-    printf("RipNetStream Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("RipNetStream Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("======================================================================\n\n");
 
     if (argc < 2)

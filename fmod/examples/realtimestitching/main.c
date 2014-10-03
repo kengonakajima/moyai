@@ -1,6 +1,6 @@
 /*===============================================================================================
  Real-time stitching example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how you can create your own multi-subsound stream, then in realtime replace
  each the subsound as it plays them.  Using a looping sentence, it will seamlessly stich between
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
     sentenceid = 2;     /* The next sound to be appeneded to the stream. */
 
     printf("=============================================================================\n");
-    printf("Real-time stitching example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("Real-time stitching example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("=============================================================================\n");
     printf("\n");
     printf("Press space to pause, Esc to quit\n");

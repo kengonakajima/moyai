@@ -1,6 +1,6 @@
 /* ============================================================================================ */
 /* FMOD Ex - Main C/C++ Network event system header file.                                       */
-/* Copyright (c), Firelight Technologies Pty, Ltd. 2004-2011.                                   */
+/* Copyright (c), Firelight Technologies Pty, Ltd. 2004-2014.                                   */
 /*                                                                                              */
 /* This header is the base header for all other FMOD NetEventSystem headers. If you are         */
 /* programming in C use this exclusively, or if you are programming C++ use this in             */
@@ -18,7 +18,7 @@
     FMOD NetEventSystem version number.  Check this against NetEventSystem_GetVersion.
     0xaaaabbcc -> aaaa = major version number.  bb = minor version number.  cc = development version number.
 */
-#define FMOD_EVENT_NET_VERSION 0x00044203
+#define FMOD_EVENT_NET_VERSION 0x00044444
 
 /*
     Default port that the target (game) will listen on

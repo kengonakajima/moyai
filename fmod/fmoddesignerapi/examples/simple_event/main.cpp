@@ -1,6 +1,6 @@
 /*===============================================================================================
  SimpleEvent Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  Demonstrates basic usage of FMOD's data-driven event library (fmod_event.dll)
 ===============================================================================================*/
@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     int                key;
 
     printf("======================================================================\n");
-    printf("Simple Event Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("Simple Event Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("======================================================================\n");
     printf("This example simply plays an event created with the FMOD Designer tool.\n");
     printf("======================================================================\n\n");

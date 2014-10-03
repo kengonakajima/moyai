@@ -1,6 +1,6 @@
 /*===============================================================================================
  Record to disk example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how to do a streaming record to disk.
 ===============================================================================================*/
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
     ERRCHECK(result);
 
     printf("========================================================================\n");
-    printf("Record to disk example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("Record to disk example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("========================================================================\n");
     printf("\n");
     printf("Press a key to start recording to record.wav\n");

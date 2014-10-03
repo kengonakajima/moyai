@@ -1,6 +1,6 @@
 /*=============================================================================
  Max Playbacks Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  Demonstrates basic usage of event max playbacks behaviour.
 =============================================================================*/
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     ERRCHECK(result);
 
     printf("======================================================================\n");
-    printf("Max Playbacks Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("Max Playbacks Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("----------------------------------------------------------------------\n");
     printf("Press '1'   to select 'Steal oldest' behaviour\n");
     printf("Press '2'   to select 'Steal newest' behaviour\n");

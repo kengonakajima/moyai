@@ -1,6 +1,6 @@
 /*===============================================================================================
  File Callbacks Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example is a modified version of the playstream example.
  It shows the correct way declare and handle fmod file callbacks with System::setFileSystem.
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
     ERRCHECK(result);
 
     printf("========================================================================\n");
-    printf("File Callbacks Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("File Callbacks Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("========================================================================\n");
     printf("\n");
     printf("Press space to pause, Esc to quit\n");

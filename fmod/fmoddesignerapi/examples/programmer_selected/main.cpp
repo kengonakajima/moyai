@@ -1,6 +1,6 @@
 /*=============================================================================
  Programmer Selected Sound Definition Example
- Copyright (c), Firelight Technologies Pty, Ltd 2007-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2007-2014.
 
  Demonstrates how to use the "programmer selected sound definition" feature of
  the FMOD event system
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 
     printf("======================================================================\n");
     printf("Programmer Selected Sound Definition.\n");
-    printf("Copyright (c) Firelight Technologies 2006-2011.\n");
+    printf("Copyright (c) Firelight Technologies 2006-2014.\n");
     printf("----------------------------------------------------------------------\n");
     printf("Press 'Space' to start the 'Programmer Selected' event\n");
     printf("Press '>'     to increase sound definition entry index\n");

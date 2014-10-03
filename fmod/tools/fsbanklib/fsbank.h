@@ -34,6 +34,7 @@ typedef unsigned int FSBANK_BUILDFLAGS;
 #define FSBANK_BUILD_DONTINTERLEAVE         0x00000020  /* VAG and GCADPCM only. Don't interleave the data as LRLRLRLR... instead use LLLLRRRR type encoding. Speeds up loading for samples (not streams, streams must remained interleaved), allows FMOD_OPENMEMORY_POINT. */
 #define FSBANK_BUILD_FSB4_USEBASICHEADERS   0x00000040  /* FSB4 format only. Generate FSBs with small sample header data. They only contain basic information such as sample length, and everything else has its attributes inherited from the first sample (for example the default frequency). */
 #define FSBANK_BUILD_FSB5_DONTWRITENAMES    0x00000080  /* FSB5 format only. Do not write out a names chunk to the FSB to reduce file size. */
+#define FSBANK_BUILD_NOGUID                 0x00000100  /* FSB5 format only. Write out a null GUID for the FSB header.  The runtime will not use header caching for these FSB files. */
 
 /* Build flag mask that specifies which settings can be overridden per subsound. */
 #define FSBANK_BUILD_OVERRIDE_MASK          (FSBANK_BUILD_DISABLESYNCPOINTS | FSBANK_BUILD_DONTLOOP | FSBANK_BUILD_FILTERHIGHFREQ | FSBANK_BUILD_DISABLESEEKING | FSBANK_BUILD_OPTIMIZESAMPLERATE | FSBANK_BUILD_DONTINTERLEAVE)
@@ -70,18 +71,19 @@ typedef enum FSBANK_RESULT
 typedef enum FSBANK_FORMAT
 {
     FSBANK_FORMAT_PCM,              /* PCM                                 (1:1)   All platforms. */
-    FSBANK_FORMAT_PCM_BIGENDIAN,    /* PCM Big Endian                      (1:1)   Xbox360 and PS3 only. */
+    FSBANK_FORMAT_PCM_BIGENDIAN,    /* PCM Big Endian                      (1:1)   Xbox360 / PS3 / WiiU only. */
     FSBANK_FORMAT_IMAADPCM,         /* IMA ADPCM                           (3.5:1) All platforms. */
-    FSBANK_FORMAT_MP2,              /* MPEG Layer 2                        (CBR)   All platforms except PS3.    Depends on toolame. */
-    FSBANK_FORMAT_MP3,              /* MPEG Layer 3                        (CBR)   All platforms.               Depends on libmp3lame. */
-    FSBANK_FORMAT_XMA,              /* XMA                                 (VBR)   Xbox360 only (hardware).     Depends on xmaencoder. */
-    FSBANK_FORMAT_GCADPCM,          /* GCADPCM                             (3.5:1) Wii and 3DS only (hardware). Depends on dsptool. */
-    FSBANK_FORMAT_VAG,              /* VAG                                 (3.5:1) PSP only (hardware).         Depends on encvag. */
-    FSBANK_FORMAT_HEVAG,            /* High Efficiency VAG                 (3.5:1) PSVita only (hardware).      Depends on vagconv2. */
-    FSBANK_FORMAT_CELT,             /* Constrained Energy Lapped Transform (CBR)   All platforms.               Depends on celt_encoder. */
-    FSBANK_FORMAT_AT9,              /* ATRAC9                              (CBR)   PSVita only (hardware).      Depends on libatrac9. */
-    FSBANK_FORMAT_XWMA,             /* XWMA                                (VBR)   Xbox360 only.                Depends on xwmaencoder. */
-    FSBANK_FORMAT_VORBIS,           /* Vorbis                              (VBR)   All platforms.               Depends on libvorbis. */
+    FSBANK_FORMAT_MP2,              /* MPEG Layer 2                        (CBR)   All platforms except PS3.            Depends on toolame. */
+    FSBANK_FORMAT_MP3,              /* MPEG Layer 3                        (CBR)   All platforms.                       Depends on libmp3lame. */
+    FSBANK_FORMAT_XMA,              /* XMA                                 (VBR)   Xbox360 / XboxOne only (hardware).   Depends on xmaencoder. */
+    FSBANK_FORMAT_GCADPCM,          /* GCADPCM                             (3.5:1) Wii / WiiU / 3DS only (hardware).    Depends on dsptool. */
+    FSBANK_FORMAT_VAG,              /* VAG                                 (3.5:1) PSP only (hardware).                 Depends on encvag. */
+    FSBANK_FORMAT_HEVAG,            /* High Efficiency VAG                 (3.5:1) PSVita only (hardware).              Depends on vagconv2. */
+    FSBANK_FORMAT_CELT,             /* Constrained Energy Lapped Transform (CBR)   All platforms.                       Depends on celt_encoder. */
+    FSBANK_FORMAT_AT9_VITA,         /* ATRAC9                              (CBR)   PSVita (hardware).                   Depends on libatrac9. */
+    FSBANK_FORMAT_AT9_PS4,          /* ATRAC9                              (CBR)   PS4 (hardware).                      Depends on libatrac9. */
+    FSBANK_FORMAT_XWMA,             /* XWMA                                (VBR)   Xbox360 only.                        Depends on xwmaencoder. */
+    FSBANK_FORMAT_VORBIS,           /* Vorbis                              (VBR)   All platforms.                       Depends on libvorbis. */
 
     FSBANK_FORMAT_MAX               /* Upper bound for this enumeration, for use with validation. */
 } FSBANK_FORMAT;

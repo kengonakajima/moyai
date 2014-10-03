@@ -1,6 +1,6 @@
 /*===============================================================================================
  NetStream Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how to play streaming audio from the internet
 ===============================================================================================*/
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     unsigned int     version;
 
     printf("===================================================================\n");
-    printf("NetStream Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("NetStream Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("===================================================================\n\n");
 
     if (argc < 2)
@@ -115,6 +115,13 @@ t at default
             if (tag.datatype == FMOD_TAGDATATYPE_STRING)
             {
                 printf("%s = %s (%d bytes)\n", tag.name, (char *)tag.data, tag.datalen);
+            }
+            else if (tag.type == FMOD_TAGTYPE_FMOD)
+            {
+                if (!strcmp(tag.name, "Sample Rate Change"))
+                {
+                    FMOD_Channel_SetFrequency(channel, *((float *)tag.data));
+                }
             }
         }
 

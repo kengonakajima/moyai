@@ -1,6 +1,6 @@
 /*===============================================================================================
  User Created Sound Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how create a sound with data filled by the user.
  It shows a user created static sample, followed by a user created stream.
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     ERRCHECK(result);
         
     printf("============================================================================\n");
-    printf("User Created Sound Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("User Created Sound Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("============================================================================\n");
     printf("Sound played here is generated in realtime.  It will either play as a stream\n");
     printf("which means it is continually filled as it is playing, or it will play as a \n");

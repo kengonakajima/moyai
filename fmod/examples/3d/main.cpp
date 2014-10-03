@@ -1,6 +1,6 @@
 /*===============================================================================================
  3d Example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how to basic 3d positioning
 ===============================================================================================*/
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     char             name[256];
 
     printf("===============================================================\n");
-    printf("3d Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("3d Example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("===============================================================\n");
     printf("This example plays 2 3D sounds in hardware.  Optionally you can\n");
     printf("play a 2D hardware sound as well.\n");

@@ -1,6 +1,6 @@
 /*===============================================================================================
  Record example
- Copyright (c), Firelight Technologies Pty, Ltd 2004-2011.
+ Copyright (c), Firelight Technologies Pty, Ltd 2004-2014.
 
  This example shows how to record a sound, then write it to a wav file.
  It then shows how to play a sound while it is being recorded to.  Because it is recording, the
@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
     ERRCHECK(result);
 
     printf("===================================================================\n");
-    printf("Recording example.  Copyright (c) Firelight Technologies 2004-2011.\n");
+    printf("Recording example.  Copyright (c) Firelight Technologies 2004-2014.\n");
     printf("===================================================================\n");
     printf("\n");
     printf("Press 'r' to record a 5 second segment of audio and write it to a wav file.\n");
