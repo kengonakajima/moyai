@@ -33,6 +33,11 @@ Prim_D3D::Prim_D3D(PRIMTYPE t, Vec2 a, Vec2 b, Color c, int line_width)
 	}
 }
 
+Prim_D3D::~Prim_D3D()
+{
+	delete m_pVertexBuffer;
+}
+
 void Prim_D3D::draw(Vec2 ofs)
 {
 	assert(line_width > 0 && "Invalid line width");

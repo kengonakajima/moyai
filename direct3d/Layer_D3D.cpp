@@ -50,23 +50,21 @@ void Layer_D3D::init()
 		m_pBillboardVertexBuffer = new VertexBuffer_D3D(format, 6, g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_DEFAULT));
 
 		VertexFormat instanceFormat;
-		instanceFormat.declareCoordVec3();
+		instanceFormat.declare2DPos();
 		instanceFormat.declareUV();
-		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_COLOR, 0u, 4u);
+		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_COLOR, 0u, 1u);
 		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 1u, 4u);
 		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 2u, 4u);
 		instanceFormat.addInstanceElement(VertexFormat::SEMANTIC_TEXCOORD, 3u, 2u);
-		m_pQuadVertexBuffer = new VertexBuffer_D3D(instanceFormat, 6, g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_INSTANCING), 2000u);
+		m_pQuadVertexBuffer = new VertexBuffer_D3D(instanceFormat, 4, g_context.m_pShaderManager->GetShader(ShaderManager_D3D::SHADER_INSTANCING), 2000u);
+		m_pQuadVertexBuffer->setTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 		Vertex_PUV vertices[] = 
 		{
-			{ XMFLOAT3(-0.5f,  0.5f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-			{ XMFLOAT3( 0.5f, -0.5f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-			{ XMFLOAT3(-0.5f, -0.5f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-
-			{ XMFLOAT3( 0.5f, -0.5f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-			{ XMFLOAT3(-0.5f,  0.5f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-			{ XMFLOAT3( 0.5f,  0.5f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
+			{ XMFLOAT2(-0.5f, -0.5f), XMFLOAT2(0.0f, 1.0f) },
+			{ XMFLOAT2(-0.5f,  0.5f), XMFLOAT2(0.0f, 0.0f) },
+			{ XMFLOAT2( 0.5f, -0.5f), XMFLOAT2(1.0f, 1.0f) },
+			{ XMFLOAT2( 0.5f,  0.5f), XMFLOAT2(1.0f, 0.0f) },
 		};
 
 		m_pQuadVertexBuffer->copyFromBuffer(vertices, ARRAYSIZE(vertices));
@@ -307,7 +305,7 @@ int Layer_D3D::sendDrawCalls()
 			m_pQuadVertexBuffer->copyInstanceFromBuffer(callData.instances.data(), sizeof(InstanceData) * instanceCount);
 			m_pQuadVertexBuffer->copyInstancesToGPU();
 			m_pQuadVertexBuffer->bind();
-			g_context.m_pDeviceContext->DrawInstanced(6, instanceCount, 0, 0);
+			g_context.m_pDeviceContext->DrawInstanced(4, instanceCount, 0, 0);
 		}
 
 		// Primitives should go over image sprites

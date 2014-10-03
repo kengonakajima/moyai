@@ -4,6 +4,7 @@
 #include "../common/Light.h"
 #include "../common/Mesh.h"
 #include "Context_D3D.h"
+#include "Color_D3D.h"
 
 class PrimDrawer;
 class Camera;
@@ -63,7 +64,7 @@ private:
 
 	struct InstanceData
 	{
-		Color color;
+		Color_D3D color;
 		Vec2 offset;
 		Vec2 scale;
 		Vec2 uvOffset;
