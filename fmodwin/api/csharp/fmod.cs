@@ -1,6 +1,6 @@
 /* ========================================================================================== */
 /*                                                                                            */
-/* FMOD Ex - C# Wrapper . Copyright (c), Firelight Technologies Pty, Ltd. 2004-2011.          */
+/* FMOD Ex - C# Wrapper . Copyright (c), Firelight Technologies Pty, Ltd. 2004-2014.          */
 /*                                                                                            */
 /* ========================================================================================== */
 
@@ -16,7 +16,7 @@ namespace FMOD
     */
     public class VERSION
     {
-        public const int    number = 0x00044420;
+        public const int    number = 0x00044444;
 #if WIN64
         public const string dll    = "fmodex64";
 #else
