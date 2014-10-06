@@ -251,7 +251,6 @@ void Layer_D3D::clearRenderData()
 		data.second.primitives.clear();
 	}
 
-	m_sortedRenderData.clear();
 	m_renderData.clear();
 	m_sortedMaterialData.clear();
 }
