@@ -165,7 +165,7 @@ namespace glfw_d3d
 
 		// Create d3d device and swap chain
 		{
-			D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
+			D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_10_0;
 
 			DXGI_SWAP_CHAIN_DESC swapChainDesc;
 			ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));

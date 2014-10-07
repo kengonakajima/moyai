@@ -30,7 +30,7 @@ bool ShaderManager_D3D::CreateVertexShader(VertexShaderId id, const char *src)
 		nullptr,							// Macro definitions
 		nullptr,							// Includes
 		"VSMain",							// Entry point
-		"vs_5_0",							// Compiler target
+		"vs_4_0",							// Compiler target
 #if defined(DEBUG) || defined(_DEBUG)		// Compile options
 		D3DCOMPILE_DEBUG,
 #else
@@ -63,7 +63,7 @@ bool ShaderManager_D3D::CreatePixelShader(PixelShaderId id, const char *src)
 		nullptr,							// Macro definitions
 		nullptr,							// Includes
 		"PSMain",							// Entry point
-		"ps_5_0",							// Compiler target
+		"ps_4_0",							// Compiler target
 #if defined(DEBUG) || defined(_DEBUG)	// Compile options
 		D3DCOMPILE_DEBUG,
 #else
