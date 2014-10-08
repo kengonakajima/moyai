@@ -47,7 +47,7 @@ struct Context_D3D
 	Context_D3D()
 		: m_pSwapChain(nullptr)
 		, m_pDevice(nullptr)
-		, m_pFeatureLevel(D3D_FEATURE_LEVEL_11_0)
+		, m_pFeatureLevel(D3D_FEATURE_LEVEL_10_0)
 		, m_pDeviceContext(nullptr)
 		, m_pRenderTargetView(nullptr)
 		, m_pDepthStencil(nullptr)
