@@ -10,7 +10,7 @@ SoundSystem::SoundSystem()  : id_gen(1), sys(0) {
 	r = FMOD_System_GetVersion(sys, &version);
 	FMOD_ERRCHECK(r);
 	if(version < FMOD_VERSION ){
-		printf("Error!  You are using an old version of FMOD %08x.  This program requires %08x\n", version, FMOD_VERSION);
+		print("Error!  You are using an old version of FMOD %08x.  This program requires %08x\n", version, FMOD_VERSION);
 		return;
 	}
 	r = FMOD_System_Init( sys, 32, FMOD_INIT_NORMAL, NULL );
