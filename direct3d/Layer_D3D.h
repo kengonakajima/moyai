@@ -134,7 +134,7 @@ private:
 	int sendDrawCalls();
 	void clearRenderData();
 	RenderData& getNewRenderData();
-	const MaterialData* getLastMaterial() const;
+	bool getLastMaterial(MaterialData &outData) const;
 
 	Texture_D3D *m_pLastTexture;
 	VertexBuffer_D3D *m_pBillboardVertexBuffer;
