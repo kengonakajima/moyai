@@ -165,7 +165,7 @@ namespace glfw_d3d
 
 		// Create d3d device and swap chain
 		{
-			D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
+			D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_10_0;
 
 			DXGI_SWAP_CHAIN_DESC swapChainDesc;
 			ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
@@ -347,10 +347,10 @@ namespace glfw_d3d
 
 	Vec2 applyDeadZone(float x, float y)
 	{
-		static const unsigned int INPUT_DEAD_ZONE = 10000;
+		static const unsigned int INPUT_DEAD_ZONE = 100000000;
 
 		Vec2 output;
-		float magnitude = sqrt(x * x + y * y);
+		float magnitude = x * x + y * y;
 		
 		if (magnitude < INPUT_DEAD_ZONE)
 		{
@@ -372,11 +372,13 @@ namespace glfw_d3d
 			{
 				Vec2 leftStick = applyDeadZone((float)state.Gamepad.sThumbLX, (float)state.Gamepad.sThumbLY);
 				Vec2 rightStick = applyDeadZone((float)state.Gamepad.sThumbRX, -(float)state.Gamepad.sThumbRY);
+				float triggers = (float)(state.Gamepad.bLeftTrigger - state.Gamepad.bRightTrigger);
 
 				if (numaxes > 0) { ++assignedAxes; pos[0] = leftStick.x / SHRT_MAX; }
 				if (numaxes > 1) { ++assignedAxes; pos[1] = leftStick.y / SHRT_MAX; }
-				if (numaxes > 2) { ++assignedAxes; pos[2] = rightStick.x / SHRT_MAX; }
+				if (numaxes > 2) { ++assignedAxes; pos[2] = triggers / UCHAR_MAX; }
 				if (numaxes > 3) { ++assignedAxes; pos[3] = rightStick.y / SHRT_MAX; }
+				if (numaxes > 4) { ++assignedAxes; pos[4] = rightStick.x / SHRT_MAX; }
 
 				return assignedAxes;
 			}
@@ -406,7 +408,7 @@ namespace glfw_d3d
 					XINPUT_STATE state;
 					if (XInputGetState(joy, &state) == ERROR_SUCCESS)
 					{
-						return 4;
+						return 5;
 					}
 				}
 
@@ -440,11 +442,14 @@ namespace glfw_d3d
 			XINPUT_STATE state;
 			if (XInputGetState(joy, &state) == ERROR_SUCCESS)
 			{
-				if (numbuttons > 1) { ++assignedButtons; buttons[1] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) ? 1 : 0; }
-				if (numbuttons > 2) { ++assignedButtons; buttons[2] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) ? 1 : 0; }
+				if (numbuttons > 0) { ++assignedButtons; buttons[0] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) ? 1 : 0; }
+				if (numbuttons > 1) { ++assignedButtons; buttons[1] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) ? 1 : 0; }
+				if (numbuttons > 2) { ++assignedButtons; buttons[2] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_X) ? 1 : 0; }
 				if (numbuttons > 3) { ++assignedButtons; buttons[3] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) ? 1 : 0; }
 				if (numbuttons > 4) { ++assignedButtons; buttons[4] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) ? 1 : 0; }
 				if (numbuttons > 5) { ++assignedButtons; buttons[5] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) ? 1 : 0; }
+				if (numbuttons > 6) { ++assignedButtons; buttons[6] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) ? 1 : 0; }
+				if (numbuttons > 7) { ++assignedButtons; buttons[7] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_START) ? 1 : 0; }
 
 				return assignedButtons;
 			}
