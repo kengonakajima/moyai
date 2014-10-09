@@ -231,15 +231,17 @@ Layer_D3D::RenderData& Layer_D3D::getNewRenderData()
 	return renderData;
 }
 
-const Layer_D3D::MaterialData* Layer_D3D::getLastMaterial() const
+bool Layer_D3D::getLastMaterial(MaterialData &outData) const
 {
 	if (m_renderData.empty())
 	{
-		return nullptr;
+		return false;
 	}
 
 	const Layer_D3D::RenderData &data = m_renderData.back();
-	return &data.materialData;
+	outData = data.materialData;
+
+	return true;
 }
 
 void Layer_D3D::clearRenderData()

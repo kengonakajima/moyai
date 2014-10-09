@@ -78,9 +78,9 @@ Layer_D3D::RenderData& Prop2D_D3D::getNewRenderData()
 	return static_cast<Layer_D3D*>(parent_group)->getNewRenderData();
 }
 
-const Layer_D3D::MaterialData* Prop2D_D3D::getLastMaterial() const
+bool Prop2D_D3D::getLastMaterial(Layer_D3D::MaterialData &outData) const
 {
-	return static_cast<Layer_D3D*>(parent_group)->getLastMaterial();
+	return static_cast<Layer_D3D*>(parent_group)->getLastMaterial(outData);
 }
 
 bool Prop2D_D3D::propPoll(double dt) 
@@ -331,12 +331,13 @@ void Prop2D_D3D::render(Camera *cam)
 
 	if (prim_drawer)
 	{
-		const Layer_D3D::MaterialData *materialData = getLastMaterial();
+		Layer_D3D::MaterialData materialData;
+		bool hasLastMaterialData = getLastMaterial(materialData);
 		Layer_D3D::RenderData &renderData = getNewRenderData();
 
-		if (materialData)
+		if (hasLastMaterialData)
 		{
-			renderData.materialData = *materialData;
+			renderData.materialData = materialData;
 		}
 		else
 		{
