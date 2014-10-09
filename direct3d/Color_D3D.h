@@ -40,6 +40,6 @@ inline Color_D3D& Color_D3D::operator=(Color &other)
 
 inline void Color_D3D::setColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {
-	// D3D ARGB packing
-	m_packedColor = (a << 24) | (r << 16) | (g << 8) | b;
+	// D3D ABGR packing
+	m_packedColor = (a << 24) | (b << 16) | (g << 8) | r;
 }
