@@ -76,6 +76,12 @@ namespace glfw_d3d
 			return 0;
 		}
 
+		HICON icon = LoadIcon(g_context.m_hInstance, L"GLFW_ICON");
+		if (!icon)
+		{
+			icon = LoadIcon(NULL, MAKEINTRESOURCE(IDI_APPLICATION));
+		}
+
 		WNDCLASSEX wndClass;
 		::ZeroMemory(&wndClass, sizeof(WNDCLASSEX));
 		wndClass.cbSize = sizeof(WNDCLASSEX);
@@ -84,12 +90,12 @@ namespace glfw_d3d
 		wndClass.cbClsExtra = 0;
 		wndClass.cbWndExtra = 0;
 		wndClass.hInstance = g_context.m_hInstance;
-		wndClass.hIcon = LoadIcon(g_context.m_hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
+		wndClass.hIcon = icon;
 		wndClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 		wndClass.lpszMenuName = nullptr;
 		wndClass.lpszClassName = TEXT("GameWindow");
-		wndClass.hIconSm = LoadIcon(g_context.m_hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
+		wndClass.hIconSm = icon;
 
 		if (!RegisterClassEx(&wndClass))
 		{
