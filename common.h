@@ -313,6 +313,8 @@ public:
 
     }
 
+	bool isPropPollCountMultipleOf(unsigned int value) { return (poll_count % value == 0) && poll_accum_time == 0.0; }
+
     bool basePoll(double dt);
     virtual bool propPoll(double dt){
         return true;
