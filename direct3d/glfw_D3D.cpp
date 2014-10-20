@@ -54,9 +54,14 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM l
 	case WM_QUIT:
 	case WM_CLOSE:
 		{
-            if( g_context.m_windowCloseCallbackFunct ) g_context.m_windowCloseCallbackFunct();
-			// This is not clean and should be changed.
-			exit(0);
+            if( g_context.m_windowCloseCallbackFunct ) 
+			{
+				g_context.m_windowCloseCallbackFunct();
+			}
+			else
+			{
+				exit(0);
+			}
 		}
 	}
 
