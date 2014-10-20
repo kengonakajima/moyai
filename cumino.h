@@ -58,6 +58,19 @@ inline long long now_usec() {
     gettimeofday( &tmv, NULL );
     return tmv.tv_sec*1000000  + tmv.tv_usec;
 }
+
+inline double elapsed_msec() {
+	static double previousTimestampMS = now_msec();
+	double nowMS = now_msec();
+	double elapsed = nowMS - previousTimestampMS;
+	previousTimestampMS = nowMS;
+	return elapsed;
+}
+
+inline double elapsed_sec() {
+	return elapsed_msec() / 1000.0;
+}
+
 void highResolutionSleep( float second );
 
 inline float len(float x0, float y0, float x1, float y1 ){
