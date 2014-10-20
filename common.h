@@ -301,12 +301,13 @@ public:
     
     bool to_clean;
     double accum_time;
+	double poll_accum_time;
     unsigned int poll_count;
 
     static const int CHILDREN_ABS_MAX = 64;
 
 
-    inline Prop() : id(++idgen), debug_id(0), next(NULL), prev(NULL), to_clean(false), accum_time(0),  poll_count(0), parent_group(NULL)  {
+    inline Prop() : id(++idgen), debug_id(0), next(NULL), prev(NULL), to_clean(false), accum_time(0), poll_accum_time(0.0), poll_count(0), parent_group(NULL)  {
     }
     virtual ~Prop() {
 

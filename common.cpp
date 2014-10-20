@@ -92,7 +92,14 @@ bool Prop::basePoll(double dt){
     }
 
     accum_time += dt;
-    poll_count ++;
+	poll_accum_time += dt;
+
+	if (poll_accum_time >= 1.0/60.0)
+	{
+		++poll_count;
+		poll_accum_time = 0.0;
+	}
+    
 
     
     if( propPoll(dt) == false ){
