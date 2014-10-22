@@ -85,6 +85,22 @@ Prop *Group::findPropById( int id ) {
 #endif    
 }
 
+const double Prop::FRAME_STEP_TIME = 1.0/60.0;
+
+bool Prop::pollCount(unsigned int value, double &timestamp)
+{ 
+	double requestedElapsedTime = value * FRAME_STEP_TIME;
+	double elapsedTime = accum_time - timestamp;
+
+	if (elapsedTime >= requestedElapsedTime)
+	{
+		timestamp = accum_time - (elapsedTime - requestedElapsedTime);
+		return true;
+	}
+
+	return false;
+}
+
 bool Prop::basePoll(double dt){
 
     if(to_clean){
@@ -94,13 +110,11 @@ bool Prop::basePoll(double dt){
     accum_time += dt;
 	poll_accum_time += dt;
 
-	if (poll_accum_time >= 1.0/60.0)
+	while (poll_accum_time >= FRAME_STEP_TIME)
 	{
 		++poll_count;
-		poll_accum_time = 0.0;
+		poll_accum_time -= FRAME_STEP_TIME;
 	}
-    
-
     
     if( propPoll(dt) == false ){
         return false;
