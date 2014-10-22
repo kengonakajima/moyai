@@ -60,11 +60,15 @@ inline long long now_usec() {
 }
 
 inline double elapsed_msec() {
-	static double previousTimestampMS = 0.0;
+	static double previousTimestampMS = now_msec();
 	double nowMS = now_msec();
 	double elapsed = nowMS - previousTimestampMS;
 	previousTimestampMS = nowMS;
 	return elapsed;
+}
+
+inline double elapsed_sec() {
+	return elapsed_msec() / 1000.0;
 }
 
 void highResolutionSleep( float second );
