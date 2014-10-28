@@ -54,9 +54,14 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM l
 	case WM_QUIT:
 	case WM_CLOSE:
 		{
-            if( g_context.m_windowCloseCallbackFunct ) g_context.m_windowCloseCallbackFunct();
-			// This is not clean and should be changed.
-			exit(0);
+            if( g_context.m_windowCloseCallbackFunct ) 
+			{
+				g_context.m_windowCloseCallbackFunct();
+			}
+			else
+			{
+				exit(0);
+			}
 		}
 	}
 
@@ -76,6 +81,12 @@ namespace glfw_d3d
 			return 0;
 		}
 
+		HICON icon = LoadIcon(g_context.m_hInstance, L"GLFW_ICON");
+		if (!icon)
+		{
+			icon = LoadIcon(NULL, MAKEINTRESOURCE(IDI_APPLICATION));
+		}
+
 		WNDCLASSEX wndClass;
 		::ZeroMemory(&wndClass, sizeof(WNDCLASSEX));
 		wndClass.cbSize = sizeof(WNDCLASSEX);
@@ -84,12 +95,12 @@ namespace glfw_d3d
 		wndClass.cbClsExtra = 0;
 		wndClass.cbWndExtra = 0;
 		wndClass.hInstance = g_context.m_hInstance;
-		wndClass.hIcon = LoadIcon(g_context.m_hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
+		wndClass.hIcon = icon;
 		wndClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 		wndClass.lpszMenuName = nullptr;
 		wndClass.lpszClassName = TEXT("GameWindow");
-		wndClass.hIconSm = LoadIcon(g_context.m_hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
+		wndClass.hIconSm = icon;
 
 		if (!RegisterClassEx(&wndClass))
 		{
