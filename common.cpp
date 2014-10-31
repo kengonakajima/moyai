@@ -173,6 +173,45 @@ void Image::getPixelRaw( int x, int y, unsigned char *r, unsigned char *g, unsig
         *a = buffer[index+3];
     }
 }
+// x0,y0 can be negative, x0+w, y0+h can be out of image.
+// set color 0x0 when out of image
+void Image::getAreaRaw( int x0, int y0, int w, int h, unsigned char *out, size_t outsz ) {
+    size_t reqsize = w*h*4;
+    assert( outsz >= reqsize );    
+    for(int dy=0;dy<h;dy++) {
+        for(int dx=0;dx<w;dx++) {
+            int out_index = ( dx + dy * w ) * 4;
+            int x = x0+dx, y = y0+dy;
+            if(x<0||y<0||x>=width||y>=height) {
+                out[out_index] = out[out_index+1] = out[out_index+2] = 0;
+                out[out_index+3] = 0xff;
+            } else {
+                int index = ( x + y * width ) * 4;
+                out[out_index] = buffer[index]; // r
+                out[out_index+1] = buffer[index+1]; // g
+                out[out_index+2] = buffer[index+2]; // b
+                out[out_index+3] = buffer[index+3]; // a
+            }
+        }
+    }
+}
+// x0,y0 can be negative, x0+w, y0+h can be out of image. (colors are ignored)
+void Image::setAreaRaw( int x0, int y0, int w, int h, unsigned char *in, size_t insz ) {
+    size_t reqsize = w*h*4;
+    assert( insz >= reqsize );
+    for(int dy=0;dy<h;dy++) {
+        for(int dx=0;dx<w;dx++) {
+            int x = x0+dx, y = y0+dy;
+            if(x<0||y<0||x>=width||y>=height)continue;            
+            int index = ( x + y * width ) * 4;
+            int in_index = ( dx + dy * w ) * 4;
+            buffer[index] = in[in_index]; // r
+            buffer[index+1] = in[in_index+1]; // g
+            buffer[index+2] = in[in_index+2]; // b
+            buffer[index+3] = in[in_index+3]; // a            
+        }
+    }    
+}
 void Image::setPixelRaw( int x, int y, unsigned char r,  unsigned char g,  unsigned char b,  unsigned char a ) {
     assert( width > 0 && height > 0 );
     assert(buffer);

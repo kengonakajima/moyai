@@ -397,6 +397,8 @@ public:
     Color getPixel( int x, int y );
     void getPixelRaw( int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a );
     void setPixelRaw( int x, int y, unsigned char r,  unsigned char g,  unsigned char b,  unsigned char a );
+    void getAreaRaw( int x, int y, int w, int h, unsigned char *out, size_t outsz );
+    void setAreaRaw( int x, int y, int w, int h, unsigned char *in, size_t insz );
     bool loadPNG( const char *path );
     bool loadPNGMem( unsigned char *ptr, size_t sz );    
     bool writePNG(const char *path);
