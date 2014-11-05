@@ -343,6 +343,17 @@ bool Image::writePNG(const char *path) {
     }
     return true;
 }
+bool Image::writeRaw( const char *path ) {
+    return writeFile( path, (char*) buffer, width*height*4);
+}
+bool Image::loadRaw( const char *path ) {
+    size_t expectsz = width*height*4;
+    size_t sz = expectsz;
+    bool ret = readFile( path, (char*) buffer, &sz );
+    if(!ret)return false;
+    if(sz!=expectsz) return false;
+    return true;
+}
 
 void Image::fill( Color c ) {
     for(int y=0;y<height;y++){

@@ -400,9 +400,11 @@ public:
     void getAreaRaw( int x, int y, int w, int h, unsigned char *out, size_t outsz );
     void setAreaRaw( int x, int y, int w, int h, unsigned char *in, size_t insz );
     bool loadPNG( const char *path );
-    bool loadPNGMem( unsigned char *ptr, size_t sz );    
-    bool writePNG(const char *path);
+    bool loadPNGMem( unsigned char *ptr, size_t sz );
+    bool loadRaw( const char *path );
+    bool writePNG(const char *path);    
     bool writePNGMem( unsigned char **out, size_t *outsize );
+    bool writeRaw( const char *path );
     void ensureBuffer();
     void copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0, int toy0 );
     void fill( Color c );    
