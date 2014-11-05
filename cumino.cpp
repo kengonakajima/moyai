@@ -468,15 +468,6 @@ void endMeasure() {
     print("endMeasure at %s : %f(ms)", g_measure_name, (et-g_measure_start_time)*1000 );
 }
 
-void highResolutionSleep( float second ) {
-#if defined(__APPLE__) || defined(__linux__)
-    usleep( second * 1000000 );
-#elif defined(WIN32)
-    
-#else
-    assertmsg(false, "not implemented" );
-#endif    
-}
 
 ///////////
 

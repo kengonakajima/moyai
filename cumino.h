@@ -71,7 +71,6 @@ inline double elapsed_sec() {
 	return elapsed_msec() / 1000.0;
 }
 
-void highResolutionSleep( float second );
 
 inline float len(float x0, float y0, float x1, float y1 ){
     return sqrt( (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));
