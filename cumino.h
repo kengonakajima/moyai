@@ -59,18 +59,6 @@ inline long long now_usec() {
     return tmv.tv_sec*1000000  + tmv.tv_usec;
 }
 
-inline double elapsed_msec() {
-	static double previousTimestampMS = now_msec();
-	double nowMS = now_msec();
-	double elapsed = nowMS - previousTimestampMS;
-	previousTimestampMS = nowMS;
-	return elapsed;
-}
-
-inline double elapsed_sec() {
-	return elapsed_msec() / 1000.0;
-}
-
 
 inline float len(float x0, float y0, float x1, float y1 ){
     return sqrt( (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));

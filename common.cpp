@@ -9,7 +9,7 @@ int Group::idgen = 1;
 
 
 int Moyai::poll(double dt){
-    if( dt <0 || dt > 1 ){ print( "poll too slow or negative. dt:%f", dt ); }
+    if( dt <0 || dt > 1 ){ print( "poll too slow or negative. dt:%f(sec)", dt ); }
     if(dt==0){
         dt = 0.0001;
     }
@@ -85,11 +85,11 @@ Prop *Group::findPropById( int id ) {
 #endif    
 }
 
-const double Prop::FRAME_STEP_TIME = 1.0/60.0;
+double Prop::frame_step_time = 1.0f/60.0f;
 
 bool Prop::pollCount(unsigned int value, double &timestamp)
 { 
-	double requestedElapsedTime = value * FRAME_STEP_TIME;
+	double requestedElapsedTime = value * frame_step_time;
 	double elapsedTime = accum_time - timestamp;
 
 	if (elapsedTime >= requestedElapsedTime)
@@ -110,10 +110,10 @@ bool Prop::basePoll(double dt){
     accum_time += dt;
 	poll_accum_time += dt;
 
-	while (poll_accum_time >= FRAME_STEP_TIME)
+	while (poll_accum_time >= frame_step_time)
 	{
 		++poll_count;
-		poll_accum_time -= FRAME_STEP_TIME;
+		poll_accum_time -= frame_step_time;
 	}
     
     if( propPoll(dt) == false ){

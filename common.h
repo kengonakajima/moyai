@@ -310,7 +310,7 @@ public:
     unsigned int poll_count;
 
     static const int CHILDREN_ABS_MAX = 64;
-	static const double FRAME_STEP_TIME;
+	static double frame_step_time;
 
     inline Prop() : id(++idgen), debug_id(0), next(NULL), prev(NULL), to_clean(false), accum_time(0), poll_accum_time(0.0), poll_count(0), parent_group(NULL)  {
     }
