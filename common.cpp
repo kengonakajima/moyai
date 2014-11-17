@@ -110,8 +110,7 @@ bool Prop::basePoll(double dt){
     accum_time += dt;
 	poll_accum_time += dt;
 
-	while (poll_accum_time >= frame_step_time)
-	{
+	while (poll_accum_time >= frame_step_time) {
 		++poll_count;
 		poll_accum_time -= frame_step_time;
 	}
@@ -122,6 +121,15 @@ bool Prop::basePoll(double dt){
 
     
     return true;
+}
+bool Prop::updateInterval( int timer_ind, double t ) {
+    assert(timer_ind>=0 && timer_ind<MAXINTERVAL);
+    if( accum_time > last_interval_at[timer_ind] + t ) {
+        last_interval_at[timer_ind] = accum_time;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void Image::setSize(int w, int h ) {
