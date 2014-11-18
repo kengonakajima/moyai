@@ -38,6 +38,11 @@ namespace glfw_d3d
 	#define GLFW_AXES                 0x00050002
 	#define GLFW_BUTTONS              0x00050003
 
+
+    // glfwGetWindowParam options
+    #define GLFW_ICONIFIED            0x00020003				
+    int glfwGetWindowParam( int flag );
+    
 	/*************************************************************************
 	 * Input handling definitions
 	 *************************************************************************/

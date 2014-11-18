@@ -316,6 +316,18 @@ namespace glfw_d3d
 			*height = windowRect.bottom - windowRect.top;
 		}
 	}
+    int glfwGetWindowParam( int flag )
+    {
+        switch(flag) {
+        case GLFW_ICONIFIED:
+            return IsIconic( g_context.m_hWindowHandle );
+            break;
+        default:
+            assertmsg( false, "glfwGetWindowParam: invalid flag:%d", flag );
+            break;
+        }
+        return 0;
+    }
     void glfwSetWindowCloseCallback( GLFWwindowclosefun  cbfun )
     {
         g_context.m_windowCloseCallbackFunct = cbfun;
