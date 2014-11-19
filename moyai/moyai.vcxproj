@@ -176,8 +176,6 @@
     <ClCompile Include="..\direct3d\VertexBuffer_D3D.cpp" />
     <ClCompile Include="..\direct3d\Viewport_D3D.cpp" />
     <ClCompile Include="..\lodepng.cpp" />
-    <ClCompile Include="..\lz4\lz4.c" />
-    <ClCompile Include="..\lz4\lz4hc.c" />
     <ClCompile Include="..\opengl\ColorReplacerShader_OGL.cpp" />
     <ClCompile Include="..\opengl\Font_OGL.cpp" />
     <ClCompile Include="..\opengl\FragmentShader_OGL.cpp" />
@@ -190,6 +188,10 @@
     <ClCompile Include="..\opengl\Texture_OGL.cpp" />
     <ClCompile Include="..\opengl\VertexBuffer_OGL.cpp" />
     <ClCompile Include="..\opengl\Viewport_OGL.cpp" />
+    <ClCompile Include="..\snappy\snappy-c.cc" />
+    <ClCompile Include="..\snappy\snappy-sinksource.cc" />
+    <ClCompile Include="..\snappy\snappy-stubs-internal.cc" />
+    <ClCompile Include="..\snappy\snappy.cc" />
     <ClCompile Include="..\soil\src\image_DXT.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugD3D|Win32'">true</ExcludedFromBuild>

@@ -34,11 +34,11 @@
     <Filter Include="Source Files\lodepng">
       <UniqueIdentifier>{396890a3-bd45-45aa-b3c5-d04605aaabae}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\lz4">
-      <UniqueIdentifier>{898141b4-63ba-475d-a4bc-cd1e1df7e5bb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\soil">
       <UniqueIdentifier>{97156576-6171-459a-9f10-f47d3192cedb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\snappy">
+      <UniqueIdentifier>{33ea6e8c-e934-43b2-bfe0-33118e9e5b39}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -156,12 +156,6 @@
     <ClCompile Include="..\lodepng.cpp">
       <Filter>Source Files\lodepng</Filter>
     </ClCompile>
-    <ClCompile Include="..\lz4\lz4.c">
-      <Filter>Source Files\lz4</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lz4\lz4hc.c">
-      <Filter>Source Files\lz4</Filter>
-    </ClCompile>
     <ClCompile Include="..\soil\src\image_DXT.c">
       <Filter>Source Files\soil</Filter>
     </ClCompile>
@@ -209,6 +203,18 @@
     </ClCompile>
     <ClCompile Include="..\direct3d\ShaderManager_D3D.cpp">
       <Filter>Source Files\Direct3D</Filter>
+    </ClCompile>
+    <ClCompile Include="..\snappy\snappy.cc">
+      <Filter>Source Files\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\snappy\snappy-c.cc">
+      <Filter>Source Files\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\snappy\snappy-sinksource.cc">
+      <Filter>Source Files\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\snappy\snappy-stubs-internal.cc">
+      <Filter>Source Files\snappy</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
