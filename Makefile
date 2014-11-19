@@ -27,15 +27,15 @@ GLFWLIB=$(GLFW)/lib/cocoa/libglfw.a
 
 FTGLOBJS=vertex-attribute.o vertex-buffer.o vector.o texture-atlas.o texture-font.o
 SOILOBJS=SOIL.o stb_image_aug.o image_DXT.o image_helper.o
-LZ4OBJS=lz4.o lz4hc.o
+SNAPPYOBJS=snappy/snappy-sinksource.o snappy/snappy-c.o snappy/snappy.o
 
 SOILLIB=libsoil.a
-LZ4LIB=liblz4.a
 FTGLLIB=libftgl.a
 OUTCLILIB=libmoyaicl.a
 OUTSVLIB=libmoyaisv.a
+SNAPPYLIB=libsnappy.a
 
-EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB)  $(LZ4LIB)
+EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(GLFWLIB) 
 CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
 CFLAGS=-O0 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -DUSE_OPENGL  
@@ -47,7 +47,7 @@ DEMOSV=demosv
 
 all : $(DEMO2D) $(DEMO3D) $(DEMOSV)
 
-server : $(OUTSVLIB) $(BZ2LIB) $(LZ4LIB) $(ZLIBLIB)
+server : $(OUTSVLIB) $(BZ2LIB) $(ZLIBLIB) 
 
 $(DEMO2D) : $(EXTCLILIBS) $(OUTCLILIB) $(DEMO2DOBJS) 
 	g++ $(CFLAGS) $(CLILIBFLAGS) $(DEMO2DOBJS) -o $(DEMO2D) $(OUTCLILIB) $(EXTCLILIBS)
@@ -82,10 +82,9 @@ $(SOILLIB) : $(SOILOBJS)
 	ar cr $(SOILLIB) $(SOILOBJS)
 	ranlib $(SOILLIB)
 
-$(LZ4LIB) : $(LZ4OBJS)
-	ar cr $(LZ4LIB) $(LZ4OBJS)
-	ranlib $(LZ4LIB)
-
+$(SNAPPYLIB) : $(SNAPPYOBJS)
+	ar cr $(SNAPPYLIB) $(SNAPPYOBJS)
+	ranlib $(SNAPPYLIB)
 
 common.o : common.cpp
 	g++ -c common.cpp $(CFLAGS)
@@ -163,11 +162,13 @@ image_DXT.o:
 image_helper.o:
 	g++ -c soil/src/image_helper.c $(CFLAGS)
 
-lz4.o:
-	g++ -c lz4/lz4.c $(CFLAGS)
 
-lz4hc.o:
-	g++ -c lz4/lz4hc.c $(CFLAGS)
+snappy-sinksource.o:
+	g++ -c snappy/snappy-sinksource.cc $(CFLAGS)
+snappy-c.o:
+	g++ -c snappy/snappy-c.cc $(CFLAGS)
+snappy.o:
+	g++ -c snappy/snappy.cc $(CFLAGS)
 
 $(FREETYPELIB):
 	rm -rf $(FREETYPE)

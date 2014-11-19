@@ -17,8 +17,8 @@
 #include <sys/stat.h>
 
 #include "zlib.h"
-#include "lz4/lz4.h"
-#include "lz4/lz4hc.h"
+#include "snappy/snappy-c.h"
+
 
 #include "cumino.h"
 
@@ -562,11 +562,19 @@ int memCompress( char *out, int outlen, const char *in, int inlen ) {
 }
 
 
-int memCompressLZ4( char *out, int outlen, const char *in, int inlen ) {
-    return LZ4_compressHC ( in, out, inlen );
+int memCompressSnappy( char *out, int outlen, char *in, int inlen ) {
+    size_t maxsz = snappy_max_compressed_length(inlen);
+    assertmsg( outlen >= maxsz, "snappy requires buffer size:%d given:%d", maxsz, outlen );
+    size_t osz = outlen;
+    snappy_status ret = snappy_compress( in, inlen, out, &osz);
+    if(ret == SNAPPY_OK ) return (int)osz; else assertmsg(false,"snappy_compress failed. outlen:%d inlen:%d ret:%d", outlen, inlen,ret );
+    return 0;
 }
-int memDecompressLZ4( char *out, int outlen, const char *in, int inlen ) {
-    return LZ4_decompress_safe ( in, out, inlen, outlen );
+int memDecompressSnappy( char *out, int outlen, char *in, int inlen ) {
+    size_t osz = outlen;
+    snappy_status ret = snappy_uncompress( in, inlen, out, &osz );
+    if(ret == SNAPPY_OK ) return osz; else assertmsg(false,"snappy_uncompress failed");
+    return 0;
 }
 
 

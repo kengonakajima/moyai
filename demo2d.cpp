@@ -423,11 +423,10 @@ void comptest() {
     assert( strcmp( inflated, buf ) == 0 );
     print("zlib: %d bytes to %d byte", inflated_len, zipped_len );
 
-    // lz4
-    zipped_len = memCompressLZ4( zipped, sizeof(zipped), buf, strlen(buf) );
-    inflated_len = memDecompressLZ4( inflated, sizeof(inflated), zipped, zipped_len );
+    zipped_len = memCompressSnappy( zipped, sizeof(zipped), buf, strlen(buf) );
+    inflated_len = memDecompressSnappy( inflated, sizeof(inflated), zipped, zipped_len );
     inflated[inflated_len] = '\0';
-    print("lz4: %d bytes to %d byte", inflated_len, zipped_len );
+    print("snappy: %d bytes to %d byte", inflated_len, zipped_len );
     
     
     
