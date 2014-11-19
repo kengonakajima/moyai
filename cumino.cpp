@@ -123,7 +123,6 @@ void assertmsg( bool cond, const char *fmt, ... )
 {
 #if (!defined(WIN32)) || defined(DEBUG) || defined(_DEBUG)
     if(!cond){
-        print("XXXXXXXXXXXXXXx fmt:%s",fmt);
         char dest[1024*16];
         va_list argptr;
         va_start( argptr, fmt );
