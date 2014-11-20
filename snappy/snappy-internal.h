@@ -33,7 +33,7 @@
 
 #include "snappy-stubs-internal.h"
 
-#ifndef __APPLE__
+#if defined WIN32
 typedef int ssize_t;
 #endif
 
