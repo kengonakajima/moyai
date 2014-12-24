@@ -40,6 +40,29 @@ Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_curre
 Sound *SoundSystem::newSound( const char *path ){
 	return newSound( path, 1.0, false );
 }
+Sound *SoundSystem::newSoundFromMemory( float *samples, int samples_num ) {
+    FMOD_RESULT r;
+    Sound *out = new Sound(this);
+    FMOD_SOUND *s;
+    FMOD_CREATESOUNDEXINFO exinfo;
+
+    memset( &exinfo, 0, sizeof(exinfo) );
+    exinfo.cbsize = sizeof(exinfo);
+    exinfo.length = sizeof(float) * samples_num;
+    exinfo.defaultfrequency = 44100;
+    exinfo.numchannels = 1;
+    exinfo.format = FMOD_SOUND_FORMAT_PCMFLOAT;
+    
+    r = FMOD_System_CreateSound( sys, (const char*) samples, FMOD_SOFTWARE | FMOD_OPENMEMORY | FMOD_OPENRAW, &exinfo, &s );
+    FMOD_ERRCHECK(r);
+    FMOD_Sound_SetMode( s, FMOD_LOOP_OFF );
+    out->sound = s;
+    out->default_volume = 1;
+    out->id = id_gen;
+    id_gen++;
+    append(out);
+    return out;
+}
 
 void SoundSystem::append( Sound *s ) {
     for(int i=0;i<elementof(sounds);i++) {

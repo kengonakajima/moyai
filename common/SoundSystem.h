@@ -26,6 +26,7 @@ public:
 
 	Sound *newSound( const char *path, float vol, bool use_stream_currently_ignored );
 	Sound *newSound( const char *path );
+    Sound *newSoundFromMemory( float *sample, int sample_num );
 
     void append( Sound*s );
     Sound *getById( int id );

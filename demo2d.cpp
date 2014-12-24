@@ -33,6 +33,7 @@ AnimCurve *g_digit_anim_curve;
 SoundSystem *g_sound_system;
 Sound *g_explosion_sound;
 Sound *g_bgm_sound;
+Sound *g_mem_sound;
 
 Image *g_img;
 Texture *g_dyn_texture;
@@ -46,16 +47,9 @@ int g_last_render_cnt ;
 // data
 
 enum {
-    ATLAS_TERAZI = 0,
-    ATLAS_TARKEN = 1,
-    ATLAS_POWSTAR = 2,
-    ATLAS_BULLET0 = 16,  
-    ATLAS_ZOSHI0 = 32,
-    ATLAS_EXPLOSION = 48,
-    ATLAS_MYSHIP = 64,
-    ATLAS_BEAM = 65,
-    ATLAS_DEBRI0 = 66,
-    ATLAS_STAR0 = 70,   
+    ATLAS_MYSHIP = 0,
+    ATLAS_BULLET0 = 32,  
+    ATLAS_EXPLOSION = 96,
     ATLAS_DIGIT0 = 80,  
 };
 
@@ -97,7 +91,6 @@ public:
     virtual bool prop2DPoll(double dt){
         loc.x += v.x * dt * SCALE;
         loc.y += v.y * dt * SCALE;
-
         cnt ++;
         if( charPoll(dt) == false ){
             return false;
@@ -461,7 +454,12 @@ int main(int argc, char **argv )
     g_explosion_sound->play();
     g_bgm_sound = g_sound_system->newBGM( "./assets/gymno1_1min.wav" );
     g_bgm_sound->play(); // stop this later
-
+    {
+        float samples[44100];
+        for(int i=0;i<elementof(samples);i++) samples[i] = cos( (float)(i) / 440.0f );
+        g_mem_sound = g_sound_system->newSoundFromMemory( samples, elementof(samples) );
+    }
+    
     // glfw
     if( !glfwInit() ) {
         print("can't init glfw");
