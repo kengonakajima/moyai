@@ -158,7 +158,12 @@ Explosion *createExplosion(float x, float y, float startScl ){
     assert(g_main_layer);
     Explosion *e = new Explosion(x,y,startScl);
     g_main_layer->insertProp(e);
-    g_explosion_sound->play( range(0.1,1) );
+    if(range(0,100)>50) {
+        g_explosion_sound->play( range(0.1,1) );
+    } else {
+        g_mem_sound->play();
+    }
+    
     return e;
 }
 
@@ -182,12 +187,12 @@ public:
     }
 
     virtual bool enemyPoll(double dt){
-        if( Vec2(0,0).len( loc) > 300 ){
+        if( Vec2(0,0).len( loc) > 300 ) {
             // 一定距離飛んだら消える
             createExplosion(loc.x,loc.y,3);
             return false;
         }
-        if( last_explode_at < accum_time-1 ){
+        if( last_explode_at < accum_time-1 && range(0,100)>99 ){
             createExplosion(loc.x,loc.y,6);
             last_explode_at = accum_time;
         }        
@@ -456,7 +461,7 @@ int main(int argc, char **argv )
     g_bgm_sound->play(); // stop this later
     {
         float samples[44100];
-        for(int i=0;i<elementof(samples);i++) samples[i] = cos( (float)(i) / 440.0f );
+        for(int i=0;i<elementof(samples);i++) samples[i] = cos( (float)(i) / 20.0f );
         g_mem_sound = g_sound_system->newSoundFromMemory( samples, elementof(samples) );
     }
     
