@@ -42,5 +42,4 @@ public:
 		assert( index_used > 0 );
 		return index_table[0];
 	}
-
 };

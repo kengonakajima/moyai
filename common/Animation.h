@@ -19,4 +19,7 @@ public:
 		if(!ac) return 0;
 		return ac->getIndex( t - start_at, finished );
 	}
+    AnimCurve *getCurve(int index) {
+        return curves[index];
+    }    
 };
