@@ -252,4 +252,6 @@ public:
 
 void truncateString( char *out, const char *in, int outlen );
 
+int countChar(const char *s, int ch);
+
 #endif

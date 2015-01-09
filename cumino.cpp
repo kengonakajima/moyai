@@ -624,3 +624,11 @@ void truncateString( char *out, const char *in, int outlen ) {
         out[in_l] = '\0';
     }
 }
+int countChar(const char *s, int ch){    
+    int cnt=0;
+    for(int i=0;;i++){
+        if(s[i]==0)break;
+        if(s[i]==ch)cnt++;
+    }
+    return cnt;
+}
