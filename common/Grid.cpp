@@ -1,9 +1,9 @@
 #include "Grid.h"
 
-void Grid::clear(){
+void Grid::clear(int ind){
 	for(int y=0;y<height;y++){
 		for(int x=0;x<width;x++){
-			set(x,y,GRID_NOT_USED);
+			set(x,y,ind);
 		}
 	}
 }

@@ -84,7 +84,7 @@ public:
 	inline void setVisible( bool flg ){ visible = flg; }
 	inline bool getVisible() { return visible; }
 	inline void clear(int x, int y) { set(x,y,GRID_NOT_USED); }    
-	void clear();
+	void clear( int ind = GRID_NOT_USED );
 
 	void fillColor( Color c );
 };
