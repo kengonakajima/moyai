@@ -20,6 +20,43 @@ int Moyai::poll(double dt){
     }
     return cnt;
 }
+
+
+bool Moyai::insertEvent( double duration, void (*cbf)( void *argptr), void *argptr ) {
+    for(int i=0;i<elementof(events);i++) {
+        if( events[i].isUsed() == false ) {
+            events[i].cb = cbf;
+            events[i].duration = duration;
+            events[i].argptr = argptr;
+            return true;
+        }
+    }
+    print("insertEvent: event full");
+    return false;
+}
+void Moyai::clearEvents() {
+    for(int i=0;i<elementof(events);i++) {
+        events[i].duration = 0;
+        events[i].cb = NULL;
+    }
+}
+void Moyai::pollEvents( double dt ) {
+    for(int i=0;i<elementof(events);i++) {
+        if( events[i].isUsed() ) {
+            //       print("ev[%d]: used, act:%f dur:%f", i, events[i].accum_time, events[i].duration );
+            events[i].accum_time += dt;
+            if( events[i].accum_time > events[i].duration ) {
+                events[i].cb( events[i].argptr );
+                events[i].duration = events[i].accum_time = 0;
+                return;
+            }
+        }
+    }
+}
+
+
+
+
 int Group::pollAllProps(double dt ){
     int cnt=0;
     Prop *cur = prop_top;

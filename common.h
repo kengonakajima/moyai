@@ -413,11 +413,24 @@ public:
 
 
 
+class DeferredEvent {
+public:
+    double accum_time;
+    double duration;
+    void (*cb)( void* argptr );
+    void *argptr;
+    DeferredEvent() : accum_time(0), duration(0), cb(NULL), argptr(NULL) {}
+    bool isUsed() { return duration > 0; }
+};
+
+
 
 class Moyai {
 public:
     static const int MAXGROUPS = 32;
     Group *groups[MAXGROUPS];
+    static const int MAXEVENTS = 4;
+    DeferredEvent events[MAXEVENTS];    
     
     inline int findFreeGroupIndex(){
         for(int i=0;i<MAXGROUPS;i++){
@@ -440,6 +453,9 @@ public:
         groups[freei] = g;
     }
     int poll(double dt );
+    bool insertEvent( double delay, void (*cb)(void*argptr),void *argptr);
+    void clearEvents();
+    void pollEvents( double dt );
 };
 
 
