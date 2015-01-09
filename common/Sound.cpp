@@ -1,7 +1,7 @@
 #include "Sound.h"
 #include "SoundSystem.h"
 
-Sound::Sound( SoundSystem *s) : sound(0), parent(s), ch(0), default_volume(1) { }
+Sound::Sound( SoundSystem *s) : sound(0), parent(s), ch(0), default_volume(1), external_id(0) { }
 void Sound::play(){
 	play(default_volume);
 }

@@ -12,6 +12,7 @@ public:
 	FMOD_CHANNEL *ch;
 
 	float default_volume;
+    int external_id;
     
 	Sound( SoundSystem *s);
 	void setLoop( bool flag );
