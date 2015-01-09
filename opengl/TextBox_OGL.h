@@ -10,8 +10,9 @@ public:
 	wchar_t *str;
 	Font_OGL *font;
 	//    Color color;
+    int len_str;
 
-	TextBox_OGL() {
+	TextBox_OGL() : len_str(0) {
 		vb = vertex_buffer_new( "v3f:t2f:c4f" );
 		str = NULL;
 		setScl(1,1);
@@ -46,5 +47,13 @@ public:
 		str = (wchar_t*)MALLOC( (l+1) * sizeof(wchar_t) );
 		wcscpy( str, s );
 		assert( wcslen(str) == wcslen(s) );
+        len_str = l;
 	}
+    bool compareString( const char *u8s ) {
+        int l = strlen(u8s);
+		wchar_t *out = (wchar_t*)MALLOC((l+1)*sizeof(wchar_t));
+		mbstowcs(out, u8s, l+1 );
+        return wcscmp( str, out );
+    }
+    int getStringLength() { return len_str; }
 };

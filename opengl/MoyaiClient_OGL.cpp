@@ -36,4 +36,5 @@ void MoyaiClient_OGL::capture( Image *img ) {
 	FREE(buf);
 }
 
+
 #endif

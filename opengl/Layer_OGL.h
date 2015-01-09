@@ -17,13 +17,14 @@ public:
 	Viewport_OGL *viewport;
 	GLuint last_tex_gl_id;
 	Light *light;
+    int debug_id;
 
 	// working area to avoid allocation in inner loops
 	SorterEntry sorter_opaque[Prop::CHILDREN_ABS_MAX];
 	SorterEntry sorter_transparent[Prop::CHILDREN_ABS_MAX];
 
 
-	Layer_OGL() : Group(), camera(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL) {
+	Layer_OGL() : Group(), camera(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL), debug_id(0) {
 		to_render = true;
 	}
 	inline void setViewport( Viewport_OGL *vp ){
