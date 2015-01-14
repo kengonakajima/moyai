@@ -383,7 +383,7 @@ public:
         }
         return NULL;
     }
-    
+    int countProps();    
 };
 
 
