@@ -9,7 +9,10 @@ bool Texture_OGL::load( const char *path ){
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MULTIPLY_ALPHA );
-	if(tex==0)return false;
+	if(tex==0) {
+        print("SOIL error '%s' on '%s'", SOIL_last_result(), path );
+        return false;
+    }
 	glBindTexture( GL_TEXTURE_2D, tex );
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );     
