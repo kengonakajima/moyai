@@ -270,6 +270,8 @@ List of classes defined in moyai.h :
 
 License notes
 =====
+See LICNSE.txt for Moyai itself.
+
  - Graphics resources are from Oryx Design Lab: http://oryxdesignlab.com/
  - Music from: Erik Satie Gymnopedie no.1
  - lodepng image loader : Copyright (c) 2005-2013 Lode Vandevenne
