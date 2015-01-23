@@ -193,7 +193,7 @@ inline int sign(float f){
     if(f>0) return 1; else if(f<0) return -1; else return 0;
 }
 
-bool writeFile( const char *path, const char *data, size_t sz );
+bool writeFile( const char *path, const char *data, size_t sz, bool to_sync = false );
 bool readFile( const char *path, char *data, size_t *sz );
 int getModifiedTime( const char *path, time_t *out );
 

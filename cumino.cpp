@@ -263,13 +263,18 @@ void dirToDXDY( DIR d, int *dx, int *dy ){
     }
 }
 
-bool writeFile( const char *path, const char *data, size_t sz ){
+bool writeFile( const char *path, const char *data, size_t sz, bool to_sync ){
     FILE *fp = fopen( path, "wb");
     if(!fp){
         print("cannot open file: '%s" , path );
         return false;
     }
     if( fwrite( data, 1, sz, fp ) != sz ) return false;
+    if( to_sync ) {
+        int fd = fileno(fp);
+        fsync(fd);
+    }
+    
     fclose(fp);
     return true;
 }
