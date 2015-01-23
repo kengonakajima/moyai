@@ -40,6 +40,9 @@
     <Filter Include="Source Files\snappy">
       <UniqueIdentifier>{33ea6e8c-e934-43b2-bfe0-33118e9e5b39}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\freetype-gl">
+      <UniqueIdentifier>{8e05c1c7-27ad-4f06-9404-b91b1b7d952c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\opengl\ColorReplacerShader_OGL.cpp">
@@ -215,6 +218,21 @@
     </ClCompile>
     <ClCompile Include="..\snappy\snappy-stubs-internal.cc">
       <Filter>Source Files\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\freetype-gl\texture-atlas.c">
+      <Filter>Source Files\freetype-gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\freetype-gl\texture-font.c">
+      <Filter>Source Files\freetype-gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\freetype-gl\vector.c">
+      <Filter>Source Files\freetype-gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\freetype-gl\vertex-attribute.c">
+      <Filter>Source Files\freetype-gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\freetype-gl\vertex-buffer.c">
+      <Filter>Source Files\freetype-gl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

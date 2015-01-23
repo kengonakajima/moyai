@@ -105,7 +105,7 @@ vertex_buffer_new( const char *format )
         char *desc = 0;
         if (end == NULL)
         {
-            desc = strdup( start );
+            desc = _strdup( start ); // fix by ringo, freetype-gl issue 65
         }
         else
         {

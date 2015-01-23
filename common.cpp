@@ -54,7 +54,15 @@ void Moyai::pollEvents( double dt ) {
     }
 }
 
-
+int Group::countProps() {
+    int n=0;
+    Prop *cur = prop_top;
+    while(cur) {
+        n++;
+        cur = cur->next;
+    }
+    return n;
+}
 
 
 int Group::pollAllProps(double dt ){
@@ -83,7 +91,7 @@ int Group::pollAllProps(double dt ){
 
     for(int i=0;i<to_clean_cnt;i++){
         Prop *p = to_clean[i];
-        //                print("deleting p:%p prev:%p next:%p", p, p->prev, p->next );
+        if( p->debug_id ) print("deleting p:%p prev:%p next:%p", p, p->prev, p->next );
 
         if(p == prop_top ){
             prop_top = p->next;

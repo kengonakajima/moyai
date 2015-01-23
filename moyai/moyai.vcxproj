@@ -67,16 +67,16 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugD3D|Win32'">
-    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\..\glew-1.10.0\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\freetype-gl\windows\freetype;$(ProjectDir)\..\glut-3.7.6-bin;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D|Win32'">
-    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;C:\Users\ringo\Documents\GitHub\ss\moyai\glew-1.10.0\glew-1.10.0\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-gl\windows\freetype;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugOGL|Win32'">
     <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-2.7.7\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseOGL|Win32'">
-    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-2.7.7\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-2.7.7\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-gl\windows\freetype;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugD3D|Win32'">
     <ClCompile>
@@ -175,6 +175,11 @@
     <ClCompile Include="..\direct3d\Texture_D3D.cpp" />
     <ClCompile Include="..\direct3d\VertexBuffer_D3D.cpp" />
     <ClCompile Include="..\direct3d\Viewport_D3D.cpp" />
+    <ClCompile Include="..\freetype-gl\texture-atlas.c" />
+    <ClCompile Include="..\freetype-gl\texture-font.c" />
+    <ClCompile Include="..\freetype-gl\vector.c" />
+    <ClCompile Include="..\freetype-gl\vertex-attribute.c" />
+    <ClCompile Include="..\freetype-gl\vertex-buffer.c" />
     <ClCompile Include="..\lodepng.cpp" />
     <ClCompile Include="..\opengl\ColorReplacerShader_OGL.cpp" />
     <ClCompile Include="..\opengl\Font_OGL.cpp" />

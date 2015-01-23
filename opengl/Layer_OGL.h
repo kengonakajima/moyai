@@ -53,5 +53,4 @@ public:
 	Vec3 getWorldPos( Vec2 scrpos );
 
 	int getHighestPriority();
-    int countProps();
 };

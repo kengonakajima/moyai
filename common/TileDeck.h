@@ -10,7 +10,7 @@ public:
 	Texture *tex;
 	TileDeck() : cell_width(0), cell_height(0), tile_width(0), tile_height(0), image_width(0), image_height(0),tex(NULL) {}
 	void setTexture( Texture *t ){
-		assert(t->tex!=0);
+		assertmsg(t->tex!=0, "invalid texture" );
 		tex = t;
 		tex->getSize( &image_width, &image_height );
 	}

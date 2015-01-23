@@ -445,13 +445,5 @@ void Layer_OGL::selectCenterInside( Vec2 minloc, Vec2 maxloc, Prop*out[], int *o
 	*outlen = cnt;
 }
 
-int Layer_OGL::countProps() {
-    int n=0;
-    Prop *cur = prop_top;
-    while(cur) {
-        n++;
-        cur = cur->next;
-    }
-    
-}
+
 #endif
