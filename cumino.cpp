@@ -271,8 +271,12 @@ bool writeFile( const char *path, const char *data, size_t sz, bool to_sync ){
     }
     if( fwrite( data, 1, sz, fp ) != sz ) return false;
     if( to_sync ) {
+#ifdef WIN32
+        print("writeFile: fsync() is not available on win32");
+#else        
         int fd = fileno(fp);
         fsync(fd);
+#endif        
     }
     
     fclose(fp);
