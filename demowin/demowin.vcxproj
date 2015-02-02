@@ -74,7 +74,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugOGL|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-2.7.7\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2012;$(ProjectDir)\..\fmodwin\api\lib;$(ProjectDir)\..\glut-3.7.6-bin;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2013;$(ProjectDir)\..\fmodwin\api\lib;$(ProjectDir)\..\glut-3.7.6-bin;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -109,13 +109,15 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;USE_OPENGL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>moyai.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>msvcrt.lib;msvcrtd.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D|Win32'">
