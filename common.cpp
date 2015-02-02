@@ -397,7 +397,7 @@ bool Image::writePNG(const char *path) {
     return true;
 }
 bool Image::writeRaw( const char *path ) {
-    return writeFile( path, (char*) buffer, width*height*4);
+    return writeFile( path, (char*) buffer, width*height*4 );
 }
 bool Image::loadRaw( const char *path ) {
     size_t expectsz = width*height*4;
