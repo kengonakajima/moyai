@@ -3,6 +3,8 @@
 #include "TextBox_OGL.h"
 
 void TextBox_OGL::render(Camera *cam ) {
+    if(!str) return;
+    
 	glBindTexture( GL_TEXTURE_2D, font->atlas->id );
 
 	int line_num = 0;
