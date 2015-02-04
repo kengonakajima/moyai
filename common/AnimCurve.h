@@ -6,6 +6,7 @@ public:
 	int index_used;
 	float step_time;
 	bool loop;
+    int loop_to;
 	AnimCurve( float st, bool do_loop, int *inds, int indslen ){
 		assertmsg( indslen <= elementof(index_table), "animcurve length %d is onger than %d : ", indslen, elementof(index_table) );
 		for(int i=0;i<indslen;i++){
@@ -14,7 +15,9 @@ public:
 		index_used = indslen;
 		step_time = st;
 		loop = do_loop;
+        loop_to = 0;
 	}
+    void setLoopTo( int ind ) { loop_to =  ind; }
 
 	// t: アニメーション開始からの時間
 	inline int getIndex( double t , bool *finished = NULL ){
@@ -28,7 +31,12 @@ public:
 		assert(ind>=0);
 		if(finished) *finished = false;
 		if(loop){
-			return index_table[ ind % index_used ];
+            if(loop_to == 0 || ind < loop_to ) {
+                return index_table[ ind % index_used ];
+            } else {
+                int mod =  index_used - loop_to;
+                return index_table[ loop_to + (ind % mod) ];
+            }
 		} else {
 			if( ind >= index_used ){
 				if(finished) *finished = true;
