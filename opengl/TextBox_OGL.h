@@ -28,10 +28,10 @@ public:
 	inline void setString( const char *s ){
 		setString( (char*) s );
 	}
-	inline void setString( char *s ){
-		int l = strlen(s);
+	inline void setString( char *u8s ){
+		int l = strlen(u8s);
 		wchar_t *out = (wchar_t*)MALLOC((l+1)*sizeof(wchar_t));
-		mbstowcs(out, s, l+1 );
+		mbstowcs(out, u8s, l+1 );
 		setString(out);
 		FREE(out);
 	}
@@ -53,7 +53,10 @@ public:
         int l = strlen(u8s);
 		wchar_t *out = (wchar_t*)MALLOC((l+1)*sizeof(wchar_t));
 		mbstowcs(out, u8s, l+1 );
-        return wcscmp( str, out );
+        int ret = wcscmp( str, out );
+        FREE(out);
+        //        print("compareString: %d '%S' '%S'",ret, str, out );
+        return ret == 0;
     }
     int getStringLength() { return len_str; }
 };
