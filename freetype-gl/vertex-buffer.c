@@ -105,7 +105,11 @@ vertex_buffer_new( const char *format )
         char *desc = 0;
         if (end == NULL)
         {
+#if defined(WIN32)
             desc = _strdup( start ); // fix by ringo, freetype-gl issue 65
+#else
+            desc = strdup( start ); // fix by ringo, freetype-gl issue 65            
+#endif            
         }
         else
         {
