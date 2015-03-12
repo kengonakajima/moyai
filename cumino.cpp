@@ -292,7 +292,10 @@ bool readFile( const char *path, char *data, size_t *sz ){
     return true;
 
 }
-
+bool deleteFile( const char *path ) {
+    int err = ::remove(path);
+    return (err==0);    
+}
 void dump(const char*s, size_t l) {
     for(size_t i=0;i<l;i++){
         prt( "%02x ", s[i] & 0xff );
