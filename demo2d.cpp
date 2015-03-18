@@ -234,7 +234,7 @@ public:
         v.x = force.x * vel;
         v.y = force.y * vel;
 
-        float c = absolute(::sin( accum_time * 10 ) );
+        float c = absolute(::sin( accum_time * 2 ) );
         setColor( Color(c,c,c,1));
         if(cnt%200==0){
             Bullet * b = createBullet(loc.x, loc.y, loc.x + range(-100,100), loc.y + range(-100,100), 1, false );
@@ -787,7 +787,7 @@ int main(int argc, char **argv )
         updateGame();
 
         // replace white to random color
-        g_replacer_shader->setColor( Color(1,1,1,1), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
+        g_replacer_shader->setColor( Color(0xF7E26B), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
         g_last_render_cnt = g_moyai_client->render();
 
         if( glfwGetKey('Q') ) {
