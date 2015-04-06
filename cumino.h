@@ -35,8 +35,10 @@ struct timezone {
 #define EPOCHFILETIME (116444736000000000i64)
 
 int gettimeofday(struct timeval *tv, struct timezone *tz);
+#ifndef _WIN32_FDAPI_H
 int read( int fdesc, char *buf, size_t nbytes );
 void close( SOCKET s );
+#endif
 long random();
 
 #define snprintf sprintf_s
