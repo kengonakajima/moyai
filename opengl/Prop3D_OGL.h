@@ -25,9 +25,9 @@ public:
 	bool alpha_test;
 	bool cull_back_face;
 	Vec3 draw_offset;
+    bool use_additive_blend;
 
-
-	Prop3D_OGL() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0), skip_rot(false), billboard_index(-1), fragment_shader(NULL), depth_mask(true), alpha_test(false), cull_back_face(true), draw_offset(0,0,0) {
+	Prop3D_OGL() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0), skip_rot(false), billboard_index(-1), fragment_shader(NULL), depth_mask(true), alpha_test(false), cull_back_face(true), draw_offset(0,0,0) , use_additive_blend(false) {
 		priority = id;        
 		dimension = DIMENSION_3D;
 	}

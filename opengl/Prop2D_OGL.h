@@ -59,7 +59,8 @@ public:
 	float tex_epsilon;
 
 	bool render_children_first;
-
+    bool use_additive_blend;
+    
 	inline Prop2D_OGL() : Prop(), Renderable() {
 		priority = id;
 		dimension = DIMENSION_2D;
@@ -91,6 +92,7 @@ public:
 		tex_epsilon = 0;
 
 		render_children_first = false;
+        use_additive_blend = false;
 	}
 	virtual ~Prop2D_OGL(){
 		for(int i=0;i<grid_used_num;i++){

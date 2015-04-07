@@ -144,6 +144,10 @@ void Prop2D_OGL::drawIndex( TileDeck *dk, int ind, float minx, float miny, float
 
 void Prop2D_OGL::render(Camera *cam) {
 	assertmsg(deck || grid_used_num > 0 || children_num > 0 || prim_drawer , "no deck/grid/prim_drawer is set. deck:%p grid:%d child:%d prim:%p", deck, grid_used_num, children_num, prim_drawer );
+
+    if( use_additive_blend ) glBlendFunc(GL_ONE, GL_ONE ); else glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+    
 	float camx=0.0f;
 	float camy=0.0f;
 	if(cam){

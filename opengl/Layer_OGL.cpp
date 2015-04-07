@@ -271,7 +271,7 @@ int Layer_OGL::renderAllProps(){
 			Prop3D_OGL *cur3d = (Prop3D_OGL*)cur;            
 			assert(cur3d->dimension == viewport->dimension );
 
-
+            if( cur3d->use_additive_blend ) glBlendFunc(GL_ONE, GL_ONE ); else glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
 			assertmsg( cur3d->mesh || cur3d->children_num > 0 || cur3d->billboard_index>=0, "mesh or children is required for 3d prop %p", cur3d );
 

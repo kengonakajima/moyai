@@ -638,6 +638,7 @@ int main(int argc, char **argv )
             p->setScl(32,32);
             p->setColor(1,1,1,0.3);
             p->setLoc(-SCRW/2+50 + i * 10,-SCRH/2+70 + (i%2)*10 + j*80);
+            if(j==0) p->use_additive_blend = true;
             //p->setLoc(-200,-200);
             g_main_layer->insertProp(p);
         }

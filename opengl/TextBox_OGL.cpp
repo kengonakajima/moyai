@@ -4,7 +4,7 @@
 
 void TextBox_OGL::render(Camera *cam ) {
     if(!str) return;
-    
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );    
 	glBindTexture( GL_TEXTURE_2D, font->atlas->id );
 
 	int line_num = 0;
@@ -25,6 +25,7 @@ void TextBox_OGL::render(Camera *cam ) {
 
 	glBegin(GL_QUADS);
 	glColor4f( color.r, color.g, color.b, color.a );
+
 
 	float xscl = (float)scl.x / (float) font->pixel_size;
 	float yscl = (float)scl.y / (float) font->pixel_size;

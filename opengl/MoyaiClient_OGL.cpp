@@ -6,8 +6,6 @@ int MoyaiClient_OGL::render(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );    
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-
 	int cnt=0;
 	for(int i=0;i<elementof(groups);i++){
 		Group *g = groups[i];
