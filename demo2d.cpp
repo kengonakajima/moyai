@@ -629,7 +629,19 @@ int main(int argc, char **argv )
     g_digit_anim_curve = new AnimCurve( 0.2, false, digitinds, elementof(digitinds));
     
 
-
+    Texture *dragontex = new Texture();
+    dragontex->load( "./assets/dragon8.png");
+    for(int j=0;j<2;j++) {
+        for(int i=0;i<6;i++) {
+            Prop2D *p = new Prop2D();
+            p->setTexture(dragontex);
+            p->setScl(32,32);
+            p->setColor(1,1,1,0.3);
+            p->setLoc(-SCRW/2+50 + i * 10,-SCRH/2+70 + (i%2)*10 + j*80);
+            //p->setLoc(-200,-200);
+            g_main_layer->insertProp(p);
+        }
+    }
         
     ////////////////////
     wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえおぁぃぅぇぉかきくけこがぎぐげごさしすせそざじずぜぞたちつてとだぢづでどなにぬねのはひふへほばびぶべぼぱぴぷぺぽまみむめもやゆよゃゅょらりるれろわをん、。アイウエオァィゥェォカキクケコガギグゲゴサシスセソザジズゼゾタチツテトダヂヅデドナニヌネノハヒフヘホバビブベボパピプペポマミムメモヤユヨャュョラリルレロワヲンーッっ　「」";    
