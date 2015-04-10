@@ -64,6 +64,7 @@ public:
 	float tex_epsilon;
 
 	bool render_children_first;
+	bool use_additive_blend; // TODO: not implemented
 
 	Prop2D_D3D(); 
 	virtual ~Prop2D_D3D();
