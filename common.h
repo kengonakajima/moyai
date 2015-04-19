@@ -172,9 +172,9 @@ public:
     inline DIR toDir() {
         if( x==0.0f && y==0.0f) return DIR_NONE;
         if( y > 0 ) {
-            if( abs(x) < abs(y) ) return DIR_UP; else if( x > 0 ) return DIR_RIGHT; else return DIR_LEFT;
+            if( absolute(x) < absolute(y) ) return DIR_UP; else if( x > 0 ) return DIR_RIGHT; else return DIR_LEFT;
         } else {
-            if( abs(x) < abs(y) ) return DIR_DOWN; else if( x > 0 ) return DIR_RIGHT; else return DIR_LEFT;
+            if( absolute(x) < absolute(y) ) return DIR_DOWN; else if( x > 0 ) return DIR_RIGHT; else return DIR_LEFT;
         }
     }
     inline Vec2 mul(float val){ return Vec2( x*val, y*val); }
