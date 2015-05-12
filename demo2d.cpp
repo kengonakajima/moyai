@@ -413,21 +413,11 @@ void optest(){
 void comptest() {
     char buf[] = "hogehogefugafugahogefugapiyopiyo";
     char zipped[1024];
-    int zipped_len = memCompress( zipped, sizeof(zipped), buf, strlen(buf) );
     char inflated[1024];
-    int inflated_len = memDecompress( inflated, sizeof(inflated), zipped, zipped_len );
-    inflated[inflated_len] = '\0';
-    assert( inflated_len == (int) strlen(buf) );
-    assert( strcmp( inflated, buf ) == 0 );
-    print("zlib: %d bytes to %d byte", inflated_len, zipped_len );
-
-    zipped_len = memCompressSnappy( zipped, sizeof(zipped), buf, strlen(buf) );
-    inflated_len = memDecompressSnappy( inflated, sizeof(inflated), zipped, zipped_len );
+    int zipped_len = memCompressSnappy( zipped, sizeof(zipped), buf, strlen(buf) );
+    int inflated_len = memDecompressSnappy( inflated, sizeof(inflated), zipped, zipped_len );
     inflated[inflated_len] = '\0';
     print("snappy: %d bytes to %d byte", inflated_len, zipped_len );
-    
-    
-    
 }
 
 

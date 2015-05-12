@@ -219,8 +219,6 @@ bool findChar( const char *s, char ch );
 void startMeasure(const char *name);
 void endMeasure();
 
-int memCompress( char *out, int outlen, const char *in, int inlen );
-int memDecompress( char *out, int outlen, const char *in, int inlen );
 int memCompressSnappy( char *out, int outlen, char *in, int inlen );
 int memDecompressSnappy( char *out, int outlen, char *in, int inlen );
 
