@@ -21,7 +21,6 @@
 #endif
 
 #include "cumino.h"
-#include "zlib.h"
 
 #ifdef WIN32
 #undef min
