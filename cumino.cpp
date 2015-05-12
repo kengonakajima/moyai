@@ -5,6 +5,7 @@
 #ifndef WIN32
 #include <sys/time.h>
 #include <strings.h>
+#include <unistd.h>
 #endif
 
 
@@ -16,7 +17,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "zlib.h"
 #include "snappy/snappy-c.h"
 
 
