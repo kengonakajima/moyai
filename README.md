@@ -210,7 +210,7 @@ $ ./demo2d
 $ ./demo3d
 </pre>
 
-Windows 7 VisualStudio 2012 :
+Windows 7/8/8.1 VisualStudio 2012/2013 :
 
 1. git clone https://github.com/kengonakajima/moyai   or use Github For Windows from github.com
 2. Start from demowin/demowin.sln
@@ -220,7 +220,9 @@ Windows 7 VisualStudio 2012 :
 5. Next error: "GL/glew.h not found"
    - unzip glew-1.10.0.zip 
 6. Next error: "GL/glfw.h not found"
-   - unzip glfw-2.7.7.zip 
+   - unzip glfw-2.7.7.zip
+7. Next error in OpenGL build target: ft2build.h
+   - unzip freetype-2.4.10.tar.gz
 7. Build shold ok here
 8. Run(Debug) the program and next error: "fmodex.dll is not found"
 10. Copy demowin/fmodex.dll to demowin/Debug/fmodex.dll
