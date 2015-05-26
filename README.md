@@ -200,7 +200,7 @@ delete img;
 Build
 =====
 
-MacOS X 10.8 or 10.9: After installing Xcode and command line tools, just do:
+MacOS X 10.8,10.9,10.10: After installing Xcode and command line tools, just do:
  
 <pre>
 $ git clone https://github.com/kengonakajima/moyai
@@ -215,17 +215,7 @@ Windows 7/8/8.1 VisualStudio 2012/2013 :
 1. git clone https://github.com/kengonakajima/moyai   or use Github For Windows from github.com
 2. Start from demowin/demowin.sln
 3. Build a project "demowin" 
-4. You will find an error: "zlib.h not found"
-   -  unzip zlib-1.2.7.tar.gz in the top directory of this repository to have a directry "zlib-1.2.7" in moyai/
-5. Next error: "GL/glew.h not found"
-   - unzip glew-1.10.0.zip in the same way
-6. Next error: "GL/glfw.h not found"
-   - unzip glfw-2.7.7.zip in the same way 
-7. Next error in OpenGL build target: ft2build.h
-   - unzip freetype-2.4.10.tar.gz in the same way
-7. Build shold ok here
-8. Run(Debug) the program and next error: "fmodex.dll is not found"
-10. Copy demowin/fmodex.dll to demowin/Debug/fmodex.dll
+4. Run(Debug) the program 
 </pre>
 
 An example screenshot of a program "demo2d" :

@@ -191,17 +191,13 @@ $(LIBPNGLIB):
 	cd $(LIBPNG); ./configure; make
 
 
-
-$(GLFW) :
-	rm -rf $(GLFW)
-	unzip $(GLFW).zip
-
 $(GLFWLIB): $(GLFW)
 	cd $(GLFW); make cocoa
 
 
 clean:
-	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) $(GLFW) 
+	make -C $(GLFW) cocoa-clean
+	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) 
 	rm -f deps.make $(DEMO2D) $(DEMO3D) $(DEMOSV) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
 
 depend: $(GLFWLIB)
