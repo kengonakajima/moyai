@@ -413,7 +413,7 @@ void optest(){
 void comptest() {
     char buf[] = "hogehogefugafugahogefugapiyopiyo";
     char zipped[1024];
-    int zipped_len = memCompress( zipped, sizeof(zipped), buf, strlen(buf) );
+    int zipped_len = memCompressSnappy( zipped, sizeof(zipped), buf, strlen(buf) );
     char inflated[1024];
     int inflated_len = memDecompress( inflated, sizeof(inflated), zipped, zipped_len );
     inflated[inflated_len] = '\0';
