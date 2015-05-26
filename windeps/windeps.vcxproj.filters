@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\freetype-gl">
+      <UniqueIdentifier>{526092c2-edb7-4797-865e-775a09605c5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lodepng">
+      <UniqueIdentifier>{117d876e-47b6-4f1a-9b64-51ae9b6975cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\snappy">
+      <UniqueIdentifier>{539f9bfa-a7f8-49b5-a8aa-55037d0f79b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\soil">
+      <UniqueIdentifier>{3b016d45-aea0-4249-bd20-d64bdd4cd844}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\zlib">
+      <UniqueIdentifier>{ea9e94cd-803e-4203-848d-2a8b1af655a8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\freetype-gl\texture-atlas.c">
+      <Filter>Source Files\freetype-gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\freetype-gl\texture-font.c">
+      <Filter>Source Files\freetype-gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\freetype-gl\vector.c">
+      <Filter>Source Files\freetype-gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\freetype-gl\vertex-attribute.c">
+      <Filter>Source Files\freetype-gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\freetype-gl\vertex-buffer.c">
+      <Filter>Source Files\freetype-gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lodepng.cpp">
+      <Filter>Source Files\lodepng</Filter>
+    </ClCompile>
+    <ClCompile Include="..\snappy\snappy-c.cc">
+      <Filter>Source Files\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\snappy\snappy-sinksource.cc">
+      <Filter>Source Files\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\snappy\snappy-stubs-internal.cc">
+      <Filter>Source Files\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\snappy\snappy.cc">
+      <Filter>Source Files\snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\soil\src\image_DXT.c">
+      <Filter>Source Files\soil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\soil\src\image_helper.c">
+      <Filter>Source Files\soil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\soil\src\SOIL.c">
+      <Filter>Source Files\soil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\soil\src\stb_image_aug.c">
+      <Filter>Source Files\soil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\adler32.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\compress.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\crc32.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\deflate.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\inffast.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\inflate.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\inftrees.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\trees.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zlib-1.2.7\zutil.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

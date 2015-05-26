@@ -28,21 +28,6 @@
     <Filter Include="Source Files\OpenGL">
       <UniqueIdentifier>{46ec9212-81a1-4e78-acf7-20193320d0fa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\zlib">
-      <UniqueIdentifier>{74a143c9-35c4-4fad-8745-128dbdf6c6a2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\lodepng">
-      <UniqueIdentifier>{396890a3-bd45-45aa-b3c5-d04605aaabae}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\soil">
-      <UniqueIdentifier>{97156576-6171-459a-9f10-f47d3192cedb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\snappy">
-      <UniqueIdentifier>{33ea6e8c-e934-43b2-bfe0-33118e9e5b39}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\freetype-gl">
-      <UniqueIdentifier>{8e05c1c7-27ad-4f06-9404-b91b1b7d952c}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\opengl\ColorReplacerShader_OGL.cpp">
@@ -129,48 +114,6 @@
     <ClCompile Include="..\cumino.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\adler32.c">
-      <Filter>Source Files\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\compress.c">
-      <Filter>Source Files\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\crc32.c">
-      <Filter>Source Files\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\deflate.c">
-      <Filter>Source Files\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\inffast.c">
-      <Filter>Source Files\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\inflate.c">
-      <Filter>Source Files\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\inftrees.c">
-      <Filter>Source Files\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\trees.c">
-      <Filter>Source Files\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\zlib-1.2.7\zutil.c">
-      <Filter>Source Files\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lodepng.cpp">
-      <Filter>Source Files\lodepng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\image_DXT.c">
-      <Filter>Source Files\soil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\image_helper.c">
-      <Filter>Source Files\soil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\SOIL.c">
-      <Filter>Source Files\soil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\stb_image_aug.c">
-      <Filter>Source Files\soil</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -206,33 +149,6 @@
     </ClCompile>
     <ClCompile Include="..\direct3d\ShaderManager_D3D.cpp">
       <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\snappy\snappy.cc">
-      <Filter>Source Files\snappy</Filter>
-    </ClCompile>
-    <ClCompile Include="..\snappy\snappy-c.cc">
-      <Filter>Source Files\snappy</Filter>
-    </ClCompile>
-    <ClCompile Include="..\snappy\snappy-sinksource.cc">
-      <Filter>Source Files\snappy</Filter>
-    </ClCompile>
-    <ClCompile Include="..\snappy\snappy-stubs-internal.cc">
-      <Filter>Source Files\snappy</Filter>
-    </ClCompile>
-    <ClCompile Include="..\freetype-gl\texture-atlas.c">
-      <Filter>Source Files\freetype-gl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\freetype-gl\texture-font.c">
-      <Filter>Source Files\freetype-gl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\freetype-gl\vector.c">
-      <Filter>Source Files\freetype-gl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\freetype-gl\vertex-attribute.c">
-      <Filter>Source Files\freetype-gl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\freetype-gl\vertex-buffer.c">
-      <Filter>Source Files\freetype-gl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

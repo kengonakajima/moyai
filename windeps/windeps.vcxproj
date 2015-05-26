@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C6E79FB7-40DF-4EC9-BDA9-2FA243886AF7}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>windeps</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)_debug$(TargetExt)</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)_release$(TargetExt)</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\freetype-gl\texture-atlas.c" />
+    <ClCompile Include="..\freetype-gl\texture-font.c" />
+    <ClCompile Include="..\freetype-gl\vector.c" />
+    <ClCompile Include="..\freetype-gl\vertex-attribute.c" />
+    <ClCompile Include="..\freetype-gl\vertex-buffer.c" />
+    <ClCompile Include="..\lodepng.cpp" />
+    <ClCompile Include="..\snappy\snappy-c.cc" />
+    <ClCompile Include="..\snappy\snappy-sinksource.cc" />
+    <ClCompile Include="..\snappy\snappy-stubs-internal.cc" />
+    <ClCompile Include="..\snappy\snappy.cc" />
+    <ClCompile Include="..\soil\src\image_DXT.c" />
+    <ClCompile Include="..\soil\src\image_helper.c" />
+    <ClCompile Include="..\soil\src\SOIL.c" />
+    <ClCompile Include="..\soil\src\stb_image_aug.c" />
+    <ClCompile Include="..\zlib-1.2.7\adler32.c" />
+    <ClCompile Include="..\zlib-1.2.7\compress.c" />
+    <ClCompile Include="..\zlib-1.2.7\crc32.c" />
+    <ClCompile Include="..\zlib-1.2.7\deflate.c" />
+    <ClCompile Include="..\zlib-1.2.7\inffast.c" />
+    <ClCompile Include="..\zlib-1.2.7\inflate.c" />
+    <ClCompile Include="..\zlib-1.2.7\inftrees.c" />
+    <ClCompile Include="..\zlib-1.2.7\trees.c" />
+    <ClCompile Include="..\zlib-1.2.7\zutil.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

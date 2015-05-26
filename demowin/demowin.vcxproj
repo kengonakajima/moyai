@@ -69,7 +69,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugD3D|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2012;$(ProjectDir)\..\fmodwin\api\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2013;$(ProjectDir)\..\fmodwin\api\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugOGL|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -79,12 +79,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2012;$(ProjectDir)\..\fmodwin\api\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2013;$(ProjectDir)\..\fmodwin\api\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseOGL|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-2.7.7\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2012;$(ProjectDir)\..\fmodwin\api\lib;$(ProjectDir)\..\glut-3.7.6-bin;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2013;$(ProjectDir)\..\fmodwin\api\lib;$(ProjectDir)\..\glut-3.7.6-bin;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugD3D|Win32'">
     <ClCompile>
@@ -98,7 +98,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies);windeps_debug.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -114,7 +114,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies);windeps_debug.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>msvcrt.lib;msvcrtd.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -136,7 +136,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies);windeps_release.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -156,7 +156,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies);windeps_release.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>msvcrt.lib;msvcrtd.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
