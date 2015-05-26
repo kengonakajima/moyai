@@ -12,7 +12,6 @@ bzip2-1.0.6/**/*
 freetype-2.4.10/**/*
 libpng-1.5.13/**/*
 zlib-1.2.7/**/*
-glew-1.10.0/**/*
 _captured.png
 **/*.tlog
 **/*.obj
