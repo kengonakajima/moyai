@@ -223,7 +223,6 @@ public:
 	virtual void onIndexChanged(int previndex ){}
 
 	inline void setFragmentShader( FragmentShader_OGL *fs ){
-		assert(fs);
 		fragment_shader = fs;
 	}
 	Prop *getNearestProp();

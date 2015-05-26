@@ -38,7 +38,7 @@ Prop2D_D3D::Prop2D_D3D()
 	tex_epsilon = 0;
 
 	render_children_first = false;
-
+	use_additive_blend = false;
 	init();
 }
 
