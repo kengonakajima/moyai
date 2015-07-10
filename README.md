@@ -1,4 +1,4 @@
-# moyai
+# moyai &#128511;
 
 An experimental simple 2D/3D game engine for native C++, strongly inspired by MoaiSDK API structure.
 
