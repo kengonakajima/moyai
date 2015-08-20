@@ -40,6 +40,7 @@ namespace glfw_d3d
 
 
     // glfwGetWindowParam options
+	#define GLFW_ACTIVE               0x00020002
     #define GLFW_ICONIFIED            0x00020003				
     int glfwGetWindowParam( int flag );
     

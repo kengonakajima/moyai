@@ -322,6 +322,8 @@ namespace glfw_d3d
         case GLFW_ICONIFIED:
             return IsIconic( g_context.m_hWindowHandle );
             break;
+		case GLFW_ACTIVE:
+			return GetForegroundWindow() == g_context.m_hWindowHandle;
         default:
             assertmsg( false, "glfwGetWindowParam: invalid flag:%d", flag );
             break;
