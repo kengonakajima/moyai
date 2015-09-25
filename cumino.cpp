@@ -6,6 +6,8 @@
 #include <sys/time.h>
 #include <strings.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 #endif
 
 
@@ -263,35 +265,85 @@ void dirToDXDY( DIR d, int *dx, int *dy ){
     }
 }
 
-bool writeFile( const char *path, const char *data, size_t sz, bool to_sync ){
+bool writeFileOffset( const char *path, const char *data, size_t sz, size_t offset, bool to_sync ){
+#ifdef WIN32    
     FILE *fp = fopen( path, "wb");
     if(!fp){
-        print("cannot open file: '%s" , path );
+        print("writeFileOffset: cannot open file:'%s err:'%s'" , path, strerror(errno) );
         return false;
     }
     if( fwrite( data, 1, sz, fp ) != sz ) return false;
     if( to_sync ) {
-#ifdef WIN32
-        print("writeFile: fsync() is not available on win32");
-#else        
-        int fd = fileno(fp);
-        fsync(fd);
-#endif        
+        print("writeFileOffset: fsync() is not available on win32");
     }
-    
     fclose(fp);
+#else
+    int fd = open( path, O_CREAT | O_RDWR, 0644 );
+    if(fd<0) return false;
+    int rc;
+    rc = lseek( fd, offset, SEEK_SET );
+    if(rc<0) {
+        print("writeFileOffset: lseek failed for file '%s' err:'%s'", path, strerror(errno) );
+        close(fd);
+        return false;
+    }
+    rc = write( fd, data, sz );
+    if(rc != sz ) {
+        print("writeFileOffset: write failed for file '%s' err:'%s'", path, strerror(errno) );
+        close(fd);
+        return false;
+    }
+    if( to_sync ) {
+        fsync(fd);
+    }
+    close(fd);
+#endif    
+    
+    
     return true;
 }
-bool readFile( const char *path, char *data, size_t *sz ){
+
+bool writeFile( const char *path, const char *data, size_t sz, bool to_sync ){
+    return writeFileOffset( path, data, sz, 0, to_sync );
+}
+
+bool readFileOffset( const char *path, char *data, size_t *sz, size_t offset ){
     size_t toread = *sz;
+#ifdef WIN32    
     FILE *fp = fopen( path, "rb");
     if( !fp) return false;
     size_t rl = fread( (void*)data, 1, toread, fp );
     fclose(fp);
     *sz = rl;
+#else
+    int fd = open( path, O_RDONLY );
+    if(fd<0) {
+        print("readFileOffset: can't open file:'%s' err:'%s'", path, strerror(errno) );
+        return false;
+    }
+    int rc;
+    rc = lseek( fd, offset, SEEK_SET );
+    if(rc<0) {
+        print("readFileOffset: lseek failed for file '%s' err:'%s'", path, strerror(errno) );
+        close(fd);
+        return false;
+    }
+    ssize_t readret = read( fd, data, toread );
+    if(readret<0) {
+        print("readFileOffset: read failed for file '%s' err:'%s'", path, strerror(errno) );
+        close(fd);
+        return false;
+    }
+    *sz = readret;
+    close(fd);
+#endif    
     return true;
 
 }
+bool readFile( const char *path, char *data, size_t *sz ){
+    return readFileOffset( path, data, sz, 0 );
+}
+
 bool deleteFile( const char *path ) {
     int err = ::remove(path);
     return (err==0);    
@@ -493,7 +545,7 @@ int memCompressSnappy( char *out, int outlen, char *in, int inlen ) {
 int memDecompressSnappy( char *out, int outlen, char *in, int inlen ) {
     size_t osz = outlen;
     snappy_status ret = snappy_uncompress( in, inlen, out, &osz );
-    if(ret == SNAPPY_OK ) return osz; else assertmsg(false,"snappy_uncompress failed");
+    if(ret == SNAPPY_OK ) return osz; else assertmsg(false,"snappy_uncompress failed: %d", ret );
     return 0;
 }
 

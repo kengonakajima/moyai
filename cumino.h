@@ -196,7 +196,9 @@ inline int sign(float f){
 }
 
 bool writeFile( const char *path, const char *data, size_t sz, bool to_sync = false );
+bool writeFileOffset( const char *path, const char *data, size_t sz, size_t offset, bool to_sync );
 bool readFile( const char *path, char *data, size_t *sz );
+bool readFileOffset( const char *path, char *data, size_t *sz, size_t offset );
 int getModifiedTime( const char *path, time_t *out );
 bool deleteFile( const char *path );
 
