@@ -85,6 +85,10 @@ long random() {
 	long out = ( top << 16 ) | bottom;
 	return out;
 }
+void srandom( unsigned int seed ) {
+    srand(seed);
+}
+
 #endif
 
 bool g_enablePrint = true;

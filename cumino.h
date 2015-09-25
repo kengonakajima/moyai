@@ -43,6 +43,8 @@ long random();
 
 #define snprintf sprintf_s
 
+void srandom( unsigned int seed );
+
 #endif//WIN32
 
 inline double now() {
