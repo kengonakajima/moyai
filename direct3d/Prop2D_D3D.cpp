@@ -177,8 +177,8 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 	instanceData.rotationDepth.x = 0.0f;
 
 	if(rot==0){
-		if(uvrot){ // -pi/2 rotation
-			instanceData.rotationDepth.x = -M_PI_2;
+		if(uvrot){ // counter clockwise : pi/2 rotation
+			instanceData.rotationDepth.x = M_PI_2;
 		}
 	} else {
 		minx -= center_x;
@@ -186,9 +186,9 @@ void Prop2D_D3D::drawIndex(TileDeck *dk, int ind, float minx, float miny, float 
 		maxx -= center_x;
 		maxy -= center_y;
 
-		if(uvrot) // -pi/2 + radrot rotation
+		if(uvrot) // counter clockwise : pi/2 + radrot rotation
 		{ 
-			instanceData.rotationDepth.x = -M_PI_2 + radrot;
+			instanceData.rotationDepth.x = M_PI_2 + radrot;
 		} 
 		else // radrot rotation
 		{ 
