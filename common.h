@@ -455,6 +455,12 @@ public:
     bool insertEvent( double delay, void (*cb)(void*argptr),void *argptr);
     void clearEvents();
     void pollEvents( double dt );
+    Group *findGroupById(int id) {
+        for(int i=0;i<MAXGROUPS;i++) {
+            if( groups[i] && groups[i]->id ==id ) return groups[i];
+        }
+        return  NULL;
+    }
 };
 
 
