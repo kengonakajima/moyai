@@ -1,5 +1,7 @@
 #include "Camera.h"
 
+int Camera::id_gen = 1;
+
 void Camera::screenToGL( int scr_x, int scr_y, int scrw, int scrh, Vec2 *out ) {    
 	out->x = scr_x - scrw/2;
 	out->y = scr_y - scrh/2;

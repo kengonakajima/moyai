@@ -5,11 +5,15 @@
 
 class Viewport_OGL {
 public:
+    static int id_gen;
+    int id;
 	int screen_width, screen_height;
 	DIMENSION dimension;
 	Vec3 scl;
 	float near_clip, far_clip;
-	Viewport_OGL() : screen_width(0), screen_height(0), dimension(DIMENSION_2D), scl(0,0,0), near_clip(0.01), far_clip(100) { }
+	Viewport_OGL() : screen_width(0), screen_height(0), dimension(DIMENSION_2D), scl(0,0,0), near_clip(0.01), far_clip(100) {
+        id = id_gen++;
+    }
 	void setSize(int scrw, int scrh );
 	void setScale2D( float sx, float sy );
 	void setClip3D( float near, float far ); 

@@ -4,9 +4,11 @@
 
 class Camera {
 public:
+    static int id_gen;
+    int id;
 	Vec3 loc;
 	Vec3 look_at, look_up;
-	Camera(){}
+	Camera() { id = id_gen++; }
 	inline void setLoc(Vec2 lc) {
 		loc.x = lc.x;
 		loc.y = lc.y;

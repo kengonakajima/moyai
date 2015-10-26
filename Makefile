@@ -2,7 +2,7 @@
 MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp opengl/Prop2D_OGL.cpp opengl/Prop3D_OGL.cpp opengl/ColorReplacerShader_OGL.cpp opengl/Font_OGL.cpp opengl/FragmentShader_OGL.cpp opengl/IndexBuffer_OGL.cpp opengl/Layer_OGL.cpp opengl/MoyaiClient_OGL.cpp opengl/TextBox_OGL.cpp opengl/Texture_OGL.cpp opengl/VertexBuffer_OGL.cpp opengl/Viewport_OGL.cpp common/Camera.cpp common/CharGrid.cpp common/Grid.cpp common/Mesh.cpp common/Pad.cpp common/PerformanceCounter.cpp common/PrimDrawer.cpp common/Sound.cpp common/SoundSystem.cpp common/VertexFormat.cpp
 
 MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o)
-MOYAISVSRCS=common.cpp cumino.cpp  lodepng.cpp
+MOYAISVSRCS=common.cpp cumino.cpp  lodepng.cpp common/Camera.cpp
 MOYAISVOBJS=$(MOYAISVSRCS:.cpp=.o)
 DEMO2DSRCS=demo2d.cpp 
 DEMO2DOBJS=$(DEMO2DSRCS:.cpp=.o)

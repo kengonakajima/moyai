@@ -8,6 +8,8 @@
 #include <OpenGL/gl.h>
 #endif
 
+int Viewport_OGL::id_gen = 1;
+
 void Viewport_OGL::setSize(int scrw, int scrh ) {
 	screen_width = scrw;
 	screen_height = scrh;
