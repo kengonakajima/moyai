@@ -388,9 +388,11 @@ public:
 
 class Image {
 public:
+    static int idgen;
+    int id;
     unsigned char *buffer; // rgbargbargba..
     int width, height;
-    Image() : buffer(NULL), width(0), height(0) {}
+    Image() : buffer(NULL), width(0), height(0) { id = idgen++; }
     ~Image() { if(buffer)FREE(buffer); }
     void setSize(int w, int h ); 
     void setPixel( int x, int y, Color c );

@@ -4,6 +4,8 @@
 
 class TileDeck {
 public:
+    static int idgen;
+    int id;
 	int cell_width, cell_height; // Size in pixels of a single sprite
 	int tile_width, tile_height; // Number of sprites in the atlas
 	int image_width, image_height; // Size of the image in pixels

@@ -10,6 +10,8 @@
 
 class Texture_OGL {
 public:
+    static int idgen;
+    int id;
 	GLuint tex;
 	Image *image;
 	Texture_OGL() : tex(0), image(NULL) {

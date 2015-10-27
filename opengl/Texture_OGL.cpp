@@ -4,6 +4,8 @@
 
 #include "../soil/src/SOIL.h"
 
+int Texture_OGL::idgen = 1;
+
 bool Texture_OGL::load( const char *path ){
 	tex = SOIL_load_OGL_texture( path,
 		SOIL_LOAD_AUTO,

@@ -5,7 +5,7 @@
 
 int Prop::idgen = 1;
 int Group::idgen = 1;
-
+int Image::idgen = 1;
 
 
 int Moyai::poll(double dt){
