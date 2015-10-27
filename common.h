@@ -459,7 +459,6 @@ public:
     void pollEvents( double dt );
     Group *findGroupById(int id) {
         for(int i=0;i<MAXGROUPS;i++) {
-            if( groups[i] ) print("findGroupById: check: id:%d", groups[i]->id);
             if( groups[i] && groups[i]->id ==id ) return groups[i];
         }
         return  NULL;
