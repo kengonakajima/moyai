@@ -17,7 +17,7 @@ public:
 	Vec2 scl;
 
 	static const int MAX_GRID = 8;
-	Grid *grids[MAX_GRID];  // “ª‚©‚ç“ü‚ê‚Ä‚¢‚Á‚Änull‚¾‚Á‚½‚çI—¹
+	Grid *grids[MAX_GRID];  // Set from the top and quit when null found
 	int grid_used_num;
 
 	Color color;
@@ -152,6 +152,13 @@ public:
 		updateMinMaxSizeCache();
 		return true;
 	}
+    // Make sure set only one grid even when called many times
+    inline bool setGrid( Grid *g ) {
+        for(int i=0;i<grid_used_num;i++) {
+            if( grids[i] == g ) return false;
+        }
+        return addGrid(g);
+    }
 	inline Grid* getGrid(int index) {
 		assert(index>=0 && index < elementof(grids) ) ;
 		return grids[index];
