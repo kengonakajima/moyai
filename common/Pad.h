@@ -21,4 +21,8 @@ public:
 		v->x = dx;
 		v->y = dy;
 	}
+    void setUpKey( bool u) { up = u; }
+    void setDownKey( bool d) { down = d; }
+    void setLeftKey( bool l ) { left = l; }
+    void setRightKey( bool r ) { right = r; }
 };
