@@ -1,12 +1,19 @@
 #pragma once
 
 #include "../common.h"
-#include "FragmentShader.h"
+
 
 class TileDeck;
+#if defined(USE_OPENGL) || defined(USE_D3D)
+#include "FragmentShader.h"
+#else
+class FragmentShader;
+#endif
 
 class Grid {
 public:
+    static int idgen;
+    int id;
 	int width, height;
 	int *index_table;
 	bool *xflip_table;
@@ -23,6 +30,7 @@ public:
 	static const int GRID_FLAG_YFLIP = 2;
 	static const int GRID_NOT_USED = -1;
 	Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), visible(true), enfat_epsilon(0) {
+        id = idgen++;
 	}
 	~Grid(){
 		if(index_table) FREE(index_table);
@@ -51,6 +59,10 @@ public:
 		}
 		return index_table[ index(x,y) ];
 	}
+    void bulkSetIndex( int *inds ) {
+        ENSURE_GRID_TABLE( index_table, int, GRID_NOT_USED );
+        memcpy( index_table, inds, width*height*sizeof(int) );
+    }
 	inline void setXFlip( int x, int y, bool flag ){
 		ENSURE_GRID_TABLE( xflip_table, bool, false );
 		xflip_table[ index(x,y) ] = flag;
@@ -59,7 +71,7 @@ public:
 		ENSURE_GRID_TABLE( yflip_table, bool, false );
 		yflip_table[ index(x,y) ] = flag;
 	}
-	// 0~1. 1Ç≈ÇøÇÂÇ§Ç«1ÉZÉãï™Ç∏ÇÍÇÈ.texëSëÃÇ≈ÇÕÇ»Ç¢ÅB
+	// 0~1. 1 for just a cell. not by whole texture
 	inline void setTexOffset( int x, int y, Vec2 *v ) {
 		ENSURE_GRID_TABLE( texofs_table, Vec2, Vec2(0,0) );
 		int i = index(x,y);

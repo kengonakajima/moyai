@@ -1,5 +1,7 @@
 #include "Grid.h"
 
+int Grid::idgen = 1;
+
 void Grid::clear(int ind){
 	for(int y=0;y<height;y++){
 		for(int x=0;x<width;x++){
