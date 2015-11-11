@@ -60,3 +60,16 @@ glfw-2.7.7/tests/joysticks
 glfw-2.7.7/tests/joysticks.dSYM/
 glfw-2.7.7/tests/version
 glfw-2.7.7/tests/version.dSYM/
+glfw-2.7.7/tests/*.exe
+glfw-2.7.7/tests/*.ilk
+glfw-2.7.7/examples/*.exe
+glfw-2.7.7/examples/*.ilk
+glfw-2.7.7/support/msvc110/Debug
+glfw-2.7.7/support/msvc110/*.sdf
+glfw-2.7.7/support/msvc110/*.suo
+glfw-2.7.7/support/msvc110/Win32
+glew-1.10.0/bin
+glew-1.10.0/build/vc10/*.sdf
+glew-1.10.0/build/vc10/*.suo
+glew-1.10.0/build/vc10/tmp
+glew-1.10.0/lib
