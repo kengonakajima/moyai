@@ -412,6 +412,7 @@ public:
     void copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0, int toy0 );
     void fill( Color c );
     void setOptionalLoadPath( const char *cstrpath );
+    void fillBoxLeftBottom( Color c, int draw_width, int draw_height );    
 };
 
 

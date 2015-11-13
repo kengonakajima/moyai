@@ -419,3 +419,11 @@ void Image::fill( Color c ) {
 void Image::setOptionalLoadPath( const char *cstrpath ) {
     strncpy( optional_load_path, cstrpath, sizeof(optional_load_path) );
 }
+
+void Image::fillBoxLeftBottom( Color c, int draw_width, int draw_height ) {
+    for(int y=0;y<draw_height;y++){
+        for(int x=0;x<draw_width;x++) {
+            setPixel(x,y,c);
+        }
+    }
+}
