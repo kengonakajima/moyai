@@ -392,7 +392,8 @@ public:
     int id;
     unsigned char *buffer; // rgbargbargba..
     int width, height;
-    Image() : buffer(NULL), width(0), height(0) { id = idgen++; }
+    char optional_load_path[256]; // for application use
+    Image() : buffer(NULL), width(0), height(0) { id = idgen++;  optional_load_path[0] = '\0'; }
     ~Image() { if(buffer)FREE(buffer); }
     void setSize(int w, int h ); 
     void setPixel( int x, int y, Color c );
@@ -409,7 +410,8 @@ public:
     bool writeRaw( const char *path );
     void ensureBuffer();
     void copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0, int toy0 );
-    void fill( Color c );    
+    void fill( Color c );
+    void setOptionalLoadPath( const char *cstrpath );
 };
 
 

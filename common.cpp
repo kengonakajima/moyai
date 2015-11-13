@@ -415,3 +415,7 @@ void Image::fill( Color c ) {
         }
     }
 }
+
+void Image::setOptionalLoadPath( const char *cstrpath ) {
+    strncpy( optional_load_path, cstrpath, sizeof(optional_load_path) );
+}
