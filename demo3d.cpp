@@ -354,6 +354,11 @@ int main() {
 
     glfwInit();
     g_window = glfwCreateWindow( SCRW,SCRH, "demo3d", NULL, NULL );
+    if(!g_window) {
+        print("can't create window");
+        return 1;
+    }
+    glfwMakeContextCurrent(g_window);
     glfwSetWindowCloseCallback( g_window, winclose_callback );
     glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
     glfwSwapInterval(1); // vsync
@@ -366,7 +371,11 @@ int main() {
     g_moyai_client = new MoyaiClient(g_window);
     // 3d
     g_viewport3d = new Viewport();
-    g_viewport3d->setSize(SCRW,SCRH);
+    int retina = 1;
+#if defined(__APPLE__)
+    retina = 2;
+#endif    
+    g_viewport3d->setSize(SCRW*retina,SCRH*retina);
     g_viewport3d->setClip3D( 0.01, 100 );
     g_main_layer = new Layer();
     g_main_layer->setViewport(g_viewport3d);    
@@ -378,7 +387,7 @@ int main() {
 
     // 2d
     g_viewport2d = new Viewport();
-    g_viewport2d->setSize(SCRW,SCRH);
+    g_viewport2d->setSize(SCRW*retina,SCRH*retina);
     g_viewport2d->setScale2D(SCRW,SCRH);
     g_hud_layer = new Layer();
     g_hud_layer->setViewport(g_viewport2d);
@@ -410,7 +419,7 @@ int main() {
     setupCube();
 
     
-    while(1) {
+    while(!glfwWindowShouldClose(g_window)) {
         int scrw, scrh;
         glfwGetFramebufferSize( g_window, &scrw, &scrh );
 
@@ -420,9 +429,7 @@ int main() {
             print("Q pressed");
             break;
         }
-
-
-        
+        glfwPollEvents();
     }
     print("program finished");
     return 0;
