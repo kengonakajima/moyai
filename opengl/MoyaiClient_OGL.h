@@ -2,11 +2,12 @@
 
 #include "../common.h"
 #include "../common/Layer.h"
-#include "GL/glfw.h"
+#include "GLFW/glfw3.h"
 
 class MoyaiClient_OGL : public Moyai {
 public:
-	MoyaiClient_OGL() : Moyai() {
+    GLFWwindow *window;
+	MoyaiClient_OGL(GLFWwindow *win) : Moyai(), window(win) {
 	}
 	int render();
 	void capture( Image *img );

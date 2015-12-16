@@ -8,7 +8,7 @@ public:
 
 	Pad() : up(false), down(false), left(false), right(false) {
 	}
-	void readGLFW();
+	void readGLFW(GLFWwindow *w);
 	void getVec( Vec2 *v ){
 		float dx=0,dy=0;
 		if( up ) dy=1.0;

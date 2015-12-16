@@ -44,6 +44,8 @@ Prop2D *g_linep;
 
 int g_last_render_cnt ;
 
+GLFWwindow *g_window;
+
 // data
 
 enum {
@@ -421,9 +423,8 @@ void comptest() {
 }
 
 
-int winclose_callback(){
+void winclose_callback( GLFWwindow *w ){
     exit(0);
-    return 1;
 }
 
 
@@ -461,14 +462,15 @@ int main(int argc, char **argv )
         return 1;
     }
 
-    if( !glfwOpenWindow( SCRW, SCRH, 0,0,0,0, 0,0, GLFW_WINDOW ) ) {
+    g_window =  glfwCreateWindow( SCRW, SCRH, "demo2d", NULL, NULL );
+    if(g_window == NULL ) {
         print("can't open glfw window");
         glfwTerminate();
         return 1;
     }
-    glfwSetWindowTitle( "demo2d" );
-    glfwSetWindowCloseCallback( winclose_callback );
-    glfwEnable( GLFW_STICKY_KEYS );
+    glfwMakeContextCurrent(g_window);    
+    glfwSetWindowCloseCallback( g_window, winclose_callback );
+    glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
     glfwSwapInterval(1); // vsync
 #ifdef WIN32
 	glewInit();
@@ -486,11 +488,15 @@ int main(int argc, char **argv )
         return 0;
     }
 
-    g_moyai_client = new MoyaiClient();
+    g_moyai_client = new MoyaiClient(g_window);
 
     g_viewport = new Viewport();
-    g_viewport->setSize(SCRW,SCRH);
-    g_viewport->setScale2D(SCRW,SCRH);
+    int retina = 1;
+#if defined(__APPLE__)
+    retina = 2;
+#endif    
+    g_viewport->setSize(SCRW*retina,SCRH*retina); // set actual framebuffer size to output
+    g_viewport->setScale2D(SCRW,SCRH); // set scale used by props that will be rendered
 
 #if 0
     {
@@ -783,9 +789,9 @@ int main(int argc, char **argv )
     assert(g_pc);
 
 
-    while(1){
+    while( !glfwWindowShouldClose(g_window) ){
         int scrw, scrh;
-        glfwGetWindowSize( &scrw, &scrh );
+        glfwGetFramebufferSize( g_window, &scrw, &scrh );
 
         updateGame();
 
@@ -793,7 +799,7 @@ int main(int argc, char **argv )
         g_replacer_shader->setColor( Color(0xF7E26B), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
         g_last_render_cnt = g_moyai_client->render();
 
-        if( glfwGetKey('Q') ) {
+        if( glfwGetKey( g_window, 'Q') ) {
             print("Q pressed");
             exit(0);
             break;
@@ -802,10 +808,11 @@ int main(int argc, char **argv )
             g_bgm_sound->stop();
         }
 
-        g_pad->readGLFW();
-        
-    }
+        g_pad->readGLFW(g_window);
 
+        glfwPollEvents();
+    }
+    glfwTerminate();
 
     print("program finished");
     

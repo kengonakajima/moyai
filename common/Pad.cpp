@@ -1,16 +1,16 @@
-#include "Pad.h"
 
-// TODO: REMOVE THIS!
 #ifdef USE_OPENGL
-	#include "GL/glfw.h"
+	#include "GLFW/glfw3.h"
 #endif
 
-void Pad::readGLFW() 
+#include "Pad.h"
+
+void Pad::readGLFW(GLFWwindow *w) 
 {
 #ifdef USE_OPENGL
-	up = glfwGetKey('W');
-	left = glfwGetKey('A');
-	down = glfwGetKey('S');    
-	right = glfwGetKey('D');
+	up = glfwGetKey(w,'W');
+	left = glfwGetKey(w,'A');
+	down = glfwGetKey(w,'S');    
+	right = glfwGetKey(w,'D');
 #endif
 }

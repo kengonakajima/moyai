@@ -22,8 +22,8 @@ BZ2LIB=$(BZ2)/libbz2.a # build product of bz2 source
 ZLIB=zlib-1.2.7
 ZLIBLIB=$(ZLIB)/libz.a
 
-GLFW=glfw-2.7.7
-GLFWLIB=$(GLFW)/lib/cocoa/libglfw.a
+GLFW=glfw-3.1.2
+GLFWLIB=$(GLFW)/src/libglfw3.a
 
 FTGLOBJS=vertex-attribute.o vertex-buffer.o vector.o texture-atlas.o texture-font.o
 SOILOBJS=SOIL.o stb_image_aug.o image_DXT.o image_helper.o
@@ -37,7 +37,7 @@ SNAPPYLIB=libsnappy.a
 
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(GLFWLIB) 
-CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation  -m64  fmod/api/lib/libfmodex.dylib 
+CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib 
 CFLAGS=-O0 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -DUSE_OPENGL  
 
 
@@ -192,8 +192,8 @@ $(LIBPNGLIB):
 	cd $(LIBPNG); ./configure; make
 
 
-$(GLFWLIB): $(GLFW)
-	cd $(GLFW); make cocoa
+$(GLFWLIB):
+	cd $(GLFW); cmake .; make
 
 
 clean:

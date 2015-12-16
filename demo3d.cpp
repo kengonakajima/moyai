@@ -1,4 +1,4 @@
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 
 #include <stdio.h>
 #include <assert.h>
@@ -36,6 +36,8 @@ Prop3D *g_prop_texcol;
 Prop3D *g_prop_billboard;
 Prop3D *g_prop_with_children;
 Prop3D *g_children[3];
+
+GLFWwindow *g_window;
 
 void updateGame() {
     static double last_print_at = 0;
@@ -341,29 +343,27 @@ void setupCube() {
     
 }
 
-int winclose_callback(){
+void winclose_callback( GLFWwindow *w ){
     exit(0);
-    return 1;
 }
 
 
 int main() {
     
-    g_moyai_client = new MoyaiClient();
+
 
     glfwInit();
-    glfwOpenWindow( SCRW,SCRH, 8,8,8,8, 16,0, GLFW_WINDOW );
-    glfwSetWindowCloseCallback( winclose_callback );
-    glfwSetWindowTitle( "demo3d");
-    glfwEnable( GLFW_STICKY_KEYS );
+    g_window = glfwCreateWindow( SCRW,SCRH, "demo3d", NULL, NULL );
+    glfwSetWindowCloseCallback( g_window, winclose_callback );
+    glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
     glfwSwapInterval(1); // vsync
 
     glClearColor(0,0,0,1);
-
+    
     glEnable(GL_DEPTH_TEST);    
     glEnable(GL_DEPTH_BUFFER_BIT);    
 
-
+    g_moyai_client = new MoyaiClient(g_window);
     // 3d
     g_viewport3d = new Viewport();
     g_viewport3d->setSize(SCRW,SCRH);
@@ -412,11 +412,11 @@ int main() {
     
     while(1) {
         int scrw, scrh;
-        glfwGetWindowSize( &scrw, &scrh );
+        glfwGetFramebufferSize( g_window, &scrw, &scrh );
 
         updateGame();
         
-        if( glfwGetKey('Q') ) {
+        if( glfwGetKey( g_window, 'Q') ) {
             print("Q pressed");
             break;
         }

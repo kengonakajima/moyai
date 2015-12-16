@@ -15,7 +15,7 @@ int MoyaiClient_OGL::render(){
 		}
 	}
 
-	glfwSwapBuffers();
+	glfwSwapBuffers(window);
 	glFlush();
 	return cnt;
 }
