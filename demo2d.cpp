@@ -427,6 +427,9 @@ void winclose_callback( GLFWwindow *w ){
     exit(0);
 }
 
+void glfw_error_cb( int code, const char *desc ) {
+    print("glfw_error_cb. code:%d desc:'%s'", code, desc );
+}
 
 int main(int argc, char **argv )
 {
@@ -462,6 +465,7 @@ int main(int argc, char **argv )
         return 1;
     }
 
+    glfwSetErrorCallback( glfw_error_cb );
     g_window =  glfwCreateWindow( SCRW, SCRH, "demo2d", NULL, NULL );
     if(g_window == NULL ) {
         print("can't open glfw window");
