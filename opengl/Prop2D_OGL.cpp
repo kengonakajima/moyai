@@ -141,6 +141,16 @@ void Prop2D_OGL::drawIndex( TileDeck *dk, int ind, float minx, float miny, float
 	glTexCoord2f(u0,v0); glVertex3i( b.x, b.y, depth ); 
 
 }
+VertexFormat *Prop2D_OGL::vf_single_sprite = NULL;
+VertexFormat *Prop2D_OGL::getVertexFormat() {
+    if( !vf_single_sprite ) {
+        vf_single_sprite = new VertexFormat();
+        vf_single_sprite->declareCoordVec3(); 
+        vf_single_sprite->declareColor();
+        vf_single_sprite->declareUV();
+    }
+    return vf_single_sprite;
+}
 
 void Prop2D_OGL::render(Camera *cam) {
 	assertmsg(deck || grid_used_num > 0 || children_num > 0 || prim_drawer , "no deck/grid/prim_drawer is set. deck:%p grid:%d child:%d prim:%p", deck, grid_used_num, children_num, prim_drawer );
@@ -238,6 +248,104 @@ void Prop2D_OGL::render(Camera *cam) {
 			glUseProgram( fragment_shader->program );
 			fragment_shader->updateUniforms();
 		}
+#if 1 // glDrawElements version
+        if(!mesh) {
+            print("new mesh!");
+            mesh = new Mesh();
+            VertexFormat *vf = getVertexFormat();
+            VertexBuffer *vb = new VertexBuffer();
+            vb->setFormat(vf);
+            vb->reserve(4);
+            // 頂点は4、三角形は2個なのでindexは6個
+            // C --- D
+            // |     |
+            // A --- B
+            float d = 0.5;
+            vb->setCoord(0, Vec3(-d,-d,0)); // A
+            vb->setCoord(1, Vec3(d,-d,0)); // B
+            vb->setCoord(2, Vec3(-d,d,0)); // C
+            vb->setCoord(3, Vec3(d,d,0)); // D
+            vb->setColor(0, Color(1,1,1,1) ); // A
+            vb->setColor(1, Color(1,1,1,1) ); // B
+            vb->setColor(2, Color(1,1,1,1) ); // C
+            vb->setColor(3, Color(1,1,1,1) ); // D
+            float u0,v0,u1,v1;
+            deck->getUVFromIndex(index, &u0, &v0, &u1, &v1, 0, 0, 0 );
+            vb->setUV(0, Vec2(u0,v1)); // A
+            vb->setUV(1, Vec2(u1,v1)); // B
+            vb->setUV(2, Vec2(u0,v0)); // C
+            vb->setUV(3, Vec2(u1,v0)); // D
+
+            IndexBuffer *ib = new IndexBuffer();
+            static int inds[6] = {
+                0,2,1, // ACB
+                1,2,3, // BCD
+            };
+            ib->set(inds,6);
+            mesh->setVertexBuffer(vb);
+            mesh->setIndexBuffer(ib);
+            mesh->setPrimType(GL_TRIANGLES);
+        }
+        if(deck) {
+            glEnable(GL_TEXTURE_2D);
+            if(deck->tex->tex) {
+                glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
+            }
+        } else {
+            print("no tex?");
+            glDisable(GL_TEXTURE_2D);
+        }
+        mesh->vb->bless();
+        assert( mesh->vb->gl_name > 0 );        
+        mesh->ib->bless();
+        assert( mesh->ib->gl_name > 0 );
+        
+        int vert_sz = mesh->vb->fmt->getNumFloat() * sizeof(float);
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mesh->ib->gl_name );
+        glBindBuffer( GL_ARRAY_BUFFER, mesh->vb->gl_name );
+        glDisableClientState( GL_VERTEX_ARRAY );
+        glDisableClientState( GL_COLOR_ARRAY );
+        glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+        glDisableClientState( GL_NORMAL_ARRAY );
+        
+        // 以下prop3dからのコピペ、動いたら共通化する
+        if( mesh->vb->fmt->coord_offset >= 0 ){
+            glEnableClientState( GL_VERTEX_ARRAY );        
+            glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->coord_offset * sizeof(float) );
+        }
+        if( mesh->vb->fmt->color_offset >= 0 ){
+            glEnableClientState( GL_COLOR_ARRAY );
+            glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->color_offset * sizeof(float));
+        }
+        if( mesh->vb->fmt->texture_offset >= 0 ){
+            glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
+            glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->texture_offset * sizeof(float) );
+        }
+        if( mesh->vb->fmt->normal_offset >= 0 ) {
+            glEnableClientState( GL_NORMAL_ARRAY );
+            glNormalPointer( GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->normal_offset * sizeof(float) );
+        }
+
+		glDisable(GL_LIGHTING);
+		glDisable(GL_LIGHT0);
+        
+        glLoadIdentity();    
+
+        glTranslatef( loc.x, loc.y, 0 );
+        //	if( rot->x != 0 ) glRotatef( rot->x, 1,0,0);     
+        //	if( rot->y != 0 ) glRotatef( rot->y, 0,1,0);     
+        //	if( rot->z != 0 ) glRotatef( rot->z, 0,0,1);
+        glScalef( scl.x, scl.y, 1 );
+
+        assert( mesh->prim_type == GL_TRIANGLES );
+
+        glDrawElements( mesh->prim_type, mesh->ib->array_len, GL_UNSIGNED_INT, 0);
+        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+        glBindBuffer( GL_ARRAY_BUFFER, 0 );
+        
+#endif
+        
+#if 0 // glBegin version
 		glBegin(GL_QUADS);
 		glColor4f(color.r,color.g,color.b,color.a);
 
@@ -249,6 +357,7 @@ void Prop2D_OGL::render(Camera *cam) {
 
 		drawIndex( deck, index, minx, miny, maxx, maxy, xflip, yflip, 0,0, uvrot, rot );
 		glEnd();
+#endif        
 		if( fragment_shader ){
 			glUseProgram(0);
 		}

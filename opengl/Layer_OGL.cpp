@@ -89,6 +89,7 @@ inline void Layer_OGL::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc,
 	assert( mesh->vb->gl_name > 0 );
 	mesh->ib->bless();
 	assert( mesh->ib->gl_name > 0 );
+    
 	int vert_sz = mesh->vb->fmt->getNumFloat() * sizeof(float);
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mesh->ib->gl_name );
 	glBindBuffer( GL_ARRAY_BUFFER, mesh->vb->gl_name );

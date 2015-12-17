@@ -10,7 +10,8 @@ DEMO3DSRCS=demo3d.cpp
 DEMO3DOBJS=$(DEMO3DSRCS:.cpp=.o)
 DEMOSVSRCS=demosv.cpp
 DEMOSVOBJS=$(DEMOSVSRCS:.cpp=.o)
-
+MIN2DSRCS=min2d.cpp
+MIN2DOBJS=$(MIN2DSRCS:.cpp=.o)
 
 
 FREETYPE=freetype-2.4.10
@@ -44,10 +45,14 @@ CFLAGS=-O0 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/inc
 DEMO2D=demo2d
 DEMO3D=demo3d
 DEMOSV=demosv
+MIN2D=min2d
 
-all : $(DEMO2D) $(DEMO3D) $(DEMOSV)
+all : $(DEMO2D) $(DEMO3D) $(DEMOSV) $(MIN2D)
 
 server : $(OUTSVLIB) $(SNAPPYLIB)
+
+$(MIN2D) : $(EXTCLILIBS) $(OUTCLILIB) $(MIN2DOBJS) $(BZ2LIB) $(ZLIBLIB)
+	g++ $(CFLAGS) $(CLILIBFLAGS) $(MIN2DOBJS) -o $(MIN2D) $(OUTCLILIB) $(EXTCLILIBS)
 
 $(DEMO2D) : $(EXTCLILIBS) $(OUTCLILIB) $(DEMO2DOBJS) $(BZ2LIB) $(ZLIBLIB) 
 	g++ $(CFLAGS) $(CLILIBFLAGS) $(DEMO2DOBJS) -o $(DEMO2D) $(OUTCLILIB) $(EXTCLILIBS)
@@ -65,6 +70,8 @@ demo2d.o : demo2d.cpp
 	g++ -c demo2d.cpp $(CFLAGS)
 demo3d.o : demo3d.cpp 
 	g++ -c demo3d.cpp $(CFLAGS)
+min2d.o : min2d.cpp
+	g++ -c min2d.cpp $(CFLAGS)
 
 $(OUTCLILIB) : $(MOYAICLIOBJS)
 	ar cr $(OUTCLILIB) $(MOYAICLIOBJS)
@@ -199,7 +206,7 @@ $(GLFWLIB):
 clean:
 	make -C $(GLFW) clean
 	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) 
-	rm -f deps.make $(DEMO2D) $(DEMO3D) $(DEMOSV) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
+	rm -f deps.make $(DEMO2D) $(MIN2D) $(DEMO3D) $(DEMOSV) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
 
 depend: $(GLFWLIB)
 	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAICLISRCS) $(DEMO2DSRCS) $(DEMO3DSRCS)  > deps.make

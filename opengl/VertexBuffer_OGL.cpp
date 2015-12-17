@@ -20,7 +20,7 @@ void VertexBuffer_OGL::copyFromBuffer( float *v, int vert_cnt ) {
 }
 void VertexBuffer_OGL::setCoord( int index, Vec3 v ) {
 	assertmsg(fmt, "vertex format is not set" );
-	assert( index < array_len );
+	assertmsg( index < array_len, "invalid index:%d array_len:%d", index, array_len );
 	int ofs = fmt->coord_offset;
 	assertmsg( ofs >= 0, "coord have not declared in vertex format" );
 	int index_in_array = index * unit_num_float + ofs;

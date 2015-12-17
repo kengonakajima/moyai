@@ -60,6 +60,10 @@ public:
 
 	bool render_children_first;
     bool use_additive_blend;
+
+    Mesh *mesh;
+
+    static VertexFormat *vf_single_sprite; 
     
 	inline Prop2D_OGL() : Prop(), Renderable() {
 		priority = id;
@@ -93,6 +97,8 @@ public:
 
 		render_children_first = false;
         use_additive_blend = false;
+
+        mesh = NULL;
 	}
 	virtual ~Prop2D_OGL(){
 		for(int i=0;i<grid_used_num;i++){
@@ -102,6 +108,7 @@ public:
 			if(children[i]) delete children[i];
 		}        
 		if(prim_drawer) delete prim_drawer;
+        if(mesh) delete mesh;
 	}
 
 	virtual bool prop2DPoll(double dt){ return true;}
@@ -280,4 +287,5 @@ public:
 	inline Layer *getParentLayer() {
 		return (Layer*) parent_group;
 	}
+    static VertexFormat *getVertexFormat();
 };
