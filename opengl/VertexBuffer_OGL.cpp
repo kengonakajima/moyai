@@ -124,6 +124,12 @@ void VertexBuffer_OGL::bless(){
 		glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	}
 }
+void VertexBuffer_OGL::unbless() {
+    if( gl_name != 0 ) {        
+        glDeleteBuffers(1, &gl_name);
+        gl_name = 0;
+    }
+}
 
 Vec3 VertexBuffer_OGL::calcCenterOfCoords() {
 	Vec3 c(0,0,0);

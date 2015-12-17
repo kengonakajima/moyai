@@ -269,12 +269,7 @@ void Prop2D_OGL::render(Camera *cam) {
             vb->setColor(1, Color(1,1,1,1) ); // B
             vb->setColor(2, Color(1,1,1,1) ); // C
             vb->setColor(3, Color(1,1,1,1) ); // D
-            float u0,v0,u1,v1;
-            deck->getUVFromIndex(index, &u0, &v0, &u1, &v1, 0, 0, 0 );
-            vb->setUV(0, Vec2(u0,v1)); // A
-            vb->setUV(1, Vec2(u1,v1)); // B
-            vb->setUV(2, Vec2(u0,v0)); // C
-            vb->setUV(3, Vec2(u1,v0)); // D
+            updateUV(vb);
 
             IndexBuffer *ib = new IndexBuffer();
             static int inds[6] = {
@@ -285,6 +280,11 @@ void Prop2D_OGL::render(Camera *cam) {
             mesh->setVertexBuffer(vb);
             mesh->setIndexBuffer(ib);
             mesh->setPrimType(GL_TRIANGLES);
+        } else {
+            if( index_changed ) {
+                updateUV( mesh->vb );
+                index_changed = false;
+            }
         }
         if(deck) {
             glEnable(GL_TEXTURE_2D);
@@ -332,6 +332,7 @@ void Prop2D_OGL::render(Camera *cam) {
         glLoadIdentity();    
 
         glTranslatef( loc.x, loc.y, 0 );
+        glRotatef( rot, 0,0,1);
         //	if( rot->x != 0 ) glRotatef( rot->x, 1,0,0);     
         //	if( rot->y != 0 ) glRotatef( rot->y, 0,1,0);     
         //	if( rot->z != 0 ) glRotatef( rot->z, 0,0,1);
@@ -436,6 +437,16 @@ void Prop2D_OGL::updateMinMaxSizeCache(){
 		if( maxv.x > max_rt_cache.x ) max_rt_cache.x = maxv.x;
 		if( maxv.y > max_rt_cache.y ) max_rt_cache.y = maxv.y;
 	}
+}
+
+void Prop2D_OGL::updateUV(VertexBuffer *vb ) {
+    vb->unbless();
+    float u0,v0,u1,v1;
+    deck->getUVFromIndex(index, &u0, &v0, &u1, &v1, 0, 0, 0 );
+    vb->setUV(0, Vec2(u0,v1)); // A
+    vb->setUV(1, Vec2(u1,v1)); // B
+    vb->setUV(2, Vec2(u0,v0)); // C
+    vb->setUV(3, Vec2(u1,v0)); // D
 }
 
 #endif

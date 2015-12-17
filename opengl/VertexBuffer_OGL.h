@@ -39,6 +39,7 @@ public:
 	Vec3 getNormal( int index );
 	void setNormalBulk( Vec3 *v, int num );
 	void bless();
+    void unbless();
 	Vec3 calcCenterOfCoords();
 	void dump();
 };

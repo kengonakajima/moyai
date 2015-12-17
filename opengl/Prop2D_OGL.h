@@ -62,9 +62,10 @@ public:
     bool use_additive_blend;
 
     Mesh *mesh;
-
-    static VertexFormat *vf_single_sprite; 
+    bool index_changed;
     
+    static VertexFormat *vf_single_sprite; 
+
 	inline Prop2D_OGL() : Prop(), Renderable() {
 		priority = id;
 		dimension = DIMENSION_2D;
@@ -99,6 +100,7 @@ public:
         use_additive_blend = false;
 
         mesh = NULL;
+        index_changed = false;
 	}
 	virtual ~Prop2D_OGL(){
 		for(int i=0;i<grid_used_num;i++){
@@ -117,6 +119,7 @@ public:
 
 	inline void setIndex( int ind){
 		index = ind;
+        index_changed = true;
 	}
 	inline void setScl(Vec2 s){
 		scl = s;
@@ -288,4 +291,5 @@ public:
 		return (Layer*) parent_group;
 	}
     static VertexFormat *getVertexFormat();
+    void updateUV( VertexBuffer *vb );
 };

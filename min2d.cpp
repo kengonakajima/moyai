@@ -118,8 +118,13 @@ int main(int argc, char **argv )
         
         frame_counter ++;
 
-        Vec2 at(0,0);
+        Vec2 at(::sin(t)*100,0);
         p->setLoc(at);
+        p->setIndex( irange(0,3));
+        static float rot=0;
+        rot+=2;
+        p->setRot(rot);
+        p->setScl( 40 + ::sin(t) * 30 );
         int cnt = g_moyai_client->poll(dt);
 
         if(last_print_at == 0){
