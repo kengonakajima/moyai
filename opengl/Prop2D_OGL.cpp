@@ -265,11 +265,8 @@ void Prop2D_OGL::render(Camera *cam) {
             vb->setCoord(1, Vec3(d,-d,0)); // B
             vb->setCoord(2, Vec3(-d,d,0)); // C
             vb->setCoord(3, Vec3(d,d,0)); // D
-            vb->setColor(0, Color(1,1,1,1) ); // A
-            vb->setColor(1, Color(1,1,1,1) ); // B
-            vb->setColor(2, Color(1,1,1,1) ); // C
-            vb->setColor(3, Color(1,1,1,1) ); // D
-            updateUV(vb);
+            updateVertexColor(vb);
+            updateVertexUV(vb);
 
             IndexBuffer *ib = new IndexBuffer();
             static int inds[6] = {
@@ -282,8 +279,12 @@ void Prop2D_OGL::render(Camera *cam) {
             mesh->setPrimType(GL_TRIANGLES);
         } else {
             if( index_changed ) {
-                updateUV( mesh->vb );
+                updateVertexUV(mesh->vb);
                 index_changed = false;
+            }
+            if( color_changed ) {
+                updateVertexColor(mesh->vb);
+                color_changed = false;
             }
         }
         if(deck) {
@@ -439,7 +440,7 @@ void Prop2D_OGL::updateMinMaxSizeCache(){
 	}
 }
 
-void Prop2D_OGL::updateUV(VertexBuffer *vb ) {
+void Prop2D_OGL::updateVertexUV( VertexBuffer *vb ) {
     vb->unbless();
     float u0,v0,u1,v1;
     deck->getUVFromIndex(index, &u0, &v0, &u1, &v1, 0, 0, 0 );
@@ -448,5 +449,11 @@ void Prop2D_OGL::updateUV(VertexBuffer *vb ) {
     vb->setUV(2, Vec2(u0,v0)); // C
     vb->setUV(3, Vec2(u1,v0)); // D
 }
-
+void Prop2D_OGL::updateVertexColor( VertexBuffer *vb ) {
+    vb->unbless();
+    vb->setColor(0, color ); // A
+    vb->setColor(1, color ); // B
+    vb->setColor(2, color ); // C
+    vb->setColor(3, color ); // D
+}
 #endif

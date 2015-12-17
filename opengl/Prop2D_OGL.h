@@ -63,6 +63,7 @@ public:
 
     Mesh *mesh;
     bool index_changed;
+    bool color_changed;
     
     static VertexFormat *vf_single_sprite; 
 
@@ -101,6 +102,7 @@ public:
 
         mesh = NULL;
         index_changed = false;
+        color_changed = false;
 	}
 	virtual ~Prop2D_OGL(){
 		for(int i=0;i<grid_used_num;i++){
@@ -205,10 +207,11 @@ public:
 	}
 	inline void setColor( Color c ){
 		color = c;
+        color_changed = true;
 	}
 	inline Color getColor() { return color; }
 	inline void setColor(float r, float g, float b, float a ){
-		color = Color(r,g,b,a);
+        setColor(Color(r,g,b,a));
 	}
 	inline void seekColor( Color c, double time_sec ) {
 		seek_color_orig = color;
@@ -291,5 +294,6 @@ public:
 		return (Layer*) parent_group;
 	}
     static VertexFormat *getVertexFormat();
-    void updateUV( VertexBuffer *vb );
+    void updateVertexUV( VertexBuffer *vb );
+    void updateVertexColor( VertexBuffer *vb );
 };

@@ -126,6 +126,11 @@ int main(int argc, char **argv )
         p->setRot(rot);
         p->setScl( 40 + ::sin(t) * 30 );
         int cnt = g_moyai_client->poll(dt);
+        if( frame_counter % 50 == 0 ) {
+            float alpha = range(0.2, 1.0f);
+            Color col(range(0,1),range(0,1),range(0,1),alpha);
+            p->setColor(col);
+        }        
 
         if(last_print_at == 0){
             last_print_at = t;
