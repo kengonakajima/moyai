@@ -11,10 +11,11 @@
 		C710F5F51C2135600064B4D1 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = C710F5F41C2135600064B4D1 /* AppDelegate.m */; };
 		C710F5F71C2135600064B4D1 /* Shader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = C710F5F61C2135600064B4D1 /* Shader.fsh */; };
 		C710F5F91C2135600064B4D1 /* Shader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = C710F5F81C2135600064B4D1 /* Shader.vsh */; };
-		C710F5FC1C2135600064B4D1 /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C710F5FB1C2135600064B4D1 /* GameViewController.m */; };
+		C710F5FC1C2135600064B4D1 /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = C710F5FB1C2135600064B4D1 /* GameViewController.mm */; };
 		C710F5FF1C2135600064B4D1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C710F5FD1C2135600064B4D1 /* Main.storyboard */; };
 		C710F6011C2135600064B4D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C710F6001C2135600064B4D1 /* Assets.xcassets */; };
 		C710F6041C2135600064B4D1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C710F6021C2135600064B4D1 /* LaunchScreen.storyboard */; };
+		C710F62E1C213D160064B4D1 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C710F62D1C213D160064B4D1 /* GLKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,11 +26,12 @@
 		C710F5F61C2135600064B4D1 /* Shader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.fsh; path = Shaders/Shader.fsh; sourceTree = "<group>"; };
 		C710F5F81C2135600064B4D1 /* Shader.vsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.vsh; path = Shaders/Shader.vsh; sourceTree = "<group>"; };
 		C710F5FA1C2135600064B4D1 /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
-		C710F5FB1C2135600064B4D1 /* GameViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GameViewController.m; sourceTree = "<group>"; };
+		C710F5FB1C2135600064B4D1 /* GameViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameViewController.mm; sourceTree = "<group>"; };
 		C710F5FE1C2135600064B4D1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		C710F6001C2135600064B4D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C710F6031C2135600064B4D1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		C710F6051C2135600064B4D1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C710F62D1C213D160064B4D1 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,6 +39,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C710F62E1C213D160064B4D1 /* GLKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -46,6 +49,7 @@
 		C710F5E41C2135600064B4D1 = {
 			isa = PBXGroup;
 			children = (
+				C710F62D1C213D160064B4D1 /* GLKit.framework */,
 				C710F5EF1C2135600064B4D1 /* ios_demo2d */,
 				C710F5EE1C2135600064B4D1 /* Products */,
 			);
@@ -67,7 +71,7 @@
 				C710F5F61C2135600064B4D1 /* Shader.fsh */,
 				C710F5F81C2135600064B4D1 /* Shader.vsh */,
 				C710F5FA1C2135600064B4D1 /* GameViewController.h */,
-				C710F5FB1C2135600064B4D1 /* GameViewController.m */,
+				C710F5FB1C2135600064B4D1 /* GameViewController.mm */,
 				C710F5FD1C2135600064B4D1 /* Main.storyboard */,
 				C710F6001C2135600064B4D1 /* Assets.xcassets */,
 				C710F6021C2135600064B4D1 /* LaunchScreen.storyboard */,
@@ -158,7 +162,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C710F5F51C2135600064B4D1 /* AppDelegate.m in Sources */,
-				C710F5FC1C2135600064B4D1 /* GameViewController.m in Sources */,
+				C710F5FC1C2135600064B4D1 /* GameViewController.mm in Sources */,
 				C710F5F21C2135600064B4D1 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

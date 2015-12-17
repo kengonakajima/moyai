@@ -197,7 +197,7 @@ $(GLFWLIB):
 
 
 clean:
-	make -C $(GLFW) cocoa-clean
+	make -C $(GLFW) clean
 	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) 
 	rm -f deps.make $(DEMO2D) $(DEMO3D) $(DEMOSV) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
 

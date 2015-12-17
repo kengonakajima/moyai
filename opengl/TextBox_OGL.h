@@ -6,14 +6,13 @@
 
 class TextBox_OGL : public Prop2D_OGL {
 public:
-	vertex_buffer_t *vb;
 	wchar_t *str;
 	Font_OGL *font;
 	//    Color color;
     int len_str;
 
 	TextBox_OGL() : len_str(0) {
-		vb = vertex_buffer_new( "v3f:t2f:c4f" );
+        //		vb = vertex_buffer_new( "v3f:t2f:c4f" );
 		str = NULL;
 		setScl(1,1);
 	}
