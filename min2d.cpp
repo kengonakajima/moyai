@@ -102,6 +102,9 @@ int main(int argc, char **argv )
             g->set(x,y,((x+y)%3));
         }
     }
+    g->setXFlip(0,0,true); 
+    g->setYFlip(0,1,true);
+    g->setUVRot(0,2,true);    
     Prop2D *gp = new Prop2D();
     gp->setDeck(deck);
     gp->addGrid(g);

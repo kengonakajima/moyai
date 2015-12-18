@@ -246,10 +246,10 @@ void Prop2D_OGL::render(Camera *cam) {
                         }
 
                         //
-                        // Q (u0,v1) - R (u1,v1)
+                        // Q (u0,v0) - R (u1,v0)      top-bottom upside down.
                         //      |           |
                         //      |           |                        
-                        // P (u0,v0) - S (u1,v0)
+                        // P (u0,v1) - S (u1,v1)
                         //
                         if(grid->xflip_table && grid->xflip_table[ind]) {
                             swapf( &u0, &u1 );
@@ -257,38 +257,26 @@ void Prop2D_OGL::render(Camera *cam) {
                         if(grid->yflip_table && grid->yflip_table[ind]) {
                             swapf( &v0, &v1 );
                         }
-#if 0                        
-                        if(rot_table && rot_table[ind]) {
-                            // P - Q
-                            // |   |
-                            // S - R
-                            float p_u = u0, p_v = v0;
-                            float q_u = u0, q_v = v1;
-                            float r_u = u1, r_v = v1;
-                            float s_u = u1, s_v = v0;
-                            u0 = s_u;
-                            v0 = s_v;
-                            u1 = q_u;
-                            v1 = q_v;
-                        }
-#endif
+                        Vec2 uv_p(u0,v1), uv_q(u0,v0), uv_r(u1,v0), uv_s(u1,v1);
+
+                        
                         // left bottom
                         const float d = 1;
                         int vi = quad_cnt * 4;
                         vb->setCoord(vi,Vec3(d*x,d*y,0));
-                        vb->setUV(vi,Vec2(u0,v1));                        
+                        if(grid->rot_table && grid->rot_table[ind]) vb->setUV(vi,uv_s); else vb->setUV(vi,uv_p);
                         if(grid->color_table) vb->setColor(vi, grid->color_table[ind]); else vb->setColor(vi, Color(1,1,1,1));
                         // right bottom
                         vb->setCoord(vi+1,Vec3(d*(x+1),d*y,0));
-                        vb->setUV(vi+1,Vec2(u1,v1));
+                        if(grid->rot_table && grid->rot_table[ind]) vb->setUV(vi+1,uv_r); else vb->setUV(vi+1,uv_s);                        
                         if(grid->color_table) vb->setColor(vi+1,grid->color_table[ind]); else vb->setColor(vi+1, Color(1,1,1,1));
                         // left top
                         vb->setCoord(vi+2,Vec3(d*x,d*(y+1),0));
-                        vb->setUV(vi+2,Vec2(u0,v0));
+                        if(grid->rot_table && grid->rot_table[ind]) vb->setUV(vi+2,uv_p); else vb->setUV(vi+2,uv_q);
                         if(grid->color_table) vb->setColor(vi+2,grid->color_table[ind]); else vb->setColor(vi+2, Color(1,1,1,1));
                         // right top
                         vb->setCoord(vi+3,Vec3(d*(x+1),d*(y+1),0));
-                        vb->setUV(vi+3,Vec2(u1,v0));
+                        if(grid->rot_table && grid->rot_table[ind]) vb->setUV(vi+3,uv_q); else vb->setUV(vi+3,uv_r);
                         if(grid->color_table) vb->setColor(vi+3,grid->color_table[ind]); else vb->setColor(vi+3, Color(1,1,1,1));
 
                         // TODO: no need to update index every time it changes.
