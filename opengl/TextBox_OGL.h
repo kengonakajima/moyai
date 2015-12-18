@@ -8,14 +8,18 @@ class TextBox_OGL : public Prop2D_OGL {
 public:
 	wchar_t *str;
 	Font_OGL *font;
-	//    Color color;
     int len_str;
-
-	TextBox_OGL() : len_str(0) {
-        //		vb = vertex_buffer_new( "v3f:t2f:c4f" );
-		str = NULL;
+    Mesh *mesh;
+    
+	TextBox_OGL() : str(NULL), len_str(0), mesh(NULL) {
 		setScl(1,1);
 	}
+    ~TextBox_OGL() {
+        if(mesh) {
+            mesh->deleteBuffers();
+            delete mesh;
+        }
+    }
 
 	inline void setFont( Font_OGL *f ){
 		assert(f);

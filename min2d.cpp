@@ -125,6 +125,28 @@ int main(int argc, char **argv )
     gp->setIndex(0);
     l->insertProp(gp);
 
+    // text
+    wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+    
+    Font *font = new Font();
+    font->loadFromTTF("./assets/cinecaption227.ttf", charcodes, 24 );
+    for(int i=0;i<20;i++) {
+        TextBox *tb = new TextBox();
+        tb->setFont(font);
+        tb->setString("A");
+        tb->setScl(1+(float)i/10.0f);
+        tb->setLoc(i*10-250,0);
+        l->insertProp(tb);
+    }
+    TextBox *movtb = new TextBox();
+    movtb->setFont(font);
+    movtb->setString("ABCabc\n01234");
+    movtb->setScl(3);
+    movtb->setLoc(0,-150);
+    l->insertProp(movtb);
+
+
+    //
     
     
 
@@ -178,6 +200,9 @@ int main(int argc, char **argv )
         g->set( irange(0,4), irange(0,4), irange(0,3) );
         g->setColor( irange(0,4), irange(0,4), Color( range(0,1), range(0,1), range(0,1), range(0,1) ) );
 
+        float tbr = 4 + ::sin(t)*3;
+        movtb->setScl(tbr);
+        
         // fps disp
         if(last_print_at == 0){
             last_print_at = t;

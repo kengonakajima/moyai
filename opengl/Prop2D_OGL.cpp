@@ -172,7 +172,6 @@ void Prop2D_OGL::render(Camera *cam) {
 		}
 	}
 
-	// TODO: use vbo for grids
 	if( grid_used_num > 0 ){
 		glEnable(GL_TEXTURE_2D);
 		glColor4f(color.r,color.g,color.b,color.a);        
@@ -300,7 +299,7 @@ void Prop2D_OGL::render(Camera *cam) {
                 continue;
             }
             //            print("ggg:%p %p %f,%f", grid->mesh, draw_deck, loc.x, loc.y );
-            drawMesh( grid->mesh, draw_deck );
+            drawMesh( grid->mesh, draw_deck->tex->tex );
 		}
 	}
 
@@ -348,7 +347,7 @@ void Prop2D_OGL::render(Camera *cam) {
             glUseProgram( fragment_shader->program );
             fragment_shader->updateUniforms();
         }
-        drawMesh( mesh, deck );
+        drawMesh( mesh, deck->tex->tex );
 	}
 
 	if( children_num > 0 && (render_children_first == false) ){
@@ -369,19 +368,14 @@ void Prop2D_OGL::render(Camera *cam) {
 	}
 }
 
-void Prop2D_OGL::drawMesh( Mesh *m, TileDeck *dk ) {
-    if(!dk) {
-        // no texture, nothing to do!
-        return;
-    }
-    glEnable(GL_TEXTURE_2D);
-    if(dk->tex->tex) {
-        glBindTexture( GL_TEXTURE_2D, dk->tex->tex );
+void Prop2D_OGL::drawMesh( Mesh *m, GLuint tex ) {
+    if(tex!=0) {
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture( GL_TEXTURE_2D, tex );
     } else {
-        // no opengl texture name, nothing to do!
-        print("no opengl tex?");
-        return;
+        glDisable(GL_TEXTURE_2D);
     }
+    
     assert(m);
     assert(m->vb);
     assert(m->ib);
@@ -426,7 +420,6 @@ void Prop2D_OGL::drawMesh( Mesh *m, TileDeck *dk ) {
     glTranslatef( loc.x, loc.y, 0 );
     glRotatef( rot * (180.0f/M_PI), 0,0,1);
     glScalef( scl.x, scl.y, 1 );
-    assert( m->prim_type == GL_TRIANGLES );
 
     glDrawElements( m->prim_type, m->ib->array_len, GL_UNSIGNED_INT, 0);
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
