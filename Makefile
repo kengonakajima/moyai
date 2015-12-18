@@ -1,5 +1,5 @@
 
-MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp opengl/Prop2D_OGL.cpp opengl/Prop3D_OGL.cpp opengl/ColorReplacerShader_OGL.cpp opengl/Font_OGL.cpp opengl/FragmentShader_OGL.cpp opengl/IndexBuffer_OGL.cpp opengl/Layer_OGL.cpp opengl/MoyaiClient_OGL.cpp opengl/TextBox_OGL.cpp opengl/Texture_OGL.cpp opengl/VertexBuffer_OGL.cpp opengl/Viewport_OGL.cpp common/Camera.cpp common/CharGrid.cpp common/Grid.cpp common/Mesh.cpp common/Pad.cpp common/PerformanceCounter.cpp common/PrimDrawer.cpp common/Sound.cpp common/SoundSystem.cpp common/VertexFormat.cpp common/TileDeck.cpp
+MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp opengl/Prop2D_OGL.cpp opengl/Prop3D_OGL.cpp opengl/ColorReplacerShader_OGL.cpp opengl/Font_OGL.cpp opengl/FragmentShader_OGL.cpp opengl/IndexBuffer_OGL.cpp opengl/Layer_OGL.cpp opengl/MoyaiClient_OGL.cpp opengl/TextBox_OGL.cpp opengl/Prim_OGL.cpp opengl/Texture_OGL.cpp opengl/VertexBuffer_OGL.cpp opengl/Viewport_OGL.cpp common/Camera.cpp common/CharGrid.cpp common/Grid.cpp common/Mesh.cpp common/Pad.cpp common/PerformanceCounter.cpp common/PrimDrawer.cpp common/Sound.cpp common/SoundSystem.cpp common/VertexFormat.cpp common/TileDeck.cpp
 
 MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o)
 MOYAISVSRCS=common.cpp cumino.cpp  lodepng.cpp common/Camera.cpp common/Grid.cpp
@@ -122,6 +122,8 @@ opengl/VertexBuffer_OGL.o : opengl/VertexBuffer_OGL.cpp
 	g++ -c $(CFLAGS) opengl/VertexBuffer_OGL.cpp -o opengl/VertexBuffer_OGL.o
 opengl/Viewport_OGL.o : opengl/Viewport_OGL.cpp
 	g++ -c $(CFLAGS) opengl/Viewport_OGL.cpp -o opengl/Viewport_OGL.o
+opengl/Prim_OGL.o : opengl/Prim_OGL.cpp
+	g++ -c $(CFLAGS) opengl/Prim_OGL.cpp -o opengl/Prim_OGL.o
 common/Camera.o : common/Camera.cpp
 	g++ -c $(CFLAGS) common/Camera.cpp -o common/Camera.o
 common/CharGrid.o : common/CharGrid.cpp

@@ -360,6 +360,7 @@ void Prop2D_OGL::render(Camera *cam) {
 
 	// primitives should go over image sprites
 	if( prim_drawer ){
+        glDisable( GL_TEXTURE_2D );
         glLoadIdentity();
         glTranslatef( loc.x, loc.y, 0 );
         glRotatef( rot * (180.0f/M_PI), 0,0,1);
