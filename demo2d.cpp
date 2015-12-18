@@ -755,7 +755,7 @@ int main(int argc, char **argv )
     Prop2D *childp = new Prop2D();
     childp->setDeck(g_base_deck);
     childp->setScl(16,16);
-    childp->seekRot( M_PI * 1000, 30 );
+    childp->seekRot( M_PI * 100, 30 );
     childp->setIndex(0);
     childp->setLoc(-222,-222);
     //g_main_layer->insertProp(childp);

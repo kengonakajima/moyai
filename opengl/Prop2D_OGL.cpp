@@ -419,7 +419,7 @@ void Prop2D_OGL::drawMesh( Mesh *m, TileDeck *dk ) {
     glLoadIdentity();    
 
     glTranslatef( loc.x, loc.y, 0 );
-    glRotatef( rot, 0,0,1);
+    glRotatef( rot * (180.0f/M_PI), 0,0,1);
     glScalef( scl.x, scl.y, 1 );
     assert( m->prim_type == GL_TRIANGLES );
 

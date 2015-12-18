@@ -145,7 +145,7 @@ int main(int argc, char **argv )
         p->setLoc(at);
         p->setIndex( irange(0,3));
         static float rot=0;
-        rot+=2;
+        rot+=0.05;
         p->setRot(rot);
         p->setScl( 40 + ::sin(t) * 30 );
         int cnt = g_moyai_client->poll(dt);
