@@ -161,8 +161,8 @@ void Prop2D_OGL::render(Camera *cam) {
 	float camx=0.0f;
 	float camy=0.0f;
 	if(cam){
-		camx = cam->loc.x * -1;
-		camy = cam->loc.y * -1;
+		camx = cam->loc.x;
+		camy = cam->loc.y;
 	}
 
 	if( children_num > 0 && render_children_first ){
@@ -299,7 +299,7 @@ void Prop2D_OGL::render(Camera *cam) {
                 continue;
             }
             //            print("ggg:%p %p %f,%f", grid->mesh, draw_deck, loc.x, loc.y );
-            drawMesh( grid->mesh, draw_deck->tex->tex );
+            drawMesh( grid->mesh, draw_deck->tex->tex, Vec2(camx,camy) );
 		}
 	}
 
@@ -347,7 +347,7 @@ void Prop2D_OGL::render(Camera *cam) {
             glUseProgram( fragment_shader->program );
             fragment_shader->updateUniforms();
         }
-        drawMesh( mesh, deck->tex->tex );
+        drawMesh( mesh, deck->tex->tex, Vec2(camx,camy) );
 	}
 
 	if( children_num > 0 && (render_children_first == false) ){
@@ -361,14 +361,14 @@ void Prop2D_OGL::render(Camera *cam) {
 	if( prim_drawer ){
         glDisable( GL_TEXTURE_2D );
         glLoadIdentity();
-        glTranslatef( loc.x, loc.y, 0 );
+        glTranslatef( loc.x - camx, loc.y - camy, 0 );
         glRotatef( rot * (180.0f/M_PI), 0,0,1);
         glScalef( scl.x, scl.y, 1 );
 		prim_drawer->drawAll();
 	}
 }
 
-void Prop2D_OGL::drawMesh( Mesh *m, GLuint tex ) {
+void Prop2D_OGL::drawMesh( Mesh *m, GLuint tex, Vec2 camloc ) {
     if(tex!=0) {
         glEnable(GL_TEXTURE_2D);
         glBindTexture( GL_TEXTURE_2D, tex );
@@ -417,7 +417,7 @@ void Prop2D_OGL::drawMesh( Mesh *m, GLuint tex ) {
         
     glLoadIdentity();    
 
-    glTranslatef( loc.x, loc.y, 0 );
+    glTranslatef( loc.x - camloc.x, loc.y - camloc.y, 0 );
     glRotatef( rot * (180.0f/M_PI), 0,0,1);
     glScalef( scl.x, scl.y, 1 );
 

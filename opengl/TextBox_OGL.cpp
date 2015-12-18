@@ -55,7 +55,7 @@ void TextBox_OGL::render(Camera *cam ) {
             float y0  = ( cur_lb.y + glyph->offset_y) + y_margin;
             float x1  = ( x0 + glyph->width);
             float y1  = ( y0 - glyph->height) + y_margin;
-            print("%f %f %f %f  :  %d %d", x0,y0,x1,y1, glyph->width, glyph->height);
+            //            print("%f %f %f %f  :  %d %d", x0,y0,x1,y1, glyph->width, glyph->height);
 
             float s0 = glyph->s0;
             float t0 = glyph->t0;
@@ -80,7 +80,12 @@ void TextBox_OGL::render(Camera *cam ) {
         }
         
     }
-    drawMesh( mesh, font->atlas->id );
+    Vec2 camloc;
+    if(cam) {
+        camloc.x = cam->loc.x;
+        camloc.y = cam->loc.y;
+    }        
+    drawMesh( mesh, font->atlas->id, camloc );
 }
 
 #endif
