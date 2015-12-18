@@ -334,9 +334,9 @@ void Prop2D_OGL::render(Camera *cam) {
             mesh->setIndexBuffer(ib);
             mesh->setPrimType(GL_TRIANGLES);
         } else {
-            if( index_changed ) {
+            if( uv_changed ) {
                 updateVertexUV(mesh->vb);
-                index_changed = false;
+                uv_changed = false;
             }
             if( color_changed ) {
                 updateVertexColor(mesh->vb);
@@ -501,10 +501,23 @@ void Prop2D_OGL::updateVertexUV( VertexBuffer *vb ) {
     vb->unbless();
     float u0,v0,u1,v1;
     deck->getUVFromIndex(index, &u0, &v0, &u1, &v1, 0, 0, 0 );
-    vb->setUV(0, Vec2(u0,v1)); // A
-    vb->setUV(1, Vec2(u1,v1)); // B
-    vb->setUV(2, Vec2(u0,v0)); // C
-    vb->setUV(3, Vec2(u1,v0)); // D
+    // C --- D
+    // |     |
+    // A --- B
+    if(xflip) swapf( &u0, &u1 );
+    if(yflip) swapf( &v0, &v1 );
+    Vec2 uv_a(u0,v1), uv_b(u1,v1), uv_c(u0,v0), uv_d(u1,v0);    
+    if(uvrot) {
+        Vec2 uvtmp = uv_d;
+        uv_d = uv_c;
+        uv_c = uv_a;        
+        uv_a = uv_b;
+        uv_b = uvtmp;
+    }
+    vb->setUV(0, uv_a );
+    vb->setUV(1, uv_b );
+    vb->setUV(2, uv_c ); 
+    vb->setUV(3, uv_d );
 }
 void Prop2D_OGL::updateVertexColor( VertexBuffer *vb ) {
     vb->unbless();

@@ -62,7 +62,7 @@ public:
     bool use_additive_blend;
 
     Mesh *mesh;
-    bool index_changed;
+    bool uv_changed;
     bool color_changed;
     
     static VertexFormat *vf_single_sprite; 
@@ -101,7 +101,7 @@ public:
         use_additive_blend = false;
 
         mesh = NULL;
-        index_changed = false;
+        uv_changed = false;
         color_changed = false;
 	}
 	virtual ~Prop2D_OGL(){
@@ -121,7 +121,7 @@ public:
 
 	inline void setIndex( int ind){
 		index = ind;
-        index_changed = true;
+        uv_changed = true;
 	}
 	inline void setScl(Vec2 s){
 		scl = s;
@@ -232,9 +232,9 @@ public:
 		if( anim_curve != ac ) setAnim(ac);
 	}
 
-	inline void setUVRot( bool flg){ uvrot = flg; }
-	inline void setXFlip( bool flg){ xflip = flg; }
-	inline void setYFlip( bool flg){ yflip = flg; }
+	inline void setUVRot( bool flg){ uvrot = flg; uv_changed = true; }
+	inline void setXFlip( bool flg){ xflip = flg; uv_changed = true; }
+	inline void setYFlip( bool flg){ yflip = flg; uv_changed = true; }
 
 	void drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot );
 

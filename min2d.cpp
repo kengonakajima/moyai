@@ -132,13 +132,15 @@ int main(int argc, char **argv )
         static double last_print_at = 0;
         static int frame_counter = 0;
         static double last_poll_at = now();
-
+        static int loop_counter = 0;
+        
         double t = now();
         double dt = t - last_poll_at;
         last_poll_at = t;
         
         frame_counter ++;
-
+        loop_counter++;
+        
         Vec2 at(::sin(t)*100,0);
         p->setLoc(at);
         p->setIndex( irange(0,3));
@@ -147,10 +149,17 @@ int main(int argc, char **argv )
         p->setRot(rot);
         p->setScl( 40 + ::sin(t) * 30 );
         int cnt = g_moyai_client->poll(dt);
-        if( frame_counter % 50 == 0 ) {
+        if( loop_counter % 50 == 0 ) {
             float alpha = range(0.2, 1.0f);
             Color col(range(0,1),range(0,1),range(0,1),alpha);
             p->setColor(col);
+        }
+        if( loop_counter % 120 == 0 ) {
+            switch(irange(0,3)) {
+            case 0: p->setXFlip( irange(0,2)); print("XFL"); break;
+            case 1: p->setYFlip( irange(0,2)); print("YFL"); break;
+            case 2: p->setUVRot( irange(0,2)); print("UVROT"); break;
+            }
         }
 
         g->set( irange(0,4), irange(0,4), irange(0,3) );
