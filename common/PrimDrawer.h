@@ -31,9 +31,9 @@ public:
 		prims[prim_num++] = new Prim( PRIMTYPE_RECTANGLE, from, to, c, width );
 	}
 
-	inline void drawAll(Vec2 ofs ){
+	inline void drawAll(){
 		for(int i=0;i<prim_num;i++){
-			prims[i]->draw(ofs);
+			prims[i]->draw();
 		}
 	}
 	inline void clear(){

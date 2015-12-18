@@ -88,6 +88,7 @@ int main(int argc, char **argv )
     deck->setTexture(t);
     deck->setSize(32,32,8,8);
 
+    // normal single
     Prop2D *p = new Prop2D();
     p->setDeck(deck);
     p->setIndex(1);
@@ -95,6 +96,16 @@ int main(int argc, char **argv )
     p->setLoc(0,0);
     l->insertProp(p);
 
+    // with prim
+    Prop2D *pp = new Prop2D();
+    pp->setScl(1.0f);
+    pp->setLoc(100,0);
+    pp->addRect( Vec2(0,0), Vec2(-100,-100), Color(0,0,1,0.5) );
+    pp->addLine( Vec2(0,0), Vec2(100,100), Color(1,0,0,1) );
+    pp->addLine( Vec2(0,0), Vec2(100,-100), Color(0,1,0,1), 5 );
+    l->insertProp(pp);
+
+    // grid
     Grid *g = new Grid(4,4);
     for(int x=0;x<4;x++) {
         for(int y=0;y<4;y++) {
@@ -109,11 +120,12 @@ int main(int argc, char **argv )
     gp->setDeck(deck);
     gp->addGrid(g);
     gp->setScl(32)    ;
-    gp->setLoc(0,0);
+    gp->setLoc(50,0);
     gp->setRot(20);
     gp->setIndex(0);
     l->insertProp(gp);
 
+    
     
 
     g_main_layer = new Layer();
@@ -147,6 +159,7 @@ int main(int argc, char **argv )
         static float rot=0;
         rot+=0.05;
         p->setRot(rot);
+        pp->setRot(rot/2.0f);
         p->setScl( 40 + ::sin(t) * 30 );
         int cnt = g_moyai_client->poll(dt);
         if( loop_counter % 50 == 0 ) {
