@@ -19,6 +19,12 @@ public:
 	int line_width;
     Mesh *mesh;
 	Prim_OGL( PRIMTYPE t, Vec2 a, Vec2 b, Color c, int line_width = 1 );
+    ~Prim_OGL() {
+        if(mesh) {
+            mesh->deleteBuffers();
+            delete mesh;
+        }
+    }
 	void draw();
     static VertexFormat *vf_prim_common;
     static VertexFormat *getVertexFormat();

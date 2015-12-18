@@ -19,5 +19,9 @@ public:
 	void setPrimType( unsigned int t) { prim_type = t; }
 	Vec3 getCenter() { return vb->calcCenterOfCoords(); }
 	void dump();
+    void deleteBuffers() {
+        if(vb) delete vb;
+        if(ib) delete ib;
+    }
 
 };

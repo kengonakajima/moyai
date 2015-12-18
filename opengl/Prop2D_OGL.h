@@ -112,7 +112,10 @@ public:
 			if(children[i]) delete children[i];
 		}        
 		if(prim_drawer) delete prim_drawer;
-        if(mesh) delete mesh;
+        if(mesh) {
+            mesh->deleteBuffers();
+            delete mesh;
+        }
 	}
 
 	virtual bool prop2DPoll(double dt){ return true;}

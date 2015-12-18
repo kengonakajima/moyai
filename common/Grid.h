@@ -56,6 +56,10 @@ public:
 		if(texofs_table) FREE(texofs_table);
 		if(rot_table) FREE(rot_table);
 		if(color_table) FREE(color_table);
+        if(mesh) {
+            mesh->deleteBuffers();
+            delete mesh;
+        }
 	}
 	void setDeck( TileDeck *d ){
 		deck = d;
