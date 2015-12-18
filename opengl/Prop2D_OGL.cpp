@@ -186,7 +186,6 @@ void Prop2D_OGL::render(Camera *cam) {
 				draw_deck = grid->deck;
 				glBindTexture( GL_TEXTURE_2D, grid->deck->tex->tex );                
 			} else {
-				assertmsg( deck, "need deck when grid has no deck" );
 				draw_deck = deck;
 				glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
 			}
@@ -194,65 +193,134 @@ void Prop2D_OGL::render(Camera *cam) {
 				glUseProgram(grid->fragment_shader->program );
 				grid->fragment_shader->updateUniforms();
 			}
-			glBegin(GL_QUADS);
 
-			for(int y=0;y<grid->height;y++){
-				for(int x=0;x<grid->width;x++){
-					int ind = grid->get(x,y);
-					if( ind != Grid::GRID_NOT_USED ){
-						int ti = x + y * grid->width;
+            if(!grid->mesh) {
+                print("new grid mesh! wh:%d,%d", grid->width, grid->height );
+                grid->mesh = new Mesh();
+                VertexFormat *vf = getVertexFormat();
+                IndexBuffer *ib = new IndexBuffer();
+                VertexBuffer *vb = new VertexBuffer();
+                vb->setFormat(vf);
+                /*
+                  3+--+--+--+--+
+                   |  |  |  |  |
+                  2+--+--+--+--+
+                   |  |  |  |  |
+                  1+--+--+--+--+
+                   |  |  |  |  |
+                  0+--+--+--+--+
+                   0  1  2  3  4
+                 */
+                int quad_num = grid->width * grid->height;
+                int triangle_num = quad_num * 2;
+                int vert_num = quad_num * 4; // Can't share vertices because each vert has different UVs 
+                vb->reserve( vert_num);
+                ib->reserve( triangle_num*3 );
+                grid->mesh->setVertexBuffer(vb);
+                grid->mesh->setIndexBuffer(ib);
+                grid->mesh->setPrimType( GL_TRIANGLES );
 
-						bool yflip=false, xflip=false, uvrot=false;
-						if( grid->xflip_table ) xflip = grid->xflip_table[ti];
-						if( grid->yflip_table ) yflip = grid->yflip_table[ti];
-						if( grid->rot_table ) uvrot = grid->rot_table[ti]; 
-						float texofs_x=0, texofs_y=0;
-						if( grid->texofs_table ){
-							texofs_x = grid->texofs_table[ti].x;
-							texofs_y = grid->texofs_table[ti].y;                            
-						}
-						if( grid->color_table ){
-							glColor4f( grid->color_table[ti].r,
-								grid->color_table[ti].g,
-								grid->color_table[ti].b,
-								grid->color_table[ti].a                                       
-								);
-						}
-						drawIndex( draw_deck,
-							ind,
-							camx + loc.x + x * scl.x + draw_offset.x - grid->enfat_epsilon,
-							camy + loc.y + y * scl.y + draw_offset.y - grid->enfat_epsilon,
-							camx + loc.x + (x+1) * scl.x + draw_offset.x + grid->enfat_epsilon,
-							camy + loc.y + (y+1)*scl.y + draw_offset.y + grid->enfat_epsilon,
-							xflip,
-							yflip,
-							texofs_x,
-							texofs_y,
-							uvrot,
-							0 );
-					}
-				}
-			}
-			glEnd();            
-			if(grid->fragment_shader){
-				glUseProgram(0);
-			}
+                grid->uv_changed = true;
+                grid->color_changed = true;
+            }
+
+            if( grid->uv_changed || grid->color_changed ) {
+                VertexBuffer *vb = grid->mesh->vb;
+                IndexBuffer *ib = grid->mesh->ib;
+                vb->unbless();
+
+                int quad_cnt=0;
+                for(int y=0;y<grid->height;y++) {
+                    for(int x=0;x<grid->width;x++) {
+                        int ind = x+y*grid->width;
+                        if( grid->index_table[ind] == Grid::GRID_NOT_USED ) continue;
+                        
+                        Vec2 left_bottom, right_top;
+                        float u0,v0,u1,v1;
+                        draw_deck->getUVFromIndex( grid->index_table[ind], &u0,&v0,&u1,&v1,0,0,0);
+                        if(grid->texofs_table) {
+                            u0 += grid->texofs_table[ind].x;
+                            v0 += grid->texofs_table[ind].y;
+                            u1 += grid->texofs_table[ind].x;
+                            v1 += grid->texofs_table[ind].y;
+                        }
+
+                        //
+                        // Q (u0,v1) - R (u1,v1)
+                        //      |           |
+                        //      |           |                        
+                        // P (u0,v0) - S (u1,v0)
+                        //
+                        if(grid->xflip_table && grid->xflip_table[ind]) {
+                            swapf( &u0, &u1 );
+                        }
+                        if(grid->yflip_table && grid->yflip_table[ind]) {
+                            swapf( &v0, &v1 );
+                        }
+#if 0                        
+                        if(rot_table && rot_table[ind]) {
+                            // P - Q
+                            // |   |
+                            // S - R
+                            float p_u = u0, p_v = v0;
+                            float q_u = u0, q_v = v1;
+                            float r_u = u1, r_v = v1;
+                            float s_u = u1, s_v = v0;
+                            u0 = s_u;
+                            v0 = s_v;
+                            u1 = q_u;
+                            v1 = q_v;
+                        }
+#endif
+                        // left bottom
+                        const float d = 1;
+                        int vi = quad_cnt * 4;
+                        vb->setCoord(vi,Vec3(d*x,d*y,0));
+                        vb->setUV(vi,Vec2(u0,v1));                        
+                        if(grid->color_table) vb->setColor(vi, grid->color_table[ind]); else vb->setColor(vi, Color(1,1,1,1));
+                        // right bottom
+                        vb->setCoord(vi+1,Vec3(d*(x+1),d*y,0));
+                        vb->setUV(vi+1,Vec2(u1,v1));
+                        if(grid->color_table) vb->setColor(vi+1,grid->color_table[ind]); else vb->setColor(vi+1, Color(1,1,1,1));
+                        // left top
+                        vb->setCoord(vi+2,Vec3(d*x,d*(y+1),0));
+                        vb->setUV(vi+2,Vec2(u0,v0));
+                        if(grid->color_table) vb->setColor(vi+2,grid->color_table[ind]); else vb->setColor(vi+2, Color(1,1,1,1));
+                        // right top
+                        vb->setCoord(vi+3,Vec3(d*(x+1),d*(y+1),0));
+                        vb->setUV(vi+3,Vec2(u1,v0));
+                        if(grid->color_table) vb->setColor(vi+3,grid->color_table[ind]); else vb->setColor(vi+3, Color(1,1,1,1));
+
+                        // TODO: no need to update index every time it changes.
+                       
+                        int indi = quad_cnt * 6; // 2 triangles = 6 verts per quad
+                        ib->setIndex(indi++, quad_cnt*4+0 );
+                        ib->setIndex(indi++, quad_cnt*4+2 );
+                        ib->setIndex(indi++, quad_cnt*4+1 );
+                        ib->setIndex(indi++, quad_cnt*4+1 );
+                        ib->setIndex(indi++, quad_cnt*4+2 );
+                        ib->setIndex(indi++, quad_cnt*4+3 );
+
+                        quad_cnt++; // next quad!
+                    }
+                }
+            } 
+
+            // draw
+            if(!draw_deck) {
+                print("no tex? (grid)");
+                continue;
+            }
+            //            print("ggg:%p %p %f,%f", grid->mesh, draw_deck, loc.x, loc.y );
+            drawMesh( grid->mesh, draw_deck );
 		}
 	}
 
 
 	if(deck && index >= 0 ){
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
-		if( fragment_shader ){
-			glUseProgram( fragment_shader->program );
-			fragment_shader->updateUniforms();
-		}
-#if 1 // glDrawElements version
         if(!mesh) {
-            print("new mesh!");
             mesh = new Mesh();
-            VertexFormat *vf = getVertexFormat();
+            VertexFormat *vf = getVertexFormat(); // TODO: 色が不要なときも色情報持っている。
             VertexBuffer *vb = new VertexBuffer();
             vb->setFormat(vf);
             vb->reserve(4);
@@ -261,7 +329,7 @@ void Prop2D_OGL::render(Camera *cam) {
             // |     |
             // A --- B
             float d = 0.5;
-            vb->setCoord(0, Vec3(-d,-d,0)); // A
+            vb->setCoord(0, Vec3(-d,-d,0)); // A TODO: 2Dの座標で十分
             vb->setCoord(1, Vec3(d,-d,0)); // B
             vb->setCoord(2, Vec3(-d,d,0)); // C
             vb->setCoord(3, Vec3(d,d,0)); // D
@@ -287,82 +355,12 @@ void Prop2D_OGL::render(Camera *cam) {
                 color_changed = false;
             }
         }
-        if(deck) {
-            glEnable(GL_TEXTURE_2D);
-            if(deck->tex->tex) {
-                glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
-            }
-        } else {
-            print("no tex?");
-            glDisable(GL_TEXTURE_2D);
+
+        if( fragment_shader ){
+            glUseProgram( fragment_shader->program );
+            fragment_shader->updateUniforms();
         }
-        mesh->vb->bless();
-        assert( mesh->vb->gl_name > 0 );        
-        mesh->ib->bless();
-        assert( mesh->ib->gl_name > 0 );
-        
-        int vert_sz = mesh->vb->fmt->getNumFloat() * sizeof(float);
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mesh->ib->gl_name );
-        glBindBuffer( GL_ARRAY_BUFFER, mesh->vb->gl_name );
-        glDisableClientState( GL_VERTEX_ARRAY );
-        glDisableClientState( GL_COLOR_ARRAY );
-        glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-        glDisableClientState( GL_NORMAL_ARRAY );
-        
-        // 以下prop3dからのコピペ、動いたら共通化する
-        if( mesh->vb->fmt->coord_offset >= 0 ){
-            glEnableClientState( GL_VERTEX_ARRAY );        
-            glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->coord_offset * sizeof(float) );
-        }
-        if( mesh->vb->fmt->color_offset >= 0 ){
-            glEnableClientState( GL_COLOR_ARRAY );
-            glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->color_offset * sizeof(float));
-        }
-        if( mesh->vb->fmt->texture_offset >= 0 ){
-            glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
-            glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->texture_offset * sizeof(float) );
-        }
-        if( mesh->vb->fmt->normal_offset >= 0 ) {
-            glEnableClientState( GL_NORMAL_ARRAY );
-            glNormalPointer( GL_FLOAT, vert_sz, (char*)0 + mesh->vb->fmt->normal_offset * sizeof(float) );
-        }
-
-		glDisable(GL_LIGHTING);
-		glDisable(GL_LIGHT0);
-        
-        glLoadIdentity();    
-
-        glTranslatef( loc.x, loc.y, 0 );
-        glRotatef( rot, 0,0,1);
-        //	if( rot->x != 0 ) glRotatef( rot->x, 1,0,0);     
-        //	if( rot->y != 0 ) glRotatef( rot->y, 0,1,0);     
-        //	if( rot->z != 0 ) glRotatef( rot->z, 0,0,1);
-        glScalef( scl.x, scl.y, 1 );
-
-        assert( mesh->prim_type == GL_TRIANGLES );
-
-        glDrawElements( mesh->prim_type, mesh->ib->array_len, GL_UNSIGNED_INT, 0);
-        glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        
-#endif
-        
-#if 0 // glBegin version
-		glBegin(GL_QUADS);
-		glColor4f(color.r,color.g,color.b,color.a);
-
-		float minx, miny, maxx, maxy;
-		minx = camx + loc.x - scl.x/2 + draw_offset.x - enfat_epsilon;
-		miny = camy + loc.y - scl.y/2 + draw_offset.y - enfat_epsilon;
-		maxx = camx + loc.x + scl.x/2 + draw_offset.x + enfat_epsilon;
-		maxy = camy + loc.y + scl.y/2 + draw_offset.y + enfat_epsilon;
-
-		drawIndex( deck, index, minx, miny, maxx, maxy, xflip, yflip, 0,0, uvrot, rot );
-		glEnd();
-#endif        
-		if( fragment_shader ){
-			glUseProgram(0);
-		}
+        drawMesh( mesh, deck );
 	}
 
 	if( children_num > 0 && (render_children_first == false) ){
@@ -377,6 +375,77 @@ void Prop2D_OGL::render(Camera *cam) {
 		prim_drawer->drawAll(loc.add(camx,camy) );
 	}
 }
+
+void Prop2D_OGL::drawMesh( Mesh *m, TileDeck *dk ) {
+    if(!dk) {
+        // no texture, nothing to do!
+        return;
+    }
+    glEnable(GL_TEXTURE_2D);
+    if(dk->tex->tex) {
+        glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
+    } else {
+        // no opengl texture name, nothing to do!
+        print("no opengl tex?");
+        return;
+    }
+    assert(m);
+    assert(m->vb);
+    assert(m->ib);
+    assert(m->vb->fmt);            
+
+    m->vb->bless();
+    assert( m->vb->gl_name > 0 );        
+    m->ib->bless();
+    assert( m->ib->gl_name > 0 );
+
+    int vert_sz = m->vb->fmt->getNumFloat() * sizeof(float);
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m->ib->gl_name );
+    glBindBuffer( GL_ARRAY_BUFFER, m->vb->gl_name );
+    glDisableClientState( GL_VERTEX_ARRAY );
+    glDisableClientState( GL_COLOR_ARRAY );
+    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+    glDisableClientState( GL_NORMAL_ARRAY );
+        
+    // 以下prop3dからのコピペ、動いたら共通化する
+    if( m->vb->fmt->coord_offset >= 0 ){
+        glEnableClientState( GL_VERTEX_ARRAY );        
+        glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + m->vb->fmt->coord_offset * sizeof(float) );
+    }
+    if( m->vb->fmt->color_offset >= 0 ){
+        glEnableClientState( GL_COLOR_ARRAY );
+        glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + m->vb->fmt->color_offset * sizeof(float));
+    }
+    if( m->vb->fmt->texture_offset >= 0 ){
+        glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
+        glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + m->vb->fmt->texture_offset * sizeof(float) );
+    }
+    if( m->vb->fmt->normal_offset >= 0 ) {
+        glEnableClientState( GL_NORMAL_ARRAY );
+        glNormalPointer( GL_FLOAT, vert_sz, (char*)0 + m->vb->fmt->normal_offset * sizeof(float) );
+    }
+
+    glDisable(GL_LIGHTING); // TODO: may be outside of this function
+    glDisable(GL_LIGHT0);
+        
+    glLoadIdentity();    
+
+    glTranslatef( loc.x, loc.y, 0 );
+    glRotatef( rot, 0,0,1);
+    glScalef( scl.x, scl.y, 1 );
+    assert( m->prim_type == GL_TRIANGLES );
+
+    glDrawElements( m->prim_type, m->ib->array_len, GL_UNSIGNED_INT, 0);
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+    glBindBuffer( GL_ARRAY_BUFFER, 0 );
+        
+    if( fragment_shader ){
+        glUseProgram(0);
+    }
+}
+
+
+
 
 Prop *Prop2D_OGL::getNearestProp(){
 	Prop *cur = parent_group->prop_top;

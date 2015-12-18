@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../common.h"
-
+#include "Mesh.h"
 
 class TileDeck;
 #if defined(USE_OPENGL) || defined(USE_D3D)
@@ -39,11 +39,14 @@ public:
 	bool visible;
 	float enfat_epsilon;
     void *parent_prop; // Used only when headless server
-
+    Mesh *mesh;
+    bool color_changed;
+    bool uv_changed;
+    
 	static const int GRID_FLAG_XFLIP = 1;
 	static const int GRID_FLAG_YFLIP = 2;
 	static const int GRID_NOT_USED = -1;
-	Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), visible(true), enfat_epsilon(0), parent_prop(NULL) {
+	Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), visible(true), enfat_epsilon(0), parent_prop(NULL), mesh(NULL), color_changed(false), uv_changed(false) {
         id = idgen++;
 	}
 	~Grid(){
@@ -67,6 +70,7 @@ public:
 		ENSURE_GRID_TABLE( index_table, int, GRID_NOT_USED );
 		index_table[ index(x,y) ] = ind;
         if( g_moyai_grid_change_callback ) g_moyai_grid_change_callback( this, GRID_CHANGE_INDEX, x, y, &ind, 4 );
+        uv_changed = true;
 	}
 	inline int get(int x, int y){
 		if(!index_table){
@@ -78,6 +82,7 @@ public:
         ENSURE_GRID_TABLE( index_table, int, GRID_NOT_USED );
         memcpy( index_table, inds, width*height*sizeof(int) );
         if( g_moyai_grid_change_callback ) g_moyai_grid_change_callback( this, GRID_CHANGE_BULK_INDEX, 0,0, inds, 4 * width * height );
+        uv_changed = true;
     }
 	inline void setXFlip( int x, int y, bool flag ){
 		ENSURE_GRID_TABLE( xflip_table, bool, false );
@@ -86,6 +91,7 @@ public:
             int f = flag;
             g_moyai_grid_change_callback( this, GRID_CHANGE_XFLIP, x, y, &f, 4 );
         }
+        uv_changed = true;
 	}
 	inline void setYFlip( int x, int y, bool flag ){
 		ENSURE_GRID_TABLE( yflip_table, bool, false );
@@ -94,6 +100,7 @@ public:
             int f = flag;
             g_moyai_grid_change_callback( this, GRID_CHANGE_YFLIP, x, y, &f, 4 );
         }
+        uv_changed = true;        
 	}
 	// 0~1. 1 for just a cell. not by whole texture
 	inline void setTexOffset( int x, int y, Vec2 *v ) {
@@ -105,6 +112,7 @@ public:
             float val[2] = { v->x, v->y };
             g_moyai_grid_change_callback( this, GRID_CHANGE_TEXOFS, x, y, val, 4*2 );
         }
+        uv_changed = true;        
 	}
 	inline void setUVRot( int x, int y, bool flag ){
 		ENSURE_GRID_TABLE( rot_table, bool, false );
@@ -113,6 +121,7 @@ public:
             int f = flag;
             g_moyai_grid_change_callback( this, GRID_CHANGE_UVROT, x, y, &f, 4 );
         }
+        uv_changed = true;        
 	}
 	inline void setColor( int x, int y, Color col ) {
 		ENSURE_GRID_TABLE( color_table, Color, Color(1,1,1,1) );
@@ -121,6 +130,7 @@ public:
             float val[4] = { col.r, col.g, col.b, col.a };
             g_moyai_grid_change_callback( this, GRID_CHANGE_COLOR, x, y, val, 4*4 );
         }
+        color_changed = true;        
 	}
 	inline Color getColor( int x, int y ) {
 		ENSURE_GRID_TABLE( color_table, Color, Color(1,1,1,1) );

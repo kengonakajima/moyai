@@ -296,4 +296,5 @@ public:
     static VertexFormat *getVertexFormat();
     void updateVertexUV( VertexBuffer *vb );
     void updateVertexColor( VertexBuffer *vb );
+    void drawMesh(Mesh *mesh, TileDeck *deck );
 };

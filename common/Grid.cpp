@@ -10,6 +10,7 @@ void Grid::clear(int ind){
 			set(x,y,ind);
 		}
 	}
+    uv_changed = true;
 }
 
 void Grid::fillColor( Color c ) {
@@ -18,4 +19,5 @@ void Grid::fillColor( Color c ) {
 			setColor(x,y,c);
 		}
 	}
+    color_changed = true;    
 }

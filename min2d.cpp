@@ -95,6 +95,24 @@ int main(int argc, char **argv )
     p->setLoc(0,0);
     l->insertProp(p);
 
+    Grid *g = new Grid(4,4);
+    for(int x=0;x<4;x++) {
+        for(int y=0;y<4;y++) {
+            //        g->set(x,y,80+((x+y)%10));
+            g->set(x,y,((x+y)%3));
+        }
+    }
+    Prop2D *gp = new Prop2D();
+    gp->setDeck(deck);
+    gp->addGrid(g);
+    gp->setScl(32)    ;
+    gp->setLoc(0,0);
+    gp->setRot(20);
+    gp->setIndex(0);
+    l->insertProp(gp);
+
+    
+
     g_main_layer = new Layer();
     g_moyai_client->insertLayer(g_main_layer);
     g_main_layer->setViewport(g_viewport);
@@ -130,8 +148,12 @@ int main(int argc, char **argv )
             float alpha = range(0.2, 1.0f);
             Color col(range(0,1),range(0,1),range(0,1),alpha);
             p->setColor(col);
-        }        
+        }
 
+        g->set( irange(0,4), irange(0,4), irange(0,3) );
+        g->setColor( irange(0,4), irange(0,4), Color( range(0,1), range(0,1), range(0,1), range(0,1) ) );
+
+        // fps disp
         if(last_print_at == 0){
             last_print_at = t;
         } else if( last_print_at < t-1 ){
