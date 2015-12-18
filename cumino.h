@@ -146,6 +146,12 @@ inline float interpolate( float left, float right, float zero_to_one ) {
 inline bool isPowerOf2(unsigned int x) {
     return !( x & (x-1) );
 }
+inline void swapf( float *a, float *b ) {
+    float tmp = *b;
+    *b = *a;
+    *a = tmp;
+}
+
 
 void enablePrint(bool enable);
 void print( const char *fmt, ... );
