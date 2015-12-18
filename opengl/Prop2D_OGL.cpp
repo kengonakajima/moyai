@@ -371,7 +371,7 @@ void Prop2D_OGL::drawMesh( Mesh *m, TileDeck *dk ) {
     }
     glEnable(GL_TEXTURE_2D);
     if(dk->tex->tex) {
-        glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
+        glBindTexture( GL_TEXTURE_2D, dk->tex->tex );
     } else {
         // no opengl texture name, nothing to do!
         print("no opengl tex?");
