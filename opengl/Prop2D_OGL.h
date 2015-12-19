@@ -300,4 +300,5 @@ public:
     void updateVertexUV( VertexBuffer *vb );
     void updateVertexColor( VertexBuffer *vb );
     void drawMesh(Mesh *mesh, GLuint tex, Vec2 camloc );
+    void copyMesh(Mesh*m) { mesh = m; }
 };

@@ -27,6 +27,27 @@ void glfw_error_cb( int code, const char *desc ) {
     print("glfw_error_cb. code:%d desc:'%s'", code, desc );
 }
 
+//
+
+class Particle : public Prop2D {
+public:
+    Vec2 v;
+    Particle(TileDeck *dk) : Prop2D() {
+        setDeck(dk);
+        setScl(32);
+        setIndex(0);        
+        v = Vec2( range(-100,100), range(-100,100) );        
+    }
+    bool prop2DPoll(double dt) {
+        loc += v*dt;
+        if(loc.x<-SCRW/2||loc.x>SCRW/2) v.x*=-1;
+        if(loc.y<-SCRH/2||loc.y>SCRH/2) v.y*=-1;
+        return true;
+    }
+};
+
+//
+
 int main(int argc, char **argv )
 {
     
@@ -150,9 +171,6 @@ int main(int argc, char **argv )
     
 
     while( !glfwWindowShouldClose(window) ){
-        int scrw, scrh;
-        glfwGetFramebufferSize( window, &scrw, &scrh );
-
         static double last_print_at = 0;
         static int frame_counter = 0;
         static double last_poll_at = now();
@@ -211,7 +229,13 @@ int main(int argc, char **argv )
         }
         if( glfwGetKey( window, 'L' ) ) {
             camera->setLoc(100,100);
-        } 
+        }
+        if( glfwGetKey( window, '1' ) ) {
+            for(int i=0;i<50;i++) {
+                Prop *p = new Particle(deck);
+                l->insertProp(p);
+            }
+        }
         glfwPollEvents();
     }
     glfwTerminate();
