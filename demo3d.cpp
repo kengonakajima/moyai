@@ -33,7 +33,6 @@ Mesh *g_texcolmesh;
 Prop3D *g_prop_col;
 Prop3D *g_prop_tex;
 Prop3D *g_prop_texcol;
-Prop3D *g_prop_billboard;
 Prop3D *g_prop_with_children;
 Prop3D *g_children[3];
 
@@ -78,13 +77,6 @@ void updateGame() {
         g_prop_texcol->rot.x -= dt*100;
         g_prop_texcol->rot.z -= dt*100;        
     }
-    if( g_prop_billboard ) {
-        g_prop_billboard->loc.x = cos(g_prop_billboard->accum_time);
-        g_prop_billboard->loc.y = sin(g_prop_billboard->accum_time);
-        g_prop_billboard->loc.z = 0;//cos(g_prop_billboard->accum_time*2);
-        //        g_prop_billboard->rot.x = g_prop_billboard->accum_time * 100;
-    }
-
 
     if( g_prop_with_children ) {
         g_prop_with_children->loc.y = sin(g_prop_with_children->accum_time*0.5)*1.2;
@@ -253,14 +245,6 @@ void setupCube() {
     IndexBuffer *cube_ib = new IndexBuffer();
     cube_ib->set(cube_indexes,36);
 
-    // for billboards
-    int board_indexes[6] = {
-        0,1,4, // ABE
-        1,5,4, // BFE
-    };
-
-    IndexBuffer *board_ib = new IndexBuffer();
-    board_ib->set(board_indexes,6);
 
     g_colmesh = new Mesh();
     g_colmesh->setVertexBuffer(colvb);
@@ -306,12 +290,6 @@ void setupCube() {
     g_main_layer->insertProp(g_prop_texcol);
 
 
-    g_prop_billboard = new Prop3D();
-    g_prop_billboard->setScl(Vec3(0.5,0.5,0.5));
-    g_prop_billboard->setLoc(Vec3(0,0,0));
-    g_prop_billboard->setTexture(g_sol_tex);
-    g_prop_billboard->setBillboardIndex(0);
-    g_main_layer->insertProp(g_prop_billboard);
 
     if(1){
         g_children[0] = new Prop3D();

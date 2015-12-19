@@ -13,65 +13,6 @@
 #include "../common/Prop2D.h"
 #include "../common/Prop3D.h"
 
-inline void Layer_OGL::drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc, Vec3 *scl  ) {
-	if(billboard_index <0)return;    
-	assert(deck);
-	glEnable(GL_TEXTURE_2D);
-	if( deck->tex->tex != last_tex_gl_id ) {
-		glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
-		last_tex_gl_id = deck->tex->tex;
-	}
-	glDisable(GL_LIGHTING);
-	glDisable(GL_LIGHT0);
-
-	glLoadIdentity();    
-	Vec3 diff_camera = *loc - camera->loc;
-	Vec3 up_v(0.0f, 1.0f, 0.0f);
-
-	Vec3 cross_a = diff_camera.cross(up_v).normalize(1); 
-	Vec3 cross_b = diff_camera.cross(cross_a).normalize(1); 
-
-	// now you can use CrossA and CrossB and the billboard position to calculate the positions of the edges of the billboard-rectangle
-	cross_a.x *= scl->x * 0.5;        
-	cross_a.y *= scl->y * 0.5;
-	cross_a.z *= scl->z * 0.5;
-	cross_b.x *= scl->x * 0.5;        
-	cross_b.y *= scl->y * 0.5;
-	cross_b.z *= scl->z * 0.5;
-
-	Vec3 p1 = *loc + cross_a + cross_b;
-	Vec3 p2 = *loc - cross_a + cross_b;
-	Vec3 p3 = *loc - cross_a - cross_b;
-	Vec3 p4 = *loc + cross_a - cross_b;
-
-#if 0
-	print("loc:%f %f %f a:%.1f %.1f %.1f b:%.1f %.1f %.1f  p1:%.1f %.1f %.1f p2:%.1f %.1f %.1f p3:%.1f %.1f %.1f p4:%.1f %.1f %.1f",
-		loc->x, loc->y, loc->z,
-		cross_a.x, cross_a.y, cross_a.z,
-		cross_b.x, cross_b.y, cross_b.z,
-		p1.x - loc->x, p1.y - loc->y, p1.z - loc->z,
-		p2.x - loc->x, p2.y - loc->y, p2.z - loc->z,
-		p3.x - loc->x, p3.y - loc->y, p3.z - loc->z,
-		p4.x - loc->x, p4.y - loc->y, p4.z - loc->z                           
-		);
-#endif
-
-	float u0 = 0, v0 = 0, u1 = 1, v1 = 1;
-	if( deck ) deck->getUVFromIndex( billboard_index, &u0, &v0, &u1, &v1, 0, 0, 0.0001 );
-
-	glBegin(GL_TRIANGLES);
-	glColor4f( 1,1,1,1 );
-	glTexCoord2f(u1,v1); glVertex3f( p1.x, p1.y, p1.z );
-	glTexCoord2f(u0,v0); glVertex3f( p3.x, p3.y, p3.z );
-	glTexCoord2f(u0,v1); glVertex3f( p2.x, p2.y, p2.z );
-
-	glTexCoord2f(u1,v1); glVertex3f( p1.x, p1.y, p1.z );        
-	glTexCoord2f(u1,v0); glVertex3f( p4.x, p4.y, p4.z );
-	glTexCoord2f(u0,v0); glVertex3f( p3.x, p3.y, p3.z );        
-	glEnd();
-
-}
-
 inline void Layer_OGL::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *locofs, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {
 	if( !mesh || mesh->vb->array_len == 0 || mesh->ib->array_len == 0 ) return; // nothing to render!
 
@@ -274,15 +215,13 @@ int Layer_OGL::renderAllProps(){
 
             if( cur3d->use_additive_blend ) glBlendFunc(GL_ONE, GL_ONE ); else glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
-			assertmsg( cur3d->mesh || cur3d->children_num > 0 || cur3d->billboard_index>=0, "mesh or children is required for 3d prop %p", cur3d );
+			assertmsg( cur3d->mesh || cur3d->children_num > 0, "mesh or children is required for 3d prop %p", cur3d );
 
 			cnt++;
 
 			if( cur3d->visible ) {
 				cur3d->performRenderOptions();
-				if( cur3d->billboard_index >= 0 ) {
-					drawBillboard( cur3d->billboard_index, cur3d->deck, & cur3d->loc, & cur3d->scl  );
-				} else if( cur3d->mesh ) {
+				if( cur3d->mesh ) {
 					drawMesh( cur3d->debug_id, cur3d->mesh, cur3d->deck,
 						& cur3d->loc, &cur3d->draw_offset, & cur3d->scl, & cur3d->rot,
 						NULL, NULL, NULL, cur3d->material );
@@ -298,9 +237,6 @@ int Layer_OGL::renderAllProps(){
 						Prop3D_OGL *child = cur3d->children[i];
 						if(child && child->visible ) {
 							float l = camera->loc.len( cur3d->loc + child->loc + child->sort_center );
-							if( child->billboard_index > 0 ) {
-								print("child node doesn't support billboarding");
-							}
 							assert( child->mesh );
 							if( child->mesh->transparent ) {
 								sorter_transparent[transparent_n].ptr = (void*)cur3d->children[i];

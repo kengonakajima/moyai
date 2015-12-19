@@ -19,7 +19,6 @@ public:
 	Material *material;
 	Vec3 sort_center;
 	bool skip_rot;
-	int billboard_index; // enable by >=0
 	FragmentShader_OGL *fragment_shader;
 	bool depth_mask;
 	bool alpha_test;
@@ -27,7 +26,7 @@ public:
 	Vec3 draw_offset;
     bool use_additive_blend;
 
-	Prop3D_OGL() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0), skip_rot(false), billboard_index(-1), fragment_shader(NULL), depth_mask(true), alpha_test(false), cull_back_face(true), draw_offset(0,0,0) , use_additive_blend(false) {
+	Prop3D_OGL() : Prop(), loc(0,0,0), scl(1,1,1), rot(0,0,0), mesh(NULL), children(NULL), children_num(0), children_max(0), material(NULL), sort_center(0,0,0), skip_rot(false), fragment_shader(NULL), depth_mask(true), alpha_test(false), cull_back_face(true), draw_offset(0,0,0) , use_additive_blend(false) {
 		priority = id;        
 		dimension = DIMENSION_3D;
 	}
@@ -48,7 +47,6 @@ public:
 	void deleteChild( Prop3D_OGL *p );
 	void setMaterial( Material *mat ) { material = mat; }
 	void setMaterialChildren( Material *mat ); 
-	void setBillboardIndex( int ind ) { billboard_index = ind;  }
 	inline void setFragmentShader( FragmentShader_OGL *fs ){
 		assert(fs);
 		fragment_shader = fs;
