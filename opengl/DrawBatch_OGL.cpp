@@ -154,6 +154,21 @@ bool DrawBatchList_OGL::appendSprite1( GLuint program, GLuint tex, Color c, Vec2
     float bx = (basesize)*scl.x, by = (-basesize)*scl.y;
     float cx = (-basesize)*scl.x, cy = (basesize)*scl.y;
     float dx = (basesize)*scl.x, dy = (basesize)*scl.y;
+
+    if(radrot!=0) {
+        float rotcos= ::cos(radrot), rotsin = ::sin(radrot);
+#define ZROTX(x,y) ( rotcos * (x) - rotsin * (y) )
+#define ZROTY(x,y) ( rotsin * (x) + rotcos * (y) )
+        float rotax = ZROTX(ax,ay), rotay = ZROTY(ax,ay);
+        float rotbx = ZROTX(bx,by), rotby = ZROTY(bx,by);
+        float rotcx = ZROTX(cx,cy), rotcy = ZROTY(cx,cy);
+        float rotdx = ZROTX(dx,dy), rotdy = ZROTY(dx,dy);
+        ax = rotax; ay = rotay;
+        bx = rotbx; by = rotby;
+        cx = rotcx; cy = rotcy;
+        dx = rotdx; dy = rotdy;
+    }
+    
     Vec3 coords[4] = {
         Vec3(tr.x+ax,tr.y+ay,0),
         Vec3(tr.x+bx,tr.y+by,0),
