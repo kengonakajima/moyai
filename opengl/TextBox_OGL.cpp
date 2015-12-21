@@ -4,9 +4,9 @@
 
 
 
-void TextBox_OGL::render(Camera *cam ) {
+void TextBox_OGL::render(Camera *cam, DrawBatchList *bl ) {
     if(!str) return;
-
+#if 0
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );    
 
     if(!mesh) {
@@ -86,6 +86,7 @@ void TextBox_OGL::render(Camera *cam ) {
         camloc.y = cam->loc.y;
     }        
     drawMesh( mesh, font->atlas->id, camloc );
+#endif    
 }
 
 #endif

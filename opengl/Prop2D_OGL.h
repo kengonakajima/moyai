@@ -5,6 +5,7 @@
 #include "../common/Renderable.h"
 #include "../common/PrimDrawer.h"
 #include "../common/Layer.h"
+#include "../common/DrawBatch.h"
 
 class AnimCurve;
 class FragmentShader_OGL;
@@ -61,10 +62,6 @@ public:
 	bool render_children_first;
     bool use_additive_blend;
 
-    Mesh *mesh;
-    bool uv_changed;
-    bool color_changed;
-    
     static VertexFormat *vf_single_sprite; 
 
 	inline Prop2D_OGL() : Prop(), Renderable() {
@@ -100,9 +97,6 @@ public:
 		render_children_first = false;
         use_additive_blend = false;
 
-        mesh = NULL;
-        uv_changed = false;
-        color_changed = false;
 	}
 	virtual ~Prop2D_OGL(){
 		for(int i=0;i<grid_used_num;i++){
@@ -112,10 +106,6 @@ public:
 			if(children[i]) delete children[i];
 		}        
 		if(prim_drawer) delete prim_drawer;
-        if(mesh) {
-            mesh->deleteBuffers();
-            delete mesh;
-        }
 	}
 
 	virtual bool prop2DPoll(double dt){ return true;}
@@ -124,7 +114,6 @@ public:
 
 	inline void setIndex( int ind){
 		index = ind;
-        uv_changed = true;
 	}
 	inline void setScl(Vec2 s){
 		scl = s;
@@ -210,7 +199,6 @@ public:
 	}
 	inline void setColor( Color c ){
 		color = c;
-        color_changed = true;
 	}
 	inline Color getColor() { return color; }
 	inline void setColor(float r, float g, float b, float a ){
@@ -235,9 +223,9 @@ public:
 		if( anim_curve != ac ) setAnim(ac);
 	}
 
-	inline void setUVRot( bool flg){ uvrot = flg; uv_changed = true; }
-	inline void setXFlip( bool flg){ xflip = flg; uv_changed = true; }
-	inline void setYFlip( bool flg){ yflip = flg; uv_changed = true; }
+	inline void setUVRot( bool flg){ uvrot = flg; }
+	inline void setXFlip( bool flg){ xflip = flg; }
+	inline void setYFlip( bool flg){ yflip = flg; }
 
 	void drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot );
 
@@ -282,7 +270,7 @@ public:
 			( at.y >= loc.y - scl.y/2 - margin) && ( at.y <= loc.y + scl.y/2 + margin );
 	}    
 
-	virtual void render(Camera *cam);
+	virtual void render(Camera *cam, DrawBatchList *bl);
 
 	inline void getRect( Vec2 *min_out, Vec2 *max_out ) {
 		min_out->x = loc.x - scl.x/2;
@@ -296,9 +284,4 @@ public:
 	inline Layer *getParentLayer() {
 		return (Layer*) parent_group;
 	}
-    static VertexFormat *getVertexFormat();
-    void updateVertexUV( VertexBuffer *vb );
-    void updateVertexColor( VertexBuffer *vb );
-    void drawMesh(Mesh *mesh, GLuint tex, Vec2 camloc );
-    void copyMesh(Mesh*m) { mesh = m; }
 };

@@ -13,6 +13,7 @@
 #include "../common/Prop2D.h"
 #include "../common/Prop3D.h"
 
+
 inline void Layer_OGL::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *locofs, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {
 	if( !mesh || mesh->vb->array_len == 0 || mesh->ib->array_len == 0 ) return; // nothing to render!
 
@@ -131,7 +132,7 @@ inline void Layer_OGL::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc,
 
 }
 
-int Layer_OGL::renderAllProps(){
+int Layer_OGL::renderAllProps( DrawBatchList *bl ){
 	assertmsg( viewport, "no viewport in a layer id:%d setViewport missed?", id );
 	if( viewport->dimension == DIMENSION_2D ) {
 		glDisable(GL_LIGHTING);
@@ -189,7 +190,7 @@ int Layer_OGL::renderAllProps(){
 			Prop2D_OGL *p = (Prop2D_OGL*) tosort[i].ptr;
 			if(p->visible){
 				//                { Prop2D *p2d = (Prop2D*)p; print("prio:%f %d %d", p2d->loc.y, p2d->priority, p2d->id  ); }
-				p->render(camera);
+				p->render(camera, bl);
 			}
 		}
 		return drawn;

@@ -4,6 +4,7 @@
 #include "Texture.h"
 #include "Camera.h"
 #include "TileDeck.h"
+#include "DrawBatch.h"
 
 class Renderable {
 public:
@@ -58,5 +59,5 @@ public:
 		}
 	}
 
-	virtual void render(Camera *cam){};
+	virtual void render(Camera *cam, DrawBatchList *bl ){};
 };

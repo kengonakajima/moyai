@@ -141,18 +141,8 @@ void Prop2D_OGL::drawIndex( TileDeck *dk, int ind, float minx, float miny, float
 	glTexCoord2f(u0,v0); glVertex3i( b.x, b.y, depth ); 
 
 }
-VertexFormat *Prop2D_OGL::vf_single_sprite = NULL;
-VertexFormat *Prop2D_OGL::getVertexFormat() {
-    if( !vf_single_sprite ) {
-        vf_single_sprite = new VertexFormat();
-        vf_single_sprite->declareCoordVec3(); 
-        vf_single_sprite->declareColor();
-        vf_single_sprite->declareUV();
-    }
-    return vf_single_sprite;
-}
 
-void Prop2D_OGL::render(Camera *cam) {
+void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
 	assertmsg(deck || grid_used_num > 0 || children_num > 0 || prim_drawer , "no deck/grid/prim_drawer is set. deck:%p grid:%d child:%d prim:%p", deck, grid_used_num, children_num, prim_drawer );
 
     if( use_additive_blend ) glBlendFunc(GL_ONE, GL_ONE ); else glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -168,7 +158,7 @@ void Prop2D_OGL::render(Camera *cam) {
 	if( children_num > 0 && render_children_first ){
 		for(int i=0;i<children_num;i++){
 			Prop2D_OGL *p = (Prop2D_OGL*) children[i];
-            if( p->visible ) p->render( cam );
+            if( p->visible ) p->render( cam, bl );
 		}
 	}
 
@@ -179,7 +169,7 @@ void Prop2D_OGL::render(Camera *cam) {
 			Grid *grid = grids[i];
 			if(!grid)break;
 			if(!grid->visible)continue;
-
+#if 0
 			TileDeck *draw_deck;
 			if( grid->deck ){
 				draw_deck = grid->deck;
@@ -293,6 +283,7 @@ void Prop2D_OGL::render(Camera *cam) {
                 }
             } 
 
+            
             // draw
             if(!draw_deck) {
                 print("no tex? (grid)");
@@ -300,11 +291,13 @@ void Prop2D_OGL::render(Camera *cam) {
             }
             //            print("ggg:%p %p %f,%f", grid->mesh, draw_deck, loc.x, loc.y );
             drawMesh( grid->mesh, draw_deck->tex->tex, Vec2(camx,camy) );
+#endif            
 		}
 	}
 
 
 	if(deck && index >= 0 ){
+#if 0            
         if(!mesh) {
             mesh = new Mesh();
             VertexFormat *vf = getVertexFormat(); // TODO: 色が不要なときも色情報持っている。
@@ -347,13 +340,26 @@ void Prop2D_OGL::render(Camera *cam) {
             glUseProgram( fragment_shader->program );
             fragment_shader->updateUniforms();
         }
-        drawMesh( mesh, deck->tex->tex, Vec2(camx,camy) );
+#endif
+        float u0,v0,u1,v1;
+        deck->getUVFromIndex( index, &u0,&v0,&u1,&v1,0,0,0);
+        print("appending id:%d", id);
+        bl->appendSprite1( fragment_shader ? fragment_shader->program : 0,
+                           deck->tex->tex,
+                           color,
+                           loc,
+                           scl,
+                           rot,
+                           Vec2(u0,v1),
+                           Vec2(u1,v0)
+                           );
+        //        drawMesh( mesh, deck->tex->tex, Vec2(camx,camy) );
 	}
 
 	if( children_num > 0 && (render_children_first == false) ){
 		for(int i=0;i<children_num;i++){
 			Prop2D_OGL *p = (Prop2D_OGL*) children[i];
-			if(p->visible) p->render( cam );
+			if(p->visible) p->render( cam, bl );
 		}
 	}
 
@@ -367,11 +373,19 @@ void Prop2D_OGL::render(Camera *cam) {
 		prim_drawer->drawAll();
 	}
 }
+void GLBINDTEXTURE( GLuint tex ) {
+    static GLuint last_tex;
+    if(tex!=last_tex) {
+        glBindTexture( GL_TEXTURE_2D, tex );
+        last_tex = tex;
+    }
+}
 
+#if 0
 void Prop2D_OGL::drawMesh( Mesh *m, GLuint tex, Vec2 camloc ) {
     if(tex!=0) {
         glEnable(GL_TEXTURE_2D);
-        glBindTexture( GL_TEXTURE_2D, tex );
+        GLBINDTEXTURE(tex);
     } else {
         glDisable(GL_TEXTURE_2D);
     }
@@ -429,7 +443,7 @@ void Prop2D_OGL::drawMesh( Mesh *m, GLuint tex, Vec2 camloc ) {
         glUseProgram(0);
     }
 }
-
+#endif
 
 
 
@@ -495,33 +509,5 @@ void Prop2D_OGL::updateMinMaxSizeCache(){
 	}
 }
 
-void Prop2D_OGL::updateVertexUV( VertexBuffer *vb ) {
-    vb->unbless();
-    float u0,v0,u1,v1;
-    deck->getUVFromIndex(index, &u0, &v0, &u1, &v1, 0, 0, 0 );
-    // C --- D
-    // |     |
-    // A --- B
-    if(xflip) swapf( &u0, &u1 );
-    if(yflip) swapf( &v0, &v1 );
-    Vec2 uv_a(u0,v1), uv_b(u1,v1), uv_c(u0,v0), uv_d(u1,v0);    
-    if(uvrot) {
-        Vec2 uvtmp = uv_d;
-        uv_d = uv_c;
-        uv_c = uv_a;        
-        uv_a = uv_b;
-        uv_b = uvtmp;
-    }
-    vb->setUV(0, uv_a );
-    vb->setUV(1, uv_b );
-    vb->setUV(2, uv_c ); 
-    vb->setUV(3, uv_d );
-}
-void Prop2D_OGL::updateVertexColor( VertexBuffer *vb ) {
-    vb->unbless();
-    vb->setColor(0, color ); // A
-    vb->setColor(1, color ); // B
-    vb->setColor(2, color ); // C
-    vb->setColor(3, color ); // D
-}
+
 #endif

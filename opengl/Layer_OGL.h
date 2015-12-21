@@ -3,13 +3,18 @@
 #include "Viewport_OGL.h"
 #include "../common/Light.h"
 #include "../common/Mesh.h"
+#include "../common/DrawBatch.h"
+
 #ifdef WIN32
 #include "GL/glew.h"
 #endif
 
+
+
 class Camera;
 class TileDeck;
 class Material;
+class MoyaiClient_OGL;
 
 class Layer_OGL : public Group {
 public:
@@ -18,6 +23,7 @@ public:
 	GLuint last_tex_gl_id;
 	Light *light;
     int debug_id;
+    MoyaiClient_OGL *parent_client;
 
 	// working area to avoid allocation in inner loops
 	SorterEntry sorter_opaque[Prop::CHILDREN_ABS_MAX];
@@ -37,7 +43,7 @@ public:
 		light = l;
 	}
 
-	int renderAllProps();
+	int renderAllProps( DrawBatchList *bl );
 
 	void selectCenterInside( Vec2 minloc, Vec2 maxloc, Prop*out[], int *outlen );
 	inline void selectCenterInside( Vec2 center, float dia, Prop *out[], int *outlen){
@@ -46,7 +52,6 @@ public:
 			out, outlen );
 	}
 	inline void drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *locofs, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  );
-	inline void drawBillboard(int billboard_index, TileDeck *deck, Vec3 *loc, Vec3 *scl  );
 
 	void setupProjectionMatrix3D();
 	Vec2 getScreenPos( Vec3 at );

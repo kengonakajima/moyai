@@ -26,7 +26,7 @@ public:
 		font = f;
 	}
 
-	void render(Camera *cam );
+	void render(Camera *cam, DrawBatchList *bl );
 
 	inline void setString( const char *s ){
 		setString( (char*) s );
