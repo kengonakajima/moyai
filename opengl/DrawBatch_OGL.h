@@ -60,7 +60,7 @@ public:
     DrawBatch *getCurrentBatch();
     DrawBatch *startNextBatch( VFTYPE vft, GLuint tex, GLuint primtype, FragmentShader *fs );
     DrawBatch *startNextMeshBatch( FragmentShader *fs, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh );
-    void drawAll();
+    int drawAll();
 
     bool appendSprite1( FragmentShader *fs, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 uv0, Vec2 uv1 );
     bool appendMesh( FragmentShader *fs, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh );

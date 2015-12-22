@@ -252,10 +252,11 @@ DrawBatch *DrawBatchList_OGL::startNextMeshBatch( FragmentShader *fs, GLuint tex
     used++;
     return b;
 }
-void DrawBatchList_OGL::drawAll() {
+int DrawBatchList_OGL::drawAll() {
     for(int i=0;i<used;i++) {
         batches[i]->draw();
     }
+    return used;
 }
 
 

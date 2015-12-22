@@ -15,8 +15,7 @@ int MoyaiClient_OGL::render(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );    
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
-    batch_list.drawAll();
-    
+    last_draw_call_count = batch_list.drawAll();    
 	glfwSwapBuffers(window);
 	glFlush();
 	return cnt;

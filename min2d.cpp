@@ -150,7 +150,7 @@ int main(int argc, char **argv )
     gp->setRot(20);
     gp->setIndex(0);
     l->insertProp(gp);
-#if 0    
+
     // text
     wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
     
@@ -170,7 +170,6 @@ int main(int argc, char **argv )
     movtb->setScl(3);
     movtb->setLoc(0,-150);
     l->insertProp(movtb);
-#endif
 
     //
     
@@ -213,23 +212,23 @@ int main(int argc, char **argv )
             }
         }
 #endif
-        //        g->set( irange(0,4), irange(0,4), irange(0,3) );
-        //        g->setColor( irange(0,4), irange(0,4), Color( range(0,1), range(0,1), range(0,1), range(0,1) ) );
+        g->set( irange(0,4), irange(0,4), irange(0,3) );
+        g->setColor( irange(0,4), irange(0,4), Color( range(0,1), range(0,1), range(0,1), range(0,1) ) );
 
-        //        float tbr = 4 + ::sin(t)*3;
-        //        movtb->setScl(tbr);
+        float tbr = 4 + ::sin(t)*3;
+        movtb->setScl(tbr);
         
         // fps disp
         if(last_print_at == 0){
             last_print_at = t;
         } else if( last_print_at < t-1 ){
-            fprintf(stderr,"FPS:%d prop:%d\n", frame_counter, cnt  );
+        fprintf(stderr,"FPS:%d prop:%d drawcall:%d\n", frame_counter, cnt, moyai_client->last_draw_call_count  );
             frame_counter = 0;
             last_print_at = t;
         }
 
         moyai_client->render();
-
+        print("drawcnt:%d", moyai_client->last_draw_call_count );
         if( glfwGetKey( window, 'Q') ) {
             print("Q pressed");
             exit(0);

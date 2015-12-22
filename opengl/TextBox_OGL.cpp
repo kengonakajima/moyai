@@ -6,8 +6,8 @@
 
 void TextBox_OGL::render(Camera *cam, DrawBatchList *bl ) {
     if(!str) return;
-#if 0
-    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );    
+
+    //    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );    
 
     if(!mesh) {
         mesh = new Mesh();
@@ -21,7 +21,7 @@ void TextBox_OGL::render(Camera *cam, DrawBatchList *bl ) {
             }
         }
         int quad_num = l;
-        VertexFormat *vf = getVertexFormat();
+        VertexFormat *vf = DrawBatch::getVertexFormat(VFTYPE_COORD_COLOR_UV);
         vb->setFormat(vf);
         vb->reserve(quad_num*4);
         IndexBuffer *ib = new IndexBuffer();
@@ -84,9 +84,8 @@ void TextBox_OGL::render(Camera *cam, DrawBatchList *bl ) {
     if(cam) {
         camloc.x = cam->loc.x;
         camloc.y = cam->loc.y;
-    }        
-    drawMesh( mesh, font->atlas->id, camloc );
-#endif    
+    }
+    bl->appendMesh( fragment_shader, font->atlas->id, loc, scl, rot, mesh );
 }
 
 #endif

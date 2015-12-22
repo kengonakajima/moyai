@@ -293,50 +293,6 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
 
 
 	if(deck && index >= 0 ){
-#if 0            
-        if(!mesh) {
-            mesh = new Mesh();
-            VertexFormat *vf = getVertexFormat(); // TODO: 色が不要なときも色情報持っている。
-            VertexBuffer *vb = new VertexBuffer();
-            vb->setFormat(vf);
-            vb->reserve(4);
-            // 頂点は4、三角形は2個なのでindexは6個
-            // C --- D
-            // |     |
-            // A --- B
-            float d = 0.5;
-            vb->setCoord(0, Vec3(-d,-d,0)); // A TODO: 2Dの座標で十分
-            vb->setCoord(1, Vec3(d,-d,0)); // B
-            vb->setCoord(2, Vec3(-d,d,0)); // C
-            vb->setCoord(3, Vec3(d,d,0)); // D
-            updateVertexColor(vb);
-            updateVertexUV(vb);
-
-            IndexBuffer *ib = new IndexBuffer();
-            static int inds[6] = {
-                0,2,1, // ACB
-                1,2,3, // BCD
-            };
-            ib->set(inds,6);
-            mesh->setVertexBuffer(vb);
-            mesh->setIndexBuffer(ib);
-            mesh->setPrimType(GL_TRIANGLES);
-        } else {
-            if( uv_changed ) {
-                updateVertexUV(mesh->vb);
-                uv_changed = false;
-            }
-            if( color_changed ) {
-                updateVertexColor(mesh->vb);
-                color_changed = false;
-            }
-        }
-
-        if( fragment_shader ){
-            glUseProgram( fragment_shader->program );
-            fragment_shader->updateUniforms();
-        }
-#endif
         float u0,v0,u1,v1;
         deck->getUVFromIndex( index, &u0,&v0,&u1,&v1,0,0,0);
         print("appending id:%d", id);
@@ -377,69 +333,6 @@ void GLBINDTEXTURE( GLuint tex ) {
     }
 }
 
-#if 0
-void Prop2D_OGL::drawMesh( Mesh *m, GLuint tex, Vec2 camloc ) {
-    if(tex!=0) {
-        glEnable(GL_TEXTURE_2D);
-        GLBINDTEXTURE(tex);
-    } else {
-        glDisable(GL_TEXTURE_2D);
-    }
-    
-    assert(m);
-    assert(m->vb);
-    assert(m->ib);
-    assert(m->vb->fmt);            
-
-    m->vb->bless();
-    assert( m->vb->gl_name > 0 );        
-    m->ib->bless();
-    assert( m->ib->gl_name > 0 );
-
-    int vert_sz = m->vb->fmt->getNumFloat() * sizeof(float);
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m->ib->gl_name );
-    glBindBuffer( GL_ARRAY_BUFFER, m->vb->gl_name );
-    glDisableClientState( GL_VERTEX_ARRAY );
-    glDisableClientState( GL_COLOR_ARRAY );
-    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-    glDisableClientState( GL_NORMAL_ARRAY );
-        
-    // 以下prop3dからのコピペ、動いたら共通化する
-    if( m->vb->fmt->coord_offset >= 0 ){
-        glEnableClientState( GL_VERTEX_ARRAY );        
-        glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + m->vb->fmt->coord_offset * sizeof(float) );
-    }
-    if( m->vb->fmt->color_offset >= 0 ){
-        glEnableClientState( GL_COLOR_ARRAY );
-        glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + m->vb->fmt->color_offset * sizeof(float));
-    }
-    if( m->vb->fmt->texture_offset >= 0 ){
-        glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
-        glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + m->vb->fmt->texture_offset * sizeof(float) );
-    }
-    if( m->vb->fmt->normal_offset >= 0 ) {
-        glEnableClientState( GL_NORMAL_ARRAY );
-        glNormalPointer( GL_FLOAT, vert_sz, (char*)0 + m->vb->fmt->normal_offset * sizeof(float) );
-    }
-
-    glDisable(GL_LIGHTING); // TODO: may be outside of this function
-    glDisable(GL_LIGHT0);
-        
-    glLoadIdentity();    
-
-    glTranslatef( loc.x - camloc.x, loc.y - camloc.y, 0 );
-    glRotatef( rot * (180.0f/M_PI), 0,0,1);
-    glScalef( scl.x, scl.y, 1 );
-
-    glDrawElements( m->prim_type, m->ib->array_len, GL_UNSIGNED_INT, 0);
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-    glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        
-    if( fragment_shader ){
-        glUseProgram(0);
-    }
-}
-#endif
 
 
 
