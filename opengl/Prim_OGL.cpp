@@ -6,7 +6,7 @@ Prim_OGL::Prim_OGL( PRIMTYPE t, Vec2 a, Vec2 b, Color c, int line_width ) : type
 void Prim_OGL::draw( DrawBatchList *bl, Vec2 tr, Vec2 scl, float radrot ) {
     switch(type) {
     case PRIMTYPE_LINE:
-        bl->appendLine(a,b,color,tr,scl,radrot);
+        bl->appendLine(a,b,color,tr,scl,radrot,line_width);
         break;
     case PRIMTYPE_RECTANGLE:
         bl->appendRect(a,b,color,tr,scl,radrot);

@@ -29,6 +29,7 @@ public:
     GLuint prim_type; 
     FragmentShader *f_shader; // 0 for default
     BLENDTYPE blend_type;
+    int line_width; // used only when GL_LINES
     VertexBuffer *vb; // contains all verts in this batch
     IndexBuffer *ib;
     int vert_used; // where to put next vertex
@@ -41,13 +42,13 @@ public:
     static const int MAXQUAD = 256;
     static const int MAXVERTEX = MAXQUAD*4;
     static const int MAXINDEX = MAXQUAD*6;
-    DrawBatch( VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs, BLENDTYPE bt );
+    DrawBatch( VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew = 1 );
     DrawBatch( FragmentShader *fs, BLENDTYPE bt, GLuint tx, Vec2 translate, Vec2 scale, float r, Mesh *m );
     ~DrawBatch() {
         delete vb;
         delete ib;
     };
-    bool shouldContinue( VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs, BLENDTYPE bt );
+    bool shouldContinue( VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew = 1);
     void draw();
     int hasVertexRoom( int n ) {
         return MAXVERTEX - vert_used;
@@ -66,13 +67,13 @@ public:
     DrawBatchList_OGL();
     void clear();
     DrawBatch *getCurrentBatch();
-    DrawBatch *startNextBatch( VFTYPE vft, GLuint tex, GLuint primtype, FragmentShader *fs, BLENDTYPE bt );
+    DrawBatch *startNextBatch( VFTYPE vft, GLuint tex, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew = 1 );
     DrawBatch *startNextMeshBatch( FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh );
     int drawAll();
 
     bool appendSprite1( FragmentShader *fs, BLENDTYPE bt, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 uv0, Vec2 uv1 );
 
     bool appendMesh( FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh );
-    bool appendLine( Vec2 a, Vec2 b, Color c, Vec2 tr, Vec2 scl, float radrot );
+    bool appendLine( Vec2 a, Vec2 b, Color c, Vec2 tr, Vec2 scl, float radrot, int linew );
     bool appendRect( Vec2 a, Vec2 b, Color c, Vec2 tr, Vec2 scl, float radrot );
 };

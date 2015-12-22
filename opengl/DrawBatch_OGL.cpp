@@ -7,7 +7,7 @@
 #include "../common/DrawBatch.h"
 
 
-DrawBatch::DrawBatch( VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs, BLENDTYPE bt ) : vf_type(vft), tex(tx), prim_type(primtype), f_shader(fs), blend_type(bt), vert_used(0), index_used(0), mesh(NULL), translate(0,0), scale(8,8), radrot(0) {
+DrawBatch::DrawBatch( VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew ) : vf_type(vft), tex(tx), prim_type(primtype), f_shader(fs), blend_type(bt), line_width(linew), vert_used(0), index_used(0), mesh(NULL), translate(0,0), scale(8,8), radrot(0) {
     VertexFormat *vf = getVertexFormat(vft);
     vb = new VertexBuffer();
     vb->setFormat(vf);
@@ -17,9 +17,9 @@ DrawBatch::DrawBatch( VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs
 }
 DrawBatch::DrawBatch( FragmentShader *fs, BLENDTYPE bt, GLuint tx, Vec2 tr, Vec2 scl, float r, Mesh *m ) : vf_type(VFTYPE_INVAL), tex(tx), prim_type(0), f_shader(fs), blend_type(bt), vb(NULL), ib(NULL), vert_used(0), index_used(0), mesh(m), translate(tr), scale(scl), radrot(r) {
 }
-bool DrawBatch::shouldContinue( VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs, BLENDTYPE bt ) {
+bool DrawBatch::shouldContinue( VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew  ) {
     //    print("shouldcont:vf:%d:%d tex:%d:%d prim:%d:%d fs:%p:%p", vft,vf_type,texid,tex,primtype,prim_type,f_shader,fs);
-    return (vft==vf_type && texid == tex && primtype == prim_type && f_shader == fs && blend_type == bt );
+    return (vft==vf_type && texid == tex && primtype == prim_type && f_shader == fs && blend_type == bt && line_width == linew );
 }
 void DrawBatch::pushVertices( int vnum, Color *colors, Vec3 *coords, int inum, int *inds) {
     for(int i=0;i<vnum;i++) {
@@ -90,6 +90,7 @@ void DrawBatch::draw() {
     } else {
         assertmsg(false, "invalid blend type:%d", blend_type );
     }
+    if( prim_type == GL_LINES ) glLineWidth(line_width);
 
     VertexBuffer *vb_use = NULL;
     IndexBuffer *ib_use = NULL;
@@ -224,15 +225,15 @@ bool DrawBatchList_OGL::appendSprite1( FragmentShader *fs, BLENDTYPE bt, GLuint 
     b->pushVertices( 4, cols, coords,uvs, 6, inds );
     return true;
 }
-bool DrawBatchList_OGL::appendLine( Vec2 p0, Vec2 p1, Color col, Vec2 trans, Vec2 scl, float radrot ) {
+bool DrawBatchList_OGL::appendLine( Vec2 p0, Vec2 p1, Color col, Vec2 trans, Vec2 scl, float radrot, int linew ) {
     //    print("appendLine %f,%f", p0.x, p0.y );
     DrawBatch *b = getCurrentBatch();
     bool to_continue = false;
-    if( b && b->shouldContinue( VFTYPE_COORD_COLOR, 0, GL_LINES, NULL, BLENDTYPE_SRC_ALPHA ) && b->hasVertexRoom(2) ) {
+    if( b && b->shouldContinue( VFTYPE_COORD_COLOR, 0, GL_LINES, NULL, BLENDTYPE_SRC_ALPHA, linew ) && b->hasVertexRoom(2) ) {
         to_continue = true;
     }
     if(!to_continue) {
-        b = startNextBatch(VFTYPE_COORD_COLOR, 0, GL_LINES, NULL, BLENDTYPE_SRC_ALPHA );
+        b = startNextBatch(VFTYPE_COORD_COLOR, 0, GL_LINES, NULL, BLENDTYPE_SRC_ALPHA, linew );
         if(!b) {
             print("appendline: can't start new batch");
             return false;
@@ -305,9 +306,9 @@ DrawBatch *DrawBatchList_OGL::getCurrentBatch() {
     if(used==0) return NULL;
     return batches[used-1];
 }
-DrawBatch *DrawBatchList_OGL::startNextBatch( VFTYPE vft, GLuint tex, GLuint primtype, FragmentShader *fs, BLENDTYPE bt ) {
+DrawBatch *DrawBatchList_OGL::startNextBatch( VFTYPE vft, GLuint tex, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew ) {
     assertmsg( used<MAXBATCH, "max draw batch. need tune" );
-    DrawBatch *b = new DrawBatch(vft, tex, primtype, fs, bt );
+    DrawBatch *b = new DrawBatch(vft, tex, primtype, fs, bt, linew );
     batches[used] = b;
     used++;
     return b;
