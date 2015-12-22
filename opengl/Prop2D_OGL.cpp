@@ -69,84 +69,10 @@ bool Prop2D_OGL::propPoll(double dt) {
 	return true;
 }
 
-void Prop2D_OGL::drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot ) {
-
-	float u0,v0,u1,v1;
-	dk->getUVFromIndex(ind, &u0, &v0, &u1, &v1, uofs, vofs, tex_epsilon );
-	float depth = 10;
-
-	if(debug_id) print("UV: ind:%d %f,%f %f,%f uo:%f vo:%f", ind, u0,v0, u1,v1, uofs, vofs );
-
-	if(hrev){
-		float tmp = u1;
-		u1 = u0;
-		u0 = tmp;
-	}
-	if(vrev){
-		float tmp = v1;
-		v1 = v0;
-		v0 = tmp;
-	}
-
-	// if not rot 
-	// B-----C       A:min C:max
-	// |     |
-	// A-----D
-	//
-	// if rot
-	Vec2 a,b,c,d;
-	if(rot==0){
-		if(uvrot){
-			a = Vec2( maxx, miny );
-			b = Vec2( minx, miny );
-			c = Vec2( minx, maxy );
-			d = Vec2( maxx, maxy );
-		} else {
-			a = Vec2( minx, miny );
-			b = Vec2( minx, maxy );
-			c = Vec2( maxx, maxy );
-			d = Vec2( maxx, miny );
-		}
-	} else {
-		float sn = sin(radrot);
-		float cs = cos(radrot);
-		float center_x = (minx+maxx)/2.0f;
-		float center_y = (miny+maxy)/2.0f;
-		minx -= center_x;
-		miny -= center_y;
-		maxx -= center_x;
-		maxy -= center_y;
-
-		if(uvrot){
-			a = Vec2( maxx * cs - miny * sn, maxx * sn + miny * cs );
-			b = Vec2( minx * cs - miny * sn, minx * sn + miny * cs );
-			c = Vec2( minx * cs - maxy * sn, minx * sn + maxy * cs );
-			d = Vec2( maxx * cs - maxy * sn, maxx * sn + maxy * cs );
-		} else {
-			a = Vec2( minx * cs - miny * sn, minx * sn + miny * cs );
-			b = Vec2( minx * cs - maxy * sn, minx * sn + maxy * cs );
-			c = Vec2( maxx * cs - maxy * sn, maxx * sn + maxy * cs );
-			d = Vec2( maxx * cs - miny * sn, maxx * sn + miny * cs );
-		}
-		a = a.add( center_x, center_y );
-		b = b.add( center_x, center_y );
-		c = c.add( center_x, center_y );
-		d = d.add( center_x, center_y );                    
-	}
-
-	// counter clockwise
-	glTexCoord2f(u0,v1); glVertex3i( a.x, a.y, depth );
-	glTexCoord2f(u1,v1); glVertex3i( d.x, d.y, depth );
-	glTexCoord2f(u1,v0); glVertex3i( c.x, c.y, depth );
-	glTexCoord2f(u0,v0); glVertex3i( b.x, b.y, depth ); 
-
-}
-
 void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
 	assertmsg(deck || grid_used_num > 0 || children_num > 0 || prim_drawer , "no deck/grid/prim_drawer is set. deck:%p grid:%d child:%d prim:%p", deck, grid_used_num, children_num, prim_drawer );
 
     if( use_additive_blend ) glBlendFunc(GL_ONE, GL_ONE ); else glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-
     
 	float camx=0.0f;
 	float camy=0.0f;
@@ -287,18 +213,19 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
             //drawMesh( grid->mesh, draw_deck->tex->tex, Vec2(camx,camy) );
             FragmentShader *fs = fragment_shader;
             if( grid->fragment_shader ) fs = grid->fragment_shader;
-            bl->appendMesh( fs, draw_deck->tex->tex, loc, scl, rot, grid->mesh );
+            bl->appendMesh( fs, draw_deck->tex->tex, loc - Vec2(camx,camy), scl, rot, grid->mesh );
 		}
 	}
 
 
+            
 	if(deck && index >= 0 ){
         float u0,v0,u1,v1;
         deck->getUVFromIndex( index, &u0,&v0,&u1,&v1,0,0,0);
         bl->appendSprite1( fragment_shader,
                            deck->tex->tex,
                            color,
-                           loc,
+                           loc - Vec2(camx,camy),
                            scl,
                            rot,
                            Vec2(u0,v1),
@@ -321,7 +248,7 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
         glTranslatef( loc.x - camx, loc.y - camy, 0 );
         glRotatef( rot * (180.0f/M_PI), 0,0,1);
         glScalef( scl.x, scl.y, 1 );
-		prim_drawer->drawAll(bl,loc,scl,rot);
+		prim_drawer->drawAll(bl,loc - Vec2(camx,camy),scl,rot);
 	}
 }
 void GLBINDTEXTURE( GLuint tex ) {

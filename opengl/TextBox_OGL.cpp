@@ -85,7 +85,7 @@ void TextBox_OGL::render(Camera *cam, DrawBatchList *bl ) {
         camloc.x = cam->loc.x;
         camloc.y = cam->loc.y;
     }
-    bl->appendMesh( fragment_shader, font->atlas->id, loc, scl, rot, mesh );
+    bl->appendMesh( fragment_shader, font->atlas->id, loc - camloc, scl, rot, mesh );
 }
 
 #endif

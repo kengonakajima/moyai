@@ -227,10 +227,6 @@ public:
 	inline void setXFlip( bool flg){ xflip = flg; }
 	inline void setYFlip( bool flg){ yflip = flg; }
 
-	void drawIndex( TileDeck *dk, int ind, float minx, float miny, float maxx, float maxy, bool hrev, bool vrev, float uofs, float vofs, bool uvrot, float radrot );
-
-
-
 	virtual void onIndexChanged(int previndex ){}
 
 	inline void setFragmentShader( FragmentShader_OGL *fs ){

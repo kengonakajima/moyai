@@ -232,6 +232,8 @@ int main(int argc, char **argv )
         }
         if( glfwGetKey( window, 'L' ) ) {
             camera->setLoc(100,100);
+        } else {
+            camera->setLoc(0,0);
         }
         if( glfwGetKey( window, '1' ) ) {
             for(int i=0;i<50;i++) {
