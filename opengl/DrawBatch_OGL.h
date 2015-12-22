@@ -7,6 +7,8 @@
 
 #include "../common/VertexBuffer.h"
 #include "../common/IndexBuffer.h"
+#include "../common/Mesh.h"
+#include "../common/FragmentShader.h"
 
 typedef enum {
     VFTYPE_INVAL = 0,
@@ -19,20 +21,26 @@ public:
     VFTYPE vf_type;
     GLuint tex; // 0 for non-text
     GLuint prim_type; 
-    GLuint program; // 0 for default
+    FragmentShader *f_shader; // 0 for default
     VertexBuffer *vb; // contains all verts in this batch
     IndexBuffer *ib;
     int vert_used; // where to put next vertex
     int index_used;
+    
+    Mesh *mesh; // overrides ib,vb,prim_type,vf_type
+    Vec2 translate, scale; // used only when drawing mesh
+    float radrot;
+    
     static const int MAXQUAD = 256;
     static const int MAXVERTEX = MAXQUAD*4;
     static const int MAXINDEX = MAXQUAD*6;
-    DrawBatch( VFTYPE vft, GLuint tx, GLuint primtype, GLuint prog );
+    DrawBatch( VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs );
+    DrawBatch( FragmentShader *fs, GLuint tx, Vec2 translate, Vec2 scale, float r, Mesh *m );
     ~DrawBatch() {
         delete vb;
         delete ib;
     };
-    bool shouldContinue( VFTYPE vft, GLuint texid, GLuint primtype, GLuint prog );
+    bool shouldContinue( VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs );
     void draw();
     int hasVertexRoom( int n ) {
         return MAXVERTEX - vert_used;
@@ -50,8 +58,10 @@ public:
     DrawBatchList_OGL();
     void clear();
     DrawBatch *getCurrentBatch();
-    DrawBatch *startNextBatch( VFTYPE vft, GLuint tex, GLuint primtype, GLuint prog );
+    DrawBatch *startNextBatch( VFTYPE vft, GLuint tex, GLuint primtype, FragmentShader *fs );
+    DrawBatch *startNextMeshBatch( FragmentShader *fs, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh );
     void drawAll();
 
-    bool appendSprite1( GLuint program, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 uv0, Vec2 uv1 );
+    bool appendSprite1( FragmentShader *fs, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 uv0, Vec2 uv1 );
+    bool appendMesh( FragmentShader *fs, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh );
 };

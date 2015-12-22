@@ -169,15 +169,9 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
 			Grid *grid = grids[i];
 			if(!grid)break;
 			if(!grid->visible)continue;
-#if 0
-			TileDeck *draw_deck;
-			if( grid->deck ){
-				draw_deck = grid->deck;
-				glBindTexture( GL_TEXTURE_2D, grid->deck->tex->tex );                
-			} else {
-				draw_deck = deck;
-				glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
-			}
+
+			TileDeck *draw_deck = deck;
+			if( grid->deck ) draw_deck = grid->deck;
 			if( grid->fragment_shader ){
 				glUseProgram(grid->fragment_shader->program );
 				grid->fragment_shader->updateUniforms();
@@ -186,7 +180,7 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
             if(!grid->mesh) {
                 print("new grid mesh! wh:%d,%d", grid->width, grid->height );
                 grid->mesh = new Mesh();
-                VertexFormat *vf = getVertexFormat();
+                VertexFormat *vf = DrawBatch::getVertexFormat( VFTYPE_COORD_COLOR_UV );
                 IndexBuffer *ib = new IndexBuffer();
                 VertexBuffer *vb = new VertexBuffer();
                 vb->setFormat(vf);
@@ -290,8 +284,10 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
                 continue;
             }
             //            print("ggg:%p %p %f,%f", grid->mesh, draw_deck, loc.x, loc.y );
-            drawMesh( grid->mesh, draw_deck->tex->tex, Vec2(camx,camy) );
-#endif            
+            //drawMesh( grid->mesh, draw_deck->tex->tex, Vec2(camx,camy) );
+            FragmentShader *fs = fragment_shader;
+            if( grid->fragment_shader ) fs = grid->fragment_shader;
+            bl->appendMesh( fs, draw_deck->tex->tex, loc, scl, rot, grid->mesh );
 		}
 	}
 
@@ -344,7 +340,7 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
         float u0,v0,u1,v1;
         deck->getUVFromIndex( index, &u0,&v0,&u1,&v1,0,0,0);
         print("appending id:%d", id);
-        bl->appendSprite1( fragment_shader ? fragment_shader->program : 0,
+        bl->appendSprite1( fragment_shader,
                            deck->tex->tex,
                            color,
                            loc,

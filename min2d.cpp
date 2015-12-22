@@ -129,7 +129,7 @@ int main(int argc, char **argv )
     l->insertProp(pp);
 #endif
     
-#if 0    
+
     // grid
     Grid *g = new Grid(4,4);
     for(int x=0;x<4;x++) {
@@ -150,7 +150,7 @@ int main(int argc, char **argv )
     gp->setRot(20);
     gp->setIndex(0);
     l->insertProp(gp);
-
+#if 0    
     // text
     wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
     

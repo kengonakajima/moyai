@@ -7,7 +7,7 @@
 #include "../common/DrawBatch.h"
 
 
-DrawBatch::DrawBatch( VFTYPE vft, GLuint tx, GLuint primtype, GLuint prog ) : tex(tx), prim_type(primtype), program(prog), vert_used(0), index_used(0) {
+DrawBatch::DrawBatch( VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs ) : tex(tx), prim_type(primtype), f_shader(fs), vert_used(0), index_used(0), mesh(NULL), translate(0,0), scale(8,8), radrot(0) {
     VertexFormat *vf = getVertexFormat(vft);
     vb = new VertexBuffer();
     vb->setFormat(vf);
@@ -15,8 +15,10 @@ DrawBatch::DrawBatch( VFTYPE vft, GLuint tx, GLuint primtype, GLuint prog ) : te
     ib = new IndexBuffer();
     ib->reserve(MAXINDEX);
 }
-bool DrawBatch::shouldContinue( VFTYPE vft, GLuint texid, GLuint primtype, GLuint prog ) {
-    return (vft==vf_type && texid == tex && primtype == prim_type && prog == program );
+DrawBatch::DrawBatch( FragmentShader *fs, GLuint tx, Vec2 tr, Vec2 scl, float r, Mesh *m ) : vf_type(VFTYPE_INVAL), tex(tx), prim_type(0), f_shader(fs), vb(NULL), ib(NULL), vert_used(0), index_used(0), mesh(m), translate(tr), scale(scl), radrot(r) {
+}
+bool DrawBatch::shouldContinue( VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs ) {
+    return (vft==vf_type && texid == tex && primtype == prim_type && f_shader == fs );
 }
 void DrawBatch::pushVertices( int vnum, Color *colors, Vec3 *coords, Vec2 *uvs, int inum, int *inds) {
     for(int i=0;i<vnum;i++) {
@@ -65,35 +67,52 @@ void DrawBatch::draw() {
         glBindTexture( GL_TEXTURE_2D, tex );        
     }
 
-    glUseProgram(program);
-    
-    vb->bless();
-    ib->bless();
+    if( f_shader) {
+        glUseProgram(f_shader->program);
+        f_shader->updateUniforms();
+    }
 
-    int vert_sz = vb->fmt->getNumFloat() * sizeof(float);
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib->gl_name );
-    glBindBuffer( GL_ARRAY_BUFFER, vb->gl_name );
+    VertexBuffer *vb_use = NULL;
+    IndexBuffer *ib_use = NULL;
+    
+    if(vb) {
+        vb_use = vb;
+        ib_use = ib;
+    } else if(mesh) {
+        vb_use = mesh->vb;
+        ib_use = mesh->ib;
+    } else {
+        assertmsg(false, "invalid draw batch" );
+    }
+    
+    // normal 2D sprites
+    vb_use->bless();
+    ib_use->bless();
+
+    int vert_sz = vb_use->fmt->getNumFloat() * sizeof(float);
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib_use->gl_name );
+    glBindBuffer( GL_ARRAY_BUFFER, vb_use->gl_name );
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_COLOR_ARRAY );
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
     glDisableClientState( GL_NORMAL_ARRAY );
 
     // 以下prop3dからのコピペ、動いたら共通化する
-    if( vb->fmt->coord_offset >= 0 ){
+    if( vb_use->fmt->coord_offset >= 0 ){
         glEnableClientState( GL_VERTEX_ARRAY );        
-        glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + vb->fmt->coord_offset * sizeof(float) );
+        glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + vb_use->fmt->coord_offset * sizeof(float) );
     }
-    if( vb->fmt->color_offset >= 0 ){
+    if( vb_use->fmt->color_offset >= 0 ){
         glEnableClientState( GL_COLOR_ARRAY );
-        glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + vb->fmt->color_offset * sizeof(float));
+        glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + vb_use->fmt->color_offset * sizeof(float));
     }
-    if( vb->fmt->texture_offset >= 0 ){
+    if( vb_use->fmt->texture_offset >= 0 ){
         glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
-        glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + vb->fmt->texture_offset * sizeof(float) );
+        glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + vb_use->fmt->texture_offset * sizeof(float) );
     }
-    if( vb->fmt->normal_offset >= 0 ) {
+    if( vb_use->fmt->normal_offset >= 0 ) {
         glEnableClientState( GL_NORMAL_ARRAY );
-        glNormalPointer( GL_FLOAT, vert_sz, (char*)0 + vb->fmt->normal_offset * sizeof(float) );
+        glNormalPointer( GL_FLOAT, vert_sz, (char*)0 + vb_use->fmt->normal_offset * sizeof(float) );
     }
 
     glDisable(GL_LIGHTING); // TODO: may be outside of this function
@@ -101,19 +120,24 @@ void DrawBatch::draw() {
         
     glLoadIdentity();    
 
-    // TODO: apply camera    glTranslatef( loc.x, loc.y, 0 );
-    //   glRotatef( rot * (180.0f/M_PI), 0,0,1);
-    // TODO: apply viewport scaling   glScalef( scl.x, scl.y, 1 );
+        
+    if(mesh) {
+        // grid, textbox, prims, and 3d meshes        
+        glTranslatef( translate.x, translate.y, 0 );
+        // TODO: apply camera
+        glRotatef( radrot * (180.0f/M_PI), 0,0,1);
+        // TODO: apply viewport scaling
+        glScalef( scale.x, scale.y, 1 );
+        glDrawElements( mesh->prim_type, mesh->ib->array_len, GL_UNSIGNED_INT, 0);
+    } else {
+        glDrawElements( prim_type, index_used, GL_UNSIGNED_INT, 0);        
+    }
 
-    glDrawElements( prim_type, index_used, GL_UNSIGNED_INT, 0);
+    // clean
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
     glBindBuffer( GL_ARRAY_BUFFER, 0 );
         
-    if(program) {
-        glUseProgram(0);
-    }
-    
-
+    if(f_shader) glUseProgram(0);
 }
 
 
@@ -121,13 +145,13 @@ void DrawBatch::draw() {
 
 // One sprite : includes 2 triangles
 // returns true if success
-bool DrawBatchList_OGL::appendSprite1( GLuint program, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 uv0, Vec2 uv1 ) {
-    print("append: tr:%f,%f scl:%f,%f rot:%f", tr.x,tr.y,scl.x,scl.y,radrot);
+bool DrawBatchList_OGL::appendSprite1( FragmentShader *fs, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 uv0, Vec2 uv1 ) {
+    print("appendspr: tr:%f,%f scl:%f,%f rot:%f", tr.x,tr.y,scl.x,scl.y,radrot);
     DrawBatch *b = getCurrentBatch();
     bool to_continue;
     if(!b) {
         to_continue = false;
-    } else if( b->shouldContinue( VFTYPE_COORD_COLOR_UV, tex, GL_TRIANGLES, program ) ) {
+    } else if( b->shouldContinue( VFTYPE_COORD_COLOR_UV, tex, GL_TRIANGLES, fs ) ) {
         to_continue = true;
     } else if( b->hasVertexRoom(4) ) {
         to_continue = true;
@@ -136,9 +160,9 @@ bool DrawBatchList_OGL::appendSprite1( GLuint program, GLuint tex, Color c, Vec2
     }
     if( !to_continue ) {
         print("starting new batch");
-        b = startNextBatch(VFTYPE_COORD_COLOR_UV, tex, GL_TRIANGLES, program );
+        b = startNextBatch(VFTYPE_COORD_COLOR_UV, tex, GL_TRIANGLES, fs );
         if(!b) {
-            print("DrawBatchList_OGL::appendSprite1: batch list size not enough!" );
+            print("DrawBatchList_OGL::appendSprite1: can't start sprite batch");
             return false;
         }
     }
@@ -189,12 +213,22 @@ bool DrawBatchList_OGL::appendSprite1( GLuint program, GLuint tex, Color c, Vec2
     return true;
 }
 
+bool DrawBatchList_OGL::appendMesh( FragmentShader*fs, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh ) {
+    print("appendmesh: tr:%f,%f scl:%f,%f rot:%f", tr.x,tr.y,scl.x,scl.y,radrot);
+    DrawBatch *b = startNextMeshBatch( fs, tex, tr,scl,radrot,mesh );
+    if(!b) {
+        print("appendMesh: can't start mesh batch!" );
+        return false;
+    }
+    return true;
+}
 DrawBatchList_OGL::DrawBatchList_OGL() : used(0) {
     for(int i=0;i<MAXBATCH;i++) {
         batches[i] = NULL;
     }
 };
 void DrawBatchList_OGL::clear() {
+    print("clear list");
     for(int i=0;i<used;i++) {
         delete batches[i];
         batches[i] = NULL;
@@ -204,9 +238,16 @@ void DrawBatchList_OGL::clear() {
 DrawBatch *DrawBatchList_OGL::getCurrentBatch() {
     return batches[used];
 }
-DrawBatch *DrawBatchList_OGL::startNextBatch( VFTYPE vft, GLuint tex, GLuint primtype, GLuint prog ) {
+DrawBatch *DrawBatchList_OGL::startNextBatch( VFTYPE vft, GLuint tex, GLuint primtype, FragmentShader *fs ) {
     assertmsg( used<MAXBATCH, "max draw batch. need tune" );
-    DrawBatch *b = new DrawBatch(vft, tex, primtype, prog );
+    DrawBatch *b = new DrawBatch(vft, tex, primtype, fs );
+    batches[used] = b;
+    used++;
+    return b;
+}
+DrawBatch *DrawBatchList_OGL::startNextMeshBatch( FragmentShader *fs, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh ) {
+    assertmsg( used<MAXBATCH, "max draw batch. need tune" );
+    DrawBatch *b = new DrawBatch( fs, tex, tr, scl, radrot, mesh );
     batches[used] = b;
     used++;
     return b;
