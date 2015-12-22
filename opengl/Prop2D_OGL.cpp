@@ -71,8 +71,6 @@ bool Prop2D_OGL::propPoll(double dt) {
 
 void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
 	assertmsg(deck || grid_used_num > 0 || children_num > 0 || prim_drawer , "no deck/grid/prim_drawer is set. deck:%p grid:%d child:%d prim:%p", deck, grid_used_num, children_num, prim_drawer );
-
-    if( use_additive_blend ) glBlendFunc(GL_ONE, GL_ONE ); else glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
     
 	float camx=0.0f;
 	float camy=0.0f;
@@ -213,7 +211,7 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
             //drawMesh( grid->mesh, draw_deck->tex->tex, Vec2(camx,camy) );
             FragmentShader *fs = fragment_shader;
             if( grid->fragment_shader ) fs = grid->fragment_shader;
-            bl->appendMesh( fs, draw_deck->tex->tex, loc - Vec2(camx,camy), scl, rot, grid->mesh );
+            bl->appendMesh( fs, getBlendType(), draw_deck->tex->tex, loc - Vec2(camx,camy), scl, rot, grid->mesh );
 		}
 	}
 
@@ -223,6 +221,7 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
         float u0,v0,u1,v1;
         deck->getUVFromIndex( index, &u0,&v0,&u1,&v1,0,0,0);
         bl->appendSprite1( fragment_shader,
+                           getBlendType(),
                            deck->tex->tex,
                            color,
                            loc - Vec2(camx,camy),

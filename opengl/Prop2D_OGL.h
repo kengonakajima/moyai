@@ -260,6 +260,9 @@ public:
 		return ( loc.x >= minloc.x && loc.x <= maxloc.x && loc.y >= minloc.y && loc.y <= maxloc.y );
 	}
 	void updateMinMaxSizeCache();
+    BLENDTYPE getBlendType() {
+        if( use_additive_blend ) return BLENDTYPE_ADD; else return BLENDTYPE_SRC_ALPHA;
+    }
 
 	inline bool hit( Vec2 at, float margin = 0 ){
 		return ( at.x >= loc.x - scl.x/2 - margin ) && ( at.x <= loc.x + scl.x/2 + margin) &&
