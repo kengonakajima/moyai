@@ -180,7 +180,12 @@ int Layer_OGL::renderAllProps( DrawBatchList *bl ){
 					break;
 				}
 				drawn ++;
-			} 
+			}  else {
+                print("culled: %d %f %f %f %f  %f %f - %f %f",
+                      cur->id, scr_minx, scr_miny, scr_maxx, scr_maxy,
+                      minv.x, minv.y, maxv.x, maxv.y
+                      );
+            }
 			cur = cur->next;
 		}
 

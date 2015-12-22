@@ -235,6 +235,13 @@ int main(int argc, char **argv )
         } else {
             camera->setLoc(0,0);
         }
+        if( glfwGetKey( window, 'S' ) ) {
+            viewport->setScale2D(SCRW/2,SCRH/2); 
+        } else {
+            viewport->setScale2D(SCRW,SCRH); 
+        }
+
+        
         if( glfwGetKey( window, '1' ) ) {
             for(int i=0;i<50;i++) {
                 Prop *p = new Particle(deck);

@@ -77,8 +77,9 @@ void TextBox_OGL::render(Camera *cam, DrawBatchList *bl ) {
             //            glTexCoord2f(s1,t0); glVertex3i( x1,y0, depth );
 
             cur_lb.x += glyph->advance_x;
+            max_rt_cache.x = cur_lb.x;
         }
-        
+        max_rt_cache.y = (line_num+1)*font->pixel_size;
     }
     Vec2 camloc;
     if(cam) {
