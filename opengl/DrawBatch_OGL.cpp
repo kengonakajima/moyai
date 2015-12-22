@@ -20,16 +20,27 @@ DrawBatch::DrawBatch( FragmentShader *fs, GLuint tx, Vec2 tr, Vec2 scl, float r,
 bool DrawBatch::shouldContinue( VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs ) {
     return (vft==vf_type && texid == tex && primtype == prim_type && f_shader == fs );
 }
+void DrawBatch::pushVertices( int vnum, Color *colors, Vec3 *coords, int inum, int *inds) {
+    for(int i=0;i<vnum;i++) {
+        vb->setCoord(vert_used+i,coords[i]);
+        vb->setColor(vert_used+i,colors[i]);
+    }
+    for(int i=0;i<inum;i++) {
+        ib->setIndex(index_used+i,vert_used + inds[i]);
+    }
+    vert_used += vnum;
+    index_used += inum;    
+}
 void DrawBatch::pushVertices( int vnum, Color *colors, Vec3 *coords, Vec2 *uvs, int inum, int *inds) {
     for(int i=0;i<vnum;i++) {
         vb->setCoord(vert_used+i,coords[i]);
         vb->setColor(vert_used+i,colors[i]);
         vb->setUV(vert_used+i,uvs[i]);
     }
-    vert_used += vnum;
     for(int i=0;i<inum;i++) {
-        ib->setIndex(index_used+i,inds[i]);
+        ib->setIndex(index_used+i,vert_used + inds[i]);
     }
+    vert_used += vnum;
     index_used += inum;
 }
 
@@ -148,16 +159,10 @@ void DrawBatch::draw() {
 bool DrawBatchList_OGL::appendSprite1( FragmentShader *fs, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 uv0, Vec2 uv1 ) {
     print("appendspr: tr:%f,%f scl:%f,%f rot:%f", tr.x,tr.y,scl.x,scl.y,radrot);
     DrawBatch *b = getCurrentBatch();
-    bool to_continue;
-    if(!b) {
-        to_continue = false;
-    } else if( b->shouldContinue( VFTYPE_COORD_COLOR_UV, tex, GL_TRIANGLES, fs ) ) {
+    bool to_continue = false;
+    if( b && b->shouldContinue( VFTYPE_COORD_COLOR_UV, tex, GL_TRIANGLES, fs ) && b->hasVertexRoom(4) ) {
         to_continue = true;
-    } else if( b->hasVertexRoom(4) ) {
-        to_continue = true;
-    } else {
-        to_continue = false;
-    }
+    } 
     if( !to_continue ) {
         print("starting new batch");
         b = startNextBatch(VFTYPE_COORD_COLOR_UV, tex, GL_TRIANGLES, fs );
@@ -212,7 +217,65 @@ bool DrawBatchList_OGL::appendSprite1( FragmentShader *fs, GLuint tex, Color c, 
     b->pushVertices( 4, cols, coords,uvs, 6, inds );
     return true;
 }
+bool DrawBatchList_OGL::appendLine( Vec2 p0, Vec2 p1, Color col, Vec2 trans, Vec2 scl, float radrot ) {
+    print("appendLine %f,%f", p0.x, p0.y );
+    DrawBatch *b = getCurrentBatch();
+    bool to_continue = false;
+    if( b && b->shouldContinue( VFTYPE_COORD_COLOR, 0, GL_LINES, NULL ) && b->hasVertexRoom(2) ) {
+        to_continue = true;
+    }
+    if(!to_continue) {
+        print("starting new batch(line)");
+        b = startNextBatch(VFTYPE_COORD_COLOR, 0, GL_LINES, NULL );
+        if(!b) {
+            print("appendline: can't start new batch");
+            return false;
+        }
+    }
+    Vec2 p0r( p0.x*scl.x, p0.y*scl.y );
+    Vec2 p1r( p1.x*scl.x, p1.y*scl.y );
+    float rotcos= ::cos(radrot), rotsin = ::sin(radrot);    
+    Vec3 coords[2] = {
+        Vec3(trans.x+ZROTX(p0r.x,p0r.y), trans.y+ZROTY(p0r.x,p0r.y), 0),
+        Vec3(trans.x+ZROTX(p1r.x,p1r.y), trans.y+ZROTY(p1r.x,p1r.y), 0)
+    };
+    int inds[2] = { 0,1 };
+    Color cols[2] = { col, col };
+    b->pushVertices( 2, cols, coords, 2, inds );
+    return true;
+}
+bool DrawBatchList_OGL::appendRect( Vec2 p0, Vec2 p1, Color c, Vec2 trans, Vec2 scl, float radrot ) {
+    print("appendRect %f,%f", p0.x, p0.y );
+    DrawBatch *b = getCurrentBatch();
+    bool to_continue = false;
+    if( b && b->shouldContinue( VFTYPE_COORD_COLOR, 0, GL_QUADS, NULL ) && b->hasVertexRoom(4) ) {
+        to_continue = true;
+    }
+    if(!to_continue) {
+        print("starting new batch(rect)");
+        b = startNextBatch(VFTYPE_COORD_COLOR, 0, GL_QUADS, NULL );
+        if(!b) {
+            print("appendline: can't start new batch");
+            return false;
+        }
+    }
+    float rotcos= ::cos(radrot), rotsin = ::sin(radrot);
+    Vec2 tl(p0.x*scl.x,p0.y*scl.y); // top left
+    Vec2 tr(p1.x*scl.x,p0.y*scl.y); // top right
+    Vec2 br(p1.x*scl.x,p1.y*scl.y); // bottom right
+    Vec2 bl(p0.x*scl.x,p1.y*scl.y);  // bottom left
 
+    Vec3 coords[4] = {
+        Vec3( trans.x + ZROTX(tl.x,tl.y), trans.y + ZROTY(tl.x,tl.y), 0 ),
+        Vec3( trans.x + ZROTX(tr.x,tr.y), trans.y + ZROTY(tr.x,tr.y), 0 ),
+        Vec3( trans.x + ZROTX(br.x,br.y), trans.y + ZROTY(br.x,br.y), 0 ),
+        Vec3( trans.x + ZROTX(bl.x,bl.y), trans.y + ZROTY(bl.x,bl.y), 0 )
+    };
+    int inds[4] = { 0,1,2,3 };
+    Color cols[4] = { c, c, c, c };
+    b->pushVertices( 4, cols, coords, 4, inds );
+    return true;
+}
 bool DrawBatchList_OGL::appendMesh( FragmentShader*fs, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh ) {
     print("appendmesh: tr:%f,%f scl:%f,%f rot:%f", tr.x,tr.y,scl.x,scl.y,radrot);
     DrawBatch *b = startNextMeshBatch( fs, tex, tr,scl,radrot,mesh );

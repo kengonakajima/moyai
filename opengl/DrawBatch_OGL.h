@@ -45,6 +45,7 @@ public:
     int hasVertexRoom( int n ) {
         return MAXVERTEX - vert_used;
     }
+    void pushVertices( int vnum, Color *colors, Vec3 *coords, int inum, int *inds);    
     void pushVertices( int vnum, Color *colors, Vec3 *coords, Vec2 *uvs, int inum, int *inds);
     static VertexFormat *getVertexFormat(VFTYPE t);
 };
@@ -64,4 +65,6 @@ public:
 
     bool appendSprite1( FragmentShader *fs, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 uv0, Vec2 uv1 );
     bool appendMesh( FragmentShader *fs, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh );
+    bool appendLine( Vec2 a, Vec2 b, Color c, Vec2 tr, Vec2 scl, float radrot );
+    bool appendRect( Vec2 a, Vec2 b, Color c, Vec2 tr, Vec2 scl, float radrot );
 };

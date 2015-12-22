@@ -117,8 +117,6 @@ int main(int argc, char **argv )
     p->setLoc(0,0);
     l->insertProp(p);
 
-
-#if 0
     // with prim
     Prop2D *pp = new Prop2D();
     pp->setScl(1.0f);
@@ -127,7 +125,6 @@ int main(int argc, char **argv )
     pp->addLine( Vec2(0,0), Vec2(100,100), Color(1,0,0,1) );
     pp->addLine( Vec2(0,0), Vec2(100,-100), Color(0,1,0,1), 5 );
     l->insertProp(pp);
-#endif
     
 
     // grid
@@ -193,8 +190,8 @@ int main(int argc, char **argv )
         static float rot=0;
         rot+=0.05;
         p->setRot(rot);
-        //        pp->setRot(rot/2.0f);
-        p->setScl( 40 + ::sin(t) * 30 );
+        pp->setRot(rot/2.0f);
+        p->setScl( 40 + ::sin(t/2) * 30 );
         int cnt = moyai_client->poll(dt);
         
 
@@ -203,7 +200,6 @@ int main(int argc, char **argv )
             Color col(range(0,1),range(0,1),range(0,1),alpha);
             p->setColor(col);
         }
-#if 0        
         if( loop_counter % 120 == 0 ) {
             switch(irange(0,3)) {
             case 0: p->setXFlip( irange(0,2)); print("XFL"); break;
@@ -211,7 +207,7 @@ int main(int argc, char **argv )
             case 2: p->setUVRot( irange(0,2)); print("UVROT"); break;
             }
         }
-#endif
+
         g->set( irange(0,4), irange(0,4), irange(0,3) );
         g->setColor( irange(0,4), irange(0,4), Color( range(0,1), range(0,1), range(0,1), range(0,1) ) );
 

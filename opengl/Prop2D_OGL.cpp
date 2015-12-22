@@ -322,7 +322,7 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
         glTranslatef( loc.x - camx, loc.y - camy, 0 );
         glRotatef( rot * (180.0f/M_PI), 0,0,1);
         glScalef( scl.x, scl.y, 1 );
-		prim_drawer->drawAll();
+		prim_drawer->drawAll(bl,loc,scl,rot);
 	}
 }
 void GLBINDTEXTURE( GLuint tex ) {

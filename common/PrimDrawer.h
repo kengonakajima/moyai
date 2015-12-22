@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Prim.h"
+#include "DrawBatch.h"
 
 class PrimDrawer {
 public:
@@ -31,9 +32,9 @@ public:
 		prims[prim_num++] = new Prim( PRIMTYPE_RECTANGLE, from, to, c, width );
 	}
 
-	inline void drawAll(){
+	inline void drawAll( DrawBatchList *bl,Vec2 tr, Vec2 scl, float radrot ){
 		for(int i=0;i<prim_num;i++){
-			prims[i]->draw();
+			prims[i]->draw(bl,tr,scl,radrot);
 		}
 	}
 	inline void clear(){

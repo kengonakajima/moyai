@@ -9,7 +9,7 @@
 #include <OpenGL/gl.h>
 #endif
 
-#include "../common/Mesh.h"
+#include "../common/DrawBatch.h"
 
 class Prim_OGL {
 public:
@@ -17,16 +17,10 @@ public:
 	Vec2 a,b;
 	Color color;
 	int line_width;
-    Mesh *mesh;
+
 	Prim_OGL( PRIMTYPE t, Vec2 a, Vec2 b, Color c, int line_width = 1 );
     ~Prim_OGL() {
-        if(mesh) {
-            mesh->deleteBuffers();
-            delete mesh;
-        }
     }
-	void draw();
-    static VertexFormat *vf_prim_common;
-    static VertexFormat *getVertexFormat();
+	void draw( DrawBatchList *bl, Vec2 tr, Vec2 scl, float radrot );
 };
 
