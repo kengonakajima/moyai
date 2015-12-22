@@ -224,7 +224,7 @@ int main(int argc, char **argv )
         }
 
         moyai_client->render();
-        print("drawcnt:%d", moyai_client->last_draw_call_count );
+        //        print("drawcnt:%d", moyai_client->last_draw_call_count );
         if( glfwGetKey( window, 'Q') ) {
             print("Q pressed");
             exit(0);

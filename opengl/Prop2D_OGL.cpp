@@ -295,7 +295,6 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
 	if(deck && index >= 0 ){
         float u0,v0,u1,v1;
         deck->getUVFromIndex( index, &u0,&v0,&u1,&v1,0,0,0);
-        print("appending id:%d", id);
         bl->appendSprite1( fragment_shader,
                            deck->tex->tex,
                            color,

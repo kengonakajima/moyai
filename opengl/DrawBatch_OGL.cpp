@@ -7,7 +7,7 @@
 #include "../common/DrawBatch.h"
 
 
-DrawBatch::DrawBatch( VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs ) : tex(tx), prim_type(primtype), f_shader(fs), vert_used(0), index_used(0), mesh(NULL), translate(0,0), scale(8,8), radrot(0) {
+DrawBatch::DrawBatch( VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs ) : vf_type(vft), tex(tx), prim_type(primtype), f_shader(fs), vert_used(0), index_used(0), mesh(NULL), translate(0,0), scale(8,8), radrot(0) {
     VertexFormat *vf = getVertexFormat(vft);
     vb = new VertexBuffer();
     vb->setFormat(vf);
@@ -18,6 +18,7 @@ DrawBatch::DrawBatch( VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs
 DrawBatch::DrawBatch( FragmentShader *fs, GLuint tx, Vec2 tr, Vec2 scl, float r, Mesh *m ) : vf_type(VFTYPE_INVAL), tex(tx), prim_type(0), f_shader(fs), vb(NULL), ib(NULL), vert_used(0), index_used(0), mesh(m), translate(tr), scale(scl), radrot(r) {
 }
 bool DrawBatch::shouldContinue( VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs ) {
+    //    print("shouldcont:vf:%d:%d tex:%d:%d prim:%d:%d fs:%p:%p", vft,vf_type,texid,tex,primtype,prim_type,f_shader,fs);
     return (vft==vf_type && texid == tex && primtype == prim_type && f_shader == fs );
 }
 void DrawBatch::pushVertices( int vnum, Color *colors, Vec3 *coords, int inum, int *inds) {
@@ -70,7 +71,6 @@ VertexFormat *DrawBatch::getVertexFormat(VFTYPE t) {
 }
 
 void DrawBatch::draw() {
-    print("DrawBatch::draw tex:%d ");    
     if(tex==0) {
         glDisable(GL_TEXTURE_2D);
     } else {
@@ -157,14 +157,13 @@ void DrawBatch::draw() {
 // One sprite : includes 2 triangles
 // returns true if success
 bool DrawBatchList_OGL::appendSprite1( FragmentShader *fs, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 uv0, Vec2 uv1 ) {
-    print("appendspr: tr:%f,%f scl:%f,%f rot:%f", tr.x,tr.y,scl.x,scl.y,radrot);
+    //    print("appendspr: tr:%f,%f scl:%f,%f rot:%f", tr.x,tr.y,scl.x,scl.y,radrot);
     DrawBatch *b = getCurrentBatch();
     bool to_continue = false;
     if( b && b->shouldContinue( VFTYPE_COORD_COLOR_UV, tex, GL_TRIANGLES, fs ) && b->hasVertexRoom(4) ) {
         to_continue = true;
     } 
     if( !to_continue ) {
-        print("starting new batch");
         b = startNextBatch(VFTYPE_COORD_COLOR_UV, tex, GL_TRIANGLES, fs );
         if(!b) {
             print("DrawBatchList_OGL::appendSprite1: can't start sprite batch");
@@ -218,14 +217,13 @@ bool DrawBatchList_OGL::appendSprite1( FragmentShader *fs, GLuint tex, Color c, 
     return true;
 }
 bool DrawBatchList_OGL::appendLine( Vec2 p0, Vec2 p1, Color col, Vec2 trans, Vec2 scl, float radrot ) {
-    print("appendLine %f,%f", p0.x, p0.y );
+    //    print("appendLine %f,%f", p0.x, p0.y );
     DrawBatch *b = getCurrentBatch();
     bool to_continue = false;
     if( b && b->shouldContinue( VFTYPE_COORD_COLOR, 0, GL_LINES, NULL ) && b->hasVertexRoom(2) ) {
         to_continue = true;
     }
     if(!to_continue) {
-        print("starting new batch(line)");
         b = startNextBatch(VFTYPE_COORD_COLOR, 0, GL_LINES, NULL );
         if(!b) {
             print("appendline: can't start new batch");
@@ -245,14 +243,12 @@ bool DrawBatchList_OGL::appendLine( Vec2 p0, Vec2 p1, Color col, Vec2 trans, Vec
     return true;
 }
 bool DrawBatchList_OGL::appendRect( Vec2 p0, Vec2 p1, Color c, Vec2 trans, Vec2 scl, float radrot ) {
-    print("appendRect %f,%f", p0.x, p0.y );
     DrawBatch *b = getCurrentBatch();
     bool to_continue = false;
     if( b && b->shouldContinue( VFTYPE_COORD_COLOR, 0, GL_QUADS, NULL ) && b->hasVertexRoom(4) ) {
         to_continue = true;
     }
     if(!to_continue) {
-        print("starting new batch(rect)");
         b = startNextBatch(VFTYPE_COORD_COLOR, 0, GL_QUADS, NULL );
         if(!b) {
             print("appendline: can't start new batch");
@@ -277,7 +273,7 @@ bool DrawBatchList_OGL::appendRect( Vec2 p0, Vec2 p1, Color c, Vec2 trans, Vec2 
     return true;
 }
 bool DrawBatchList_OGL::appendMesh( FragmentShader*fs, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh ) {
-    print("appendmesh: tr:%f,%f scl:%f,%f rot:%f", tr.x,tr.y,scl.x,scl.y,radrot);
+    //    print("appendmesh: tr:%f,%f scl:%f,%f rot:%f", tr.x,tr.y,scl.x,scl.y,radrot);
     DrawBatch *b = startNextMeshBatch( fs, tex, tr,scl,radrot,mesh );
     if(!b) {
         print("appendMesh: can't start mesh batch!" );
@@ -291,7 +287,6 @@ DrawBatchList_OGL::DrawBatchList_OGL() : used(0) {
     }
 };
 void DrawBatchList_OGL::clear() {
-    print("clear list");
     for(int i=0;i<used;i++) {
         delete batches[i];
         batches[i] = NULL;
@@ -299,7 +294,8 @@ void DrawBatchList_OGL::clear() {
     used=0;
 }
 DrawBatch *DrawBatchList_OGL::getCurrentBatch() {
-    return batches[used];
+    if(used==0) return NULL;
+    return batches[used-1];
 }
 DrawBatch *DrawBatchList_OGL::startNextBatch( VFTYPE vft, GLuint tex, GLuint primtype, FragmentShader *fs ) {
     assertmsg( used<MAXBATCH, "max draw batch. need tune" );
