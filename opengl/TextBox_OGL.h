@@ -51,6 +51,8 @@ public:
 		wcscpy( str, s );
 		assert( wcslen(str) == wcslen(s) );
         len_str = l;
+        clearMesh();
+        updateMesh();
 	}
     bool compareString( const char *u8s ) {
         int l = strlen(u8s);
@@ -62,4 +64,11 @@ public:
         return ret == 0;
     }
     int getStringLength() { return len_str; }
+    void clearMesh() {
+        if(mesh) {
+            delete mesh;
+            mesh = NULL;
+        }
+    }
+    void updateMesh();
 };

@@ -153,13 +153,14 @@ int main(int argc, char **argv )
     
     Font *font = new Font();
     font->loadFromTTF("./assets/cinecaption227.ttf", charcodes, 24 );
+    TextBox *tbs[20];
     for(int i=0;i<20;i++) {
-        TextBox *tb = new TextBox();
-        tb->setFont(font);
-        tb->setString("A");
-        tb->setScl(1+(float)i/10.0f);
-        tb->setLoc(i*10-250,0);
-        l->insertProp(tb);
+        tbs[i] = new TextBox();
+        tbs[i]->setFont(font);
+        tbs[i]->setString("A");
+        tbs[i]->setScl(1+(float)i/10.0f);
+        tbs[i]->setLoc(i*10-250,0);
+        l->insertProp(tbs[i]);
     }
     TextBox *movtb = new TextBox();
     movtb->setFont(font);
@@ -213,6 +214,9 @@ int main(int argc, char **argv )
 
         float tbr = 4 + ::sin(t)*3;
         movtb->setScl(tbr);
+
+        Format fmt("%d", loop_counter);
+        tbs[19]->setString(fmt.buf);
         
         // fps disp
         if(last_print_at == 0){

@@ -9,6 +9,16 @@ void TextBox_OGL::render(Camera *cam, DrawBatchList *bl ) {
 
     //    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );    
 
+    updateMesh();
+    Vec2 camloc;
+    if(cam) {
+        camloc.x = cam->loc.x;
+        camloc.y = cam->loc.y;
+    }
+    bl->appendMesh( fragment_shader, font->atlas->id, loc - camloc, scl, rot, mesh );
+}
+
+void TextBox_OGL::updateMesh() {
     if(!mesh) {
         mesh = new Mesh();
         VertexBuffer *vb = new VertexBuffer();
@@ -81,12 +91,6 @@ void TextBox_OGL::render(Camera *cam, DrawBatchList *bl ) {
         }
         max_rt_cache.y = (line_num+1)*font->pixel_size;
     }
-    Vec2 camloc;
-    if(cam) {
-        camloc.x = cam->loc.x;
-        camloc.y = cam->loc.y;
-    }
-    bl->appendMesh( fragment_shader, font->atlas->id, loc - camloc, scl, rot, mesh );
 }
 
 #endif
