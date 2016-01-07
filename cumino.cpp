@@ -609,3 +609,14 @@ int countChar(const char *s, int ch){
     }
     return cnt;
 }
+
+void sleepMilliSec( int ms ) {
+#if defined(__APPLE__)
+        // glfwSleep(to_sleep); not present in 3.0
+    if(ms>0) usleep( ms * 1000 );
+#endif
+#if defined(WIN32)        
+    if( ms > 0 ) Sleep( ms );
+#endif
+}
+        
