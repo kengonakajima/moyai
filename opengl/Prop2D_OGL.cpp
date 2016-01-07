@@ -93,6 +93,7 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
 			Grid *grid = grids[i];
 			if(!grid)break;
 			if(!grid->visible)continue;
+            if(!grid->index_table)continue;
 
 			TileDeck *draw_deck = deck;
 			if( grid->deck ) draw_deck = grid->deck;
