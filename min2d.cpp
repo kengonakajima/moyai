@@ -169,6 +169,23 @@ int main(int argc, char **argv )
     cgp->setScl(16);
     cgp->setLoc(50,-100);
     l->insertProp(cgp);
+
+    // children
+    Prop2D *chp = new Prop2D();
+    chp->setLoc(-200,-200);
+    chp->setDeck(deck);
+    chp->setScl(48);
+    chp->setIndex(0);
+    for(int i=0;i<8;i++) {
+        Prop2D *p = new Prop2D();
+        p->setDeck(deck);
+        p->setLoc( chp->loc + Vec2( (i+1)*30,0 ) );
+        p->setIndex(0);
+        p->setScl( 36-i*3 );
+        chp->addChild(p);
+    }
+    l->insertProp(chp);
+    
     
     // text
     wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
@@ -194,7 +211,7 @@ int main(int argc, char **argv )
     // multiple viewport and layer
     Viewport *vp2 = new Viewport(); // testing multiple viewport scaling
     vp2->setSize(SCRW*retina,SCRH*retina); 
-    vp2->setScale2D(SCRW*8,SCRH*8); 
+    vp2->setScale2D(SCRW*2,SCRH*2); 
     Camera *cam2 = new Camera();
     Layer *l2 = new Layer();
     l2->setViewport(vp2);
@@ -296,8 +313,6 @@ int main(int argc, char **argv )
             center.x -= scrollspeed;
         }
         camera->setLoc(center);
-        
-               
 
         
         if( glfwGetKey( window, '1' ) ) {

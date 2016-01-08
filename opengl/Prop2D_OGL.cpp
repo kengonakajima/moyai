@@ -250,7 +250,10 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
 	if( children_num > 0 && (render_children_first == false) ){
 		for(int i=0;i<children_num;i++){
 			Prop2D_OGL *p = (Prop2D_OGL*) children[i];
-			if(p->visible) p->render( cam, bl );
+			if(p->visible) {
+                if( !p->parent_group ) p->parent_group = parent_group;
+                p->render( cam, bl );
+            }
 		}
 	}
 
