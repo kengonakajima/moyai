@@ -94,6 +94,8 @@ int main(int argc, char **argv )
     viewport->setSize(SCRW*retina,SCRH*retina); // set actual framebuffer size to output
     viewport->setScale2D(SCRW,SCRH); // set scale used by props that will be rendered
 
+    float zoom_rate = 1.0f;
+    Vec2 center(0,0);
     Camera *camera = new Camera();
     camera->setLoc(0,0);
     
@@ -256,15 +258,31 @@ int main(int argc, char **argv )
             break;
         }
         if( glfwGetKey( window, 'L' ) ) {
-            camera->setLoc(100,100);
-        } else {
-            camera->setLoc(0,0);
+            zoom_rate += 0.2;
+            if( zoom_rate > 8 ) zoom_rate = 8;
+        }
+        if( glfwGetKey( window, 'K' ) ) {
+            zoom_rate -= 0.1;
+            if( zoom_rate < 0.1 ) zoom_rate = 0.1;
+        }
+        viewport->setScale2D(SCRW * zoom_rate,SCRH * zoom_rate); 
+
+        float scrollspeed = 10;
+        if( glfwGetKey( window, 'W' ) ) {
+            center.y -= scrollspeed;
         }
         if( glfwGetKey( window, 'S' ) ) {
-            viewport->setScale2D(SCRW/2,SCRH/2); 
-        } else {
-            viewport->setScale2D(SCRW,SCRH); 
+            center.y += scrollspeed;
         }
+        if( glfwGetKey( window, 'A' ) ) {
+            center.x += scrollspeed;
+        }
+        if( glfwGetKey( window, 'D' ) ) {
+            center.x -= scrollspeed;
+        }
+        camera->setLoc(center);
+        
+               
 
         
         if( glfwGetKey( window, '1' ) ) {
