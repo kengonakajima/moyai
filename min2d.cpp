@@ -98,7 +98,7 @@ int main(int argc, char **argv )
     Vec2 center(0,0);
     Camera *camera = new Camera();
     camera->setLoc(0,0);
-    
+
     Layer *l = new Layer();
     moyai_client->insertLayer(l);
     l->setViewport(viewport);
@@ -191,8 +191,23 @@ int main(int argc, char **argv )
     movtb->setLoc(0,-150);
     l->insertProp(movtb);
 
-    //
-    
+    // multiple viewport and layer
+    Viewport *vp2 = new Viewport(); // testing multiple viewport scaling
+    vp2->setSize(SCRW*retina,SCRH*retina); 
+    vp2->setScale2D(SCRW*8,SCRH*8); 
+    Camera *cam2 = new Camera();
+    Layer *l2 = new Layer();
+    l2->setViewport(vp2);
+    l2->setCamera(cam2);
+    Prop2D *p2 = new Prop2D();
+    p2->setDeck(deck);
+    p2->setScl(48,48);
+    p2->setIndex(0);
+    p2->setLoc(200,-200);
+    l2->insertProp(p2);
+    moyai_client->insertLayer(l2);
+
+    // main loop
 
     while( !glfwWindowShouldClose(window) ){
         static double last_print_at = 0;

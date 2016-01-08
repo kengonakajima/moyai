@@ -1,5 +1,6 @@
 #ifdef USE_OPENGL
 
+#include "../common/Viewport.h"
 #include "TextBox_OGL.h"
 
 
@@ -15,7 +16,7 @@ void TextBox_OGL::render(Camera *cam, DrawBatchList *bl ) {
         camloc.x = cam->loc.x;
         camloc.y = cam->loc.y;
     }
-    bl->appendMesh( fragment_shader, getBlendType(), font->atlas->id, loc - camloc, scl, rot, mesh );
+    bl->appendMesh( getViewport(), fragment_shader, getBlendType(), font->atlas->id, loc - camloc, scl, rot, mesh );
 }
 
 void TextBox_OGL::updateMesh() {

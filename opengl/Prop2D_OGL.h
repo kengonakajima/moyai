@@ -283,4 +283,7 @@ public:
 	inline Layer *getParentLayer() {
 		return (Layer*) parent_group;
 	}
+    inline Viewport *getViewport() {
+        return getParentLayer()->viewport;
+    }
 };

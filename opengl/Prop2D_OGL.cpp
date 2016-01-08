@@ -3,6 +3,7 @@
 #include <OpenGL/gl.h>
 #endif
 
+#include "../common/Viewport.h"
 #include "Prop2D_OGL.h"
 #include "../common/FragmentShader.h"
 #include "../common/AnimCurve.h"
@@ -223,7 +224,7 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
             //drawMesh( grid->mesh, draw_deck->tex->tex, Vec2(camx,camy) );
             FragmentShader *fs = fragment_shader;
             if( grid->fragment_shader ) fs = grid->fragment_shader;
-            bl->appendMesh( fs, getBlendType(), draw_deck->tex->tex, loc - Vec2(camx,camy), scl, rot, grid->mesh );
+            bl->appendMesh( getViewport(), fs, getBlendType(), draw_deck->tex->tex, loc - Vec2(camx,camy), scl, rot, grid->mesh );
 		}
 	}
 
@@ -232,7 +233,8 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
 	if(deck && index >= 0 ){
         float u0,v0,u1,v1;
         deck->getUVFromIndex( index, &u0,&v0,&u1,&v1,0,0,0);
-        bl->appendSprite1( fragment_shader,
+        bl->appendSprite1( getViewport(),
+                           fragment_shader,
                            getBlendType(),
                            deck->tex->tex,
                            color,
@@ -259,7 +261,7 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
         glTranslatef( loc.x - camx, loc.y - camy, 0 );
         glRotatef( rot * (180.0f/M_PI), 0,0,1);
         glScalef( scl.x, scl.y, 1 );
-		prim_drawer->drawAll(bl,loc - Vec2(camx,camy),scl,rot);
+		prim_drawer->drawAll( bl, getViewport(), loc - Vec2(camx,camy),scl,rot);
 	}
 }
 void GLBINDTEXTURE( GLuint tex ) {

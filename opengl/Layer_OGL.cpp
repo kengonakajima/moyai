@@ -135,17 +135,6 @@ inline void Layer_OGL::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc,
 int Layer_OGL::renderAllProps( DrawBatchList *bl ){
 	assertmsg( viewport, "no viewport in a layer id:%d setViewport missed?", id );
 	if( viewport->dimension == DIMENSION_2D ) {
-		glDisable(GL_LIGHTING);
-		glDisable(GL_LIGHT0);
-		glDisable(GL_DEPTH_TEST);
-
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho( -viewport->scl.x/2, viewport->scl.x/2, -viewport->scl.y/2, viewport->scl.y/2,-100,100);  // center is always (0,0)
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();        
-
 		static SorterEntry tosort[1024*32];
 
 		int cnt = 0;
