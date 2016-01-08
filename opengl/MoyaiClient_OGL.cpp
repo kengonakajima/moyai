@@ -6,6 +6,8 @@ int MoyaiClient_OGL::render(){
     batch_list.clear();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
     
 	int cnt=0;
 	for(int i=0;i<elementof(groups);i++){
@@ -15,9 +17,7 @@ int MoyaiClient_OGL::render(){
 			cnt += l->renderAllProps(&batch_list);
 		}
 	}
-	
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
+
     last_draw_call_count = batch_list.drawAll();    
 	glfwSwapBuffers(window);
 	glFlush();
