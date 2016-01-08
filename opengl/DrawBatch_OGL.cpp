@@ -148,7 +148,7 @@ void DrawBatch::draw() {
         glRotatef( radrot * (180.0f/M_PI), 0,0,1);
         // TODO: apply viewport scaling
         glScalef( scale.x, scale.y, 1 );
-        glDrawElements( mesh->prim_type, mesh->ib->array_len, GL_UNSIGNED_INT, 0);
+        glDrawElements( mesh->prim_type, mesh->ib->render_len, GL_UNSIGNED_INT, 0);
     } else {
         glDrawElements( prim_type, index_used, GL_UNSIGNED_INT, 0);        
     }

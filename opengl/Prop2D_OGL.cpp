@@ -210,6 +210,7 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
                     }
                     if(grid->debug) print("");
                 }
+                ib->setRenderLen(quad_cnt*6);
             } 
 
             

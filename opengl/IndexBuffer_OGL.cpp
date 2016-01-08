@@ -14,6 +14,7 @@ void IndexBuffer_OGL::reserve( int len ) {
 	buf = (int*) MALLOC( sizeof(int) * len );
 	assert(buf);
 	array_len = len;
+    render_len = len;
 }
 
 void IndexBuffer_OGL::setIndex( int index_at, int val ) {
@@ -59,5 +60,10 @@ void IndexBuffer_OGL::dump() {
 		print("ib:nobuf");
 	}
 }
+void IndexBuffer_OGL::setRenderLen(int l) {        
+    assert( l <= array_len );
+    render_len = l;        
+}
+
 
 #endif
