@@ -18,5 +18,6 @@ public:
 	int getIndex( int index );
 	void set( int *in, int l );
 	void bless();
+    void unbless();
 	void dump();
 };

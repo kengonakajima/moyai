@@ -125,7 +125,7 @@ int main(int argc, char **argv )
     pp->addLine( Vec2(0,0), Vec2(100,100), Color(1,0,0,1) );
     pp->addLine( Vec2(0,0), Vec2(100,-100), Color(0,1,0,1), 5 );
     l->insertProp(pp);
-    
+   
 
     // grid
     Grid *g = new Grid(4,4);
@@ -148,6 +148,26 @@ int main(int argc, char **argv )
     gp->setIndex(0);
     l->insertProp(gp);
 
+
+    // chargrid
+    Texture *ft = new Texture();
+    ft->load("./assets/font_only.png");
+    TileDeck *fdeck =new TileDeck();
+    fdeck->setTexture(ft);
+    fdeck->setSize(32,32,8,8);
+    CharGrid *cg = new CharGrid(8,8);
+    cg->ascii_offset = -32;
+    cg->setDeck(fdeck);
+    cg->printf(0,0,Color(1,1,1,1), "WHITE" );
+    cg->printf(1,1,Color(1,0,0,1), "RED" );
+    cg->printf(2,2,Color(0,1,0,1), "GREEN" );
+    cg->printf(3,3,Color(0,0,1,1), "BLUE" );
+    Prop2D *cgp = new Prop2D();
+    cgp->addGrid(cg);
+    cgp->setScl(16);
+    cgp->setLoc(50,-100);
+    l->insertProp(cgp);
+    
     // text
     wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
     
@@ -217,6 +237,7 @@ int main(int argc, char **argv )
 
         Format fmt("%d", loop_counter);
         tbs[19]->setString(fmt.buf);
+
         
         // fps disp
         if(last_print_at == 0){
@@ -252,6 +273,10 @@ int main(int argc, char **argv )
                 l->insertProp(p);
             }
         }
+        if( glfwGetKey( window, '2' ) ) {
+            cg->printf(0,4, Color(1,1,1,1), Format( "CNT:%d", loop_counter).buf);
+        }
+        
         glfwPollEvents();
     }
     glfwTerminate();

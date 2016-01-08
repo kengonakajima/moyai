@@ -133,15 +133,24 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
             }
 
             if( grid->uv_changed || grid->color_changed ) {
+                if(grid->debug) {
+                    print("debug:%d Grid changed: uv:%d col:%d", grid->debug, grid->uv_changed, grid->color_changed );
+                }
+                grid->uv_changed = false;
+                grid->color_changed = false;
+                
                 VertexBuffer *vb = grid->mesh->vb;
                 IndexBuffer *ib = grid->mesh->ib;
                 vb->unbless();
+                ib->unbless();
 
                 int quad_cnt=0;
                 for(int y=0;y<grid->height;y++) {
                     for(int x=0;x<grid->width;x++) {
                         int ind = x+y*grid->width;
+                        if(grid->debug) prt("%3d ", grid->index_table[ind] );
                         if( grid->index_table[ind] == Grid::GRID_NOT_USED ) continue;
+                        
                         
                         Vec2 left_bottom, right_top;
                         float u0,v0,u1,v1;
@@ -199,6 +208,7 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
 
                         quad_cnt++; // next quad!
                     }
+                    if(grid->debug) print("");
                 }
             } 
 

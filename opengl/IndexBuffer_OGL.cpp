@@ -42,6 +42,12 @@ void IndexBuffer_OGL::bless(){
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	}
 }
+void IndexBuffer_OGL::unbless() {
+    if( gl_name != 0 ) {
+        glDeleteBuffers(1,&gl_name);
+        gl_name = 0;
+    }
+}
 
 void IndexBuffer_OGL::dump() {
 	print("ib: len:%d glname:%d", array_len, gl_name );
