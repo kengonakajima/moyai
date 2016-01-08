@@ -140,7 +140,7 @@ void DrawBatch::draw() {
 
     glLoadIdentity();
 
-    //		glDisable(GL_DEPTH_TEST);    
+    glDisable(GL_DEPTH_TEST);    
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
