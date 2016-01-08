@@ -258,7 +258,7 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
                            getBlendType(),
                            deck->tex->tex,
                            color,
-                           loc - Vec2(camx,camy),
+                           loc - Vec2(camx,camy) + draw_offset,
                            scl,
                            rot,
                            Vec2(u0,v1),
