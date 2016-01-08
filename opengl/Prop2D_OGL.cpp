@@ -83,7 +83,12 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
 	if( children_num > 0 && render_children_first ){
 		for(int i=0;i<children_num;i++){
 			Prop2D_OGL *p = (Prop2D_OGL*) children[i];
-            if( p->visible ) p->render( cam, bl );
+            if( p->visible ) {
+                if( !p->parent_group ) {
+                    p->parent_group = parent_group;
+                }
+                p->render( cam, bl );
+            }
 		}
 	}
 
@@ -104,7 +109,7 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
 			}
 
             if(!grid->mesh) {
-                print("new grid mesh! wh:%d,%d", grid->width, grid->height );
+                //                print("new grid mesh! wh:%d,%d", grid->width, grid->height );
                 grid->mesh = new Mesh();
                 VertexFormat *vf = DrawBatch::getVertexFormat( VFTYPE_COORD_COLOR_UV );
                 IndexBuffer *ib = new IndexBuffer();
@@ -228,11 +233,15 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
 		}
 	}
 
-
-            
 	if(deck && index >= 0 ){
         float u0,v0,u1,v1;
         deck->getUVFromIndex( index, &u0,&v0,&u1,&v1,0,0,0);
+        if(xflip) {
+            swapf(&u0,&u1);
+        }
+        if(yflip) {
+            swapf(&v0,&v1);
+        }
         bl->appendSprite1( getViewport(),
                            fragment_shader,
                            getBlendType(),
@@ -244,14 +253,15 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
                            Vec2(u0,v1),
                            Vec2(u1,v0)
                            );
-        //        drawMesh( mesh, deck->tex->tex, Vec2(camx,camy) );
 	}
 
 	if( children_num > 0 && (render_children_first == false) ){
 		for(int i=0;i<children_num;i++){
 			Prop2D_OGL *p = (Prop2D_OGL*) children[i];
 			if(p->visible) {
-                if( !p->parent_group ) p->parent_group = parent_group;
+                if( !p->parent_group ) {
+                    p->parent_group = parent_group;
+                }
                 p->render( cam, bl );
             }
 		}
