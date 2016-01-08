@@ -154,7 +154,13 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
                 for(int y=0;y<grid->height;y++) {
                     for(int x=0;x<grid->width;x++) {
                         int ind = x+y*grid->width;
-                        if(grid->debug) prt("%3d ", grid->index_table[ind] );
+                        if(grid->debug) {
+                            if(grid->texofs_table) {
+                                prt("%.2f,%.2f ", grid->texofs_table[ind].x, grid->texofs_table[ind].y );
+                            } else if( grid->index_table ) {
+                                prt("%3d ", grid->index_table[ind] );
+                            }
+                        }
                         if( grid->index_table[ind] == Grid::GRID_NOT_USED ) continue;
                         
                         
@@ -162,10 +168,12 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
                         float u0,v0,u1,v1;
                         draw_deck->getUVFromIndex( grid->index_table[ind], &u0,&v0,&u1,&v1,0,0,0);
                         if(grid->texofs_table) {
-                            u0 += grid->texofs_table[ind].x;
-                            v0 += grid->texofs_table[ind].y;
-                            u1 += grid->texofs_table[ind].x;
-                            v1 += grid->texofs_table[ind].y;
+                            float u_per_cell = draw_deck->getUperCell();
+                            float v_per_cell = draw_deck->getVperCell();
+                            u0 += grid->texofs_table[ind].x * u_per_cell;
+                            v0 += grid->texofs_table[ind].y * v_per_cell;
+                            u1 += grid->texofs_table[ind].x * u_per_cell;
+                            v1 += grid->texofs_table[ind].y * v_per_cell;
                         }
 
                         //
@@ -241,6 +249,9 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
         }
         if(yflip) {
             swapf(&v0,&v1);
+        }
+        if(uvrot) {
+            print("sprite uvrot: not implemented. index:%d id:%d",index, id );
         }
         bl->appendSprite1( getViewport(),
                            fragment_shader,

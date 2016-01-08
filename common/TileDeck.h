@@ -31,7 +31,8 @@ public:
 		cell_width = cellw;
 		cell_height = cellh;
 	}
-
+    inline float getUperCell() { return (float) cell_width / (float) image_width; }
+    inline float getVperCell() { return (float) cell_height / (float) image_height; }    
 	inline void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
 		float uunit = (float) cell_width / (float) image_width;
 		float vunit = (float) cell_height / (float) image_height;
