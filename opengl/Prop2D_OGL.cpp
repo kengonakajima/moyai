@@ -250,8 +250,17 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
         if(yflip) {
             swapf(&v0,&v1);
         }
+        // Q (u0,v0) - R (u1,v0)      top-bottom upside down.
+        //      |           |
+        //      |           |                        
+        // P (u0,v1) - S (u1,v1)
+        Vec2 uv_p(u0,v1), uv_q(u0,v0), uv_r(u1,v0), uv_s(u1,v1);
         if(uvrot) {
-            print("sprite uvrot: not implemented. index:%d id:%d",index, id );
+            Vec2 tmp = uv_p;
+            uv_p = uv_s;
+            uv_s = uv_r;
+            uv_r = uv_q;
+            uv_q = tmp;
         }
         bl->appendSprite1( getViewport(),
                            fragment_shader,
@@ -261,8 +270,10 @@ void Prop2D_OGL::render(Camera *cam, DrawBatchList *bl ) {
                            loc - Vec2(camx,camy) + draw_offset,
                            scl,
                            rot,
-                           Vec2(u0,v1),
-                           Vec2(u1,v0)
+                           uv_p,
+                           uv_q,
+                           uv_r,
+                           uv_s
                            );
 	}
 

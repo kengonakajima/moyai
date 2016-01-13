@@ -75,7 +75,7 @@ public:
     DrawBatch *startNextMeshBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh );
     int drawAll();
 
-    bool appendSprite1( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 uv0, Vec2 uv1 );
+    bool appendSprite1( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 lb, Vec2 lt, Vec2 rt, Vec2 rb );
 
     bool appendMesh( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh );
     bool appendLine( Viewport *vp, Vec2 a, Vec2 b, Color c, Vec2 tr, Vec2 scl, float radrot, int linew );

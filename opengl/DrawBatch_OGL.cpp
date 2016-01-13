@@ -174,7 +174,7 @@ void DrawBatch::draw() {
 
 // One sprite : includes 2 triangles
 // returns true if success
-bool DrawBatchList_OGL::appendSprite1( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 uv0, Vec2 uv1 ) {
+bool DrawBatchList_OGL::appendSprite1( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 lb, Vec2 lt, Vec2 rt, Vec2 rb ) {
     //    print("appendspr: tr:%f,%f scl:%f,%f rot:%f", tr.x,tr.y,scl.x,scl.y,radrot);
     DrawBatch *b = getCurrentBatch();
     bool to_continue = false;
@@ -221,10 +221,10 @@ bool DrawBatchList_OGL::appendSprite1( Viewport *vp, FragmentShader *fs, BLENDTY
         Vec3(tr.x+cx,tr.y+cy,0),
         Vec3(tr.x+dx,tr.y+dy,0) };
     Vec2 uvs[4] = {
-        uv0,
-        Vec2(uv1.x,uv0.y),
-        Vec2(uv0.x,uv1.y),
-        uv1
+        lb,
+        rb,
+        lt,
+        rt
     };
     int inds[6] = {
         0,2,1, // ACB

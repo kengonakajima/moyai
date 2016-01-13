@@ -150,6 +150,14 @@ int main(int argc, char **argv )
     gp->setIndex(0);
     l->insertProp(gp);
 
+    // uvrot 
+    Prop2D *rotp = new Prop2D();
+    rotp->setDeck(deck);
+    rotp->setScl(32);
+    rotp->setLoc(-300,-100);
+    rotp->setUVRot(true);
+    rotp->setIndex(0);
+    l->insertProp(rotp);
 
     // chargrid
     Texture *ft = new Texture();
