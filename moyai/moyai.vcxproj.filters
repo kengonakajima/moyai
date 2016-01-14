@@ -150,6 +150,12 @@
     <ClCompile Include="..\direct3d\ShaderManager_D3D.cpp">
       <Filter>Source Files\Direct3D</Filter>
     </ClCompile>
+    <ClCompile Include="..\opengl\DrawBatch_OGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\opengl\Prim_OGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\ColorReplacerShader.h">

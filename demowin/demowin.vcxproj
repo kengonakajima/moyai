@@ -73,7 +73,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugOGL|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-2.7.7\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-3.1.2\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2013;$(ProjectDir)\..\fmodwin\api\lib;$(ProjectDir)\..\glut-3.7.6-bin;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D|Win32'">
@@ -117,7 +117,8 @@
       <AdditionalDependencies>moyai.lib;%(AdditionalDependencies);windeps_debug.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>msvcrt.lib;msvcrtd.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D|Win32'">

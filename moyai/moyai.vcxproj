@@ -73,7 +73,7 @@
     <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-gl\windows\freetype;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugOGL|Win32'">
-    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-2.7.7\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-3.1.2\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseOGL|Win32'">
     <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-2.7.7\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-gl\windows\freetype;$(IncludePath)</IncludePath>
@@ -185,11 +185,13 @@
     <ClCompile Include="..\direct3d\VertexBuffer_D3D.cpp" />
     <ClCompile Include="..\direct3d\Viewport_D3D.cpp" />
     <ClCompile Include="..\opengl\ColorReplacerShader_OGL.cpp" />
+    <ClCompile Include="..\opengl\DrawBatch_OGL.cpp" />
     <ClCompile Include="..\opengl\Font_OGL.cpp" />
     <ClCompile Include="..\opengl\FragmentShader_OGL.cpp" />
     <ClCompile Include="..\opengl\IndexBuffer_OGL.cpp" />
     <ClCompile Include="..\opengl\Layer_OGL.cpp" />
     <ClCompile Include="..\opengl\MoyaiClient_OGL.cpp" />
+    <ClCompile Include="..\opengl\Prim_OGL.cpp" />
     <ClCompile Include="..\opengl\Prop2D_OGL.cpp" />
     <ClCompile Include="..\opengl\Prop3D_OGL.cpp" />
     <ClCompile Include="..\opengl\TextBox_OGL.cpp" />
