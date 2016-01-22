@@ -1,59 +1,50 @@
 #ifndef _MOYAI_CLIENT_H_
 #define _MOYAI_CLIENT_H_
 
-
-#if !defined(USE_OPENGL) && !defined(USE_D3D) || defined(USE_OPENGL) && defined(USE_D3D)
-	#error You have to define either USE_OPENGL or USE_D3D
-#endif
-
-#if defined(USE_OPENGL)
-	#define GLEW_STATIC
+#define GLEW_STATIC
 
 #if defined(__APPLE__)
 #include <OpenGL/gl.h>
 #endif
-#endif
+
 
 // GFX API specific includes
-#include "common/Viewport.h"
-#include "common/VertexBuffer.h"
-#include "common/IndexBuffer.h"
-#include "common/FragmentShader.h"
-#include "common/ColorReplacerShader.h"
-#include "common/Prim.h"
-#include "common/Prop3D.h"
-#include "common/Prop2D.h"
-#include "common/Layer.h"
-#include "common/Font.h"
-#include "common/TextBox.h"
-#include "common/MoyaiClient.h"
-#include "common/GPUMarker.h"
+#include "Viewport.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+#include "FragmentShader.h"
+#include "ColorReplacerShader.h"
+#include "Prim.h"
+#include "Prop3D.h"
+#include "Prop2D.h"
+#include "Layer.h"
+#include "Font.h"
+#include "TextBox.h"
+#include "MoyaiClient.h"
 
 // Common includes
-#include "common/Animation.h"
-#include "common/AnimCurve.h"
-#include "common/Camera.h"
-#include "common/CharGrid.h"
-#include "common/Enums.h"
-#include "common/Grid.h"
-#include "common/Light.h"
-#include "common/Material.h"
-#include "common/Mesh.h"
-#include "common/Pad.h"
-#include "common/PrimDrawer.h"
-#include "common/Renderable.h"
-#include "common/Sound.h"
-#include "common/SoundSystem.h"
-#include "common/TileDeck.h"
-#include "common/VertexFormat.h"
-#include "common/PerformanceCounter.h"
+#include "Animation.h"
+#include "AnimCurve.h"
+#include "Camera.h"
+#include "CharGrid.h"
+#include "Enums.h"
+#include "Grid.h"
+#include "Light.h"
+#include "Material.h"
+#include "Mesh.h"
+#include "Pad.h"
+#include "PrimDrawer.h"
+#include "Renderable.h"
+#include "Sound.h"
+#include "SoundSystem.h"
+#include "TileDeck.h"
+#include "VertexFormat.h"
+#include "PerformanceCounter.h"
 
 #if defined(_MSC_VER)
-	#include "common/Dependencies.h"
+	#include "Dependencies.h"
 #endif
 
-#if defined(USE_D3D)
- using namespace glfw_d3d;
-#endif
+
 
 #endif
