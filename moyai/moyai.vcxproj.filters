@@ -22,139 +22,88 @@
     <Filter Include="Header Files\GFX API Specific">
       <UniqueIdentifier>{372b994f-1ecf-4701-9323-d25d790f0f32}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Direct3D">
-      <UniqueIdentifier>{df08e36e-150c-4a38-8b48-781522240bc4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\OpenGL">
-      <UniqueIdentifier>{46ec9212-81a1-4e78-acf7-20193320d0fa}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\opengl\ColorReplacerShader_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\opengl\Font_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\opengl\FragmentShader_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\opengl\IndexBuffer_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\opengl\Layer_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\opengl\MoyaiClient_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\opengl\Prop2D_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\opengl\Prop3D_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\opengl\TextBox_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\opengl\Texture_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\opengl\VertexBuffer_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\opengl\Viewport_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\ColorReplacerShader_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\Font_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\FragmentShader_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\glfw_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\IndexBuffer_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\Layer_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\MoyaiClient_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\Prim_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\Prop2D_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\Prop3D_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\TextBox_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\Texture_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\VertexBuffer_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="..\direct3d\Viewport_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
     <ClCompile Include="..\common.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\cumino.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\Camera.cpp">
+    <ClCompile Include="..\CharGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\CharGrid.cpp">
+    <ClCompile Include="..\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\Grid.cpp">
+    <ClCompile Include="..\Grid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\Mesh.cpp">
+    <ClCompile Include="..\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\Pad.cpp">
+    <ClCompile Include="..\Pad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\PrimDrawer.cpp">
+    <ClCompile Include="..\PerformanceCounter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\Sound.cpp">
+    <ClCompile Include="..\PrimDrawer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\SoundSystem.cpp">
+    <ClCompile Include="..\Sound.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\VertexFormat.cpp">
+    <ClCompile Include="..\SoundSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\PerformanceCounter.cpp">
+    <ClCompile Include="..\VertexFormat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\direct3d\GPUMarker_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
+    <ClCompile Include="..\IndexBuffer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\direct3d\ShaderManager_D3D.cpp">
-      <Filter>Source Files\Direct3D</Filter>
+    <ClCompile Include="..\Layer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\opengl\DrawBatch_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
+    <ClCompile Include="..\TileDeck.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\opengl\Prim_OGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
+    <ClCompile Include="..\VertexBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Viewport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ColorReplacerShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\MoyaiClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DrawBatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Prim.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Prop2D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Prop3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\TextBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Font.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\FragmentShader.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -370,9 +319,6 @@
     </ClInclude>
     <ClInclude Include="..\common\GPUMarker.h">
       <Filter>Header Files\GFX API Specific</Filter>
-    </ClInclude>
-    <ClInclude Include="..\direct3d\ShaderManager_D3D.h">
-      <Filter>Source Files\Direct3D</Filter>
     </ClInclude>
     <ClInclude Include="..\direct3d\ShaderCode_D3D.h">
       <Filter>Header Files\Direct3D</Filter>
