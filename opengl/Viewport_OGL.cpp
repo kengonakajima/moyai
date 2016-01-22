@@ -1,12 +1,6 @@
 #ifdef USE_OPENGL
 
 #include "Viewport_OGL.h"
-#ifdef WIN32
-#include "GL/glew.h"
-#endif
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#endif
 
 int Viewport_OGL::id_gen = 1;
 
