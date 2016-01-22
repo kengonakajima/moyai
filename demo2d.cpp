@@ -309,6 +309,7 @@ void updateGame(void) {
     char hoge[100];
     snprintf(hoge,sizeof(hoge),"hoge:%d", frame_counter );
     wchar_t whoge[100];
+    memset(whoge,0,sizeof(whoge));
     mbstowcs(whoge,hoge,strlen(hoge));
     g_tb->setString(whoge);
 
