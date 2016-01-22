@@ -1,3 +1,4 @@
+#ifdef USE_OPENGL
 
 #include "../common/Viewport.h"
 #include "Prim_OGL.h"
@@ -16,3 +17,6 @@ void Prim_OGL::draw( Viewport *vp, DrawBatchList *bl, Vec2 tr, Vec2 scl, float r
         break;
     }
 };
+
+
+#endif
