@@ -13,7 +13,6 @@ int Viewport_OGL::id_gen = 1;
 void Viewport_OGL::setSize(int scrw, int scrh ) {
 	screen_width = scrw;
 	screen_height = scrh;
-	glViewport(0,0,screen_width,screen_height);
 }
 void Viewport_OGL::setScale2D( float sx, float sy ){
 	dimension = DIMENSION_2D;
