@@ -1,13 +1,13 @@
 # moyai
 
-An experimental simple 2D/3D game engine for native C++, strongly inspired by MoaiSDK API structure.
+An experimental simple 2D/3D game engine for native C++ and OpenGL, strongly inspired by MoaiSDK API structure.
 
 Moai SDK: https://github.com/moai/moai-dev
 
 # Features
  - Rendering
   - 2D sprite + 3D mesh
-  - OpenGL 2.0 (ES2), [GLFW http://www.glfw.org/]
+  - OpenGL 2.0 (ES2), [GLFW3 http://www.glfw.org/]
  - Image
   - PNG read/write from file (lodepng)
   - dynamic texture
