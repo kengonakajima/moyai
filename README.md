@@ -47,7 +47,10 @@ Moyai *g_moyai;
 
 int main() 
 {
-  g_moyai = new Moyai();
+  // initialize glfw
+  glfwInit();
+  GLFWwindow *w = glfwCreateWindow(1024,768, "demo", NULL, NULL );
+  g_moyai = new MoyaiClient(w);
 
   Viewport *v = new Viewport();
   v->setSize(1024,768);
@@ -77,9 +80,7 @@ int main()
 
   lay->insertProp(p);
 
-  // initialize glfw
-  glfwInit();
-  glfwOpenWindow(1024,768, 0,0,0,0, 0,0, GLFW_WINDOW );
+
 
   while(1) {
     static double last_poll_at = 0;
@@ -100,10 +101,10 @@ int main()
 <pre lang="c++">
 <code>
 int main() {
-  g_moyai = new Moyai();
-
   glfwInit();
-  glfwOpenWindow( SCRW,SCRH, 8,8,8,8, 8,0, GLFW_WINDOW );
+  GLFWwindow *w = glfwCreateWindow( SCRW,SCRH, "demo", NULL, NULL );
+
+  g_moyai = new MoyaiClient(w);
   glfwSetWindowTitle( "demo3d");
   glfwEnable( GLFW_STICKY_KEYS );
   glfwSwapInterval(1); // vsync
