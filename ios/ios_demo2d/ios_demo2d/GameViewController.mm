@@ -82,6 +82,7 @@
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
+#if 1
     glClearColor(0.65f, 0.65f, 0.85f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
@@ -99,6 +100,8 @@
     glEnableClientState(GL_VERTEX_ARRAY);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 3);
     glDisableClientState(GL_VERTEX_ARRAY);
+#endif
+    
 }
 
 
