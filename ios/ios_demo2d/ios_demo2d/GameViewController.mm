@@ -7,30 +7,7 @@
 //
 
 #import "GameViewController.h"
-#import <OpenGLES/ES2/glext.h>
-
-/*
- 
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
-
-
-// Uniform index.
-enum
-{
-    UNIFORM_MODELVIEWPROJECTION_MATRIX,
-    UNIFORM_NORMAL_MATRIX,
-    NUM_UNIFORMS
-};
-GLint uniforms[NUM_UNIFORMS];
-
-// Attribute index.
-enum
-{
-    ATTRIB_VERTEX,
-    ATTRIB_NORMAL,
-    NUM_ATTRIBUTES
-};
-*/
+#import <OpenGLES/ES1/glext.h>
 
 
 @interface GameViewController () {
@@ -48,7 +25,7 @@ enum
 {
     [super viewDidLoad];
     
-    self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES1];
 
     if (!self.context) {
         NSLog(@"Failed to create ES context");
@@ -108,6 +85,20 @@ enum
     glClearColor(0.65f, 0.65f, 0.85f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
+    float v[] = {
+        0, -1, 1, 0, 0, 1,
+    };
+    glClearColor(0.65f, 0.65f, 0.65f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glColor4f(1, 0, 1, 1);
+    glVertexPointer(2, GL_FLOAT, 0, v);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 3);
+    glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 
