@@ -1,13 +1,9 @@
 #pragma once
 
 #include "common.h"
+#include "client.h"
+
 #include "Enums.h"
-#ifdef WIN32
-#include "GL/glew.h"
-#endif
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#endif
 #include "Viewport.h"
 #include "DrawBatch.h"
 

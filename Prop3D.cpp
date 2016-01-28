@@ -1,3 +1,5 @@
+#include "client.h"
+
 #include "Prop3D.h"
 #include "Layer.h"
 

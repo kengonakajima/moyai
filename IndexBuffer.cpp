@@ -1,5 +1,8 @@
-#include "IndexBuffer.h"
 #include "cumino.h"
+#include "client.h"
+
+#include "IndexBuffer.h"
+
 
 IndexBuffer::~IndexBuffer() {
 	assert(buf);

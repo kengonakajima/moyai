@@ -1,3 +1,5 @@
+#include "client.h"
+
 #include "Viewport.h"
 #include "TextBox.h"
 

@@ -1,3 +1,5 @@
+#include "client.h"
+
 #include "MoyaiClient.h"
 
 int MoyaiClient::render(){

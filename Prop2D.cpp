@@ -1,6 +1,4 @@
-#if defined(__APPLE__)
-#include <OpenGL/gl.h>
-#endif
+#include "client.h"
 
 #include "Viewport.h"
 #include "Prop2D.h"

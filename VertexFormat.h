@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../cumino.h"
+#include "cumino.h"
 
 class VertexFormat 
 {

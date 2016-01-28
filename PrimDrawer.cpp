@@ -1,3 +1,5 @@
+#include "client.h"
+
 #include "PrimDrawer.h"
 
 void PrimDrawer::getMinMax( Vec2 *minv, Vec2 *maxv ) {

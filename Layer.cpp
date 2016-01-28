@@ -1,10 +1,7 @@
-#ifdef __APPLE__
-#include <OpenGL/glu.h>
-#endif
+#include "client.h"
+#include "common.h"
 
 #include "Layer.h"
-
-#include "common.h"
 #include "TileDeck.h"
 #include "Camera.h"
 #include "Material.h"

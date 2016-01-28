@@ -14,6 +14,7 @@
 		C710F6011C2135600064B4D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C710F6001C2135600064B4D1 /* Assets.xcassets */; };
 		C710F6041C2135600064B4D1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C710F6021C2135600064B4D1 /* LaunchScreen.storyboard */; };
 		C710F62E1C213D160064B4D1 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C710F62D1C213D160064B4D1 /* GLKit.framework */; };
+		C7AC4DBF1C59C7E8004A6E71 /* demo2d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DBE1C59C7E8004A6E71 /* demo2d.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		C710F6031C2135600064B4D1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		C710F6051C2135600064B4D1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C710F62D1C213D160064B4D1 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
+		C7AC4DBE1C59C7E8004A6E71 /* demo2d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = demo2d.cpp; path = ../../demo2d.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,8 +47,10 @@
 		C710F5E41C2135600064B4D1 = {
 			isa = PBXGroup;
 			children = (
+				C7AC4DBD1C59C70C004A6E71 /* demo2d */,
+				C7AC4DBC1C59C6FA004A6E71 /* moyai */,
 				C710F62D1C213D160064B4D1 /* GLKit.framework */,
-				C710F5EF1C2135600064B4D1 /* ios_demo2d */,
+				C710F5EF1C2135600064B4D1 /* ios_stub */,
 				C710F5EE1C2135600064B4D1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -59,7 +63,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		C710F5EF1C2135600064B4D1 /* ios_demo2d */ = {
+		C710F5EF1C2135600064B4D1 /* ios_stub */ = {
 			isa = PBXGroup;
 			children = (
 				C710F5F31C2135600064B4D1 /* AppDelegate.h */,
@@ -72,6 +76,7 @@
 				C710F6051C2135600064B4D1 /* Info.plist */,
 				C710F5F01C2135600064B4D1 /* Supporting Files */,
 			);
+			name = ios_stub;
 			path = ios_demo2d;
 			sourceTree = "<group>";
 		};
@@ -81,6 +86,21 @@
 				C710F5F11C2135600064B4D1 /* main.m */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		C7AC4DBC1C59C6FA004A6E71 /* moyai */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = moyai;
+			sourceTree = "<group>";
+		};
+		C7AC4DBD1C59C70C004A6E71 /* demo2d */ = {
+			isa = PBXGroup;
+			children = (
+				C7AC4DBE1C59C7E8004A6E71 /* demo2d.cpp */,
+			);
+			name = demo2d;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -155,6 +175,7 @@
 			files = (
 				C710F5F51C2135600064B4D1 /* AppDelegate.m in Sources */,
 				C710F5FC1C2135600064B4D1 /* GameViewController.mm in Sources */,
+				C7AC4DBF1C59C7E8004A6E71 /* demo2d.cpp in Sources */,
 				C710F5F21C2135600064B4D1 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

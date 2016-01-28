@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../cumino.h"
-#include "../fmod/api/inc/fmod.h"
-#include "../fmod/api/inc/fmod_errors.h"
+#include "cumino.h"
+#include "fmod/api/inc/fmod.h"
+#include "fmod/api/inc/fmod_errors.h"
 
 class Sound;
 

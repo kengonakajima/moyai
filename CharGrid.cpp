@@ -1,3 +1,5 @@
+#include "client.h"
+
 #include "CharGrid.h"
 
 void CharGrid::printf( int x, int y, Color c, const char *fmt, ...) {

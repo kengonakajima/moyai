@@ -1,7 +1,7 @@
 #pragma once
 
 #include "FragmentShader.h"
-#include "../common.h"
+#include "common.h"
 
 class ColorReplacerShader : public FragmentShader {
 public:

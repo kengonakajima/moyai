@@ -1,5 +1,8 @@
-#include "FragmentShader.h"
 #include "cumino.h"
+#include "client.h"
+
+#include "FragmentShader.h"
+
 
 static bool shaderCompile(GLuint shader, const char *src){
 	GLsizei len = strlen(src), size;

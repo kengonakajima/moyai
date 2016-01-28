@@ -277,6 +277,14 @@ void Image::setPixelRaw( int x, int y, unsigned char r,  unsigned char g,  unsig
     }
 }
 
+static void multiplyAlphaRGBA( unsigned char *img, int width, int height) {
+    for(int i=0;i<4*width*height;i+=4) {
+        // Copied from SOIL: Jonathan Dummer, 2007-07-26-10.36
+        img[i+0] = (img[i+0] * img[i+3] + 128) >> 8;                                                                                       
+        img[i+1] = (img[i+1] * img[i+3] + 128) >> 8;                                                                                       
+        img[i+2] = (img[i+2] * img[i+3] + 128) >> 8;          
+    }
+}
 
 bool Image::loadPNG( const char *path ) {
     FILE *fp = fopen(path,"rb");
@@ -300,6 +308,8 @@ bool Image::loadPNG( const char *path ) {
 
     width = w;
     height = h;
+
+    multiplyAlphaRGBA(image_data,width,height);
     
     ensureBuffer();
 #define IMAGE_BUFFER_COPY \

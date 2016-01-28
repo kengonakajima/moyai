@@ -1,3 +1,4 @@
+#include "client.h"
 
 #include "ColorReplacerShader.h"
 

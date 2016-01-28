@@ -27,17 +27,15 @@ GLFW=glfw-3.1.2
 GLFWLIB=$(GLFW)/src/libglfw3.a
 
 FTGLOBJS=vertex-attribute.o vertex-buffer.o vector.o texture-atlas.o texture-font.o
-SOILOBJS=SOIL.o stb_image_aug.o image_DXT.o image_helper.o
 SNAPPYOBJS=snappy/snappy-sinksource.o snappy/snappy-c.o snappy/snappy.o
 
-SOILLIB=libsoil.a
 FTGLLIB=libftgl.a
 OUTCLILIB=libmoyaicl.a
 OUTSVLIB=libmoyaisv.a
 SNAPPYLIB=libsnappy.a
 
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB)
-EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(SOILLIB) $(GLFWLIB) 
+EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(GLFWLIB) 
 CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib 
 CFLAGS=-O0 -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include
 
@@ -84,10 +82,6 @@ $(OUTSVLIB) : $(MOYAISVOBJS)
 $(FTGLLIB) : $(FTGLOBJS)
 	ar cr $(FTGLLIB) $(FTGLOBJS)
 	ranlib $(FTGLLIB)
-
-$(SOILLIB) : $(SOILOBJS)
-	ar cr $(SOILLIB) $(SOILOBJS)
-	ranlib $(SOILLIB)
 
 $(SNAPPYLIB) : $(SNAPPYOBJS)
 	ar cr $(SNAPPYLIB) $(SNAPPYOBJS)
@@ -160,19 +154,6 @@ vertex-buffer.o :
 	g++ -c freetype-gl/vertex-buffer.c $(CFLAGS)
 vertex-attribute.o :
 	g++ -c freetype-gl/vertex-attribute.c $(CFLAGS)
-
-# SOIL
-SOIL.o:
-	g++ -c soil/src/SOIL.c $(CFLAGS) 
-
-stb_image_aug.o:
-	g++ -c soil/src/stb_image_aug.c $(CFLAGS)
-
-image_DXT.o:
-	g++ -c soil/src/image_DXT.c $(CFLAGS)
-
-image_helper.o:
-	g++ -c soil/src/image_helper.c $(CFLAGS)
 
 
 snappy-sinksource.o:
