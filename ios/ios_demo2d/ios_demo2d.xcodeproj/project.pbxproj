@@ -50,6 +50,7 @@
 		C7AC4E0A1C5B10C7004A6E71 /* libFreetype2-sim.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C7AC4E091C5B10C7004A6E71 /* libFreetype2-sim.a */; };
 		C7AC4E0E1C5B19D6004A6E71 /* vector.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4E0D1C5B19D6004A6E71 /* vector.c */; };
 		C7AC4E101C5B1C9E004A6E71 /* GLFWiosemu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4E0F1C5B1C9E004A6E71 /* GLFWiosemu.cpp */; };
+		C7AC4E121C5B2E1D004A6E71 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = C7AC4E111C5B2E1D004A6E71 /* assets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -66,12 +67,12 @@
 		C710F62D1C213D160064B4D1 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		C7AC4DBE1C59C7E8004A6E71 /* demo2d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = demo2d.cpp; path = ../../demo2d.cpp; sourceTree = "<group>"; };
 		C7AC4DC01C59F08D004A6E71 /* common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = common.cpp; path = ../../common.cpp; sourceTree = "<group>"; };
-		C7AC4DC21C59F0A1004A6E71 /* cumino.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cumino.cpp; path = ../../cumino.cpp; sourceTree = "<group>"; };
+		C7AC4DC21C59F0A1004A6E71 /* cumino.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = cumino.cpp; path = ../../cumino.cpp; sourceTree = "<group>"; };
 		C7AC4DC51C59F6E6004A6E71 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../lodepng.cpp; sourceTree = "<group>"; };
 		C7AC4DC71C59F71A004A6E71 /* IndexBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IndexBuffer.cpp; path = ../../IndexBuffer.cpp; sourceTree = "<group>"; };
 		C7AC4DC91C59F744004A6E71 /* MoyaiClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MoyaiClient.cpp; path = ../../MoyaiClient.cpp; sourceTree = "<group>"; };
 		C7AC4DCC1C59F744004A6E71 /* Pad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pad.cpp; path = ../../Pad.cpp; sourceTree = "<group>"; };
-		C7AC4DD01C59F789004A6E71 /* SoundSystem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SoundSystem.cpp; path = ../../SoundSystem.cpp; sourceTree = "<group>"; };
+		C7AC4DD01C59F789004A6E71 /* SoundSystem.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = SoundSystem.cpp; path = ../../SoundSystem.cpp; sourceTree = "<group>"; };
 		C7AC4DD21C59F795004A6E71 /* Sound.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound.cpp; path = ../../Sound.cpp; sourceTree = "<group>"; };
 		C7AC4DD41C59FC89004A6E71 /* libfmodex_iphonesimulator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfmodex_iphonesimulator.a; path = ../fmod/api_4.44.61/lib/libfmodex_iphonesimulator.a; sourceTree = "<group>"; };
 		C7AC4DD61C59FCE9004A6E71 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -101,6 +102,7 @@
 		C7AC4E091C5B10C7004A6E71 /* libFreetype2-sim.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libFreetype2-sim.a"; path = "../ft2bin/libFreetype2-sim.a"; sourceTree = "<group>"; };
 		C7AC4E0D1C5B19D6004A6E71 /* vector.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vector.c; path = "../../freetype-gl/vector.c"; sourceTree = "<group>"; };
 		C7AC4E0F1C5B1C9E004A6E71 /* GLFWiosemu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GLFWiosemu.cpp; path = ../../GLFWiosemu.cpp; sourceTree = "<group>"; };
+		C7AC4E111C5B2E1D004A6E71 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../../assets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +124,7 @@
 		C710F5E41C2135600064B4D1 = {
 			isa = PBXGroup;
 			children = (
+				C7AC4E111C5B2E1D004A6E71 /* assets */,
 				C7AC4E091C5B10C7004A6E71 /* libFreetype2-sim.a */,
 				C7AC4DDD1C59FF19004A6E71 /* AudioToolbox.framework */,
 				C7AC4DDB1C59FF0A004A6E71 /* CoreAudioKit.framework */,
@@ -279,6 +282,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C7AC4E121C5B2E1D004A6E71 /* assets in Resources */,
 				C710F5FF1C2135600064B4D1 /* Main.storyboard in Resources */,
 				C710F6011C2135600064B4D1 /* Assets.xcassets in Resources */,
 				C710F6041C2135600064B4D1 /* LaunchScreen.storyboard in Resources */,

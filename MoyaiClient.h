@@ -24,3 +24,5 @@ public:
 		insertGroup( l );
 	}
 };
+
+const char *platformCStringPath( const char *path );

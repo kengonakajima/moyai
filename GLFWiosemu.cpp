@@ -9,8 +9,11 @@ bool glfwInit() {
 }
 void glfwSetErrorCallback( void (*f)(int code, const char *desc) ) {
 }
+
+GLFWwindow g_iosemu_glfwwin;
+
 GLFWwindow* glfwCreateWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share) {
-    return 0;
+    return &g_iosemu_glfwwin;
 }
 void glfwTerminate() {
 }

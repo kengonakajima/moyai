@@ -10,6 +10,12 @@
 #include <string.h>
 
 
+#if defined(__APPLE__)
+#include "TargetConditionals.h" // for TARGET_IPHONE_SIMULATOR,TARGET_OS_IPHONE,TARGET_OS_MAC
+#endif
+
+
+
 
 #ifndef WIN32
 #include <sys/time.h>
@@ -266,5 +272,6 @@ void truncateString( char *out, const char *in, int outlen );
 int countChar(const char *s, int ch);
 
 void sleepMilliSec( int ms );
+const char *platformCStringPath( const char *path );
 
 #endif

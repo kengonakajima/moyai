@@ -1,3 +1,6 @@
+#include "client.h"
+
+
 #include "SoundSystem.h"
 #include "Sound.h"
 
@@ -20,12 +23,13 @@ SoundSystem::SoundSystem()  : id_gen(1), sys(0) {
 }
 
 Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_currently_ignored ) {
-	FMOD_RESULT r;
+    const char *cpath = platformCStringPath(path);
+    FMOD_RESULT r;
 	Sound *out = new Sound(this);
 	FMOD_SOUND *s;
-	r = FMOD_System_CreateSound(sys, path, FMOD_SOFTWARE, 0, &s );
+	r = FMOD_System_CreateSound(sys, cpath, FMOD_SOFTWARE, 0, &s );
     if( r != FMOD_OK ) {
-        print("newSound: can't create sound:'%s'", path );
+        print("newSound: can't create sound:'%s'", cpath );
     }
 	FMOD_ERRCHECK(r);
 	FMOD_Sound_SetMode( s, FMOD_LOOP_OFF );

@@ -9,6 +9,12 @@
 #import "GameViewController.h"
 #import <OpenGLES/ES1/glext.h>
 
+// defined in cpp code
+void gameUpdate();
+void gameRender();
+void gameInit();
+void gameFinish();
+
 
 @interface GameViewController () {
 }
@@ -35,6 +41,9 @@
     view.context = self.context;
     view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
     
+    [EAGLContext setCurrentContext:self.context];
+    
+    gameInit();
 }
 
 - (void)dealloc
@@ -72,17 +81,22 @@
 - (void)tearDownGL
 {
     [EAGLContext setCurrentContext:self.context];
+    
+    gameFinish();
 }
 
 #pragma mark - GLKView and GLKViewController delegate methods
 
+
 - (void)update
 {
+    gameUpdate();
 }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
-#if 1
+    gameRender();
+#if 0
     glClearColor(0.65f, 0.65f, 0.85f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     

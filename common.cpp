@@ -287,9 +287,10 @@ static void multiplyAlphaRGBA( unsigned char *img, int width, int height) {
 }
 
 bool Image::loadPNG( const char *path ) {
-    FILE *fp = fopen(path,"rb");
+    const char *cpath = platformCStringPath(path);
+    FILE *fp = fopen(cpath,"rb");
     if(!fp) {
-        print( "Image::loadPNG: can't open file:%s", path );
+        print( "Image::loadPNG: can't open file:%s", cpath );
         return false;
     }
 
@@ -297,7 +298,7 @@ bool Image::loadPNG( const char *path ) {
     unsigned char* image_data = (unsigned char*) MALLOC( 2048 * 2048 * 4 );
     unsigned w, h;
 
-    error = lodepng_decode32_file(&image_data, &w, &h, path );
+    error = lodepng_decode32_file(&image_data, &w, &h, cpath );
 
     if(error) {
         fprintf(stderr, "decoder error %u: %s\n", error, lodepng_error_text(error) );
@@ -392,14 +393,15 @@ bool Image::writePNGMem( unsigned char **out, size_t *outsize ) {
     return true;        
 }
 bool Image::writePNG(const char *path) {
-
+    const char *cpath = platformCStringPath(path);
+    
     assertmsg( buffer!=0 , "image not initialized?" );
     assertmsg( width <= 2048 && height <= 2048, "image too big" );
     
 
     /*Same as lodepng_encode_file, but always encodes from 32-bit RGBA raw image.*/
     unsigned error;
-    error = lodepng_encode32_file( path, buffer, width, height );
+    error = lodepng_encode32_file( cpath, buffer, width, height );
     if(error) {
         fprintf(stderr, "lodepng_encode32_file failed%d", error );
         return false;

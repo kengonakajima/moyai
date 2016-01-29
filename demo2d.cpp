@@ -311,7 +311,7 @@ void gameUpdate(void) {
     wchar_t whoge[100];
     memset(whoge,0,sizeof(whoge));
     mbstowcs(whoge,hoge,strlen(hoge));
-    g_tb->setString(whoge);
+    if(g_tb) g_tb->setString(whoge);
 
     g_linep->loc.y = sin( now() ) * 200;
 
@@ -665,6 +665,7 @@ void gameInit() {
     Font *font = new Font();
     font->loadFromTTF("./assets/cinecaption227.ttf", charcodes, 12 );
 
+#if 0
     g_tb = new TextBox();
     g_tb->setFont(font);
     g_tb->setString("dummy");
@@ -695,7 +696,7 @@ void gameInit() {
     t5->setLoc(-SCRW/2,-SCRH/2);
     t5->setScl(1);
     g_main_layer->insertProp(t5);
-    
+#endif    
     
     // Image manipulation
     Image *dragonimg = new Image();

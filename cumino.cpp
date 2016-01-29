@@ -24,6 +24,13 @@
 
 #include "cumino.h"
 
+#if (TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)
+#import <Foundation/Foundation.h>
+#endif
+
+
+
+
 #ifdef WIN32
 
 int gettimeofday(struct timeval *tv, struct timezone *tz)
@@ -619,4 +626,19 @@ void sleepMilliSec( int ms ) {
     if( ms > 0 ) Sleep( ms );
 #endif
 }
-        
+
+const char *platformCStringPath( const char *path ) { 
+#if (TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)
+    NSBundle *b = [NSBundle mainBundle];
+    NSString *dir = [b resourcePath];
+    NSString *nspath = [ [ NSString alloc] initWithUTF8String:path ];
+    NSArray *parts = [NSArray arrayWithObjects:
+                      dir, nspath, (void *)nil]; // including dummy strings for example
+    NSString *nsfullpath = [NSString pathWithComponents:parts];
+    const char *cpath = [nsfullpath fileSystemRepresentation];
+    print("iOS: CPATH:%s",cpath);
+#else
+    const char *cpath = path;
+#endif
+    return cpath;
+}

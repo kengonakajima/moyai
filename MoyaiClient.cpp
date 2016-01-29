@@ -39,3 +39,4 @@ void MoyaiClient::capture( Image *img ) {
 }
 
 
+

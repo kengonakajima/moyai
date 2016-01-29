@@ -28,6 +28,10 @@ void Texture::setLinearMinFilter(){
 void Texture::setImage( Image *img ) {
 	if(tex==0){
 		glGenTextures( 1, &tex );
+        if(tex==0) {
+            GLenum e = glGetError();
+            print("glGetError fail: %d", e );
+        }
 		assertmsg(tex!=0,"glGenTexture failed");
 		glBindTexture( GL_TEXTURE_2D, tex );
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
