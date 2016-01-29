@@ -287,7 +287,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 						child->cleanRenderOptions();
 					}
 				}
-			}                                   
+			}
 
 			cur = cur->next;
 		}
@@ -296,15 +296,18 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 }
 
 void Layer::setupProjectionMatrix3D() {
+#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective( 60, (GLdouble)viewport->screen_width/(GLdouble)viewport->screen_height, viewport->near_clip, viewport->far_clip );
 	gluLookAt( camera->loc.x,camera->loc.y,camera->loc.z,
 		camera->look_at.x,camera->look_at.y,camera->look_at.z,
 		camera->look_up.x,camera->look_up.y,camera->look_up.z );
+#endif    
 }
 
 Vec2 Layer::getScreenPos( Vec3 at ) {
+#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)            
 	setupProjectionMatrix3D();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -319,9 +322,13 @@ Vec2 Layer::getScreenPos( Vec3 at ) {
 
 	gluProject( at.x, at.y, at.z, modelview, projection, vp, &sx, &sy, &sz );
 	return Vec2( sx,sy );
+#else
+    return Vec2(0,0);
+#endif    
 }
 
 Vec3 Layer::getWorldPos( Vec2 scrpos ) {
+#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)                
 	setupProjectionMatrix3D();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -338,6 +345,9 @@ Vec3 Layer::getWorldPos( Vec2 scrpos ) {
 	glReadPixels( scrpos.x, scrpos.y, 1,1, GL_DEPTH_COMPONENT, GL_FLOAT, &z );
 	gluUnProject( scrpos.x, scrpos.y, z, modelview, projection, vp, &ox, &oy, &oz );
 	return Vec3(ox,oy,oz);
+#else
+    return Vec3(0,0,0);
+#endif    
 }
 
 int Layer::getHighestPriority() {
