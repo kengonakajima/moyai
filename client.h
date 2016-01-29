@@ -17,10 +17,12 @@
 #include "OpenGLES/ES1/glext.h"
 #elif TARGET_OS_MAC
 #include <OpenGL/gl.h>
+#include <Glut/glut.h>
 #else
 #   error "Unknown Apple platform"
 #endif
 #endif
+
 
 
 // GFX API specific includes

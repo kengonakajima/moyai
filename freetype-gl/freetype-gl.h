@@ -44,7 +44,25 @@
 #include <assert.h>
 
 /* Mandatory */
-#include "opengl.h"
+//#include "opengl.h"
+
+
+
+#if defined(__APPLE__)
+#include "TargetConditionals.h"
+#if TARGET_IPHONE_SIMULATOR
+#include "OpenGLES/ES1/gl.h"
+#include "OpenGLES/ES1/glext.h"
+#elif TARGET_OS_IPHONE
+#include "OpenGLES/ES1/gl.h"
+#include "OpenGLES/ES1/glext.h"
+#elif TARGET_OS_MAC
+#include <OpenGL/gl.h>
+#else
+#   error "Unknown Apple platform"
+#endif
+#endif
+
 #include "vec234.h"
 #include "vector.h"
 #include "texture-atlas.h"

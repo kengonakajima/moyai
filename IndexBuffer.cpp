@@ -12,27 +12,27 @@ IndexBuffer::~IndexBuffer() {
 
 void IndexBuffer::reserve( int len ) {
 	if(buf) FREE(buf);    
-	buf = (int*) MALLOC( sizeof(int) * len );
+	buf = (IndexBufferType*) MALLOC( sizeof(IndexBufferType) * len );
 	assert(buf);
 	array_len = len;
     render_len = len;
 }
 
-void IndexBuffer::setIndex( int index_at, int val ) {
+void IndexBuffer::setIndex( int index_at, IndexBufferType val ) {
 	assert(buf);
 	assert(index_at >= 0 && index_at < array_len );
 	buf[index_at] = val;
 }
 
-int IndexBuffer::getIndex( int index_at ) {
+IndexBufferType IndexBuffer::getIndex( int index_at ) {
 	assert(buf);
 	assert(index_at >= 0 && index_at < array_len );
 	return buf[index_at];
 }
 
-void IndexBuffer::set( int *in, int l ) {
+void IndexBuffer::set( IndexBufferType *in, int l ) {
 	reserve(l);
-	memcpy(buf, in, sizeof(int)*l);
+	memcpy(buf, in, sizeof(IndexBufferType)*l);
 }
 
 void IndexBuffer::bless(){
@@ -40,7 +40,7 @@ void IndexBuffer::bless(){
 		glGenBuffers(1, &gl_name);
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, gl_name );
 		// データがよく変わるときは GL_DYNAMIC_DRAWらしいけど、それはコンセプトから外れた使い方だからデフォルトはSTATICにしておく。
-		glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * array_len, buf, GL_STATIC_DRAW );
+		glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(IndexBufferType) * array_len, buf, GL_STATIC_DRAW );
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	}
 }

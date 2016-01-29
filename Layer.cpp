@@ -1,5 +1,5 @@
-#include "client.h"
 #include "common.h"
+#include "client.h"
 
 #include "Layer.h"
 #include "TileDeck.h"
@@ -121,7 +121,7 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec
 	if( mesh->prim_type == GL_LINES || mesh->prim_type == GL_LINE_STRIP ) {
 		glLineWidth(mesh->line_width);
 	}
-	glDrawElements( mesh->prim_type, mesh->ib->array_len, GL_UNSIGNED_INT, 0);
+	glDrawElements( mesh->prim_type, mesh->ib->array_len, INDEX_BUFFER_GL_TYPE, 0);
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 

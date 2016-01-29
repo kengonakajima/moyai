@@ -216,7 +216,7 @@ void setupCube() {
 
     
     // for cube (counter clockwise)
-    int cube_indexes[36] = {
+    IndexBufferType cube_indexes[36] = {
         // bottom
         0,3,1, // ADB 
         3,2,1, // DCB

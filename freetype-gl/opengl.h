@@ -38,8 +38,22 @@
 #  ifdef GL_ES_VERSION_2_0
 #    include <OpenGLES/ES2/gl.h>
 #  else
-#    include <OpenGL/gl.h>
-#    include <Glut/glut.h>
+
+#include "TargetConditionals.h"
+#if TARGET_IPHONE_SIMULATOR
+#include "OpenGLES/ES1/gl.h"
+#include "OpenGLES/ES1/glext.h"
+#elif TARGET_OS_IPHONE
+#include "OpenGLES/ES1/gl.h"
+#include "OpenGLES/ES1/glext.h"
+#elif TARGET_OS_MAC
+//#include <OpenGL/gl.h>
+#else
+#error "Unknown Apple platform"
+#endif
+
+//#    include <OpenGL/gl.h>
+//#    include <Glut/glut.h>
 #  endif
 #elif defined(_WIN32) || defined(_WIN64)
     #include <Windows.h>

@@ -36,10 +36,10 @@ void TextBox::updateMesh() {
         vb->setFormat(vf);
         vb->reserve(quad_num*4);
         IndexBuffer *ib = new IndexBuffer();
-        ib->reserve(quad_num*4);
+        ib->reserve(quad_num*6);
         mesh->setVertexBuffer(vb);
         mesh->setIndexBuffer(ib);
-        mesh->setPrimType(GL_QUADS);
+        mesh->setPrimType(GL_TRIANGLES);
         
 
         Vec2 start_lb(0, line_num * font->pixel_size ); // render starts from bottom line and go up to the first line
@@ -78,14 +78,16 @@ void TextBox::updateMesh() {
             vb->setCoord(vi+1, Vec3(x0,y1,depth) ); vb->setUV(vi+1, Vec2(s0,t1) ); vb->setColor(vi+1,color);
             vb->setCoord(vi+2, Vec3(x1,y1,depth) ); vb->setUV(vi+2, Vec2(s1,t1) ); vb->setColor(vi+2,color);
             vb->setCoord(vi+3, Vec3(x1,y0,depth) ); vb->setUV(vi+3, Vec2(s1,t0) ); vb->setColor(vi+3,color);
-            ib->setIndex(vi+0,vi+0);
-            ib->setIndex(vi+1,vi+1);
-            ib->setIndex(vi+2,vi+2);
-            ib->setIndex(vi+3,vi+3);            
-            //            glTexCoord2f(s0,t0); glVertex3i( x0,y0, depth );
-            //            glTexCoord2f(s0,t1); glVertex3i( x0,y1, depth );
-            //            glTexCoord2f(s1,t1); glVertex3i( x1,y1, depth );
-            //            glTexCoord2f(s1,t0); glVertex3i( x1,y0, depth );
+            // 0-3
+            // | |
+            // 1-2
+            int ii = i * 6;
+            ib->setIndex(ii+0,vi+0);
+            ib->setIndex(ii+1,vi+1);
+            ib->setIndex(ii+2,vi+2);
+            ib->setIndex(ii+3,vi+0);
+            ib->setIndex(ii+4,vi+2);            
+            ib->setIndex(ii+5,vi+3);            
 
             cur_lb.x += glyph->advance_x;
             max_rt_cache.x = cur_lb.x;

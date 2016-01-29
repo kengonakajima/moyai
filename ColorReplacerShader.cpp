@@ -24,6 +24,7 @@ bool ColorReplacerShader::init(){
 }
 
 void ColorReplacerShader::updateUniforms(){
+#if !(TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE)
 	float fromcol[]={ from_color.r, from_color.g, from_color.b};
 	GLuint uniid1=glGetUniformLocation(program,"color1");
 	glUniform3fv( uniid1,1,fromcol);
@@ -37,6 +38,6 @@ void ColorReplacerShader::updateUniforms(){
 
 	GLuint uniid4=glGetUniformLocation(program,"eps");
 	glUniform1f(uniid4, epsilon );
-
+#endif
 }
 

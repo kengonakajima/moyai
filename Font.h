@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../freetype-gl/freetype-gl.h"
+#include "freetype-gl/freetype-gl.h"
 
 class Font {
 public:

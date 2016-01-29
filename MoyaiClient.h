@@ -3,8 +3,12 @@
 #include "common.h"
 #include "Layer.h"
 #include "DrawBatch.h"
-#include "GLFW/glfw3.h"
 
+#if TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE
+#include "GLFWiosemu.h"
+#else
+#include "GLFW/glfw3.h"
+#endif
 
 class MoyaiClient : public Moyai {
 public:

@@ -1,4 +1,4 @@
-#include "GLFW/glfw3.h"
+#include "client.h"
 #include "Pad.h"
 
 void Pad::readGLFW(GLFWwindow *w) 

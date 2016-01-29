@@ -76,7 +76,9 @@ void DrawBatch::draw() {
     }
 
     if( f_shader) {
+#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
         glUseProgram(f_shader->program);
+#endif        
         f_shader->updateUniforms();
     }
 
@@ -142,7 +144,12 @@ void DrawBatch::draw() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     //    print("vp:%p xy:%f,%f", viewport, viewport->scl.x, viewport->scl.y );
-    glOrtho( -viewport->scl.x/2, viewport->scl.x/2, -viewport->scl.y/2, viewport->scl.y/2,-100,100);  // center is always (0,0)
+#if TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE
+#define glOrtho_platform glOrthof
+#else
+#define glOrtho_platform glOrtho
+#endif
+    glOrtho_platform( -viewport->scl.x/2, viewport->scl.x/2, -viewport->scl.y/2, viewport->scl.y/2,-100,100);  // center is always (0,0)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();        
 
@@ -154,16 +161,18 @@ void DrawBatch::draw() {
         glRotatef( radrot * (180.0f/M_PI), 0,0,1);
         // TODO: apply viewport scaling
         glScalef( scale.x, scale.y, 1 );
-        glDrawElements( mesh->prim_type, mesh->ib->render_len, GL_UNSIGNED_INT, 0);
+        glDrawElements( mesh->prim_type, mesh->ib->render_len, INDEX_BUFFER_GL_TYPE, 0);
     } else {
-        glDrawElements( prim_type, index_used, GL_UNSIGNED_INT, 0);        
+        glDrawElements( prim_type, index_used, INDEX_BUFFER_GL_TYPE, 0);        
     }
 
     // clean
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
     glBindBuffer( GL_ARRAY_BUFFER, 0 );
         
+#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)
     if(f_shader) glUseProgram(0);
+#endif    
 }
 
 
@@ -260,11 +269,11 @@ bool DrawBatchList::appendLine( Viewport *vp, Vec2 p0, Vec2 p1, Color col, Vec2 
 bool DrawBatchList::appendRect( Viewport *vp, Vec2 p0, Vec2 p1, Color c, Vec2 trans, Vec2 scl, float radrot ) {
     DrawBatch *b = getCurrentBatch();
     bool to_continue = false;
-    if( b && b->shouldContinue( VFTYPE_COORD_COLOR, 0, GL_QUADS, NULL, BLENDTYPE_SRC_ALPHA ) && b->hasVertexRoom(4) ) {
+    if( b && b->shouldContinue( VFTYPE_COORD_COLOR, 0, GL_TRIANGLES, NULL, BLENDTYPE_SRC_ALPHA ) && b->hasVertexRoom(4) ) {
         to_continue = true;
     }
     if(!to_continue) {
-        b = startNextBatch( vp, VFTYPE_COORD_COLOR, 0, GL_QUADS, NULL, BLENDTYPE_SRC_ALPHA );
+        b = startNextBatch( vp, VFTYPE_COORD_COLOR, 0, GL_TRIANGLES, NULL, BLENDTYPE_SRC_ALPHA );
         if(!b) {
             print("appendline: can't start new batch");
             return false;
@@ -282,9 +291,9 @@ bool DrawBatchList::appendRect( Viewport *vp, Vec2 p0, Vec2 p1, Color c, Vec2 tr
         Vec3( trans.x + ZROTX(br.x,br.y), trans.y + ZROTY(br.x,br.y), 0 ),
         Vec3( trans.x + ZROTX(bl.x,bl.y), trans.y + ZROTY(bl.x,bl.y), 0 )
     };
-    int inds[4] = { 0,1,2,3 };
+    int inds[6] = { 0,1,2,0,2,3 };
     Color cols[4] = { c, c, c, c };
-    b->pushVertices( 4, cols, coords, 4, inds );
+    b->pushVertices( 4, cols, coords, 6, inds );
     return true;
 }
 bool DrawBatchList::appendMesh( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh ) {

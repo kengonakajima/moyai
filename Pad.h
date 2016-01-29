@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.h"
-#include "GLFW/glfw3.h"
+#include "client.h"
 
 class Pad {
 public:

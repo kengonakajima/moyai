@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../fmod/api/inc/fmod.h"
+#include "fmod/api/inc/fmod.h"
 
 class SoundSystem;
 
