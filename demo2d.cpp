@@ -284,7 +284,7 @@ void createRandomDigit() {
     Digit::create(at);
 }
 
-void updateGame(void) {
+void gameUpdate(void) {
     static double last_print_at = 0;
     static int frame_counter = 0;
     static double last_poll_at = now();
@@ -315,6 +315,8 @@ void updateGame(void) {
 
     g_linep->loc.y = sin( now() ) * 200;
 
+    g_pad->readGLFW(g_window);
+    
     // update dynamic image
     for(int i=0;i<1000;i++){
         g_img->setPixel( irange(0,256), irange(0,256), Color( range(0,1), range(0,1), range(0,1),1 ) );
@@ -339,9 +341,23 @@ void updateGame(void) {
         endMeasure();
     }
     capt_count ++;
-    
-    last_poll_at = t;
 
+    // replace white to random color
+    g_replacer_shader->setColor( Color(0xF7E26B), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
+
+    if( glfwGetKey( g_window, 'Q') ) {
+        print("Q pressed");
+        exit(0);
+    }
+
+    if( g_pc->accum_time > 10 ) {
+        g_bgm_sound->stop();
+    }
+    
+    glfwPollEvents();        
+
+        
+    last_poll_at = t;
 }
 
 
@@ -433,12 +449,10 @@ void glfw_error_cb( int code, const char *desc ) {
 }
 
 
-int demo2DMain( int argc, char **argv ) { 
+void gameInit() {
     qstest();
     optest();
     comptest();
-
-    
 
     print("program start");
 
@@ -463,7 +477,7 @@ int demo2DMain( int argc, char **argv ) {
     // glfw
     if( !glfwInit() ) {
         print("can't init glfw");
-        return 1;
+        exit(1);
     }
 
     glfwSetErrorCallback( glfw_error_cb );
@@ -471,7 +485,7 @@ int demo2DMain( int argc, char **argv ) {
     if(g_window == NULL ) {
         print("can't open glfw window");
         glfwTerminate();
-        return 1;
+        exit(1);
     }
     glfwMakeContextCurrent(g_window);    
     glfwSetWindowCloseCallback( g_window, winclose_callback );
@@ -490,7 +504,7 @@ int demo2DMain( int argc, char **argv ) {
     g_replacer_shader = new ColorReplacerShader();
     if( !g_replacer_shader->init() ){
         print("can't initialize shader");
-        return 0;
+        exit(1);
     }
 
     g_moyai_client = new MoyaiClient(g_window);
@@ -729,8 +743,7 @@ int demo2DMain( int argc, char **argv ) {
     dragonp2->setIndex(1);
     g_main_layer->insertProp(dragonp2);
 
-    
-
+   
     
 
     // bitmap font
@@ -794,42 +807,29 @@ int demo2DMain( int argc, char **argv ) {
     g_pc = createMyShip(0,0);
     assert(g_pc);
 
-
-    while( !glfwWindowShouldClose(g_window) ){
-        int scrw, scrh;
-        glfwGetFramebufferSize( g_window, &scrw, &scrh );
-
-        updateGame();
-
-        // replace white to random color
-        g_replacer_shader->setColor( Color(0xF7E26B), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
-        g_last_render_cnt = g_moyai_client->render();
-
-        if( glfwGetKey( g_window, 'Q') ) {
-            print("Q pressed");
-            exit(0);
-            break;
-        }
-        if( g_pc->accum_time > 10 ) {
-            g_bgm_sound->stop();
-        }
-
-        g_pad->readGLFW(g_window);
-
-        glfwPollEvents();
-    }
-    glfwTerminate();
-
-    print("program finished");
-    
-
-    return 0;
 }
+
+
+void gameRender() {
+        g_last_render_cnt = g_moyai_client->render();
+}
+void gameFinish() {
+    glfwTerminate();
+}
+
 
 
 #if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
 int main(int argc, char **argv )
 {
-    return demo2DMain( argc, argv );
+    gameInit();
+    while( !glfwWindowShouldClose(g_window) ){
+        gameUpdate();
+        gameRender();
+
+    }
+    gameFinish();
+    print("program finished");
+    return 0;
 }
 #endif
