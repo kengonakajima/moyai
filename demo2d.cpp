@@ -432,8 +432,8 @@ void glfw_error_cb( int code, const char *desc ) {
     print("glfw_error_cb. code:%d desc:'%s'", code, desc );
 }
 
-int main(int argc, char **argv )
-{
+
+int demo2DMain( int argc, char **argv ) { 
     qstest();
     optest();
     comptest();
@@ -825,3 +825,11 @@ int main(int argc, char **argv )
 
     return 0;
 }
+
+
+#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
+int main(int argc, char **argv )
+{
+    return demo2DMain( argc, argv );
+}
+#endif

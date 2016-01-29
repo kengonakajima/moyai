@@ -15,6 +15,41 @@
 		C710F6041C2135600064B4D1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C710F6021C2135600064B4D1 /* LaunchScreen.storyboard */; };
 		C710F62E1C213D160064B4D1 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C710F62D1C213D160064B4D1 /* GLKit.framework */; };
 		C7AC4DBF1C59C7E8004A6E71 /* demo2d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DBE1C59C7E8004A6E71 /* demo2d.cpp */; };
+		C7AC4DC11C59F08D004A6E71 /* common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DC01C59F08D004A6E71 /* common.cpp */; };
+		C7AC4DC31C59F0A1004A6E71 /* cumino.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DC21C59F0A1004A6E71 /* cumino.cpp */; };
+		C7AC4DC61C59F6E6004A6E71 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DC51C59F6E6004A6E71 /* lodepng.cpp */; };
+		C7AC4DC81C59F71A004A6E71 /* IndexBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DC71C59F71A004A6E71 /* IndexBuffer.cpp */; };
+		C7AC4DCD1C59F744004A6E71 /* MoyaiClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DC91C59F744004A6E71 /* MoyaiClient.cpp */; };
+		C7AC4DCF1C59F744004A6E71 /* Pad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DCC1C59F744004A6E71 /* Pad.cpp */; };
+		C7AC4DD11C59F789004A6E71 /* SoundSystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DD01C59F789004A6E71 /* SoundSystem.cpp */; };
+		C7AC4DD31C59F795004A6E71 /* Sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DD21C59F795004A6E71 /* Sound.cpp */; };
+		C7AC4DD51C59FC89004A6E71 /* libfmodex_iphonesimulator.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C7AC4DD41C59FC89004A6E71 /* libfmodex_iphonesimulator.a */; };
+		C7AC4DDA1C59FDA9004A6E71 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7AC4DD61C59FCE9004A6E71 /* CoreAudio.framework */; };
+		C7AC4DDE1C59FF19004A6E71 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7AC4DDD1C59FF19004A6E71 /* AudioToolbox.framework */; };
+		C7AC4DE01C59FFCA004A6E71 /* DrawBatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DDF1C59FFCA004A6E71 /* DrawBatch.cpp */; };
+		C7AC4DE21C5AC216004A6E71 /* VertexBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DE11C5AC216004A6E71 /* VertexBuffer.cpp */; };
+		C7AC4DE41C5AC22E004A6E71 /* VertexFormat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DE31C5AC22E004A6E71 /* VertexFormat.cpp */; };
+		C7AC4DE61C5AC245004A6E71 /* Viewport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DE51C5AC245004A6E71 /* Viewport.cpp */; };
+		C7AC4DE81C5AC25B004A6E71 /* Font.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DE71C5AC25B004A6E71 /* Font.cpp */; };
+		C7AC4DEA1C5AC265004A6E71 /* Grid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DE91C5AC265004A6E71 /* Grid.cpp */; };
+		C7AC4DEC1C5AC287004A6E71 /* ColorReplacerShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DEB1C5AC287004A6E71 /* ColorReplacerShader.cpp */; };
+		C7AC4DEE1C5AC335004A6E71 /* FragmentShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DED1C5AC335004A6E71 /* FragmentShader.cpp */; };
+		C7AC4DF01C5AC434004A6E71 /* Prim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DEF1C5AC434004A6E71 /* Prim.cpp */; };
+		C7AC4DF21C5AFD43004A6E71 /* Layer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DF11C5AFD43004A6E71 /* Layer.cpp */; };
+		C7AC4DF41C5B05A5004A6E71 /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DF31C5B05A5004A6E71 /* Camera.cpp */; };
+		C7AC4DF61C5B05B7004A6E71 /* Prop2D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DF51C5B05B7004A6E71 /* Prop2D.cpp */; };
+		C7AC4DF81C5B05ED004A6E71 /* PrimDrawer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DF71C5B05ED004A6E71 /* PrimDrawer.cpp */; };
+		C7AC4DFA1C5B05FC004A6E71 /* TextBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DF91C5B05FC004A6E71 /* TextBox.cpp */; };
+		C7AC4DFC1C5B0612004A6E71 /* Texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DFB1C5B0612004A6E71 /* Texture.cpp */; };
+		C7AC4DFE1C5B0624004A6E71 /* CharGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DFD1C5B0624004A6E71 /* CharGrid.cpp */; };
+		C7AC4E001C5B0657004A6E71 /* snappy.cc in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DFF1C5B0657004A6E71 /* snappy.cc */; };
+		C7AC4E021C5B0674004A6E71 /* snappy-sinksource.cc in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4E011C5B0674004A6E71 /* snappy-sinksource.cc */; };
+		C7AC4E041C5B0691004A6E71 /* snappy-c.cc in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4E031C5B0691004A6E71 /* snappy-c.cc */; };
+		C7AC4E061C5B06F4004A6E71 /* texture-atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4E051C5B06F4004A6E71 /* texture-atlas.c */; };
+		C7AC4E081C5B088F004A6E71 /* texture-font.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4E071C5B088F004A6E71 /* texture-font.c */; };
+		C7AC4E0A1C5B10C7004A6E71 /* libFreetype2-sim.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C7AC4E091C5B10C7004A6E71 /* libFreetype2-sim.a */; };
+		C7AC4E0E1C5B19D6004A6E71 /* vector.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4E0D1C5B19D6004A6E71 /* vector.c */; };
+		C7AC4E101C5B1C9E004A6E71 /* GLFWiosemu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4E0F1C5B1C9E004A6E71 /* GLFWiosemu.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +65,42 @@
 		C710F6051C2135600064B4D1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C710F62D1C213D160064B4D1 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		C7AC4DBE1C59C7E8004A6E71 /* demo2d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = demo2d.cpp; path = ../../demo2d.cpp; sourceTree = "<group>"; };
+		C7AC4DC01C59F08D004A6E71 /* common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = common.cpp; path = ../../common.cpp; sourceTree = "<group>"; };
+		C7AC4DC21C59F0A1004A6E71 /* cumino.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cumino.cpp; path = ../../cumino.cpp; sourceTree = "<group>"; };
+		C7AC4DC51C59F6E6004A6E71 /* lodepng.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = lodepng.cpp; path = ../../lodepng.cpp; sourceTree = "<group>"; };
+		C7AC4DC71C59F71A004A6E71 /* IndexBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IndexBuffer.cpp; path = ../../IndexBuffer.cpp; sourceTree = "<group>"; };
+		C7AC4DC91C59F744004A6E71 /* MoyaiClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MoyaiClient.cpp; path = ../../MoyaiClient.cpp; sourceTree = "<group>"; };
+		C7AC4DCC1C59F744004A6E71 /* Pad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pad.cpp; path = ../../Pad.cpp; sourceTree = "<group>"; };
+		C7AC4DD01C59F789004A6E71 /* SoundSystem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SoundSystem.cpp; path = ../../SoundSystem.cpp; sourceTree = "<group>"; };
+		C7AC4DD21C59F795004A6E71 /* Sound.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound.cpp; path = ../../Sound.cpp; sourceTree = "<group>"; };
+		C7AC4DD41C59FC89004A6E71 /* libfmodex_iphonesimulator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfmodex_iphonesimulator.a; path = ../fmod/api_4.44.61/lib/libfmodex_iphonesimulator.a; sourceTree = "<group>"; };
+		C7AC4DD61C59FCE9004A6E71 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		C7AC4DDB1C59FF0A004A6E71 /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
+		C7AC4DDD1C59FF19004A6E71 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		C7AC4DDF1C59FFCA004A6E71 /* DrawBatch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DrawBatch.cpp; path = ../../DrawBatch.cpp; sourceTree = "<group>"; };
+		C7AC4DE11C5AC216004A6E71 /* VertexBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VertexBuffer.cpp; path = ../../VertexBuffer.cpp; sourceTree = "<group>"; };
+		C7AC4DE31C5AC22E004A6E71 /* VertexFormat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VertexFormat.cpp; path = ../../VertexFormat.cpp; sourceTree = "<group>"; };
+		C7AC4DE51C5AC245004A6E71 /* Viewport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Viewport.cpp; path = ../../Viewport.cpp; sourceTree = "<group>"; };
+		C7AC4DE71C5AC25B004A6E71 /* Font.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Font.cpp; path = ../../Font.cpp; sourceTree = "<group>"; };
+		C7AC4DE91C5AC265004A6E71 /* Grid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Grid.cpp; path = ../../Grid.cpp; sourceTree = "<group>"; };
+		C7AC4DEB1C5AC287004A6E71 /* ColorReplacerShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ColorReplacerShader.cpp; path = ../../ColorReplacerShader.cpp; sourceTree = "<group>"; };
+		C7AC4DED1C5AC335004A6E71 /* FragmentShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FragmentShader.cpp; path = ../../FragmentShader.cpp; sourceTree = "<group>"; };
+		C7AC4DEF1C5AC434004A6E71 /* Prim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Prim.cpp; path = ../../Prim.cpp; sourceTree = "<group>"; };
+		C7AC4DF11C5AFD43004A6E71 /* Layer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Layer.cpp; path = ../../Layer.cpp; sourceTree = "<group>"; };
+		C7AC4DF31C5B05A5004A6E71 /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../../Camera.cpp; sourceTree = "<group>"; };
+		C7AC4DF51C5B05B7004A6E71 /* Prop2D.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Prop2D.cpp; path = ../../Prop2D.cpp; sourceTree = "<group>"; };
+		C7AC4DF71C5B05ED004A6E71 /* PrimDrawer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PrimDrawer.cpp; path = ../../PrimDrawer.cpp; sourceTree = "<group>"; };
+		C7AC4DF91C5B05FC004A6E71 /* TextBox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextBox.cpp; path = ../../TextBox.cpp; sourceTree = "<group>"; };
+		C7AC4DFB1C5B0612004A6E71 /* Texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Texture.cpp; path = ../../Texture.cpp; sourceTree = "<group>"; };
+		C7AC4DFD1C5B0624004A6E71 /* CharGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CharGrid.cpp; path = ../../CharGrid.cpp; sourceTree = "<group>"; };
+		C7AC4DFF1C5B0657004A6E71 /* snappy.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = snappy.cc; path = ../../snappy/snappy.cc; sourceTree = "<group>"; };
+		C7AC4E011C5B0674004A6E71 /* snappy-sinksource.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "snappy-sinksource.cc"; path = "../../snappy/snappy-sinksource.cc"; sourceTree = "<group>"; };
+		C7AC4E031C5B0691004A6E71 /* snappy-c.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "snappy-c.cc"; path = "../../snappy/snappy-c.cc"; sourceTree = "<group>"; };
+		C7AC4E051C5B06F4004A6E71 /* texture-atlas.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "texture-atlas.c"; path = "../../freetype-gl/texture-atlas.c"; sourceTree = "<group>"; };
+		C7AC4E071C5B088F004A6E71 /* texture-font.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "texture-font.c"; path = "../../freetype-gl/texture-font.c"; sourceTree = "<group>"; };
+		C7AC4E091C5B10C7004A6E71 /* libFreetype2-sim.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libFreetype2-sim.a"; path = "../ft2bin/libFreetype2-sim.a"; sourceTree = "<group>"; };
+		C7AC4E0D1C5B19D6004A6E71 /* vector.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vector.c; path = "../../freetype-gl/vector.c"; sourceTree = "<group>"; };
+		C7AC4E0F1C5B1C9E004A6E71 /* GLFWiosemu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GLFWiosemu.cpp; path = ../../GLFWiosemu.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,6 +108,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C7AC4E0A1C5B10C7004A6E71 /* libFreetype2-sim.a in Frameworks */,
+				C7AC4DDE1C59FF19004A6E71 /* AudioToolbox.framework in Frameworks */,
+				C7AC4DDA1C59FDA9004A6E71 /* CoreAudio.framework in Frameworks */,
+				C7AC4DD51C59FC89004A6E71 /* libfmodex_iphonesimulator.a in Frameworks */,
 				C710F62E1C213D160064B4D1 /* GLKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -47,6 +122,12 @@
 		C710F5E41C2135600064B4D1 = {
 			isa = PBXGroup;
 			children = (
+				C7AC4E091C5B10C7004A6E71 /* libFreetype2-sim.a */,
+				C7AC4DDD1C59FF19004A6E71 /* AudioToolbox.framework */,
+				C7AC4DDB1C59FF0A004A6E71 /* CoreAudioKit.framework */,
+				C7AC4DD61C59FCE9004A6E71 /* CoreAudio.framework */,
+				C7AC4DD41C59FC89004A6E71 /* libfmodex_iphonesimulator.a */,
+				C7AC4DC41C59F6D1004A6E71 /* depends */,
 				C7AC4DBD1C59C70C004A6E71 /* demo2d */,
 				C7AC4DBC1C59C6FA004A6E71 /* moyai */,
 				C710F62D1C213D160064B4D1 /* GLKit.framework */,
@@ -91,6 +172,30 @@
 		C7AC4DBC1C59C6FA004A6E71 /* moyai */ = {
 			isa = PBXGroup;
 			children = (
+				C7AC4E0F1C5B1C9E004A6E71 /* GLFWiosemu.cpp */,
+				C7AC4DD01C59F789004A6E71 /* SoundSystem.cpp */,
+				C7AC4DD21C59F795004A6E71 /* Sound.cpp */,
+				C7AC4DFD1C5B0624004A6E71 /* CharGrid.cpp */,
+				C7AC4DFB1C5B0612004A6E71 /* Texture.cpp */,
+				C7AC4DF91C5B05FC004A6E71 /* TextBox.cpp */,
+				C7AC4DF71C5B05ED004A6E71 /* PrimDrawer.cpp */,
+				C7AC4DF51C5B05B7004A6E71 /* Prop2D.cpp */,
+				C7AC4DF31C5B05A5004A6E71 /* Camera.cpp */,
+				C7AC4DF11C5AFD43004A6E71 /* Layer.cpp */,
+				C7AC4DEF1C5AC434004A6E71 /* Prim.cpp */,
+				C7AC4DED1C5AC335004A6E71 /* FragmentShader.cpp */,
+				C7AC4DEB1C5AC287004A6E71 /* ColorReplacerShader.cpp */,
+				C7AC4DE91C5AC265004A6E71 /* Grid.cpp */,
+				C7AC4DE71C5AC25B004A6E71 /* Font.cpp */,
+				C7AC4DE51C5AC245004A6E71 /* Viewport.cpp */,
+				C7AC4DE31C5AC22E004A6E71 /* VertexFormat.cpp */,
+				C7AC4DE11C5AC216004A6E71 /* VertexBuffer.cpp */,
+				C7AC4DDF1C59FFCA004A6E71 /* DrawBatch.cpp */,
+				C7AC4DC91C59F744004A6E71 /* MoyaiClient.cpp */,
+				C7AC4DCC1C59F744004A6E71 /* Pad.cpp */,
+				C7AC4DC71C59F71A004A6E71 /* IndexBuffer.cpp */,
+				C7AC4DC21C59F0A1004A6E71 /* cumino.cpp */,
+				C7AC4DC01C59F08D004A6E71 /* common.cpp */,
 			);
 			name = moyai;
 			sourceTree = "<group>";
@@ -101,6 +206,20 @@
 				C7AC4DBE1C59C7E8004A6E71 /* demo2d.cpp */,
 			);
 			name = demo2d;
+			sourceTree = "<group>";
+		};
+		C7AC4DC41C59F6D1004A6E71 /* depends */ = {
+			isa = PBXGroup;
+			children = (
+				C7AC4E0D1C5B19D6004A6E71 /* vector.c */,
+				C7AC4E071C5B088F004A6E71 /* texture-font.c */,
+				C7AC4E051C5B06F4004A6E71 /* texture-atlas.c */,
+				C7AC4E031C5B0691004A6E71 /* snappy-c.cc */,
+				C7AC4E011C5B0674004A6E71 /* snappy-sinksource.cc */,
+				C7AC4DFF1C5B0657004A6E71 /* snappy.cc */,
+				C7AC4DC51C59F6E6004A6E71 /* lodepng.cpp */,
+			);
+			name = depends;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -173,10 +292,41 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C7AC4DC31C59F0A1004A6E71 /* cumino.cpp in Sources */,
+				C7AC4DE21C5AC216004A6E71 /* VertexBuffer.cpp in Sources */,
+				C7AC4DCF1C59F744004A6E71 /* Pad.cpp in Sources */,
 				C710F5F51C2135600064B4D1 /* AppDelegate.m in Sources */,
+				C7AC4DF81C5B05ED004A6E71 /* PrimDrawer.cpp in Sources */,
+				C7AC4DFE1C5B0624004A6E71 /* CharGrid.cpp in Sources */,
+				C7AC4DEC1C5AC287004A6E71 /* ColorReplacerShader.cpp in Sources */,
+				C7AC4DC81C59F71A004A6E71 /* IndexBuffer.cpp in Sources */,
+				C7AC4E101C5B1C9E004A6E71 /* GLFWiosemu.cpp in Sources */,
+				C7AC4E081C5B088F004A6E71 /* texture-font.c in Sources */,
+				C7AC4DEE1C5AC335004A6E71 /* FragmentShader.cpp in Sources */,
+				C7AC4DF41C5B05A5004A6E71 /* Camera.cpp in Sources */,
+				C7AC4E041C5B0691004A6E71 /* snappy-c.cc in Sources */,
+				C7AC4DE01C59FFCA004A6E71 /* DrawBatch.cpp in Sources */,
 				C710F5FC1C2135600064B4D1 /* GameViewController.mm in Sources */,
+				C7AC4DE41C5AC22E004A6E71 /* VertexFormat.cpp in Sources */,
+				C7AC4DFA1C5B05FC004A6E71 /* TextBox.cpp in Sources */,
 				C7AC4DBF1C59C7E8004A6E71 /* demo2d.cpp in Sources */,
+				C7AC4DEA1C5AC265004A6E71 /* Grid.cpp in Sources */,
+				C7AC4DF01C5AC434004A6E71 /* Prim.cpp in Sources */,
+				C7AC4E001C5B0657004A6E71 /* snappy.cc in Sources */,
+				C7AC4E0E1C5B19D6004A6E71 /* vector.c in Sources */,
+				C7AC4E061C5B06F4004A6E71 /* texture-atlas.c in Sources */,
 				C710F5F21C2135600064B4D1 /* main.m in Sources */,
+				C7AC4DCD1C59F744004A6E71 /* MoyaiClient.cpp in Sources */,
+				C7AC4DF21C5AFD43004A6E71 /* Layer.cpp in Sources */,
+				C7AC4DC11C59F08D004A6E71 /* common.cpp in Sources */,
+				C7AC4E021C5B0674004A6E71 /* snappy-sinksource.cc in Sources */,
+				C7AC4DF61C5B05B7004A6E71 /* Prop2D.cpp in Sources */,
+				C7AC4DFC1C5B0612004A6E71 /* Texture.cpp in Sources */,
+				C7AC4DC61C59F6E6004A6E71 /* lodepng.cpp in Sources */,
+				C7AC4DE61C5AC245004A6E71 /* Viewport.cpp in Sources */,
+				C7AC4DE81C5AC25B004A6E71 /* Font.cpp in Sources */,
+				C7AC4DD11C59F789004A6E71 /* SoundSystem.cpp in Sources */,
+				C7AC4DD31C59F795004A6E71 /* Sound.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -288,8 +438,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					"\"../../glfw-3.1.2/include\"",
+					"\"../../freetype-2.4.10/include\"",
+				);
 				INFOPLIST_FILE = ios_demo2d/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				"LIBRARY_SEARCH_PATHS[arch=*]" = (
+					"\"../../ios/fmod/api_4.44.61/lib\"",
+					"\"../../ios/ft2bin\"",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.fluidtest.ios-demo2d";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -299,8 +457,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					"\"../../glfw-3.1.2/include\"",
+					"\"../../freetype-2.4.10/include\"",
+				);
 				INFOPLIST_FILE = ios_demo2d/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				"LIBRARY_SEARCH_PATHS[arch=*]" = (
+					"\"../../ios/fmod/api_4.44.61/lib\"",
+					"\"../../ios/ft2bin\"",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.fluidtest.ios-demo2d";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

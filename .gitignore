@@ -22,6 +22,7 @@ _captured.png
 **/*.pdb
 dynamic_out.png
 .DS_Store
+freetype-gl/.DS_Store
 Thumbs.db
 demowin/DebugD3D/
 demowin/DebugOGL/

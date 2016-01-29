@@ -101,7 +101,9 @@ void Prop2D::render(Camera *cam, DrawBatchList *bl ) {
 			TileDeck *draw_deck = deck;
 			if( grid->deck ) draw_deck = grid->deck;
 			if( grid->fragment_shader ){
+#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
 				glUseProgram(grid->fragment_shader->program );
+#endif                
 				grid->fragment_shader->updateUniforms();
 			}
 
