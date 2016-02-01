@@ -23,7 +23,6 @@
 		C7AC4DCF1C59F744004A6E71 /* Pad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DCC1C59F744004A6E71 /* Pad.cpp */; };
 		C7AC4DD11C59F789004A6E71 /* SoundSystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DD01C59F789004A6E71 /* SoundSystem.cpp */; };
 		C7AC4DD31C59F795004A6E71 /* Sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DD21C59F795004A6E71 /* Sound.cpp */; };
-		C7AC4DD51C59FC89004A6E71 /* libfmodex_iphonesimulator.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C7AC4DD41C59FC89004A6E71 /* libfmodex_iphonesimulator.a */; };
 		C7AC4DDA1C59FDA9004A6E71 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7AC4DD61C59FCE9004A6E71 /* CoreAudio.framework */; };
 		C7AC4DDE1C59FF19004A6E71 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7AC4DDD1C59FF19004A6E71 /* AudioToolbox.framework */; };
 		C7AC4DE01C59FFCA004A6E71 /* DrawBatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4DDF1C59FFCA004A6E71 /* DrawBatch.cpp */; };
@@ -47,7 +46,6 @@
 		C7AC4E041C5B0691004A6E71 /* snappy-c.cc in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4E031C5B0691004A6E71 /* snappy-c.cc */; };
 		C7AC4E061C5B06F4004A6E71 /* texture-atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4E051C5B06F4004A6E71 /* texture-atlas.c */; };
 		C7AC4E081C5B088F004A6E71 /* texture-font.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4E071C5B088F004A6E71 /* texture-font.c */; };
-		C7AC4E0A1C5B10C7004A6E71 /* libFreetype2-sim.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C7AC4E091C5B10C7004A6E71 /* libFreetype2-sim.a */; };
 		C7AC4E0E1C5B19D6004A6E71 /* vector.c in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4E0D1C5B19D6004A6E71 /* vector.c */; };
 		C7AC4E101C5B1C9E004A6E71 /* GLFWiosemu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C7AC4E0F1C5B1C9E004A6E71 /* GLFWiosemu.cpp */; };
 		C7AC4E121C5B2E1D004A6E71 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = C7AC4E111C5B2E1D004A6E71 /* assets */; };
@@ -110,10 +108,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C7AC4E0A1C5B10C7004A6E71 /* libFreetype2-sim.a in Frameworks */,
 				C7AC4DDE1C59FF19004A6E71 /* AudioToolbox.framework in Frameworks */,
 				C7AC4DDA1C59FDA9004A6E71 /* CoreAudio.framework in Frameworks */,
-				C7AC4DD51C59FC89004A6E71 /* libfmodex_iphonesimulator.a in Frameworks */,
 				C710F62E1C213D160064B4D1 /* GLKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -442,6 +438,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ENABLE_BITCODE = NO;
 				"HEADER_SEARCH_PATHS[arch=*]" = (
 					"\"../../glfw-3.1.2/include\"",
 					"\"../../freetype-2.4.10/include\"",
@@ -452,6 +449,14 @@
 					"\"../../ios/fmod/api_4.44.61/lib\"",
 					"\"../../ios/ft2bin\"",
 				);
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
+					"-lFreetype2-arm",
+					"-lfmodex_iphoneos",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
+					"-lFreetype2-sim",
+					"-lfmodex_iphonesimulator",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.fluidtest.ios-demo2d";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -461,6 +466,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ENABLE_BITCODE = NO;
 				"HEADER_SEARCH_PATHS[arch=*]" = (
 					"\"../../glfw-3.1.2/include\"",
 					"\"../../freetype-2.4.10/include\"",
