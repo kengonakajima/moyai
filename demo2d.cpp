@@ -335,7 +335,9 @@ void gameUpdate(void) {
         img->setSize( SCRW, SCRH );
         g_moyai_client->capture(img);
         bool ret = img->writePNG("_captured.png");
+#if !(TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE)
         assert(ret);
+#endif        
         print("captured in _captured.png cnt:%d", capt_count );
         delete img;
         endMeasure();
@@ -690,12 +692,13 @@ void gameInit() {
     // Check bottom line
     TextBox *t5 = new TextBox();
     t5->setFont(font);
-    t5->setString( "THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない1ぎょうめ\n"
+    t5->setString( L"THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない1ぎょうめ\n"
                    "THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない2ぎょうめ"
                    );
     t5->setLoc(-SCRW/2,-SCRH/2);
     t5->setScl(1);
     g_main_layer->insertProp(t5);
+
     
     // Image manipulation
     Image *dragonimg = new Image();
