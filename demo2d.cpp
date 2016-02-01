@@ -672,7 +672,6 @@ void gameInit() {
     g_tb->setScl(1);
     g_main_layer->insertProp(g_tb);
 
-#if 0
     TextBox *t3 = new TextBox();
     t3->setFont(font);
     t3->setString( L"ABC012ほげ。\nふがふがふがの(wchar_t)。" );
@@ -680,13 +679,14 @@ void gameInit() {
     t3->setScl(1);
     g_main_layer->insertProp(t3);
 
+
     TextBox *t4 = new TextBox();
     t4->setFont(font);
     t4->setString( "ABC012ほげ。\nふがふがふがの(mb-utf8)。" );
     t4->setLoc(-100,-90);
     t4->setScl(0.75f);
     g_main_layer->insertProp(t4);
-
+    
     // Check bottom line
     TextBox *t5 = new TextBox();
     t5->setFont(font);
@@ -696,7 +696,6 @@ void gameInit() {
     t5->setLoc(-SCRW/2,-SCRH/2);
     t5->setScl(1);
     g_main_layer->insertProp(t5);
-#endif
     
     // Image manipulation
     Image *dragonimg = new Image();

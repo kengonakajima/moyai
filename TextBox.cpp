@@ -48,6 +48,8 @@ void TextBox::updateMesh() {
 
         float y_margin = ( (float)font->pixel_size / 7.0f ); // suitable for ascii/japanese(CJK) mixed text
 
+        int vi=0, ii=0;
+        
         for( int i=0; i<l; ++i ){
             if( str[i] == L"\n"[0] ){
                 cur_lb.x = start_lb.x;
@@ -73,26 +75,29 @@ void TextBox::updateMesh() {
             float s1 = glyph->s1;
             float t1 = glyph->t1;
             float depth = 10;
-            int vi = i * 4;
+            
             vb->setCoord(vi+0, Vec3(x0,y0,depth) ); vb->setUV(vi+0, Vec2(s0,t0) ); vb->setColor(vi+0,color);
             vb->setCoord(vi+1, Vec3(x0,y1,depth) ); vb->setUV(vi+1, Vec2(s0,t1) ); vb->setColor(vi+1,color);
             vb->setCoord(vi+2, Vec3(x1,y1,depth) ); vb->setUV(vi+2, Vec2(s1,t1) ); vb->setColor(vi+2,color);
             vb->setCoord(vi+3, Vec3(x1,y0,depth) ); vb->setUV(vi+3, Vec2(s1,t0) ); vb->setColor(vi+3,color);
+            vi+=4;
+            
             // 0-3
             // | |
             // 1-2
-            int ii = i * 6;
+            
             ib->setIndex(ii+0,vi+0);
             ib->setIndex(ii+1,vi+1);
             ib->setIndex(ii+2,vi+2);
             ib->setIndex(ii+3,vi+0);
             ib->setIndex(ii+4,vi+2);            
             ib->setIndex(ii+5,vi+3);            
-
+            ii+=6;
             cur_lb.x += glyph->advance_x;
             max_rt_cache.x = cur_lb.x;
         }
         max_rt_cache.y = (line_num+1)*font->pixel_size;
+        ib->setRenderLen(ii);
     }
 }
 
