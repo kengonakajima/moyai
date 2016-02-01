@@ -665,14 +665,14 @@ void gameInit() {
     Font *font = new Font();
     font->loadFromTTF("./assets/cinecaption227.ttf", charcodes, 12 );
 
-#if 0
+
     g_tb = new TextBox();
     g_tb->setFont(font);
     g_tb->setString("dummy");
     g_tb->setScl(1);
-
     g_main_layer->insertProp(g_tb);
 
+#if 0
     TextBox *t3 = new TextBox();
     t3->setFont(font);
     t3->setString( L"ABC012ほげ。\nふがふがふがの(wchar_t)。" );
@@ -696,7 +696,7 @@ void gameInit() {
     t5->setLoc(-SCRW/2,-SCRH/2);
     t5->setScl(1);
     g_main_layer->insertProp(t5);
-#endif    
+#endif
     
     // Image manipulation
     Image *dragonimg = new Image();

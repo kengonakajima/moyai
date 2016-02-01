@@ -636,7 +636,7 @@ const char *platformCStringPath( const char *path ) {
                       dir, nspath, (void *)nil]; // including dummy strings for example
     NSString *nsfullpath = [NSString pathWithComponents:parts];
     const char *cpath = [nsfullpath fileSystemRepresentation];
-    print("iOS: CPATH:%s",cpath);
+    //    print("iOS: CPATH:%s",cpath);
 #else
     const char *cpath = path;
 #endif
