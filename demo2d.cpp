@@ -433,7 +433,7 @@ void comptest() {
     char buf[] = "hogehogefugafugahogefugapiyopiyo";
     char zipped[1024];
     char inflated[1024];
-    int zipped_len = memCompressSnappy( zipped, sizeof(zipped), buf, strlen(buf) );
+    int zipped_len = memCompressSnappy( zipped, sizeof(zipped), buf, (int)strlen(buf) );
     int inflated_len = memDecompressSnappy( inflated, sizeof(inflated), zipped, zipped_len );
     inflated[inflated_len] = '\0';
     print("snappy: %d bytes to %d byte", inflated_len, zipped_len );
