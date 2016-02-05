@@ -47,7 +47,8 @@
 #include "OpenGLES/ES1/gl.h"
 #include "OpenGLES/ES1/glext.h"
 #elif TARGET_OS_MAC
-//#include <OpenGL/gl.h>
+#include <OpenGL/gl.h>
+#include <Glut/glut.h>
 #else
 #error "Unknown Apple platform"
 #endif
