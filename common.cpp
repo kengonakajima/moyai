@@ -295,7 +295,7 @@ bool Image::loadPNG( const char *path ) {
     }
 
     unsigned error;
-    unsigned char* image_data = (unsigned char*) MALLOC( 2048 * 2048 * 4 );
+    unsigned char* image_data;
     unsigned w, h;
 
     error = lodepng_decode32_file(&image_data, &w, &h, cpath );
