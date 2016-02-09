@@ -693,7 +693,7 @@ void gameInit() {
     TextBox *t5 = new TextBox();
     t5->setFont(font);
     t5->setString( L"THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない1ぎょうめ\n"
-                   "THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない2ぎょうめ"
+                   L"THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない2ぎょうめ"
                    );
     t5->setLoc(-SCRW/2,-SCRH/2);
     t5->setScl(1);
