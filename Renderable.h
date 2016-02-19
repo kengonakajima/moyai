@@ -37,7 +37,9 @@ public:
 	}
 
 	inline void setVisible(bool flg){ visible = flg; }
-	inline bool getVisible() { return visible; }        
+	inline bool getVisible() { return visible; }
+    inline void setPriority(int prio) { priority = prio; }
+    inline int getPriority() { return priority; }
 
 	inline void swapPriority( Renderable *target ) {
 		int p = priority;
