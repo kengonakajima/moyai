@@ -5,12 +5,12 @@
 
 int Texture::idgen = 1;
 
-bool Texture::load( const char *path ){
+bool Texture::load( const char *path, bool multiply_color_by_alpha ){
     if(image) {
         print("Texture::load: Warning: image is already set. possible leak");
     }
     Image *img = new Image();
-    img->loadPNG(path);
+    img->loadPNG(path, multiply_color_by_alpha );
     setImage(img);
 	return true;
 }

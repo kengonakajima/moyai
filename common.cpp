@@ -286,7 +286,7 @@ static void multiplyAlphaRGBA( unsigned char *img, int width, int height) {
     }
 }
 
-bool Image::loadPNG( const char *path ) {
+bool Image::loadPNG( const char *path, bool multiply_color_by_alpha ) {
     const char *cpath = platformCStringPath(path);
     FILE *fp = fopen(cpath,"rb");
     if(!fp) {
@@ -310,7 +310,7 @@ bool Image::loadPNG( const char *path ) {
     width = w;
     height = h;
 
-    multiplyAlphaRGBA(image_data,width,height);
+    if( multiply_color_by_alpha ) multiplyAlphaRGBA(image_data,width,height);
     
     ensureBuffer();
 #define IMAGE_BUFFER_COPY \
@@ -332,7 +332,7 @@ bool Image::loadPNG( const char *path ) {
 
     return true;
 }
-bool Image::loadPNGMem( unsigned char *ptr, size_t sz ) {
+bool Image::loadPNGMem( unsigned char *ptr, size_t sz, bool multiply_color_by_alpha ) {
     unsigned error;
     unsigned char* image_data = (unsigned char*) MALLOC( 2048 * 2048 * 4 );
     unsigned w, h;    
@@ -344,6 +344,7 @@ bool Image::loadPNGMem( unsigned char *ptr, size_t sz ) {
     }
     width = w;
     height = h;
+    if( multiply_color_by_alpha ) multiplyAlphaRGBA(image_data,width,height);    
     ensureBuffer();
     IMAGE_BUFFER_COPY;
     FREE(image_data);

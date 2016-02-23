@@ -402,8 +402,8 @@ public:
     void setPixelRaw( int x, int y, unsigned char r,  unsigned char g,  unsigned char b,  unsigned char a );
     void getAreaRaw( int x, int y, int w, int h, unsigned char *out, size_t outsz );
     void setAreaRaw( int x, int y, int w, int h, unsigned char *in, size_t insz );
-    bool loadPNG( const char *path );
-    bool loadPNGMem( unsigned char *ptr, size_t sz );
+    bool loadPNG( const char *path, bool multiply_color_by_alpha = true );
+    bool loadPNGMem( unsigned char *ptr, size_t sz, bool multiply_color_by_alpha = true );
     bool loadRaw( const char *path );
     bool writePNG(const char *path);    
     bool writePNGMem( unsigned char **out, size_t *outsize );

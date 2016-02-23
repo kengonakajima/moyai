@@ -13,7 +13,7 @@ public:
 	}
 
 	void setImage( Image *img );
-	bool load( const char *path );
+	bool load( const char *path, bool multiply_color_by_alpha = true );
 	void setLinearMagFilter();
 	void setLinearMinFilter();    
 	void getSize( int *w, int *h){
