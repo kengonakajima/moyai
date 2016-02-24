@@ -512,7 +512,11 @@ void gameInit( bool headless_mode ) {
     }
 
     if( headless_mode ) {
-        g_rh = new RemoteHead( HEADLESS_SERVER_PORT );
+        g_rh = new RemoteHead();
+        if( g_rh->startServer(HEADLESS_SERVER_PORT) == false ) {
+            print("headless server: can't start server. port:%d", HEADLESS_SERVER_PORT );
+            exit(1);
+        }
     }
     
     g_moyai_client = new MoyaiClient(g_window);

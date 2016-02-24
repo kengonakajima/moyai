@@ -32,9 +32,10 @@ typedef struct  {
 class RemoteHead {
 public:
     int tcp_port;    
-    RemoteHead( int tcp_port ) : tcp_port(tcp_port) {
+    RemoteHead() : tcp_port(0) {
     }
     void track2D( Moyai *m );
+    bool startServer( int portnum );
 };
 
 

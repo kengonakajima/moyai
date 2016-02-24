@@ -121,3 +121,9 @@ void RemoteHead::track2D( Moyai *m ) {
         
     }
 }
+
+// return false if can't
+bool RemoteHead::startServer( int portnum ) {        
+    tcp_port = portnum;
+
+}
