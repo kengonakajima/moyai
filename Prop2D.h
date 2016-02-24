@@ -6,6 +6,7 @@
 #include "PrimDrawer.h"
 #include "Layer.h"
 #include "DrawBatch.h"
+#include "Remote.h"
 
 class AnimCurve;
 class FragmentShader;
@@ -64,6 +65,8 @@ public:
 
     static VertexFormat *vf_single_sprite; 
 
+    Tracker2D *tracker;
+    
 	inline Prop2D() : Prop(), Renderable() {
 		priority = id;
 		dimension = DIMENSION_2D;
@@ -97,6 +100,7 @@ public:
 		render_children_first = false;
         use_additive_blend = false;
 
+        tracker = NULL;
 	}
 	virtual ~Prop2D(){
 		for(int i=0;i<grid_used_num;i++){

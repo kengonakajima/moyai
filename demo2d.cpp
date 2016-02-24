@@ -44,6 +44,9 @@ Prop2D *g_linep;
 
 int g_last_render_cnt ;
 
+#define HEADLESS_SERVER_PORT 22222
+RemoteHead *g_rh;
+
 GLFWwindow *g_window;
 
 // data
@@ -451,12 +454,12 @@ void glfw_error_cb( int code, const char *desc ) {
 }
 
 
-void gameInit() {
+void gameInit( bool headless_mode ) {
     qstest();
     optest();
     comptest();
 
-    print("program start");
+    print("gameInit: headless_mode:%d", headless_mode );
 
 #ifdef __APPLE__    
     setlocale( LC_ALL, "ja_JP");
@@ -501,14 +504,17 @@ void gameInit() {
     // controls
     g_pad = new Pad();
 
-    // shader
-    
+    // shader    
     g_replacer_shader = new ColorReplacerShader();
     if( !g_replacer_shader->init() ){
         print("can't initialize shader");
         exit(1);
     }
 
+    if( headless_mode ) {
+        g_rh = new RemoteHead( HEADLESS_SERVER_PORT );
+    }
+    
     g_moyai_client = new MoyaiClient(g_window);
 
     g_viewport = new Viewport();
@@ -805,7 +811,6 @@ void gameInit() {
         p->setIndex(0);
         g_main_layer->insertProp(p);
     }
-
     
     g_pc = createMyShip(0,0);
     assert(g_pc);
@@ -819,15 +824,26 @@ void gameRender() {
 void gameFinish() {
     glfwTerminate();
 }
+void gameRemoteUpdate() {
+    if(!g_rh) return;
 
+    g_rh->track2D(g_moyai_client);
+}
 
 
 #if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
 int main(int argc, char **argv )
 {
-    gameInit();
+    bool headless_mode=false;
+    for(int i=0;;i++) {
+        if(!argv[i])break;
+        if(strcmp(argv[i], "--headless") == 0 ) headless_mode = true;
+    }
+        
+    gameInit(headless_mode);
     while( !glfwWindowShouldClose(g_window) ){
         gameUpdate();
+        gameRemoteUpdate();
         gameRender();
 
     }

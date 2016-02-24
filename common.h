@@ -1,6 +1,8 @@
 ﻿#ifndef _MOYAI_COMMON_H_
 #define _MOYAI_COMMON_H_
 
+///////
+
 #include <stdlib.h>
 
 #ifdef __linux__
@@ -473,6 +475,9 @@ public:
             }
         }
         return NULL;
+    }
+    Group *getGroupByIndex(int ind) {
+        return groups[ind];
     }
 };
 
