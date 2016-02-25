@@ -1,7 +1,7 @@
 // Moyai network : moynet
 
 #include "cumino.h"
-#include "moynet.h"
+#include "net.h"
 
 #include <unistd.h>
 #include <sys/socket.h>

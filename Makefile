@@ -1,5 +1,5 @@
 
-MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Remote.cpp moynet.cpp
+MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Remote.cpp net.cpp
 
 MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o)
 MOYAISVSRCS=common.cpp cumino.cpp  lodepng.cpp Camera.cpp Grid.cpp
@@ -144,8 +144,8 @@ TileDeck.o : TileDeck.cpp
 	g++ -c $(CFLAGS) TileDeck.cpp -o TileDeck.o
 Remote.o : Remote.cpp
 	g++ -c $(CFLAGS) Remote.cpp -o Remote.o
-moynet.o : moynet.cpp
-	g++ -c $(CFLAGS) moynet.cpp -o moynet.o
+net.o : net.cpp
+	g++ -c $(CFLAGS) net.cpp -o net.o
 
 # freetype-gl
 texture-atlas.o :
