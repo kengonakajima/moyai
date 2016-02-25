@@ -23,6 +23,7 @@
 #endif
 
 #include "cumino.h"
+#include "net.h"
 
 #ifdef WIN32
 #undef min
@@ -479,6 +480,7 @@ public:
     Group *getGroupByIndex(int ind) {
         return groups[ind];
     }
+    static void globalInitNetwork();
 };
 
 

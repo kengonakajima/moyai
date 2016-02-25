@@ -127,3 +127,254 @@ bool RemoteHead::startServer( int portnum ) {
     tcp_port = portnum;
 
 }
+    
+
+int sendPacket_noarg( Conn *c, unsigned short pkttype ) {
+    if(!c)return 0;
+    size_t totalsize = 2 + 2;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype ); // packet type
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;
+}
+int sendPacket_i1( Conn *c, unsigned short pkttype, int iarg0 ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype ); // packet type
+    assert( sizeof(int) == 4 );
+    c->sendbuf.push( (char*)&iarg0, 4 );
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;
+}
+int sendPacket_i2( Conn *c, unsigned short pkttype, int iarg0, int iarg1 ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4 + 4;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype ); // packet type
+    assert( sizeof(int) == 4 );
+    c->sendbuf.push( (char*)&iarg0, 4 );
+    c->sendbuf.push( (char*)&iarg1, 4 );
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;
+}
+int sendPacket_i3( Conn *c, unsigned short pkttype, int iarg0, int iarg1, int iarg2 ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4 + 4 + 4;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype ); // packet type
+    assert( sizeof(int) == 4 );
+    c->sendbuf.push( (char*)&iarg0, 4 );
+    c->sendbuf.push( (char*)&iarg1, 4 );
+    c->sendbuf.push( (char*)&iarg2, 4 );    
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;
+}
+int sendPacket_i4( Conn *c, unsigned short pkttype, int iarg0, int iarg1, int iarg2, int iarg3 ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4 + 4 + 4;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype ); // packet type
+    assert( sizeof(int) == 4 );
+    c->sendbuf.push( (char*)&iarg0, 4 );
+    c->sendbuf.push( (char*)&iarg1, 4 );
+    c->sendbuf.push( (char*)&iarg2, 4 );
+    c->sendbuf.push( (char*)&iarg3, 4 );        
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;
+}
+int sendPacket_i5( Conn *c, unsigned short pkttype, int iarg0, int iarg1, int iarg2, int iarg3, int iarg4 ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4 + 4 + 4 + 4 + 4;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype ); // packet type
+    assert( sizeof(int) == 4 );
+    c->sendbuf.push( (char*)&iarg0, 4 );
+    c->sendbuf.push( (char*)&iarg1, 4 );
+    c->sendbuf.push( (char*)&iarg2, 4 );
+    c->sendbuf.push( (char*)&iarg3, 4 );
+    c->sendbuf.push( (char*)&iarg4, 4 );            
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;
+}
+int sendPacket_ints( Conn *c, unsigned short pkttype, int *iargs, int argn ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4*argn;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype ); // packet type
+    assert( sizeof(int) == 4 );
+    c->sendbuf.push( (char*)iargs, argn * sizeof(int) );
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;
+}
+
+int sendPacket_f2( Conn *c, unsigned short pkttype, float f0, float f1 ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4 + 4;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype ); // packet type
+    assert( sizeof(int) == 4 );
+    c->sendbuf.push( (char*)&f0, 4 );
+    c->sendbuf.push( (char*)&f1, 4 );
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;
+}
+int sendPacket_i1_f1( Conn *c, unsigned short pkttype, unsigned int i0, float f0 ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4 + 4;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype ); // packet type
+    assert( sizeof(unsigned int) == 4 );
+    c->sendbuf.push( (char*)&i0, 4 );    
+    c->sendbuf.push( (char*)&f0, 4 );
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;
+    
+}
+int sendPacket_i1_f2( Conn *c, unsigned short pkttype, unsigned int i0, float f0, float f1 ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4 + 4 + 4;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype ); // packet type
+    assert( sizeof(unsigned int) == 4 );
+    c->sendbuf.push( (char*)&i0, 4 );    
+    c->sendbuf.push( (char*)&f0, 4 );
+    c->sendbuf.push( (char*)&f1, 4 );
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;
+}
+int sendPacket_i2_f2( Conn *c, unsigned short pkttype, unsigned int i0, unsigned int i1, float f0, float f1 ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4 + 4 + 4 + 4;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype ); // packet type
+    assert( sizeof(unsigned int) == 4 );
+    c->sendbuf.push( (char*)&i0, 4 );
+    c->sendbuf.push( (char*)&i1, 4 );        
+    c->sendbuf.push( (char*)&f0, 4 );
+    c->sendbuf.push( (char*)&f1, 4 );
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;    
+}
+int sendPacket_i1_floats( Conn *c, unsigned short pkttype, unsigned int i0, float *fargs, int argn ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4 * argn ;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype ); // packet type
+    c->sendbuf.push( (char*)&i0, 4 );
+    assert( sizeof(float) == 4 );
+    c->sendbuf.push( (char*)fargs, argn * sizeof(float) );
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;    
+}
+
+int sendPacket_bytes( Conn *c, unsigned short pkttype, char *buf, size_t buflen ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + buflen;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype );
+    c->sendbuf.push( buf, buflen );
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;
+}
+// [record-len:16][pkttype:16][cstr-len:8][cstr-body][data-len:16][data-body]
+int sendPacket_str_bytes( Conn *c, unsigned short pkttype, const char *cstr, const char *data, unsigned short datalen ) {
+    if(!c)return 0;    
+    int cstrlen = strlen(cstr);
+    assert( cstrlen <= 255 );
+    size_t totalsize = 2 + 2 + 1 + cstrlen + 2 + datalen;
+    assertmsg( totalsize <= 65535, "datalen too big? : %d", datalen );
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype );
+    c->sendbuf.pushU8( (unsigned char) cstrlen );
+    c->sendbuf.push( cstr, cstrlen );
+    c->sendbuf.pushU16( datalen );
+    c->sendbuf.push( data, datalen );
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    //    print("sendPacket_str_bytes: cstrlen:%d datalen:%d totallen:%d", cstrlen, datalen, totalsize );
+    return totalsize;
+}
+void parse_packet_str_bytes( char *inptr, char *outcstr, char **outptr, size_t *outsize ) {
+    unsigned char slen = get_u8(inptr);
+    char *s = inptr + 1;
+    unsigned short datalen = get_u16(inptr+1+slen);
+    *outptr = inptr + 1 + slen + 2;
+    memcpy( outcstr, s, slen );
+    outcstr[slen]='\0';
+    *outsize = (size_t) datalen;
+}
+// [record-len:16][pkttype:16][i0:32][cstr-len:8][cstr-body]
+int sendPacket_i1_str( Conn *c, unsigned short pkttype, int i0, const char *cstr ) {
+    if(!c)return 0;    
+    int cstrlen = strlen(cstr);
+    assert( cstrlen <= 255 );
+    size_t totalsize = 2 + 2 + 4 + 1 + cstrlen;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype );
+    c->sendbuf.pushU32( i0 );
+    c->sendbuf.pushU8( (unsigned char) cstrlen );
+    c->sendbuf.push( cstr, cstrlen );
+    ev_io_start( c->parent_nw->evloop, c->write_watcher );
+    return totalsize;
+}
+int sendPacket_i1_bytes( Conn *c, unsigned short pkttype, int iarg0, const char *buf, unsigned short datalen ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4 + datalen;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype );
+    c->sendbuf.pushU32( iarg0 );
+    c->sendbuf.push( buf, datalen );
+    return totalsize;
+}
+int sendPacket_i2_bytes( Conn *c, unsigned short pkttype, int iarg0, int iarg1, const char *buf, unsigned short datalen ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4 + 4 + datalen;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype );
+    c->sendbuf.pushU32( iarg0 );
+    c->sendbuf.pushU32( iarg1 );
+    c->sendbuf.push( buf, datalen );
+    return totalsize;
+}
+int sendPacket_i3_bytes( Conn *c, unsigned short pkttype, int iarg0, int iarg1, int iarg2, const char *buf, unsigned short datalen ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4 + 4 + 4 + datalen;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype );
+    c->sendbuf.pushU32( iarg0 );
+    c->sendbuf.pushU32( iarg1 );
+    c->sendbuf.pushU32( iarg2 );    
+    c->sendbuf.push( buf, datalen );
+    return totalsize;
+}
+int sendPacket_i4_bytes( Conn *c, unsigned short pkttype, int iarg0, int iarg1, int iarg2, int iarg3, const char *buf, unsigned short datalen ) {
+    if(!c)return 0;    
+    size_t totalsize = 2 + 2 + 4 + 4 + 4 + 4 + datalen;
+    if( c->getSendbufRoom() < totalsize ) return 0;
+    c->sendbuf.pushU16( totalsize - 2 ); // record-len
+    c->sendbuf.pushU16( pkttype );
+    c->sendbuf.pushU32( iarg0 );
+    c->sendbuf.pushU32( iarg1 );
+    c->sendbuf.pushU32( iarg2 );
+    c->sendbuf.pushU32( iarg3 );    
+    c->sendbuf.push( buf, datalen );
+    return totalsize;
+}
