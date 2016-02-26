@@ -11,7 +11,7 @@ public:
     virtual void onError( NET_ERROR e, int eno );
     virtual void onClose();
     virtual void onConnect();
-    virtual void onFunction( int funcid, char *argdata, size_t argdatalen );
+    virtual void onPacket( uint16_t funcid, char *argdata, size_t argdatalen );
     
 };
 
@@ -24,8 +24,17 @@ void HMPClientConn::onClose() {
 void HMPClientConn::onConnect() {
     print("HMPClientConn::onConnect");        
 }
-void HMPClientConn::onFunction( int funcid, char *argdata, size_t argdatalen ) {
-    print("HMPClientConn::onFunction");            
+void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
+    print("HMPClientConn::onPacket");
+    switch(funcid) {
+    case PACKETTYPE_S2C_PROP2D_SNAPSHOT:
+        print("PACKETTYPE_S2C_PROP2D_SNAPSHOT[%d] len:%d", funcid, argdatalen );
+        break;
+    default:
+        print("unhandled packet type:%d", funcid );
+        break;
+    }
+    
 }
 
 Network *g_nw;

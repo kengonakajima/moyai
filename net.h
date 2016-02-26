@@ -58,7 +58,7 @@ public:
     virtual void onError( NET_ERROR e, int eno ) { print("Conn::onError"); };
     virtual void onClose() { print("Conn::onClose"); }
     virtual void onConnect() { print("Conn::onConnect"); }
-    virtual void onFunction( int funcid, char *argdata, size_t argdatalen ) { print("Conn::onFunction"); };
+    virtual void onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) { print("Conn::onFunction"); };
     
     static const int SENDBUF_SIZE = 1024*1024;
     static const int RECVBUF_SIZE = 1024*1024;

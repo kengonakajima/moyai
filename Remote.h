@@ -42,7 +42,7 @@ public:
     virtual void onError( NET_ERROR e, int eno );
     virtual void onClose();
     virtual void onConnect();
-    virtual void onFunction( int funcid, char *argdata, size_t argdatalen );
+    virtual void onPacket( uint16_t funcid, char *argdata, size_t argdatalen );
 };
 
 class RemoteHead {

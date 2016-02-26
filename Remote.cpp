@@ -71,6 +71,7 @@ size_t Tracker2D::getDiffPacket( char *outpktbuf, size_t maxoutsize, PACKETTYPE 
     if( changes == 0 ) {
         return 0;
     }
+    *pktttype = PACKETTYPE_S2C_PROP2D_SNAPSHOT;
     size_t outsz = sizeof(PacketProp2DSnapshot);
     assertmsg( outsz <= maxoutsize, "buffer too small" );
     memcpy(outpktbuf, curpkt, outsz );
@@ -162,8 +163,8 @@ void HMPConn::onClose() {
 void HMPConn::onConnect() {
     print("HMPConn::onConnect. id:%d",id);
 }
-void HMPConn::onFunction( int funcid, char *argdata, size_t argdatalen ) {
-    print("HMPConn::onfunction. id:%d fid:%d len:%d",id, funcid, argdatalen );    
+void HMPConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
+    print("HMPConn::onfunction. id:%d fid:%d len:%d",id, funcid, argdatalen );
 }
 
 

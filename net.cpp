@@ -263,9 +263,9 @@ static void read_callback( struct ev_loop *loop, struct ev_io *watcher, int reve
                 delete c;
                 return;
             }
-            //            fprintf(stderr, "dispatching func_id:%d record_len:%lu\n", func_id, record_len );
-            //            dump( c->recvbuf.buf + 4+4, record_len-4);
-            c->onFunction( func_id, (char*) c->recvbuf.buf +2+2, record_len - 2 );
+            //             fprintf(stderr, "dispatching func_id:%d record_len:%lu\n", func_id, record_len );
+            // dump( c->recvbuf.buf, record_len-4);
+            c->onPacket( func_id, (char*) c->recvbuf.buf +2+2, record_len - 2 );
             c->recvbuf.shift( 2 + record_len );
             //            fprintf(stderr, "after dispatch recv func: buffer used: %zu\n", c->recvbuf.used );
             //            if( c->recvbuf.used > 0 ) dump( c->recvbuf.buf, c->recvbuf.used );
