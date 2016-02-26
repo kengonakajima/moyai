@@ -833,6 +833,7 @@ void gameRemoteUpdate() {
     if(!g_rh) return;
 
     g_rh->track2D(g_moyai_client);
+    g_rh->heartbeat();
 }
 
 

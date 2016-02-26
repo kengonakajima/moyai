@@ -3,32 +3,8 @@
 
 #include <ev.h>
 
+#include "Pool.h"
 
-
-
-class Listener;
-class Conn;
-
-class Network {
-public:
-    bool syscall_log;
-    long long total_sent_bytes;
-    long long total_recv_bytes;
-    int conn_id_gen;
-    struct ev_loop *evloop;    
-    Network() : syscall_log(false), total_sent_bytes(0), total_recv_bytes(0), conn_id_gen(1) {
-        evloop = ev_default_loop(0);        
-    }
-    ~Network() {}
-    static Network *create();
-
-    Listener *createListener( const char *addr, int portnum, void (*acb)(Listener*, Conn*), void (*funccb)(Conn*,int funcid, char *data, size_t datalen ) );
-    Conn *connectToServer( const char *host, int portnum );
-
-    void heartbeat();
-    void heartbeatWithTimeoutMicroseconds( int timeout_us );
-    int getNewConnId() { return conn_id_gen++; }
-};
 
 typedef enum {
     NET_ERROR_WRITE = -10,
@@ -64,6 +40,8 @@ extern inline void set_u16(char *buf, unsigned short v){ (*((unsigned short*)(bu
 extern inline void set_u8( char *buf, unsigned char v){ (*((unsigned char*)(buf))) = (unsigned char)(v); }
 extern inline float get_f32(const char *buf) { return *((float*)(buf)); }
 
+class Listener;
+class Network;
 
 class Conn {
 public:
@@ -75,6 +53,7 @@ public:
     struct ev_io *read_watcher, *write_watcher;
     Listener *parent_listener;
     Network *parent_nw;
+    static int idgen;
 
     virtual void onError( NET_ERROR e, int eno ) {};
     virtual void onClose() {}
@@ -84,14 +63,15 @@ public:
     static const int SENDBUF_SIZE = 1024*1024;
     static const int RECVBUF_SIZE = 1024*1024;
     
-    Conn( Network *nw, int id, int fd );
+    Conn( Network *nw ); // for connect
+    Conn( Network *nw, int fd ); // for listen
     virtual ~Conn();
 
     bool push( const char *data, size_t datasz );
     size_t getSendbufRoom();
 
     void notifyError( NET_ERROR e, int eno );
-
+    bool connectToServer( const char *host, int portnum );
 };
 
 
@@ -101,18 +81,33 @@ public:
     struct ev_io *accept_watcher;    
     Network *parent_nw;
     static const int MAXCONN = 100;
-    Listener(Network *nw, int fd) : fd(fd), accept_watcher(0), parent_nw(nw) {
+    ObjectPool<Conn> conn_pool;
+    Listener(Network *nw) : fd(-1), accept_watcher(0), parent_nw(nw) {
     }
+    bool startListen( const char *addr, int tcpport );
     virtual ~Listener() {};
-    virtual void onAccept( Conn *newcon ) {};
-    virtual void onFunction( Conn *conn, int funcid, char *argdata, size_t argdatalen ) {};
+    virtual void onAccept( int newfd ) {};
+    void addConn(Conn*c);
 };
 
 
+class Network {
+public:
+    bool syscall_log;
+    long long total_sent_bytes;
+    long long total_recv_bytes;
+    struct ev_loop *evloop;    
+    Network() : syscall_log(false), total_sent_bytes(0), total_recv_bytes(0) {
+        evloop = ev_default_loop(0);        
+    }
+    ~Network() {}
+    static Network *create();
 
 
-// callback func pointers
-//extern void (*moynet_broadcaster_intargs)( PACKETTYPE pkttype, int *iargs, int argn );
+    void heartbeat();
+    void heartbeatWithTimeoutMicroseconds( int timeout_us );
+};
+
 
 
 

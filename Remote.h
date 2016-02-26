@@ -28,14 +28,34 @@ typedef struct  {
 
 
 ///////
+// HMP: Headless Moyai Protocol
+class HMPListener : public Listener {
+public:
+    HMPListener(Network *nw) : Listener(nw) {};
+    virtual ~HMPListener(){};
+    virtual void onAccept( int newfd );    
+};
+class HMPConn : public Conn {
+public:
+    HMPConn( Network *nw, int newfd ) : Conn(nw,newfd) {};
+    virtual ~HMPConn() {};
+    virtual void onError( NET_ERROR e, int eno );
+    virtual void onClose();
+    virtual void onConnect();
+    virtual void onFunction( int funcid, char *argdata, size_t argdatalen );    
+};
 
 class RemoteHead {
 public:
-    int tcp_port;    
-    RemoteHead() : tcp_port(0) {
+    int tcp_port;
+    Network *nw;
+    HMPListener *listener;
+    static const int DEFAULT_PORT = 22222;
+    RemoteHead() : tcp_port(0), nw(0), listener(0) {
     }
     void track2D( Moyai *m );
     bool startServer( int portnum );
+    void heartbeat() { nw->heartbeat(); }
 };
 
 

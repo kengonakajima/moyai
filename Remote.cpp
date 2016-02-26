@@ -112,7 +112,7 @@ void RemoteHead::track2D( Moyai *m ) {
                 size_t pkt_size;
                 pkt_size = p->tracker->getDiffPacket(pktbuf, sizeof(pktbuf));
                 if(pkt_size>0) {
-                    print("track2D: diff: prop[%d] changed. pkt size:%d", p->id, pkt_size );
+                    //                    print("track2D: diff: prop[%d] changed. pkt size:%d", p->id, pkt_size );
                 }
             }
             
@@ -122,12 +122,47 @@ void RemoteHead::track2D( Moyai *m ) {
     }
 }
 
+
+
 // return false if can't
 bool RemoteHead::startServer( int portnum ) {        
     tcp_port = portnum;
 
+    if(!nw) {
+        nw = new Network();
+        nw->syscall_log = true;
+    }
+    if(!listener) {
+        listener = new HMPListener(nw);
+        bool success = listener->startListen( "", DEFAULT_PORT);
+        if(!success) {
+            print("RemoteHead::startServer: listen failed on port %d", DEFAULT_PORT );
+            delete listener;
+            return false;
+        }
+    }
+    return true;
 }
-    
+
+void HMPListener::onAccept( int newfd ) {
+    HMPConn *c = new HMPConn(this->parent_nw,newfd);
+    addConn(c);
+    print("HMPListener::onAccept. newcon id:%d", c->id );
+}
+
+void HMPConn::onError( NET_ERROR e, int eno ) {
+    print("HMPConn::onError: id:%d e:%d eno:%d",id,e,eno);
+}
+void HMPConn::onClose() {
+    print("HMPConn::onClose. id:%d",id);
+}
+void HMPConn::onConnect() {
+    print("HMPConn::onConnect. id:%d",id);
+}
+void HMPConn::onFunction( int funcid, char *argdata, size_t argdatalen ) {
+    print("HMPConn::onfunction. id:%d fid:%d len:%d",id, funcid, argdatalen );    
+}
+
 
 int sendPacket_noarg( Conn *c, unsigned short pkttype ) {
     if(!c)return 0;

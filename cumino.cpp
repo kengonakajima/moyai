@@ -642,3 +642,5 @@ const char *platformCStringPath( const char *path ) {
 #endif
     return cpath;
 }
+
+

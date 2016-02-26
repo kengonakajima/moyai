@@ -11,9 +11,6 @@
 #include <fcntl.h>
 #include <netdb.h>
 
-long long g_moynet_total_sent_bytes;
-long long g_moynet_total_received_bytes;
-
 
 
 void Moyai::globalInitNetwork() {
@@ -58,8 +55,10 @@ Buffer::~Buffer() {
 static void write_callback( struct ev_loop *loop, struct ev_io *watcher, int revents );
 static void read_callback( struct ev_loop *loop, struct ev_io *watcher, int revents );
 
+int Conn::idgen = 1;
 
-Conn::Conn( Network *nw, int id, int fd ) : id(id), fd(fd), connecting(false), userptr(0), read_watcher(0), write_watcher(0), parent_listener(0), parent_nw(nw) {
+Conn::Conn( Network *nw, int fd ) : fd(fd), connecting(false), userptr(0), read_watcher(0), write_watcher(0), parent_listener(0), parent_nw(nw) {
+    id = idgen++;
     fprintf(stderr, "Conn::Conn id:%d fd:%d",id,fd);
 
     sendbuf.ensureMemory( SENDBUF_SIZE );
@@ -301,31 +300,33 @@ static void accept_callback( struct ev_loop *loop, struct ev_io *watcher, int re
         }
 #endif
         //
-        Conn *c = new Conn(nw,nw->getNewConnId(),new_fd);
-        c->parent_listener = l;
-        l->onAccept(c);
+        l->onAccept(new_fd);
     } else {
         // error
     }
 }
 
-Listener *Network::createListener( const char *addr, int portnum, void (*acb)(Listener*,Conn*), void (*funccb)( Conn *co, int funcid, char *argdata, size_t argdatalen ) ) {
-
+// returns true if success
+bool Listener::startListen( const char *addr, int tcpport ) {
+    if(fd!=-1) {
+        print("Listener::startListen: already listening");
+        return false;
+    }
     struct addrinfo hints, *res;
     memset(&hints,0,sizeof(hints));
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_family = PF_INET;
     hints.ai_flags = AI_PASSIVE;
     char pstr[32];
-    snprintf(pstr,sizeof(pstr),"%d",portnum);
+    snprintf(pstr,sizeof(pstr),"%d", tcpport );
     getaddrinfo(addr, pstr, &hints, &res );
-    int fd = socket( res->ai_family, res->ai_socktype, res->ai_protocol );
+    fd = socket( res->ai_family, res->ai_socktype, res->ai_protocol );
 
     int opt = 1;
     if( setsockopt( fd, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(opt)) == -1 ){
         fprintf( stderr, "setsockopt(reuseaddr) error:%s", strerror(errno)  );
         close(fd); // setsockopt error
-        return NULL;
+        return false;
     }
 
     struct linger lingeropt;
@@ -335,18 +336,18 @@ Listener *Network::createListener( const char *addr, int portnum, void (*acb)(Li
     if( setsockopt( fd, SOL_SOCKET, SO_LINGER,  (const char*)&lingeropt, sizeof(lingeropt)) == -1 ){
         fprintf( stderr, "setsockopt(reuseaddr) error:%s", strerror(errno) );
         close(fd);
-        return NULL;
+        return false;
     }
     
     if( bind( fd, res->ai_addr, res->ai_addrlen ) == -1 ){
         fprintf( stderr, "bind error");
         close(fd); 
-        return NULL;
+        return false;
     }
     if( listen( fd, SOMAXCONN ) == -1 ){
         fprintf( stderr, "listen error");
         close(fd); 
-        return NULL;
+        return false;
     }
 
 #ifdef WIN32
@@ -356,16 +357,21 @@ Listener *Network::createListener( const char *addr, int portnum, void (*acb)(Li
 
     freeaddrinfo(res);
 
-    Listener *l = new Listener(this,fd);
-    l->accept_watcher = (struct ev_io*) NET_MALLOC( sizeof(struct ev_io));
-    memset( (void*) l->accept_watcher, 0, sizeof(struct ev_io));
-    l->accept_watcher->data = l;    
-    ev_io_init( l->accept_watcher, accept_callback, l->fd, EV_READ );
-    ev_io_start( this->evloop, l->accept_watcher );
-    return l;
+    accept_watcher = (struct ev_io*) NET_MALLOC( sizeof(struct ev_io));
+    memset( (void*) accept_watcher, 0, sizeof(struct ev_io));
+    accept_watcher->data = this;    
+    ev_io_init( accept_watcher, accept_callback, fd, EV_READ );
+    ev_io_start( parent_nw->evloop, accept_watcher );
+    return true;
 }
 
-Conn *Network::connectToServer( const char *host, int portnum ) {
+void Listener::addConn( Conn *c ) {
+    Conn *stored = conn_pool.get(c->id);
+    if(!stored) conn_pool.set(c->id,c);
+}
+
+// returns true if success
+bool Conn::connectToServer( const char *host, int portnum ) {
     struct addrinfo hints, *res;
     memset( &hints, 0, sizeof(hints) );
     hints.ai_socktype = SOCK_STREAM;
@@ -375,12 +381,12 @@ Conn *Network::connectToServer( const char *host, int portnum ) {
     getaddrinfo( host, pstr, &hints, &res );
     if(!res){
         fprintf(stderr, "invalid host address or port? '%s':%d", host, portnum );
-        return NULL;
+        return false;
     }
     int new_fd = socket( res->ai_family, res->ai_socktype, res->ai_protocol );
     if( new_fd == -1 ) {
         fprintf(stderr, "socket() error. errno:%d\n",errno );
-        return NULL;
+        return false;
     }
 
 #ifndef WIN32
@@ -388,12 +394,12 @@ Conn *Network::connectToServer( const char *host, int portnum ) {
     if( flag < 0 ){
         fprintf(stderr, "socket getfl error. errno:%s\n", strerror(errno) );
         close(new_fd);
-        return NULL;
+        return false;
     }
     if( fcntl( new_fd, F_SETFL, flag|O_NONBLOCK)<0){
         fprintf(stderr, "socket nonblock setfl error. errno:%s\n", strerror(errno) );
         close(new_fd);
-        return NULL;
+        return false;
     }
 #endif
     
@@ -402,7 +408,7 @@ Conn *Network::connectToServer( const char *host, int portnum ) {
         if( is_would_block_error() == false ) {
             fprintf(stderr, "moynet_connect: connect() failed: errno:%d\n", errno );
             close( new_fd );
-            return NULL;
+            return false;
         }
     }
 #ifdef WIN32
@@ -412,9 +418,9 @@ Conn *Network::connectToServer( const char *host, int portnum ) {
 
     freeaddrinfo(res);
 
-    Conn *c = new Conn(this, getNewConnId(), new_fd );
-    c->connecting = true;
-    return c;
+    fd = new_fd;
+    connecting = true;
+    return true;
 }
 
 
@@ -422,57 +428,6 @@ Conn *Network::connectToServer( const char *host, int portnum ) {
 void Network::heartbeat() {
     ev_loop( this->evloop, EVLOOP_NONBLOCK );
 }
-
-
-
-#ifdef WIN32
-#define EPOCHFILETIME (116444736000000000i64)                                                     
-                                                                                                  
-static int gettimeofday(struct timeval *tv, struct timezone *tz) {                                       
-    FILETIME        tagFileTime;                                                                  
-    LARGE_INTEGER   largeInt;                                                                     
-    __int64         val64;                                                                        
-    static int      tzflag;                                                                       
-                                                                                                  
-    if (tv)                                                                                       
-    {                                                                                             
-        GetSystemTimeAsFileTime(&tagFileTime);                                                    
-                                                                                                  
-        largeInt.LowPart  = tagFileTime.dwLowDateTime;                                            
-        largeInt.HighPart = tagFileTime.dwHighDateTime;                                           
-        val64 = largeInt.QuadPart;                                                                
-        val64 = val64 - EPOCHFILETIME;                                                            
-        val64 = val64 / 10;                                                                       
-        tv->tv_sec  = (long)(val64 / 1000000);                                                    
-        tv->tv_usec = (long)(val64 % 1000000);                                                    
-    }                                                                                             
-                                                                                                  
-    if (tz)                                                                                       
-    {                                                                                             
-        if (!tzflag)                                                                              
-        {                                                                                         
-            _tzset();                                                                             
-            tzflag++;                                                                             
-        }                                                                                         
-                                                                                                  
-#if _MSC_VER == 1310                                                                              
-        // OK in Visual C++ 6.0
-        tz->tz_minuteswest = _timezone / 60;                                                      
-        tz->tz_dsttime = _daylight;                                                               
-#else                                                                                             
-        long _Timezone = 0;                                                                       
-         _get_timezone(&_Timezone);                                                               
-         tz->tz_minuteswest = _Timezone / 60;                                                     
-                                                                                                  
-         int _Daylight = 0;                                                                       
-         _get_daylight(&_Daylight);                                                               
-         tz->tz_dsttime = _Daylight;                                                              
-#endif                                                                                            
-    }                                                                                             
-                                                                                                  
-    return 0;                                                                                     
-}
-#endif
 
 
 void Network::heartbeatWithTimeoutMicroseconds( int timeout_us ) {
@@ -492,23 +447,3 @@ void Network::heartbeatWithTimeoutMicroseconds( int timeout_us ) {
 
 
 
-///////////////////////
-// OSXでは、gettimeofdayは速くて正確だが、usleepが極めて不正確で支障があるので
-static void osxHighResSleep( int us ) {
-    double sec = ((double)us) / 1000000.0f;
-    double start_at = now();
-    double end_at = start_at + sec;
-    while(1) {
-        double t = now();
-        if( t >= end_at ) break;
-        usleep(100);
-    }
-}
-void highResSleep( double second ) {
-#ifdef __APPLE__
-    osxHighResSleep( second * 1000000 );
-#endif
-#ifdef __linux__
-    usleep(second * 1000000 );
-#endif
-}
