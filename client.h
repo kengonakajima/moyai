@@ -62,6 +62,7 @@
 	#include "Dependencies.h"
 #endif
 
+#include "net.h"
 
 
 #endif

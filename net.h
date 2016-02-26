@@ -62,16 +62,14 @@ public:
     
     static const int SENDBUF_SIZE = 1024*1024;
     static const int RECVBUF_SIZE = 1024*1024;
-    
-    Conn( Network *nw ); // for connect
-    Conn( Network *nw, int fd ); // for listen
+
+    Conn( Network *nw, int fd ); 
     virtual ~Conn();
 
     bool push( const char *data, size_t datasz );
     size_t getSendbufRoom();
 
     void notifyError( NET_ERROR e, int eno );
-    bool connectToServer( const char *host, int portnum );
 };
 
 
@@ -103,7 +101,7 @@ public:
     ~Network() {}
     static Network *create();
 
-
+    Conn *connectToServer( const char *host, int portnum );
     void heartbeat();
     void heartbeatWithTimeoutMicroseconds( int timeout_us );
 };

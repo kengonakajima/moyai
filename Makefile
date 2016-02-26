@@ -8,11 +8,10 @@ DEMO2DSRCS=demo2d.cpp
 DEMO2DOBJS=$(DEMO2DSRCS:.cpp=.o)
 DEMO3DSRCS=demo3d.cpp
 DEMO3DOBJS=$(DEMO3DSRCS:.cpp=.o)
-DEMOSVSRCS=demosv.cpp
-DEMOSVOBJS=$(DEMOSVSRCS:.cpp=.o)
 MIN2DSRCS=min2d.cpp
 MIN2DOBJS=$(MIN2DSRCS:.cpp=.o)
-
+VIEWERSRCS=vw.cpp
+VIEWEROBJS=$(VIEWERSRCS:.cpp=.o)
 
 FREETYPE=freetype-2.4.10
 FREETYPELIB=$(FREETYPE)/objs/.libs/libfreetype.a  # build product of freetype source
@@ -42,10 +41,10 @@ CFLAGS=-O0 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall 
 
 DEMO2D=demo2d
 DEMO3D=demo3d
-DEMOSV=demosv
 MIN2D=min2d
+VIEWER=viewer
 
-all : $(DEMO2D) $(DEMO3D) $(DEMOSV) $(MIN2D)
+all : $(DEMO2D) $(DEMO3D) $(MIN2D) $(VIEWER)
 
 server : $(OUTSVLIB) $(SNAPPYLIB)
 
@@ -58,18 +57,18 @@ $(DEMO2D) : $(EXTCLILIBS) $(OUTCLILIB) $(DEMO2DOBJS) $(BZ2LIB) $(ZLIBLIB)
 $(DEMO3D) : $(EXTCLILIBS) $(OUTCLILIB) $(DEMO3DOBJS) $(BZ2LIB) $(ZLIBLIB) 
 	g++ $(CFLAGS) $(CLILIBFLAGS) $(DEMO3DOBJS) -o $(DEMO3D) $(OUTCLILIB) $(EXTCLILIBS)
 
-$(DEMOSV) : $(EXTCOMMONLIBS) $(OUTSVLIB) $(DEMOSVOBJS)
-	g++ $(CFLAGS) -m64 $(DEMOSVOBJS) -o $(DEMOSV) $(OUTSVLIB) $(EXTCOMMONLIBS)
+$(VIEWER) : $(EXTCLILIBS) $(OUTCLILIB) $(VIEWEROBJS) $(BZ2LIB) $(ZLIBLIB)
+	g++ $(CFLAGS) $(CLILIBFLAGS) $(VIEWEROBJS) -o $(VIEWER) $(OUTCLILIB) $(EXTCLILIBS)
 
-
-demosv.o : demosv.cpp
-	g++ -c demosv.cpp $(CFLAGS)
 demo2d.o : demo2d.cpp 
 	g++ -c demo2d.cpp $(CFLAGS)
 demo3d.o : demo3d.cpp 
 	g++ -c demo3d.cpp $(CFLAGS)
 min2d.o : min2d.cpp
 	g++ -c min2d.cpp $(CFLAGS)
+vw.o : vw.cpp
+	g++ -c vw.cpp $(CFLAGS)
+
 
 $(OUTCLILIB) : $(MOYAICLIOBJS)
 	ar cr $(OUTCLILIB) $(MOYAICLIOBJS)
@@ -195,10 +194,10 @@ $(GLFWLIB):
 clean:
 	make -C $(GLFW) clean
 	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) 
-	rm -f deps.make $(DEMO2D) $(MIN2D) $(DEMO3D) $(DEMOSV) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
+	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
 
 depend: $(GLFWLIB)
-	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAICLISRCS) $(DEMO2DSRCS) $(DEMO3DSRCS)  > deps.make
+	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAICLISRCS) $(DEMO2DSRCS) $(DEMO3DSRCS) $(MIN2DSRCS) $(VIEWERSRCS) > deps.make
 
 
 -include deps.make

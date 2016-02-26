@@ -370,8 +370,8 @@ void Listener::addConn( Conn *c ) {
     if(!stored) conn_pool.set(c->id,c);
 }
 
-// returns true if success
-bool Conn::connectToServer( const char *host, int portnum ) {
+// returns NULL if fail
+Conn *Network::connectToServer( const char *host, int portnum ) {
     struct addrinfo hints, *res;
     memset( &hints, 0, sizeof(hints) );
     hints.ai_socktype = SOCK_STREAM;
@@ -381,12 +381,12 @@ bool Conn::connectToServer( const char *host, int portnum ) {
     getaddrinfo( host, pstr, &hints, &res );
     if(!res){
         fprintf(stderr, "invalid host address or port? '%s':%d", host, portnum );
-        return false;
+        return NULL;
     }
     int new_fd = socket( res->ai_family, res->ai_socktype, res->ai_protocol );
     if( new_fd == -1 ) {
         fprintf(stderr, "socket() error. errno:%d\n",errno );
-        return false;
+        return NULL;
     }
 
 #ifndef WIN32
@@ -394,12 +394,12 @@ bool Conn::connectToServer( const char *host, int portnum ) {
     if( flag < 0 ){
         fprintf(stderr, "socket getfl error. errno:%s\n", strerror(errno) );
         close(new_fd);
-        return false;
+        return NULL;
     }
     if( fcntl( new_fd, F_SETFL, flag|O_NONBLOCK)<0){
         fprintf(stderr, "socket nonblock setfl error. errno:%s\n", strerror(errno) );
         close(new_fd);
-        return false;
+        return NULL;
     }
 #endif
     
@@ -408,7 +408,7 @@ bool Conn::connectToServer( const char *host, int portnum ) {
         if( is_would_block_error() == false ) {
             fprintf(stderr, "moynet_connect: connect() failed: errno:%d\n", errno );
             close( new_fd );
-            return false;
+            return NULL;
         }
     }
 #ifdef WIN32
@@ -418,9 +418,9 @@ bool Conn::connectToServer( const char *host, int portnum ) {
 
     freeaddrinfo(res);
 
-    fd = new_fd;
-    connecting = true;
-    return true;
+    Conn *c = new Conn(this,new_fd);
+    c->connecting = true;
+    return c;
 }
 
 
