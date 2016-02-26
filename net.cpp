@@ -479,5 +479,28 @@ int Conn::sendUS1UI1( uint16_t usval, uint32_t uival ) {
     sendbuf.pushU16( totalsize - 2 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU32( uival );
-    ev_io_start( parent_nw->evloop, write_watcher );    
+    ev_io_start( parent_nw->evloop, write_watcher );
+    return totalsize;
 }
+int Conn::sendUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
+    size_t totalsize = 2 + 2 + 4+4;
+    if( getSendbufRoom() < totalsize ) return 0;
+    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU16( usval );
+    sendbuf.pushU32( ui0 );
+    sendbuf.pushU32( ui1 );    
+    ev_io_start( parent_nw->evloop, write_watcher );
+    return totalsize;
+}
+int Conn::sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
+    size_t totalsize = 2 + 2 + 4+4+4;
+    if( getSendbufRoom() < totalsize ) return 0;
+    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU16( usval );
+    sendbuf.pushU32( uival );
+    sendbuf.push( (char*)&f0, 4 );
+    sendbuf.push( (char*)&f1, 4 );
+    ev_io_start( parent_nw->evloop, write_watcher );
+    return totalsize;    
+}
+

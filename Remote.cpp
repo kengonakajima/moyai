@@ -128,11 +128,43 @@ void RemoteHead::track2D() {
 // Send all IDs of tiledecks, layers, textures, fonts, viwports by scanning all props and grids.
 // This occurs only when new player is comming in.
 void RemoteHead::scanSendAllGraphicsPrerequisites( Conn *outco ) {
-    // Layers(Groups) don't need scanning props
+    std::unordered_map<int,Viewport*> vpmap;
+    std::unordered_map<int,Camera*> cammap;
+    
+    // Viewport , Camera
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
         Group *grp = target_moyai->getGroupByIndex(i);
         if(!grp)continue;
-        outco->sendUS1UI1( PACKETTYPE_S2C_LAYER_CREATE, grp->id );
+        Layer *l = (Layer*) grp; // assume all groups are layers
+        if(l->viewport) {
+            vpmap[l->viewport->id] = l->viewport;
+        }
+        if(l->camera) {
+            cammap[l->camera->id] = l->camera;
+        }        
+    }
+    for( std::unordered_map<int,Viewport*>::iterator it = vpmap.begin(); it != vpmap.end(); ++it ) {
+        Viewport *vp = it->second;
+        print("sending viewport_create id:%d sz:%d,%d scl:%f,%f", vp->id, vp->screen_width, vp->screen_height, vp->scl.x, vp->scl.y );
+        outco->sendUS1UI1( PACKETTYPE_S2C_VIEWPORT_CREATE, vp->id );
+        outco->sendUS1UI1F2( PACKETTYPE_S2C_VIEWPORT_SIZE, vp->id, vp->screen_width, vp->screen_height );
+        outco->sendUS1UI1F2( PACKETTYPE_S2C_VIEWPORT_SCALE, vp->id, vp->scl.x, vp->scl.y );
+    }
+    for( std::unordered_map<int,Camera*>::iterator it = cammap.begin(); it != cammap.end(); ++it ) {
+        Camera *cam = it->second;
+        print("sending camera_create id:%d", cam->id );
+        outco->sendUS1UI1( PACKETTYPE_S2C_CAMERA_CREATE, cam->id );
+        outco->sendUS1UI1F2( PACKETTYPE_S2C_CAMERA_LOC, cam->id, cam->loc.x, cam->loc.y );
+    }
+    
+    // Layers(Groups) don't need scanning props
+    for(int i=0;i<Moyai::MAXGROUPS;i++) {
+        Layer *l = (Layer*) target_moyai->getGroupByIndex(i);
+        if(!l)continue;
+        print("sending layer_create id:%d",l->id);
+        outco->sendUS1UI1( PACKETTYPE_S2C_LAYER_CREATE, l->id );
+        if( l->viewport ) outco->sendUS1UI2( PACKETTYPE_S2C_LAYER_VIEWPORT, l->id, l->viewport->id);
+        if( l->camera ) outco->sendUS1UI2( PACKETTYPE_S2C_LAYER_CAMERA, l->id, l->camera->id );
     }
     
     // 
@@ -163,7 +195,7 @@ bool RemoteHead::startServer( int portnum ) {
         nw->syscall_log = true;
     }
     if(!listener) {
-        listener = new HMPListener(nw);
+        listener = new HMPListener(nw,this);
         bool success = listener->startListen( "", DEFAULT_PORT);
         if(!success) {
             print("RemoteHead::startServer: listen failed on port %d", DEFAULT_PORT );
@@ -178,6 +210,7 @@ void HMPListener::onAccept( int newfd ) {
     HMPConn *c = new HMPConn(this->parent_nw,newfd);
     addConn(c);
     print("HMPListener::onAccept. newcon id:%d", c->id );
+    remote_head->scanSendAllGraphicsPrerequisites(c);
 }
 
 void HMPConn::onError( NET_ERROR e, int eno ) {

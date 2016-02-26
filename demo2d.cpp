@@ -7,8 +7,6 @@
 #include <strings.h>
 #endif
 
-//#include <GL/glfw.h>
-
 #include "client.h"
 
 

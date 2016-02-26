@@ -75,7 +75,8 @@ public:
     int sendUS1( uint16_t usval );
     int sendUS1Bytes( uint16_t usval, const char *buf, uint16_t datalen );
     int sendUS1UI1( uint16_t usval, uint32_t uival );
-    
+    int sendUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );    
+    int sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );        
 };
 
 typedef std::unordered_map<unsigned int,Conn*>::iterator ConnIteratorType;

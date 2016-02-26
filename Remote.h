@@ -29,9 +29,11 @@ typedef struct  {
 
 ///////
 // HMP: Headless Moyai Protocol
+class RemoteHead;
 class HMPListener : public Listener {
 public:
-    HMPListener(Network *nw) : Listener(nw) {};
+    RemoteHead *remote_head;
+    HMPListener(Network *nw, RemoteHead *rh) : Listener(nw), remote_head(rh) {};
     virtual ~HMPListener(){};
     virtual void onAccept( int newfd );    
 };
