@@ -55,10 +55,10 @@ public:
     Network *parent_nw;
     static int idgen;
 
-    virtual void onError( NET_ERROR e, int eno ) {};
-    virtual void onClose() {}
-    virtual void onConnect() {}
-    virtual void onFunction( int funcid, char *argdata, size_t argdatalen ) {};
+    virtual void onError( NET_ERROR e, int eno ) { print("Conn::onError"); };
+    virtual void onClose() { print("Conn::onClose"); }
+    virtual void onConnect() { print("Conn::onConnect"); }
+    virtual void onFunction( int funcid, char *argdata, size_t argdatalen ) { print("Conn::onFunction"); };
     
     static const int SENDBUF_SIZE = 1024*1024;
     static const int RECVBUF_SIZE = 1024*1024;
@@ -70,8 +70,13 @@ public:
     size_t getSendbufRoom();
 
     void notifyError( NET_ERROR e, int eno );
+
+    // send funcs
+    int sendUS1Bytes( uint16_t usval, const char *buf, uint16_t datalen );
+    
 };
 
+typedef std::unordered_map<unsigned int,Conn*>::iterator ConnIteratorType;
 
 class Listener {
 public:
@@ -86,6 +91,8 @@ public:
     virtual ~Listener() {};
     virtual void onAccept( int newfd ) {};
     void addConn(Conn*c);
+    void delConn(Conn*c);
+    void broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen );
 };
 
 
@@ -101,7 +108,7 @@ public:
     ~Network() {}
     static Network *create();
 
-    Conn *connectToServer( const char *host, int portnum );
+    int connectToServer( const char *host, int portnum );
     void heartbeat();
     void heartbeatWithTimeoutMicroseconds( int timeout_us );
 };

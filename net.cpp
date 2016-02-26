@@ -77,6 +77,8 @@ Conn::Conn( Network *nw, int fd ) : fd(fd), connecting(false), userptr(0), read_
 }
 
 Conn::~Conn() {
+    print("~Conn called");
+    if(parent_listener) parent_listener->delConn(this);
     ev_io_stop( parent_nw->evloop, read_watcher );
     ev_io_stop( parent_nw->evloop, write_watcher );
     free( read_watcher );
@@ -85,7 +87,7 @@ Conn::~Conn() {
 }
 void Conn::notifyError( NET_ERROR he, int eno ) {
     onError( he, eno);
-    onClose();
+    onClose();    
 }
 
 
@@ -174,8 +176,7 @@ static void write_callback( struct ev_loop *loop, struct ev_io *watcher, int rev
     ssize_t ss = send( watcher->fd, c->sendbuf.buf, c->sendbuf.used, MSG_DONTWAIT );
     if( c->parent_nw->syscall_log ) fprintf(stderr, "send( %d, %p, %d, MSG_DONTWAIT ) => %d\n", watcher->fd, c->sendbuf.buf, (int)c->sendbuf.used, (int)ss );
     if(ss==-1) {
-        c->onError( NET_ERROR_WRITE, errno );
-        c->onClose();
+        c->notifyError( NET_ERROR_WRITE, errno );
         delete c;
     } else {
         c->parent_nw->total_sent_bytes += ss;
@@ -230,7 +231,7 @@ static void read_callback( struct ev_loop *loop, struct ev_io *watcher, int reve
         if( is_would_block_error() ) {
             // again later!
         } else if( is_any_error() ) {
-            c->onError( NET_ERROR_READ, get_error_number() );
+            c->notifyError( NET_ERROR_READ, get_error_number() );
             delete c;
         }
     } else if( rsz == 0 ) {
@@ -258,7 +259,7 @@ static void read_callback( struct ev_loop *loop, struct ev_io *watcher, int reve
             }
             if( record_len < 2 ) {
                 fprintf(stderr, "invalid packet format" );
-                c->onError( NET_ERROR_FORMAT, 0 );
+                c->notifyError( NET_ERROR_FORMAT, 0 );
                 delete c;
                 return;
             }
@@ -367,11 +368,23 @@ bool Listener::startListen( const char *addr, int tcpport ) {
 
 void Listener::addConn( Conn *c ) {
     Conn *stored = conn_pool.get(c->id);
-    if(!stored) conn_pool.set(c->id,c);
+    if(!stored) {
+        c->parent_listener = this;
+        conn_pool.set(c->id,c);
+    }
+}
+void Listener::delConn( Conn *c ) {
+    conn_pool.del(c->id);
+}
+void Listener::broadcastUS1Bytes( uint16_t ival, const char *data, size_t datalen ) {
+    for( ConnIteratorType it = conn_pool.idmap.begin(); it != conn_pool.idmap.end(); ++it ) {
+        Conn *c = it->second;
+        c->sendUS1Bytes( ival, data, datalen );
+    }
 }
 
-// returns NULL if fail
-Conn *Network::connectToServer( const char *host, int portnum ) {
+// returns valid fd when success or -1
+int Network::connectToServer( const char *host, int portnum ) {
     struct addrinfo hints, *res;
     memset( &hints, 0, sizeof(hints) );
     hints.ai_socktype = SOCK_STREAM;
@@ -381,12 +394,12 @@ Conn *Network::connectToServer( const char *host, int portnum ) {
     getaddrinfo( host, pstr, &hints, &res );
     if(!res){
         fprintf(stderr, "invalid host address or port? '%s':%d", host, portnum );
-        return NULL;
+        return -1;
     }
     int new_fd = socket( res->ai_family, res->ai_socktype, res->ai_protocol );
     if( new_fd == -1 ) {
         fprintf(stderr, "socket() error. errno:%d\n",errno );
-        return NULL;
+        return -1;
     }
 
 #ifndef WIN32
@@ -394,12 +407,12 @@ Conn *Network::connectToServer( const char *host, int portnum ) {
     if( flag < 0 ){
         fprintf(stderr, "socket getfl error. errno:%s\n", strerror(errno) );
         close(new_fd);
-        return NULL;
+        return -1;
     }
     if( fcntl( new_fd, F_SETFL, flag|O_NONBLOCK)<0){
         fprintf(stderr, "socket nonblock setfl error. errno:%s\n", strerror(errno) );
         close(new_fd);
-        return NULL;
+        return -1;
     }
 #endif
     
@@ -408,7 +421,7 @@ Conn *Network::connectToServer( const char *host, int portnum ) {
         if( is_would_block_error() == false ) {
             fprintf(stderr, "moynet_connect: connect() failed: errno:%d\n", errno );
             close( new_fd );
-            return NULL;
+            return -1;
         }
     }
 #ifdef WIN32
@@ -418,9 +431,7 @@ Conn *Network::connectToServer( const char *host, int portnum ) {
 
     freeaddrinfo(res);
 
-    Conn *c = new Conn(this,new_fd);
-    c->connecting = true;
-    return c;
+    return new_fd;
 }
 
 
@@ -446,4 +457,12 @@ void Network::heartbeatWithTimeoutMicroseconds( int timeout_us ) {
 }
 
 
-
+int Conn::sendUS1Bytes( uint16_t usval, const char *buf, uint16_t buflen ) {
+    size_t totalsize = 2 + 2 + buflen;
+    if( getSendbufRoom() < totalsize ) return 0;
+    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU16( usval );
+    sendbuf.push( buf, buflen );
+    ev_io_start( parent_nw->evloop, write_watcher );
+    return totalsize;
+}

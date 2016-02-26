@@ -1,9 +1,35 @@
 // HMP (Headless Moyai Protocol viewer client)
 #include "client.h"
 
+class HMPClientConn : public Conn {
+public:
+    HMPClientConn(Network *nw, int fd) : Conn(nw,fd) {
+        connecting = true;
+    }
+    ~HMPClientConn() {}
+
+    virtual void onError( NET_ERROR e, int eno );
+    virtual void onClose();
+    virtual void onConnect();
+    virtual void onFunction( int funcid, char *argdata, size_t argdatalen );
+    
+};
+
+void HMPClientConn::onError( NET_ERROR e, int eno ) {
+    print("HMPClientConn::onError. e:%d eno:%d",e,eno);
+}
+void HMPClientConn::onClose() {
+    print("HMPClientConn::onClose.");    
+}
+void HMPClientConn::onConnect() {
+    print("HMPClientConn::onConnect");        
+}
+void HMPClientConn::onFunction( int funcid, char *argdata, size_t argdatalen ) {
+    print("HMPClientConn::onFunction");            
+}
 
 Network *g_nw;
-Conn *g_conn;
+HMPClientConn *g_conn;
 
 int main( int argc, char **argv ) {
 
@@ -15,7 +41,12 @@ int main( int argc, char **argv ) {
     
     Moyai::globalInitNetwork();
     g_nw = new Network();    
-    g_conn = g_nw->connectToServer(host,port);
+    int fd = g_nw->connectToServer(host,port);
+    if(fd<0) {
+        print("can't connect to server");
+        return 1;
+    }
+    g_conn = new HMPClientConn(g_nw,fd);
     bool done = false;
     while(!done) {
         g_nw->heartbeat();

@@ -45,7 +45,7 @@ static const int CHANGED_YFLIP = 0x20;
 static const int CHANGED_COLOR = 0x40;
 
 
-size_t Tracker2D::getDiffPacket( char *outpktbuf, size_t maxoutsize ) {
+size_t Tracker2D::getDiffPacket( char *outpktbuf, size_t maxoutsize, PACKETTYPE *pktttype ) {
     PacketProp2DSnapshot *curpkt, *prevpkt;
     if(cur_buffer_index==0) {
         curpkt = & pktbuf[0];
@@ -108,10 +108,13 @@ void RemoteHead::track2D( Moyai *m ) {
             } else {
                 p->tracker->flipCurrentBuffer();
                 p->tracker->scanProp2D(p);
-                char pktbuf[1024];
+                char pktbuf[1024]; 
                 size_t pkt_size;
-                pkt_size = p->tracker->getDiffPacket(pktbuf, sizeof(pktbuf));
+                PACKETTYPE pkttype;
+                pkt_size = p->tracker->getDiffPacket(pktbuf, sizeof(pktbuf), &pkttype );
                 if(pkt_size>0) {
+                    prt("%d ", pkt_size );
+                    listener->broadcastUS1Bytes( pkttype, pktbuf, pkt_size );
                     //                    print("track2D: diff: prop[%d] changed. pkt size:%d", p->id, pkt_size );
                 }
             }
@@ -164,252 +167,150 @@ void HMPConn::onFunction( int funcid, char *argdata, size_t argdatalen ) {
 }
 
 
-int sendPacket_noarg( Conn *c, unsigned short pkttype ) {
-    if(!c)return 0;
-    size_t totalsize = 2 + 2;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype ); // packet type
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;
+#if 0
+
+//////////////////
+void sendS2RGridCreateSnapshot( conn_t *c, int prop_id, Grid *g ) {
+    PacketGridCreateSnapshot pkt;
+    pkt.id = g->id;
+    pkt.width = g->width;
+    pkt.height = g->height;
+    pkt.tiledeck_id = g->deck->id;
+    pkt.enfat_epsilon = g->enfat_epsilon;
+    send_packet_i1_bytes( c, PACKETTYPE_S2R_GRID_CREATE_SNAPSHOT, prop_id, (char*)&pkt, sizeof(pkt) );
+    if( g->index_table ) {
+        int nbytes = g->width * g->height * sizeof(int);
+        send_packet_i3_bytes( c, PACKETTYPE_S2R_GRID_TABLE_SNAPSHOT, prop_id, g->id, nbytes, (const char*) g->index_table, nbytes );
+    }
+    if( g->xflip_table ) {
+        assert(false);
+    }
+    if( g->yflip_table ) {
+        assert(false);        
+    }
+    if( g->texofs_table ) {
+        assert(false);        
+    }
+    if( g->rot_table ) {
+        assert(false);        
+    }
+    if( g->color_table ) {
+        assert(false);        
+    }
 }
-int sendPacket_i1( Conn *c, unsigned short pkttype, int iarg0 ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype ); // packet type
-    assert( sizeof(int) == 4 );
-    c->sendbuf.push( (char*)&iarg0, 4 );
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;
-}
-int sendPacket_i2( Conn *c, unsigned short pkttype, int iarg0, int iarg1 ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4 + 4;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype ); // packet type
-    assert( sizeof(int) == 4 );
-    c->sendbuf.push( (char*)&iarg0, 4 );
-    c->sendbuf.push( (char*)&iarg1, 4 );
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;
-}
-int sendPacket_i3( Conn *c, unsigned short pkttype, int iarg0, int iarg1, int iarg2 ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4 + 4 + 4;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype ); // packet type
-    assert( sizeof(int) == 4 );
-    c->sendbuf.push( (char*)&iarg0, 4 );
-    c->sendbuf.push( (char*)&iarg1, 4 );
-    c->sendbuf.push( (char*)&iarg2, 4 );    
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;
-}
-int sendPacket_i4( Conn *c, unsigned short pkttype, int iarg0, int iarg1, int iarg2, int iarg3 ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4 + 4 + 4;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype ); // packet type
-    assert( sizeof(int) == 4 );
-    c->sendbuf.push( (char*)&iarg0, 4 );
-    c->sendbuf.push( (char*)&iarg1, 4 );
-    c->sendbuf.push( (char*)&iarg2, 4 );
-    c->sendbuf.push( (char*)&iarg3, 4 );        
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;
-}
-int sendPacket_i5( Conn *c, unsigned short pkttype, int iarg0, int iarg1, int iarg2, int iarg3, int iarg4 ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4 + 4 + 4 + 4 + 4;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype ); // packet type
-    assert( sizeof(int) == 4 );
-    c->sendbuf.push( (char*)&iarg0, 4 );
-    c->sendbuf.push( (char*)&iarg1, 4 );
-    c->sendbuf.push( (char*)&iarg2, 4 );
-    c->sendbuf.push( (char*)&iarg3, 4 );
-    c->sendbuf.push( (char*)&iarg4, 4 );            
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;
-}
-int sendPacket_ints( Conn *c, unsigned short pkttype, int *iargs, int argn ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4*argn;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype ); // packet type
-    assert( sizeof(int) == 4 );
-    c->sendbuf.push( (char*)iargs, argn * sizeof(int) );
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;
+void sendS2RProp2DGrid( conn_t *c, Prop2D *p, Grid *g ) {
+    if(p->debug) print("sendProp2DGrid. p:%d g:%d", p->id, g->id );
+    send_packet_i2( c, PACKETTYPE_S2R_PROP2D_GRID, p->id, g->id );
 }
 
-int sendPacket_f2( Conn *c, unsigned short pkttype, float f0, float f1 ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4 + 4;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype ); // packet type
-    assert( sizeof(int) == 4 );
-    c->sendbuf.push( (char*)&f0, 4 );
-    c->sendbuf.push( (char*)&f1, 4 );
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;
+
+
+void sendS2RLayerCreate( conn_t *c, int player_id, Layer *l, bool shared ) {
+    print("sendS2RLayerCreate pl:%d id:%d", player_id, l->id);
+    send_packet_i3( c, PACKETTYPE_S2R_LAYER_CREATE, player_id, l->id, shared );    
 }
-int sendPacket_i1_f1( Conn *c, unsigned short pkttype, unsigned int i0, float f0 ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4 + 4;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype ); // packet type
-    assert( sizeof(unsigned int) == 4 );
-    c->sendbuf.push( (char*)&i0, 4 );    
-    c->sendbuf.push( (char*)&f0, 4 );
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;
-    
+void sendS2RViewportCreate( conn_t *c, int player_id, Viewport *vp ) {
+    print("sendS2RLayerSize pl:%d id:%d ", player_id, vp->id );
+    send_packet_i2( c, PACKETTYPE_S2R_VIEWPORT_CREATE, player_id, vp->id );
 }
-int sendPacket_i1_f2( Conn *c, unsigned short pkttype, unsigned int i0, float f0, float f1 ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4 + 4 + 4;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype ); // packet type
-    assert( sizeof(unsigned int) == 4 );
-    c->sendbuf.push( (char*)&i0, 4 );    
-    c->sendbuf.push( (char*)&f0, 4 );
-    c->sendbuf.push( (char*)&f1, 4 );
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;
+void sendS2RViewportSize( conn_t *c, int player_id, Viewport *vp ) {
+    print("sendS2RViewportSize. pl:%d id:%d w:%d h:%d", player_id, vp->id, vp->screen_width, vp->screen_height );
+    send_packet_i4( c, PACKETTYPE_S2R_VIEWPORT_SIZE, player_id, vp->id, vp->screen_width, vp->screen_height );
 }
-int sendPacket_i2_f2( Conn *c, unsigned short pkttype, unsigned int i0, unsigned int i1, float f0, float f1 ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4 + 4 + 4 + 4;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype ); // packet type
-    assert( sizeof(unsigned int) == 4 );
-    c->sendbuf.push( (char*)&i0, 4 );
-    c->sendbuf.push( (char*)&i1, 4 );        
-    c->sendbuf.push( (char*)&f0, 4 );
-    c->sendbuf.push( (char*)&f1, 4 );
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;    
+void sendS2RViewportScale( conn_t *c, int player_id, Viewport *vp ) {
+    //    print("sendS2RViewportScale. pl:%d id:%d x:%f y:%f", player_id, vp->id, vp->scl.x, vp->scl.y );
+    send_packet_i2_f2( c, PACKETTYPE_S2R_VIEWPORT_SCALE, player_id, vp->id, vp->scl.x, vp->scl.y );
 }
-int sendPacket_i1_floats( Conn *c, unsigned short pkttype, unsigned int i0, float *fargs, int argn ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4 * argn ;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype ); // packet type
-    c->sendbuf.push( (char*)&i0, 4 );
-    assert( sizeof(float) == 4 );
-    c->sendbuf.push( (char*)fargs, argn * sizeof(float) );
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;    
+void sendS2RCameraCreate( conn_t *c, int player_id, Camera *cam ) {
+    print("sendS2RCameraCreate. pl:%d id:%d", player_id, cam->id );
+    send_packet_i2( c, PACKETTYPE_S2R_CAMERA_CREATE, player_id, cam->id );
+}
+void sendS2RCameraLoc( conn_t *c, int player_id, Camera *cam ) {
+    //    print("sendS2RCameraLoc. id:%d x:%f y:%f", cam->id, cam->loc.x, cam->loc.y );
+    send_packet_i2_f2( c, PACKETTYPE_S2R_CAMERA_LOC, player_id, cam->id, cam->loc.x, cam->loc.y );
+}
+void sendS2RLayerCamera( conn_t *c, int player_id, Layer *l ) {
+    assert( l->camera );
+    print("sendS2RLayerCamera: pl:%d id:%d cam:%d", player_id, l->id, l->camera->id );
+    send_packet_i3( c, PACKETTYPE_S2R_LAYER_CAMERA, player_id, l->id, l->camera->id );
+}
+void sendS2RLayerViewport( conn_t *c, int player_id, Layer *l ) {
+    assert( l->viewport );
+    print("sendS2RLayerCamera: plid:%d lid:%d vp:%d", player_id, l->id, l->viewport->id );
+    send_packet_i3( c, PACKETTYPE_S2R_LAYER_VIEWPORT, player_id, l->id, l->viewport->id );
+}
+void sendS2RFile( conn_t *c, const char *filename ) {
+    char buf[64*1024];
+    size_t sz = sizeof(buf);
+    bool res = readFile( filename, buf, &sz );
+    assertmsg(res, "sendFile: file '%s' read error", filename );
+    assert( sz <= 65536-8 );
+    print("sendFile: path:%s len:%d data:%x %x %x %x", filename, sz, buf[0], buf[1], buf[2], buf[3] );
+    send_packet_str_bytes( c, PACKETTYPE_S2R_FILE, filename, buf, sz );
+}
+void sendS2RImageCreate( conn_t *c, Image *img ) {
+    print("sendS2RImageCreate: id:%d", img->id );
+    send_packet_i1( c, PACKETTYPE_S2R_IMAGE_CREATE, img->id );
+}
+void sendS2RImageLoadPNG( conn_t *c, Image *img, const char *filename ) {
+    print("sendS2RImageLoadPNG: id:%d file:%s", img->id, filename );
+    send_packet_i1_str( c, PACKETTYPE_S2R_IMAGE_LOAD_PNG, img->id, filename );
+}
+void sendS2RTextureCreate( conn_t *c, Texture *tex ) {
+    print("sendS2RTextureCreate: id:%d", tex->id );
+    send_packet_i1( c, PACKETTYPE_S2R_TEXTURE_CREATE, tex->id );
+}
+void sendS2RTextureImage( conn_t *c, Texture *tex, Image *img ) {
+    print("sendS2RTextureImage: tex:%d img:%d", tex->id, img->id );
+    send_packet_i2( c, PACKETTYPE_S2R_TEXTURE_IMAGE, tex->id, img->id );
+}
+void sendS2RTileDeckCreate( conn_t *c, TileDeck *dk ) {
+    print("sendS2RTileDeckCreate id:%d", dk->id );
+    send_packet_i1( c, PACKETTYPE_S2R_TILEDECK_CREATE, dk->id );
+}
+void sendS2RTileDeckTexture( conn_t *c, TileDeck *dk, Texture *tex ) {
+    print("sendS2RTileDeckTexture dk:%d tex:%d", dk->id, tex->id );
+    send_packet_i2( c, PACKETTYPE_S2R_TILEDECK_TEXTURE, dk->id, tex->id );
+}
+void sendS2RTileDeckSize( conn_t *c, TileDeck *dk, int sprw, int sprh, int cellw, int cellh ) {
+    print("sendS2RTileDeckSize: id:%d %d,%d,%d,%d", dk->id, sprw, sprh, cellw, cellh );
+    send_packet_i5( c, PACKETTYPE_S2R_TILEDECK_SIZE, dk->id, sprw, sprh, cellw, cellh );
 }
 
-int sendPacket_bytes( Conn *c, unsigned short pkttype, char *buf, size_t buflen ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + buflen;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype );
-    c->sendbuf.push( buf, buflen );
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;
+
+
+
+
+
+void sendS2RProp2DCreateSnapshot( conn_t *c, Prop2D *p ) {
+    PacketProp2DCreateSnapshot pkt;
+    pkt.prop_id = p->id;
+    Group *g = p->getParentGroup();
+    pkt.layer_id = g->id;
+    pkt.loc.x = p->getLocX();
+    pkt.loc.y = p->getLocY();
+    if(p->debug) print("sendProp2DCreateSnapshot: id:%d gid:%d loc:(%f,%f)",p->id, p->getParentGroup()->id, p->getLocX(), p->getLocY());
+    pkt.scl.x = p->getSclX();
+    pkt.scl.y = p->getSclY();
+    pkt.index = p->getIndex();
+    pkt.tiledeck_id = p->getDeckId();
+    pkt.grid_id = p->getGridId();
+    pkt.debug = p->debug;
+    pkt.rot = p->getRot();
+    pkt.xflip = p->getXFlip();
+    pkt.yflip = p->getYFlip();
+    Color col = p->getColor();
+    pkt.color.r = col.r;
+    pkt.color.g = col.g;
+    pkt.color.b = col.b;
+    pkt.color.a = col.a;    
+    send_packet_bytes( c, PACKETTYPE_S2R_PROP2D_CREATE_SNAPSHOT, (char*)&pkt, sizeof(pkt) );
+    Grid *grid = p->getGrid();
+    if( grid ) {
+        sendS2RGridCreateSnapshot( c, p->id, grid );
+        sendS2RProp2DGrid( c, p, grid );
+    }
 }
-// [record-len:16][pkttype:16][cstr-len:8][cstr-body][data-len:16][data-body]
-int sendPacket_str_bytes( Conn *c, unsigned short pkttype, const char *cstr, const char *data, unsigned short datalen ) {
-    if(!c)return 0;    
-    int cstrlen = strlen(cstr);
-    assert( cstrlen <= 255 );
-    size_t totalsize = 2 + 2 + 1 + cstrlen + 2 + datalen;
-    assertmsg( totalsize <= 65535, "datalen too big? : %d", datalen );
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype );
-    c->sendbuf.pushU8( (unsigned char) cstrlen );
-    c->sendbuf.push( cstr, cstrlen );
-    c->sendbuf.pushU16( datalen );
-    c->sendbuf.push( data, datalen );
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    //    print("sendPacket_str_bytes: cstrlen:%d datalen:%d totallen:%d", cstrlen, datalen, totalsize );
-    return totalsize;
-}
-void parse_packet_str_bytes( char *inptr, char *outcstr, char **outptr, size_t *outsize ) {
-    unsigned char slen = get_u8(inptr);
-    char *s = inptr + 1;
-    unsigned short datalen = get_u16(inptr+1+slen);
-    *outptr = inptr + 1 + slen + 2;
-    memcpy( outcstr, s, slen );
-    outcstr[slen]='\0';
-    *outsize = (size_t) datalen;
-}
-// [record-len:16][pkttype:16][i0:32][cstr-len:8][cstr-body]
-int sendPacket_i1_str( Conn *c, unsigned short pkttype, int i0, const char *cstr ) {
-    if(!c)return 0;    
-    int cstrlen = strlen(cstr);
-    assert( cstrlen <= 255 );
-    size_t totalsize = 2 + 2 + 4 + 1 + cstrlen;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype );
-    c->sendbuf.pushU32( i0 );
-    c->sendbuf.pushU8( (unsigned char) cstrlen );
-    c->sendbuf.push( cstr, cstrlen );
-    ev_io_start( c->parent_nw->evloop, c->write_watcher );
-    return totalsize;
-}
-int sendPacket_i1_bytes( Conn *c, unsigned short pkttype, int iarg0, const char *buf, unsigned short datalen ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4 + datalen;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype );
-    c->sendbuf.pushU32( iarg0 );
-    c->sendbuf.push( buf, datalen );
-    return totalsize;
-}
-int sendPacket_i2_bytes( Conn *c, unsigned short pkttype, int iarg0, int iarg1, const char *buf, unsigned short datalen ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4 + 4 + datalen;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype );
-    c->sendbuf.pushU32( iarg0 );
-    c->sendbuf.pushU32( iarg1 );
-    c->sendbuf.push( buf, datalen );
-    return totalsize;
-}
-int sendPacket_i3_bytes( Conn *c, unsigned short pkttype, int iarg0, int iarg1, int iarg2, const char *buf, unsigned short datalen ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4 + 4 + 4 + datalen;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype );
-    c->sendbuf.pushU32( iarg0 );
-    c->sendbuf.pushU32( iarg1 );
-    c->sendbuf.pushU32( iarg2 );    
-    c->sendbuf.push( buf, datalen );
-    return totalsize;
-}
-int sendPacket_i4_bytes( Conn *c, unsigned short pkttype, int iarg0, int iarg1, int iarg2, int iarg3, const char *buf, unsigned short datalen ) {
-    if(!c)return 0;    
-    size_t totalsize = 2 + 2 + 4 + 4 + 4 + 4 + datalen;
-    if( c->getSendbufRoom() < totalsize ) return 0;
-    c->sendbuf.pushU16( totalsize - 2 ); // record-len
-    c->sendbuf.pushU16( pkttype );
-    c->sendbuf.pushU32( iarg0 );
-    c->sendbuf.pushU32( iarg1 );
-    c->sendbuf.pushU32( iarg2 );
-    c->sendbuf.pushU32( iarg3 );    
-    c->sendbuf.push( buf, datalen );
-    return totalsize;
-}
+
+
+#endif
