@@ -72,7 +72,9 @@ public:
     void notifyError( NET_ERROR e, int eno );
 
     // send funcs
+    int sendUS1( uint16_t usval );
     int sendUS1Bytes( uint16_t usval, const char *buf, uint16_t datalen );
+    int sendUS1UI1( uint16_t usval, uint32_t uival );
     
 };
 

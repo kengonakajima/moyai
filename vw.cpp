@@ -22,13 +22,20 @@ void HMPClientConn::onClose() {
     print("HMPClientConn::onClose.");    
 }
 void HMPClientConn::onConnect() {
-    print("HMPClientConn::onConnect");        
+    print("HMPClientConn::onConnect");
+    sendUS1( PACKETTYPE_C2S_GET_ALL_PREREQUISITES );
 }
 void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
     print("HMPClientConn::onPacket");
     switch(funcid) {
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT:
-        print("PACKETTYPE_S2C_PROP2D_SNAPSHOT[%d] len:%d", funcid, argdatalen );
+        print("PACKETTYPE_S2C_PROP2D_SNAPSHOT len:%d", argdatalen );
+        break;
+    case PACKETTYPE_S2C_LAYER_CREATE:
+        {
+            uint32_t layer_id = get_u32( argdata+0 );
+            print("PACKETTYPE_S2C_LAYER_CREATE layer_id:%d", layer_id );
+        }
         break;
     default:
         print("unhandled packet type:%d", funcid );

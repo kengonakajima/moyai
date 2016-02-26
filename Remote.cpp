@@ -87,9 +87,9 @@ size_t Tracker2D::getCurrentPacket( char *outpktbuf, size_t maxoutsize ) {
 }
 
 // Assume all props in all layers are Prop2Ds.
-void RemoteHead::track2D( Moyai *m ) {
+void RemoteHead::track2D() {
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
-        Group *grp = m->getGroupByIndex(i);
+        Group *grp = target_moyai->getGroupByIndex(i);
         if(!grp)continue;
 
         Prop *cur = grp->prop_top;
@@ -125,7 +125,33 @@ void RemoteHead::track2D( Moyai *m ) {
         
     }
 }
+// Send all IDs of tiledecks, layers, textures, fonts, viwports by scanning all props and grids.
+// This occurs only when new player is comming in.
+void RemoteHead::scanSendAllGraphicsPrerequisites( Conn *outco ) {
+    // Layers(Groups) don't need scanning props
+    for(int i=0;i<Moyai::MAXGROUPS;i++) {
+        Group *grp = target_moyai->getGroupByIndex(i);
+        if(!grp)continue;
+        outco->sendUS1UI1( PACKETTYPE_S2C_LAYER_CREATE, grp->id );
+    }
+    
+    // 
+    for(int i=0;i<Moyai::MAXGROUPS;i++) {
+        Group *grp = target_moyai->getGroupByIndex(i);
+        if(!grp)continue;
 
+        Prop *cur = grp->prop_top;
+        while(cur) {
+            Prop2D *p = (Prop2D*) cur;
+            cur = cur->next;
+        }
+    }
+}
+
+void RemoteHead::heartbeat() {
+    track2D();
+    nw->heartbeat();
+}    
 
 
 // return false if can't
@@ -165,6 +191,14 @@ void HMPConn::onConnect() {
 }
 void HMPConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
     print("HMPConn::onfunction. id:%d fid:%d len:%d",id, funcid, argdatalen );
+    switch(funcid) {
+    case PACKETTYPE_C2S_GET_ALL_PREREQUISITES:
+        print("PACKETTYPE_C2S_GET_ALL_PREREQUISITES");
+        break;
+    default:
+        print("unhandled funcid: %d",funcid);
+        break;
+    }
 }
 
 

@@ -511,16 +511,16 @@ void gameInit( bool headless_mode ) {
         exit(1);
     }
 
+    g_moyai_client = new MoyaiClient(g_window);
+    
     if( headless_mode ) {
         Moyai::globalInitNetwork();
-        g_rh = new RemoteHead();
+        g_rh = new RemoteHead( g_moyai_client );
         if( g_rh->startServer(HEADLESS_SERVER_PORT) == false ) {
             print("headless server: can't start server. port:%d", HEADLESS_SERVER_PORT );
             exit(1);
         }
     }
-    
-    g_moyai_client = new MoyaiClient(g_window);
 
     g_viewport = new Viewport();
     int retina = 1;
@@ -832,7 +832,7 @@ void gameFinish() {
 void gameRemoteUpdate() {
     if(!g_rh) return;
 
-    g_rh->track2D(g_moyai_client);
+    g_rh->track2D();
     g_rh->heartbeat();
 }
 

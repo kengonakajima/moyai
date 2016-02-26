@@ -456,7 +456,14 @@ void Network::heartbeatWithTimeoutMicroseconds( int timeout_us ) {
     }
 }
 
-
+int Conn::sendUS1( uint16_t usval ) {
+    size_t totalsize = 2 + 2;
+    if( getSendbufRoom() < totalsize ) return 0;
+    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU16( usval );
+    ev_io_start( parent_nw->evloop, write_watcher );
+    return totalsize;    
+}
 int Conn::sendUS1Bytes( uint16_t usval, const char *buf, uint16_t buflen ) {
     size_t totalsize = 2 + 2 + buflen;
     if( getSendbufRoom() < totalsize ) return 0;
@@ -465,4 +472,12 @@ int Conn::sendUS1Bytes( uint16_t usval, const char *buf, uint16_t buflen ) {
     sendbuf.push( buf, buflen );
     ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
+}
+int Conn::sendUS1UI1( uint16_t usval, uint32_t uival ) {
+    size_t totalsize = 2 + 2 + 4;
+    if( getSendbufRoom() < totalsize ) return 0;
+    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU16( usval );
+    sendbuf.pushU32( uival );
+    ev_io_start( parent_nw->evloop, write_watcher );    
 }

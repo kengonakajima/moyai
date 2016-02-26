@@ -50,27 +50,30 @@ public:
     int tcp_port;
     Network *nw;
     HMPListener *listener;
+    MoyaiClient *target_moyai;
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), nw(0), listener(0) {
+    RemoteHead( MoyaiClient *m ) : tcp_port(0), nw(0), listener(0), target_moyai(m) {
     }
-    void track2D( Moyai *m );
+    void track2D();
     bool startServer( int portnum );
-    void heartbeat() { nw->heartbeat(); }
+    void heartbeat();
+    void scanSendAllGraphicsPrerequisites( Conn *outco );
 };
 
 
 typedef enum {
     // generic
-    PACKETTYPE_PING = 1,
-    // client to server
-    PACKETTYPE_C2S_KEYBOARD_DOWN = 100,
-    PACKETTYPE_C2S_KEYBOARD_UP = 101,    
-    PACKETTYPE_C2S_MOUSE_DOWN = 102,
-    PACKETTYPE_C2S_MOUSE_UP = 103,    
-    PACKETTYPE_C2S_TOUCH_BEGIN = 104,
-    PACKETTYPE_C2S_TOUCH_MOVE = 105,
-    PACKETTYPE_C2S_TOUCH_END = 106,
-    PACKETTYPE_C2S_TOUCH_CANCEL = 107,
+    PACKETTYPE_PING = 1,    
+    // client to server 
+    PACKETTYPE_C2S_GET_ALL_PREREQUISITES = 100,    
+    PACKETTYPE_C2S_KEYBOARD_DOWN = 200,
+    PACKETTYPE_C2S_KEYBOARD_UP = 201,    
+    PACKETTYPE_C2S_MOUSE_DOWN = 202,
+    PACKETTYPE_C2S_MOUSE_UP = 203,    
+    PACKETTYPE_C2S_TOUCH_BEGIN = 204,
+    PACKETTYPE_C2S_TOUCH_MOVE = 205,
+    PACKETTYPE_C2S_TOUCH_END = 206,
+    PACKETTYPE_C2S_TOUCH_CANCEL = 207,
     
     // server to client
     PACKETTYPE_S2C_PROP2D_SNAPSHOT = 400, 

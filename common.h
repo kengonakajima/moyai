@@ -455,7 +455,7 @@ public:
 	virtual ~Moyai() {}
     
     void insertGroup( Group *g ) {
-        int freei = findFreeGroupIndex(); // 後から追加したレイヤの描画順が後ろ
+        int freei = findFreeGroupIndex(); // The last group will be rendered lastly
         assert(freei>=0);
         groups[freei] = g;
     }
