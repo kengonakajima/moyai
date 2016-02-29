@@ -75,7 +75,8 @@ public:
     int sendUS1( uint16_t usval );
     int sendUS1Bytes( uint16_t usval, const char *buf, uint16_t datalen );
     int sendUS1UI1( uint16_t usval, uint32_t uival );
-    int sendUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );    
+    int sendUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );
+    int sendUS1UI5( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 );        
     int sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
     int sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr );
     int sendUS1StrBytes( uint16_t usval, const char *cstr, const char *data, uint16_t datalen );

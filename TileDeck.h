@@ -10,7 +10,7 @@ public:
 	int tile_width, tile_height; // Number of sprites in the atlas
 	int image_width, image_height; // Size of the image in pixels
 	Texture *tex;
-	TileDeck() : cell_width(0), cell_height(0), tile_width(0), tile_height(0), image_width(0), image_height(0),tex(NULL) {}
+	TileDeck() : id(idgen++), cell_width(0), cell_height(0), tile_width(0), tile_height(0), image_width(0), image_height(0),tex(NULL) {}
 	void setTexture( Texture *t ){
 		assertmsg(t->tex!=0, "invalid texture" );
 		tex = t;

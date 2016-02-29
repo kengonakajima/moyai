@@ -61,7 +61,7 @@ public:
     RemoteHead( MoyaiClient *m ) : tcp_port(0), nw(0), listener(0), target_moyai(m) {
     }
     void track2D();
-    bool startServer( int portnum );
+    bool startServer( int portnum, bool to_log_syscall = false );
     void heartbeat();
     void scanSendAllGraphicsPrerequisites( HMPConn *outco );
 };

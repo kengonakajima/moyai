@@ -9,7 +9,7 @@ public:
     int id;
 	GLuint tex;
 	Image *image;
-	Texture() : tex(0), image(NULL) {
+	Texture() : id(idgen++), tex(0), image(NULL) {
 	}
 
 	void setImage( Image *img );

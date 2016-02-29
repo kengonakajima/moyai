@@ -103,9 +103,7 @@ void RemoteHead::track2D() {
                 char pktbuf[1024];
                 size_t pkt_size;
                 pkt_size = p->tracker->getCurrentPacket(pktbuf, sizeof(pktbuf) );
-                if( pkt_size>0) {
-                    print("track2D: new: prop[%d] pkt size:%d", p->id, pkt_size );
-                }
+                //                if( pkt_size>0) print("track2D: new: prop[%d] pkt size:%d", p->id, pkt_size );
             } else {
                 p->tracker->flipCurrentBuffer();
                 p->tracker->scanProp2D(p);
@@ -114,7 +112,12 @@ void RemoteHead::track2D() {
                 PACKETTYPE pkttype;
                 pkt_size = p->tracker->getDiffPacket(pktbuf, sizeof(pktbuf), &pkttype );
                 if(pkt_size>0) {
-                    prt("%d ", pkt_size );
+                    if( pkttype == PACKETTYPE_S2C_PROP2D_SNAPSHOT ) {
+                        PacketProp2DSnapshot pkt;
+                        memcpy(&pkt,pktbuf,sizeof(pkt));
+                        //                        prt("s%d ", pkt.prop_id );
+                    }
+                    
                     listener->broadcastUS1Bytes( pkttype, pktbuf, pkt_size );
                     //                    print("track2D: diff: prop[%d] changed. pkt size:%d", p->id, pkt_size );
                 }
@@ -211,12 +214,16 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
     for( std::unordered_map<int,Texture*>::iterator it = texmap.begin(); it != texmap.end(); ++it ) {
         Texture *tex = it->second;
         print("sending texture_create id:%d", tex->id );
-        outco->sendUS1UI1( PACKETTYPE_S2C_TEXTURE_CREATE, tex->id );        
+        outco->sendUS1UI1( PACKETTYPE_S2C_TEXTURE_CREATE, tex->id );
+        outco->sendUS1UI2( PACKETTYPE_S2C_TEXTURE_IMAGE, tex->id, tex->image->id );
     }
     for( std::unordered_map<int,TileDeck*>::iterator it = tdmap.begin(); it != tdmap.end(); ++it ) {
         TileDeck *td = it->second;
         print("sending tiledeck_create id:%d", td->id );
-        outco->sendUS1UI1( PACKETTYPE_S2C_TILEDECK_CREATE, td->id );                
+        outco->sendUS1UI1( PACKETTYPE_S2C_TILEDECK_CREATE, td->id );
+        outco->sendUS1UI2( PACKETTYPE_S2C_TILEDECK_TEXTURE, td->id, td->tex->id );
+        //        print("sendS2RTileDeckSize: id:%d %d,%d,%d,%d", td->id, sprw, sprh, cellw, cellh );        
+        outco->sendUS1UI5( PACKETTYPE_S2C_TILEDECK_SIZE, td->id, td->tile_width, td->tile_height, td->cell_width, td->cell_height );        
     }
 
 
@@ -229,12 +236,12 @@ void RemoteHead::heartbeat() {
 
 
 // return false if can't
-bool RemoteHead::startServer( int portnum ) {        
+bool RemoteHead::startServer( int portnum, bool to_log_syscall ) {        
     tcp_port = portnum;
 
     if(!nw) {
         nw = new Network();
-        nw->syscall_log = true;
+        nw->syscall_log = to_log_syscall;
     }
     if(!listener) {
         listener = new HMPListener(nw,this);

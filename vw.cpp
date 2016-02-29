@@ -10,7 +10,7 @@ ObjectPool<Camera> g_camera_pool;
 ObjectPool<Texture> g_texture_pool;
 ObjectPool<Image> g_image_pool;
 ObjectPool<TileDeck> g_tiledeck_pool;
-
+ObjectPool<Prop2D> g_prop2d_pool;
 
 MoyaiClient *g_moyai_client;        
 Network *g_nw;
@@ -86,10 +86,45 @@ void HMPClientConn::onConnect() {
     sendUS1( PACKETTYPE_C2S_GET_ALL_PREREQUISITES );
 }
 void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
-    print("HMPClientConn::onPacket");
+    //    print("HMPClientConn::onPacket");
     switch(funcid) {
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT:
-        print("PACKETTYPE_S2C_PROP2D_SNAPSHOT len:%d", argdatalen );
+        {
+            //        print("PACKETTYPE_S2C_PROP2D_SNAPSHOT len:%d", argdatalen );            
+            PacketProp2DSnapshot pkt;
+            assert( argdatalen == sizeof(pkt) );
+            memcpy(&pkt,argdata,sizeof(pkt));
+            //            prt("s%d ", pkt.prop_id );
+
+
+            if( pkt.debug) print("packettype_prop2d_create! id:%d layer_id:%d loc:%f,%f scl:%f,%f index:%d tdid:%d", pkt.prop_id, pkt.layer_id, pkt.loc.x, pkt.loc.y, pkt.scl.x, pkt.scl.y, pkt.index, pkt.tiledeck_id );
+            Layer *layer = g_layer_pool.get( pkt.layer_id );
+            if(!layer) {
+                prt("_l");
+                break;
+            }
+
+            TileDeck *dk = g_tiledeck_pool.get( pkt.tiledeck_id );
+            if(!dk) {
+                prt("td?");
+                break;
+            }
+            Prop2D *prop = g_prop2d_pool.get(pkt.prop_id);
+            if(!prop) {
+                prop = g_prop2d_pool.ensure(pkt.prop_id);
+                layer->insertProp(prop);
+            }
+            prop->setDeck(dk);
+            prop->setIndex(pkt.index);
+            prop->setScl( Vec2(pkt.scl.x,pkt.scl.y) );
+            prop->setLoc( Vec2(pkt.loc.x, pkt.loc.y) );
+            prop->setRot( pkt.rot );
+            prop->setXFlip( pkt.xflip );
+            prop->setYFlip( pkt.yflip );
+            Color col( pkt.color.r, pkt.color.g, pkt.color.b, pkt.color.a );
+            prop->setColor(col);
+        }
+
         break;
     case PACKETTYPE_S2C_LAYER_CREATE:
         {
