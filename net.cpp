@@ -503,4 +503,29 @@ int Conn::sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
     ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;    
 }
-
+// [record-len:16][pkttype:16][cstr-len:8][cstr-body][data-len:16][data-body]
+int Conn::sendPacketStrBytes( unsigned short pkttype, const char *cstr, const char *data, unsigned short datalen ) {
+    int cstrlen = strlen(cstr);
+    assert( cstrlen <= 255 );
+    size_t totalsize = 2 + 2 + 1 + cstrlen + 2 + datalen;
+    assertmsg( totalsize <= 65535, "datalen too big? : %d", datalen );
+    if( getSendbufRoom() < totalsize ) return 0;
+    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU16( pkttype );
+    sendbuf.pushU8( (unsigned char) cstrlen );
+    sendbuf.push( cstr, cstrlen );
+    sendbuf.pushU16( datalen );
+    sendbuf.push( data, datalen );
+    ev_io_start( parent_nw->evloop, write_watcher );
+    //    print("send_packet_str_bytes: cstrlen:%d datalen:%d totallen:%d", cstrlen, datalen, totalsize );
+    return totalsize;
+}
+void Conn::parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize ) {
+    unsigned char slen = get_u8(inptr);
+    char *s = inptr + 1;
+    unsigned short datalen = get_u16(inptr+1+slen);
+    *outptr = inptr + 1 + slen + 2;
+    memcpy( outcstr, s, slen );
+    outcstr[slen]='\0';
+    *outsize = (size_t) datalen;
+}

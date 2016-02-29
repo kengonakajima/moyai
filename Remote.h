@@ -45,6 +45,10 @@ public:
     virtual void onClose();
     virtual void onConnect();
     virtual void onPacket( uint16_t funcid, char *argdata, size_t argdatalen );
+
+    // send
+    void sendFile( const char *filename );
+    
 };
 
 class RemoteHead {
@@ -59,7 +63,7 @@ public:
     void track2D();
     bool startServer( int portnum );
     void heartbeat();
-    void scanSendAllGraphicsPrerequisites( Conn *outco );
+    void scanSendAllGraphicsPrerequisites( HMPConn *outco );
 };
 
 

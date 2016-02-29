@@ -396,7 +396,8 @@ public:
     unsigned char *buffer; // rgbargbargba..
     int width, height;
     char optional_load_path[256]; // for application use
-    Image() : buffer(NULL), width(0), height(0) { id = idgen++;  optional_load_path[0] = '\0'; }
+    char last_load_file_path[256];
+    Image() : buffer(NULL), width(0), height(0) { id = idgen++;  optional_load_path[0] = '\0'; last_load_file_path[0] = '\0'; }
     ~Image() { if(buffer)FREE(buffer); }
     void setSize(int w, int h ); 
     void setPixel( int x, int y, Color c );

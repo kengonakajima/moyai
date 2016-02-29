@@ -7,11 +7,59 @@ static const int SCRW=966, SCRH=544;
 ObjectPool<Layer> g_layer_pool;
 ObjectPool<Viewport> g_viewport_pool;
 ObjectPool<Camera> g_camera_pool;
+ObjectPool<Texture> g_texture_pool;
+ObjectPool<Image> g_image_pool;
+ObjectPool<TileDeck> g_tiledeck_pool;
+
 
 MoyaiClient *g_moyai_client;        
 Network *g_nw;
+FileDepo *g_filedepo;
 HMPClientConn *g_conn;
 GLFWwindow *g_window;
+
+
+
+File::File( const char *inpath, const char *indata, size_t indata_len ) {
+    strncpy( path, inpath, sizeof(path) );
+    data = (char*) MALLOC( indata_len );
+    memcpy( data, indata, indata_len );
+    data_len = indata_len;
+    print("File: init. path:'%s' size:%d data:%x %x %x %x", path, indata_len, indata[0], indata[1], indata[2], indata[3] );
+}
+
+
+File *FileDepo::get( char *path ) {
+    for(int i=0;i<elementof(files);i++) {
+        if( files[i] && files[i]->comparePath(path) ) {
+            return files[i];
+        }
+    }
+    return NULL;
+}
+
+File *FileDepo::ensure( char *path, char *data, size_t datalen ) {
+    File *f = get(path);
+    if(f) return f;    
+    for(int i=0;i<elementof(files);i++) {
+        if( files[i] == NULL ) {
+            print("ensure: alloc ind:%d", i );
+            files[i] = new File( path, data, datalen );
+            return files[i];
+        }
+    }
+    assertmsg( false, "file full for: '%s'", path );
+    return NULL;
+}
+
+File *FileDepo::getByIndex(int ind) {
+    assert(ind>=0 && ind< MAX_FILES);
+    return files[ind];
+}
+
+
+
+///////////////////
 
 void winclose_callback( GLFWwindow *w ){
     exit(0);
@@ -22,7 +70,7 @@ void glfw_error_cb( int code, const char *desc ) {
 }
 
 
-///
+///////////////////
 void HMPClientConn::onError( NET_ERROR e, int eno ) {
     print("HMPClientConn::onError. e:%d eno:%d",e,eno);
 }
@@ -133,6 +181,101 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             l->setViewport(vp);
         }
         break;
+
+
+    case PACKETTYPE_S2C_TEXTURE_CREATE:
+        {
+            unsigned int tex_id = get_u32(argdata);
+            print("received texture_create. id:%d", tex_id );
+            Texture *tex = g_texture_pool.ensure(tex_id);
+            assert(tex);
+        }
+        break;
+    case PACKETTYPE_S2C_TEXTURE_IMAGE:
+        {
+            unsigned int tex_id = get_u32(argdata);
+            unsigned int img_id = get_u32(argdata+4);
+            print("received texture_image. tex:%d img:%d", tex_id, img_id );
+            Texture *tex = g_texture_pool.get(tex_id);
+            assert(tex);
+            Image *img = g_image_pool.get(img_id);
+            assert(img);
+            tex->setImage(img);
+        }
+        break;
+    case PACKETTYPE_S2C_IMAGE_CREATE:
+        {
+            unsigned int img_id = get_u32(argdata);
+            Image *img = g_image_pool.ensure(img_id);
+            assert(img);
+            print("received image_create. id:%d", img_id );
+        }
+        break;
+    case PACKETTYPE_S2C_IMAGE_LOAD_PNG:        
+        {
+            unsigned int img_id = get_u32(argdata);
+            unsigned char pathlen = get_u8(argdata+4);
+            char *path = argdata+4+1;
+            char cstrpath[256];
+            memcpy( cstrpath, path, pathlen );
+            cstrpath[pathlen]='\0';
+            print("received image loadpng. id:%d path:'%s' ", img_id, cstrpath );
+            Image *img = g_image_pool.ensure(img_id);
+            File *fe = g_filedepo->get(cstrpath);
+            assert(fe);
+            bool ret = img->loadPNGMem( (unsigned char*) fe->data, fe->data_len );
+            assert(ret);
+            img->setOptionalLoadPath( cstrpath );
+        }
+        break;
+    case PACKETTYPE_S2C_TILEDECK_CREATE:
+        {
+            unsigned int dk_id = get_u32(argdata);
+            print("received tiledeck_create. id:%d", dk_id);
+            TileDeck *dk = g_tiledeck_pool.ensure(dk_id);
+            assert(dk);
+        }
+        break;        
+    case PACKETTYPE_S2C_TILEDECK_TEXTURE:
+        {
+            unsigned int dk_id = get_u32(argdata);
+            unsigned int tex_id = get_u32(argdata+4);
+            print("received tiledeck_texture. dk:%d tex:%d", dk_id, tex_id );
+            
+            TileDeck *dk = g_tiledeck_pool.get(dk_id);
+            assert(dk);
+            Texture *tex = g_texture_pool.get(tex_id);
+            assert(tex);
+            dk->setTexture(tex);
+        }
+        break;
+    case PACKETTYPE_S2C_TILEDECK_SIZE: 
+        {
+            unsigned int dk_id = get_u32(argdata);
+            int sprw = get_u32(argdata+4);
+            int sprh = get_u32(argdata+8);
+            int cellw = get_u32(argdata+12);
+            int cellh = get_u32(argdata+16);
+            print("received tiledeck_size. dk:%d %d,%d,%d,%d", dk_id, sprw, sprh, cellw, cellh );            
+            TileDeck *dk = g_tiledeck_pool.get(dk_id);
+            assert(dk);
+            dk->setSize( sprw, sprh, cellw, cellh );
+
+        }
+        break;
+    case PACKETTYPE_S2C_FILE:
+        {
+            // pathと内容を同時に受け取る。
+            char *dataptr;
+            size_t datasize;
+            char cstrpath[256];
+            parsePacketStrBytes( argdata, cstrpath, &dataptr, &datasize );
+            
+            print("received file. path:'%s' datalen:%d data:%x %x %x %x", cstrpath, datasize, dataptr[0], dataptr[1], dataptr[2], dataptr[3] );
+            g_filedepo->ensure( cstrpath, dataptr, datasize );
+        }
+        break;
+
         
     default:
         print("unhandled packet type:%d", funcid );
@@ -140,6 +283,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
     }
     
 }
+
 
 
 int main( int argc, char **argv ) {
@@ -183,6 +327,8 @@ int main( int argc, char **argv ) {
     glClearColor(0.2,0.2,0.2,1);
     
     g_moyai_client = new MoyaiClient( g_window );
+
+    g_filedepo = new FileDepo();
     
     bool done = false;
     while(!done) {

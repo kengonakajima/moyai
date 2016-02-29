@@ -330,6 +330,7 @@ bool Image::loadPNG( const char *path, bool multiply_color_by_alpha ) {
     FREE(image_data);
     fclose(fp);
 
+    strncpy( last_load_file_path, path, sizeof(last_load_file_path) );
     return true;
 }
 bool Image::loadPNGMem( unsigned char *ptr, size_t sz, bool multiply_color_by_alpha ) {

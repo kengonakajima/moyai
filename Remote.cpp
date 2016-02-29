@@ -127,7 +127,7 @@ void RemoteHead::track2D() {
 }
 // Send all IDs of tiledecks, layers, textures, fonts, viwports by scanning all props and grids.
 // This occurs only when new player is comming in.
-void RemoteHead::scanSendAllGraphicsPrerequisites( Conn *outco ) {
+void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
     std::unordered_map<int,Viewport*> vpmap;
     std::unordered_map<int,Camera*> cammap;
     
@@ -167,7 +167,11 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( Conn *outco ) {
         if( l->camera ) outco->sendUS1UI2( PACKETTYPE_S2C_LAYER_CAMERA, l->id, l->camera->id );
     }
     
-    // 
+    // Image, Texture, tiledeck
+    std::unordered_map<int,Image*> imgmap;
+    std::unordered_map<int,Texture*> texmap;
+    std::unordered_map<int,TileDeck*> tdmap;
+    
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
         Group *grp = target_moyai->getGroupByIndex(i);
         if(!grp)continue;
@@ -175,9 +179,43 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( Conn *outco ) {
         Prop *cur = grp->prop_top;
         while(cur) {
             Prop2D *p = (Prop2D*) cur;
+            if(p->deck) {
+                tdmap[p->deck->id] = p->deck;
+                if( p->deck->tex) {
+                    texmap[p->deck->tex->id] = p->deck->tex;
+                    if( p->deck->tex->image ) {
+                        imgmap[p->deck->tex->image->id] = p->deck->tex->image;
+                    }
+                }
+            }
             cur = cur->next;
         }
     }
+    // Files
+    for( std::unordered_map<int,Image*>::iterator it = imgmap.begin(); it != imgmap.end(); ++it ) {
+        Image *img = it->second;
+        if( img->last_load_file_path[0] ) {
+            print("sending file path:'%s' in image %d", img->last_load_file_path, img->id );
+            outco->sendFile( img->last_load_file_path );
+        }
+    }
+    for( std::unordered_map<int,Image*>::iterator it = imgmap.begin(); it != imgmap.end(); ++it ) {
+        Image *img = it->second;
+        print("sending image_create id:%d", img->id );
+        outco->sendUS1UI1( PACKETTYPE_S2C_IMAGE_CREATE, img->id );
+    }
+    for( std::unordered_map<int,Texture*>::iterator it = texmap.begin(); it != texmap.end(); ++it ) {
+        Texture *tex = it->second;
+        print("sending texture_create id:%d", tex->id );
+        outco->sendUS1UI1( PACKETTYPE_S2C_TEXTURE_CREATE, tex->id );        
+    }
+    for( std::unordered_map<int,TileDeck*>::iterator it = tdmap.begin(); it != tdmap.end(); ++it ) {
+        TileDeck *td = it->second;
+        print("sending tiledeck_create id:%d", td->id );
+        outco->sendUS1UI1( PACKETTYPE_S2C_TILEDECK_CREATE, td->id );                
+    }
+
+
 }
 
 void RemoteHead::heartbeat() {
@@ -234,6 +272,17 @@ void HMPConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
     }
 }
 
+void HMPConn::sendFile( const char *filename ) {
+    char buf[64*1024];
+    size_t sz = sizeof(buf);
+    bool res = readFile( filename, buf, &sz );
+    assertmsg(res, "sendFile: file '%s' read error", filename );
+    assert( sz <= 65536-8 );
+    print("sendFile: path:%s len:%d data:%x %x %x %x", filename, sz, buf[0], buf[1], buf[2], buf[3] );
+    sendPacketStrBytes( PACKETTYPE_S2C_FILE, filename, buf, sz );
+}
+
+
 
 #if 0
 
@@ -273,53 +322,8 @@ void sendS2RProp2DGrid( conn_t *c, Prop2D *p, Grid *g ) {
 
 
 
-void sendS2RLayerCreate( conn_t *c, int player_id, Layer *l, bool shared ) {
-    print("sendS2RLayerCreate pl:%d id:%d", player_id, l->id);
-    send_packet_i3( c, PACKETTYPE_S2R_LAYER_CREATE, player_id, l->id, shared );    
-}
-void sendS2RViewportCreate( conn_t *c, int player_id, Viewport *vp ) {
-    print("sendS2RLayerSize pl:%d id:%d ", player_id, vp->id );
-    send_packet_i2( c, PACKETTYPE_S2R_VIEWPORT_CREATE, player_id, vp->id );
-}
-void sendS2RViewportSize( conn_t *c, int player_id, Viewport *vp ) {
-    print("sendS2RViewportSize. pl:%d id:%d w:%d h:%d", player_id, vp->id, vp->screen_width, vp->screen_height );
-    send_packet_i4( c, PACKETTYPE_S2R_VIEWPORT_SIZE, player_id, vp->id, vp->screen_width, vp->screen_height );
-}
-void sendS2RViewportScale( conn_t *c, int player_id, Viewport *vp ) {
-    //    print("sendS2RViewportScale. pl:%d id:%d x:%f y:%f", player_id, vp->id, vp->scl.x, vp->scl.y );
-    send_packet_i2_f2( c, PACKETTYPE_S2R_VIEWPORT_SCALE, player_id, vp->id, vp->scl.x, vp->scl.y );
-}
-void sendS2RCameraCreate( conn_t *c, int player_id, Camera *cam ) {
-    print("sendS2RCameraCreate. pl:%d id:%d", player_id, cam->id );
-    send_packet_i2( c, PACKETTYPE_S2R_CAMERA_CREATE, player_id, cam->id );
-}
-void sendS2RCameraLoc( conn_t *c, int player_id, Camera *cam ) {
-    //    print("sendS2RCameraLoc. id:%d x:%f y:%f", cam->id, cam->loc.x, cam->loc.y );
-    send_packet_i2_f2( c, PACKETTYPE_S2R_CAMERA_LOC, player_id, cam->id, cam->loc.x, cam->loc.y );
-}
-void sendS2RLayerCamera( conn_t *c, int player_id, Layer *l ) {
-    assert( l->camera );
-    print("sendS2RLayerCamera: pl:%d id:%d cam:%d", player_id, l->id, l->camera->id );
-    send_packet_i3( c, PACKETTYPE_S2R_LAYER_CAMERA, player_id, l->id, l->camera->id );
-}
-void sendS2RLayerViewport( conn_t *c, int player_id, Layer *l ) {
-    assert( l->viewport );
-    print("sendS2RLayerCamera: plid:%d lid:%d vp:%d", player_id, l->id, l->viewport->id );
-    send_packet_i3( c, PACKETTYPE_S2R_LAYER_VIEWPORT, player_id, l->id, l->viewport->id );
-}
-void sendS2RFile( conn_t *c, const char *filename ) {
-    char buf[64*1024];
-    size_t sz = sizeof(buf);
-    bool res = readFile( filename, buf, &sz );
-    assertmsg(res, "sendFile: file '%s' read error", filename );
-    assert( sz <= 65536-8 );
-    print("sendFile: path:%s len:%d data:%x %x %x %x", filename, sz, buf[0], buf[1], buf[2], buf[3] );
-    send_packet_str_bytes( c, PACKETTYPE_S2R_FILE, filename, buf, sz );
-}
-void sendS2RImageCreate( conn_t *c, Image *img ) {
-    print("sendS2RImageCreate: id:%d", img->id );
-    send_packet_i1( c, PACKETTYPE_S2R_IMAGE_CREATE, img->id );
-}
+
+
 void sendS2RImageLoadPNG( conn_t *c, Image *img, const char *filename ) {
     print("sendS2RImageLoadPNG: id:%d file:%s", img->id, filename );
     send_packet_i1_str( c, PACKETTYPE_S2R_IMAGE_LOAD_PNG, img->id, filename );
