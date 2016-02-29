@@ -203,6 +203,10 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
         Image *img = it->second;
         print("sending image_create id:%d", img->id );
         outco->sendUS1UI1( PACKETTYPE_S2C_IMAGE_CREATE, img->id );
+        if( img->last_load_file_path[0] ) {
+            print("sending image_load_png: '%s'", img->last_load_file_path );
+            outco->sendUS1UI1Str( PACKETTYPE_S2C_IMAGE_LOAD_PNG, img->id, img->last_load_file_path );                
+        }
     }
     for( std::unordered_map<int,Texture*>::iterator it = texmap.begin(); it != texmap.end(); ++it ) {
         Texture *tex = it->second;
@@ -279,7 +283,7 @@ void HMPConn::sendFile( const char *filename ) {
     assertmsg(res, "sendFile: file '%s' read error", filename );
     assert( sz <= 65536-8 );
     print("sendFile: path:%s len:%d data:%x %x %x %x", filename, sz, buf[0], buf[1], buf[2], buf[3] );
-    sendPacketStrBytes( PACKETTYPE_S2C_FILE, filename, buf, sz );
+    sendUS1StrBytes( PACKETTYPE_S2C_FILE, filename, buf, sz );
 }
 
 

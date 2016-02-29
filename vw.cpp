@@ -18,6 +18,10 @@ FileDepo *g_filedepo;
 HMPClientConn *g_conn;
 GLFWwindow *g_window;
 
+Viewport *g_debug_viewport;
+Layer *g_debug_layer;
+Font *g_debug_font;
+TextBox *g_debug_tb;
 
 
 File::File( const char *inpath, const char *indata, size_t indata_len ) {
@@ -285,6 +289,30 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
 }
 
 
+void setupDebugStat() {
+    int retina = 1;
+#if defined(__APPLE__)
+    retina = 2;
+#endif    
+    g_debug_viewport = new Viewport();
+    g_debug_viewport->setSize(SCRW*retina,SCRH*retina);
+    g_debug_viewport->setScale2D(SCRW,SCRH);
+    g_debug_layer = new Layer();
+    g_debug_layer->setViewport(g_debug_viewport);
+    g_moyai_client->insertLayer(g_debug_layer);
+    g_debug_font = new Font();
+    wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+    g_debug_font->loadFromTTF("./assets/cinecaption227.ttf", charcodes, 12 );
+    g_debug_tb = new TextBox();
+    g_debug_tb->setFont(g_debug_font);
+    g_debug_tb->setScl(1);
+    g_debug_tb->setLoc(-SCRW/2+10,SCRH/2-15);
+    g_debug_tb->setString("not init");
+    g_debug_layer->insertProp(g_debug_tb);    
+}
+void updateDebugStat( const char *s ) {
+    g_debug_tb->setString(s);
+}
 
 int main( int argc, char **argv ) {
 
@@ -329,10 +357,26 @@ int main( int argc, char **argv ) {
     g_moyai_client = new MoyaiClient( g_window );
 
     g_filedepo = new FileDepo();
-    
-    bool done = false;
-    while(!done) {
+
+    print("start viewer loop");
+
+    // Client side debug status
+    setupDebugStat();
+
+    while( !glfwWindowShouldClose(g_window) ){
+        static double last_poll_at = now();
+
+        double t = now();
+        double dt = t - last_poll_at;
+
+        glfwPollEvents();
         g_nw->heartbeat();
+        int polled = g_moyai_client->poll(dt);
+        int rendered = g_moyai_client->render();
+        Format fmt( "polled:%d rendered:%d", polled, rendered );
+        updateDebugStat( fmt.buf );
+
+        last_poll_at = t;
     }
     delete g_nw;
     return 0;

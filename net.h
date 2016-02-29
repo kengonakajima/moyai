@@ -77,7 +77,8 @@ public:
     int sendUS1UI1( uint16_t usval, uint32_t uival );
     int sendUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );    
     int sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
-    int sendPacketStrBytes( unsigned short pkttype, const char *cstr, const char *data, unsigned short datalen );
+    int sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr );
+    int sendUS1StrBytes( uint16_t usval, const char *cstr, const char *data, uint16_t datalen );
     
     // parse helpers
     static void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize );
