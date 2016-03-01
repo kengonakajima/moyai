@@ -26,7 +26,7 @@ typedef struct  {
     PacketColor color;
 } PacketProp2DSnapshot;
 
-#define MAX_PACKET_SIZE 1024
+#define MAX_PACKET_SIZE (1024*8)
 
 ///////
 // HMP: Headless Moyai Protocol
@@ -66,7 +66,8 @@ public:
     void heartbeat();
     void scanSendAllGraphicsPrerequisites( HMPConn *outco );
     void scanSendAllProp2DSnapshots( HMPConn *c );
-    void notifyDeleted( Prop2D *deleted );
+    void notifyProp2DDeleted( Prop2D *prop_deleted );
+    void notifyGridDeleted( Grid *grid_deleted );
 };
 
 
@@ -113,10 +114,12 @@ typedef enum {
     PACKETTYPE_S2C_TILEDECK_CREATE = 470,
     PACKETTYPE_S2C_TILEDECK_TEXTURE = 471,
     PACKETTYPE_S2C_TILEDECK_SIZE = 472,
-    PACKETTYPE_S2C_GRID_CREATE_SNAPSHOT = 480, // Gridの情報を一度に1種類送る
-    PACKETTYPE_S2C_GRID_TABLE_SNAPSHOT = 481, // Gridの水平移動各種テーブル
-    PACKETTYPE_S2C_GRID_INDEX = 482, // indexが変化した。
-    PACKETTYPE_S2C_FILE = 490, // ファイルを直接送信する step 1: ファイルを作成してIDを割りつける。
+    PACKETTYPE_S2C_GRID_CREATE = 480, // with its size (id,w,h)
+    PACKETTYPE_S2C_GRID_DECK = 481, // with gid,tdid
+    PACKETTYPE_S2C_GRID_PROP2D = 482, // with gid,propid    
+    PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT = 484, // index table of a grid
+    PACKETTYPE_S2C_GRID_DELETE = 490,
+    PACKETTYPE_S2C_FILE = 500, // ファイルを直接送信する step 1: ファイルを作成してIDを割りつける。
 
     PACKETTYPE_ERROR = 2000, // 何らかのエラー。エラー番号を返す
 } PACKETTYPE;
@@ -125,20 +128,34 @@ typedef enum {
 class Prop2D;
 class Tracker2D {
 public:
+    Prop2D *target_prop2d;
     PacketProp2DSnapshot pktbuf[2]; // flip-flop    
     int cur_buffer_index;
     RemoteHead *parent_rh;
-    Tracker2D(RemoteHead *rh ) : cur_buffer_index(0), parent_rh(rh) {
+    Tracker2D(RemoteHead *rh, Prop2D *target ) : target_prop2d(target), cur_buffer_index(0), parent_rh(rh) {
         memset( pktbuf, 0, sizeof(pktbuf) );
     }
-    void scanProp2D( Prop2D *);
+    ~Tracker2D();
+    void scanProp2D();
     void flipCurrentBuffer();
     size_t getDiffPacket( char *outpktbuf, size_t maxoutsize, PACKETTYPE *pkttype );
     size_t getCurrentPacket( char *outpktbuf, size_t maxoutsize );
-    void notifyDeleted( Prop2D *deleted );
 };
+typedef enum {
+    GTT_INDEX = 1,
+} GRIDTABLETYPE;
 class TrackerGrid {
-    
+public:
+    Grid *target_grid;
+    int32_t *index_table[2];
+    int cur_buffer_index;
+    RemoteHead *parent_rh;
+    TrackerGrid(RemoteHead *rh, Grid *target);
+    ~TrackerGrid();
+    void scanGrid();
+    void flipCurrentBuffer();
+    size_t getDiffPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t maxoutsize );    
+    size_t getCurrentPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t maxoutsize );
 };
 
 

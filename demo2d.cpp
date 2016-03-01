@@ -208,6 +208,34 @@ Bullet *createBullet(float x, float y, float aimx, float aimy, int level, bool i
     return b;
 }
 
+class Blocks : public Prop2D {
+public:
+    Grid *g;
+    Blocks() : Prop2D() {
+        g = new Grid(4,4);
+        for(int y=0;y<4;y++) {
+            for(int x=0;x<4;x++) {
+                g->set(x,y,2);
+            }
+        }
+        g->setDeck(g_base_deck);
+        addGrid(g);
+
+        setScl(16,16);
+        setLoc( range(-300,300), range(-200,200) );        
+    }
+    virtual bool prop2DPoll(double dt) {
+        if( accum_time > 3 ) {
+            return false;
+        }
+        return true;
+    }
+    static Blocks *create() {
+        Blocks *b = new Blocks();
+        g_main_layer->insertProp(b);
+        return b;
+    }
+};
 
 ////////////
     
@@ -338,7 +366,9 @@ void gameUpdate(void) {
     if( ( total_frame % 30 ) == 0 ) {
         createRandomDigit();
     }
-
+    if( ( total_frame % 70 ) == 0 ) {
+        Blocks::create();
+    }
 
     static int capt_count =0;
     if( capt_count == 0 && total_frame > 100 ) {
@@ -612,6 +642,7 @@ void gameInit( bool headless_mode ) {
         l->insertProp(p);
     }
 
+    // static grids
     {
         Prop2D *p = new Prop2D();
         p->setDeck(d2);

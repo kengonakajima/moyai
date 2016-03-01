@@ -382,10 +382,28 @@ void Listener::broadcastUS1Bytes( uint16_t usval, const char *data, size_t datal
         c->sendUS1Bytes( usval, data, datalen );
     }
 }
+void Listener::broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen ) {
+    for( ConnIteratorType it = conn_pool.idmap.begin(); it != conn_pool.idmap.end(); ++it ) {
+        Conn *c = it->second;
+        c->sendUS1UI1Bytes( usval, uival, data, datalen );
+    }
+}
 void Listener::broadcastUS1UI1( uint16_t usval, uint32_t uival ) {
     for( ConnIteratorType it = conn_pool.idmap.begin(); it != conn_pool.idmap.end(); ++it ) {
         Conn *c = it->second;
         c->sendUS1UI1( usval, uival );
+    }
+}
+void Listener::broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
+    for( ConnIteratorType it = conn_pool.idmap.begin(); it != conn_pool.idmap.end(); ++it ) {
+        Conn *c = it->second;
+        c->sendUS1UI2( usval, ui0, ui1 );
+    }
+}
+void Listener::broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
+    for( ConnIteratorType it = conn_pool.idmap.begin(); it != conn_pool.idmap.end(); ++it ) {
+        Conn *c = it->second;
+        c->sendUS1UI3( usval, ui0, ui1, ui2 );
     }
 }
 
@@ -479,6 +497,16 @@ int Conn::sendUS1Bytes( uint16_t usval, const char *buf, uint16_t buflen ) {
     ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
+int Conn::sendUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *buf, uint16_t buflen ) {
+    size_t totalsize = 2 + 2 + 4 + buflen;
+    if( getSendbufRoom() < totalsize ) return 0;
+    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU16( usval );
+    sendbuf.pushU32( uival );
+    sendbuf.push( buf, buflen );
+    ev_io_start( parent_nw->evloop, write_watcher );
+    return totalsize;
+}
 int Conn::sendUS1UI1( uint16_t usval, uint32_t uival ) {
     size_t totalsize = 2 + 2 + 4;
     if( getSendbufRoom() < totalsize ) return 0;
@@ -495,6 +523,17 @@ int Conn::sendUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
     sendbuf.pushU16( usval );
     sendbuf.pushU32( ui0 );
     sendbuf.pushU32( ui1 );    
+    ev_io_start( parent_nw->evloop, write_watcher );
+    return totalsize;
+}
+int Conn::sendUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
+    size_t totalsize = 2 + 2 + 4+4+4;
+    if( getSendbufRoom() < totalsize ) return 0;
+    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU16( usval );
+    sendbuf.pushU32( ui0 );
+    sendbuf.pushU32( ui1 );
+    sendbuf.pushU32( ui2 );        
     ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }

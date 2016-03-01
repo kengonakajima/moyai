@@ -20,6 +20,7 @@ typedef enum {
 
 extern void (*g_moyai_grid_change_callback)( void *grid, GRID_CHANGE_TYPE t, int x, int y, void *data, size_t datasize );
 
+class TrackerGrid;
 class Grid {
 public:
     static int idgen;
@@ -40,25 +41,15 @@ public:
     bool color_changed;
     bool uv_changed;
     int debug;
+    TrackerGrid *tracker;
     
 	static const int GRID_FLAG_XFLIP = 1;
 	static const int GRID_FLAG_YFLIP = 2;
 	static const int GRID_NOT_USED = -1;
-	Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), visible(true), enfat_epsilon(0), parent_prop(NULL), mesh(NULL), color_changed(false), uv_changed(false), debug(0) {
+	Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), visible(true), enfat_epsilon(0), parent_prop(NULL), mesh(NULL), color_changed(false), uv_changed(false), debug(0), tracker(NULL) {
         id = idgen++;
 	}
-	~Grid(){
-		if(index_table) FREE(index_table);
-		if(xflip_table) FREE(xflip_table);
-		if(yflip_table) FREE(yflip_table);
-		if(texofs_table) FREE(texofs_table);
-		if(rot_table) FREE(rot_table);
-		if(color_table) FREE(color_table);
-        if(mesh) {
-            mesh->deleteBuffers();
-            delete mesh;
-        }
-	}
+	~Grid();
 	void setDeck( TileDeck *d ){
 		deck = d;
 	}

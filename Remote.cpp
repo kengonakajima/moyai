@@ -4,32 +4,32 @@
 #include "Remote.h"
 
 
-void Tracker2D::scanProp2D( Prop2D *inp ) {
+void Tracker2D::scanProp2D() {
     PacketProp2DSnapshot *out = & pktbuf[cur_buffer_index];
 
-    out->prop_id = inp->id;
-    out->layer_id = inp->getParentLayer()->id;
-    out->loc.x = inp->loc.x;
-    out->loc.y = inp->loc.y;
-    out->scl.x = inp->scl.x;
-    out->scl.y = inp->scl.y;
-    out->index = inp->index;
-    out->tiledeck_id = inp->deck ? inp->deck->id : 0;
-    if( inp->grid_used_num == 0 ) {
+    out->prop_id = target_prop2d->id;
+    out->layer_id = target_prop2d->getParentLayer()->id;
+    out->loc.x = target_prop2d->loc.x;
+    out->loc.y = target_prop2d->loc.y;
+    out->scl.x = target_prop2d->scl.x;
+    out->scl.y = target_prop2d->scl.y;
+    out->index = target_prop2d->index;
+    out->tiledeck_id = target_prop2d->deck ? target_prop2d->deck->id : 0;
+    if( target_prop2d->grid_used_num == 0 ) {
         out->grid_id = 0;
-    } else if( inp->grid_used_num == 1 ) {
-        out->grid_id = inp->grids[0]->id;
+    } else if( target_prop2d->grid_used_num == 1 ) {
+        out->grid_id = target_prop2d->grids[0]->id;
     } else {
         assertmsg(false, "Tracker2D: multiple grids are not implemented yet" );
     }
-    out->debug = inp->debug_id;
-    out->rot = inp->rot;
-    out->xflip = inp->xflip;
-    out->yflip = inp->yflip;
-    out->color.r = inp->color.r;
-    out->color.g = inp->color.g;
-    out->color.b = inp->color.b;
-    out->color.a = inp->color.a;    
+    out->debug = target_prop2d->debug_id;
+    out->rot = target_prop2d->rot;
+    out->xflip = target_prop2d->xflip;
+    out->yflip = target_prop2d->yflip;
+    out->color.r = target_prop2d->color.r;
+    out->color.g = target_prop2d->color.g;
+    out->color.b = target_prop2d->color.b;
+    out->color.a = target_prop2d->color.a;    
 }
 
 void Tracker2D::flipCurrentBuffer() {
@@ -85,11 +85,14 @@ size_t Tracker2D::getCurrentPacket( char *outpktbuf, size_t maxoutsize ) {
     memcpy(outpktbuf, curpkt, outsz );
     return outsz;
 }
-void Tracker2D::notifyDeleted( Prop2D *deleted ) {
-    parent_rh->notifyDeleted(deleted);
+Tracker2D::~Tracker2D() {
+    parent_rh->notifyProp2DDeleted(target_prop2d);
 }
-void RemoteHead::notifyDeleted( Prop2D *deleted ) {
+void RemoteHead::notifyProp2DDeleted( Prop2D *deleted ) {
     listener->broadcastUS1UI1( PACKETTYPE_S2C_PROP2D_DELETE, deleted->id );
+}
+void RemoteHead::notifyGridDeleted( Grid *deleted ) {
+    listener->broadcastUS1UI1( PACKETTYPE_S2C_GRID_DELETE, deleted->id );
 }
 
 // Assume all props in all layers are Prop2Ds.
@@ -102,31 +105,56 @@ void RemoteHead::track2D() {
         while(cur) {
             Prop2D *p = (Prop2D*) cur;
 
+            // prop
+            bool first_time = false;
             if( !p->tracker ) {
-                // A new prop!
-                p->tracker = new Tracker2D(this);
-                p->tracker->scanProp2D(p);
+                p->tracker = new Tracker2D(this,p);
+                first_time = true;
+            }
+            p->tracker->scanProp2D();
+            char pktbuf[MAX_PACKET_SIZE];
+            size_t pkt_size;
+            PACKETTYPE pkttype;
+            if(first_time) {
+                pkttype = PACKETTYPE_S2C_PROP2D_SNAPSHOT;
+                print("sending prop2d_snapshot first time. id:%d", p->id );
+                pkt_size = p->tracker->getCurrentPacket(pktbuf, sizeof(pktbuf) );
+            } else {
+                pkt_size = p->tracker->getDiffPacket(pktbuf, sizeof(pktbuf), &pkttype );                
+            }
+            if(pkt_size>0) {
+                listener->broadcastUS1Bytes( pkttype, pktbuf, pkt_size );
+            }
+            p->tracker->flipCurrentBuffer();
+
+            // grids
+            for(int i=0;i<p->grid_used_num;i++) {
+                Grid *g = p->grids[i];
+                bool first_time = false;
+                if(!g->tracker) {
+                    g->tracker = new TrackerGrid(this,g);
+                    print("new trackergrid. grid id:%d",g->id);
+                    first_time = true;
+                }
+                g->tracker->scanGrid();
                 char pktbuf[MAX_PACKET_SIZE];
                 size_t pkt_size;
-                pkt_size = p->tracker->getCurrentPacket(pktbuf, sizeof(pktbuf) );
-                //                if( pkt_size>0) print("track2D: new: prop[%d] pkt size:%d", p->id, pkt_size );
-            } else {
-                p->tracker->flipCurrentBuffer();
-                p->tracker->scanProp2D(p);
-                char pktbuf[MAX_PACKET_SIZE]; 
-                size_t pkt_size;
-                PACKETTYPE pkttype;
-                pkt_size = p->tracker->getDiffPacket(pktbuf, sizeof(pktbuf), &pkttype );
-                if(pkt_size>0) {
-                    if( pkttype == PACKETTYPE_S2C_PROP2D_SNAPSHOT ) {
-                        PacketProp2DSnapshot pkt;
-                        memcpy(&pkt,pktbuf,sizeof(pkt));
-                        //                        prt("s%d ", pkt.prop_id );
-                    }
-                    
-                    listener->broadcastUS1Bytes( pkttype, pktbuf, pkt_size );
-                    //                    print("track2D: diff: prop[%d] changed. pkt size:%d", p->id, pkt_size );
+                if(first_time) {
+                    listener->broadcastUS1UI3( PACKETTYPE_S2C_GRID_CREATE, g->id, g->width, g->height );
+                    int dk_id = 0;
+                    if(g->deck) dk_id = g->deck->id; else if(p->deck) dk_id = p->deck->id;
+                    if(dk_id) listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_DECK, g->id, dk_id );
+                    print("sending grid_prop2d: g:%d p:%d", g->id, p->id );
+                    listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_PROP2D, g->id, p->id );
+                    pkt_size = g->tracker->getCurrentPacket( GTT_INDEX, pktbuf, sizeof(pktbuf) );
+                } else {
+                    pkt_size = g->tracker->getDiffPacket( GTT_INDEX, pktbuf, sizeof(pktbuf) );
                 }
+                if(pkt_size>0) {
+                    print("sending indx table of grid %d. size:%d", g->id, pkt_size );
+                    listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, g->id, pktbuf, pkt_size );
+                }
+                g->tracker->flipCurrentBuffer();
             }
             
             cur = cur->next;
@@ -244,8 +272,8 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
         while(cur) {
             Prop2D *p = (Prop2D*) cur;
             if(!p->tracker) {
-                p->tracker = new Tracker2D(this);
-                p->tracker->scanProp2D(p);
+                p->tracker = new Tracker2D(this,p);
+                p->tracker->scanProp2D();
             }
             char pktbuf[MAX_PACKET_SIZE];
             size_t pkt_size;
@@ -324,106 +352,59 @@ void HMPConn::sendFile( const char *filename ) {
 }
 
 
-
-#if 0
-
-//////////////////
-void sendS2RGridCreateSnapshot( conn_t *c, int prop_id, Grid *g ) {
-    PacketGridCreateSnapshot pkt;
-    pkt.id = g->id;
-    pkt.width = g->width;
-    pkt.height = g->height;
-    pkt.tiledeck_id = g->deck->id;
-    pkt.enfat_epsilon = g->enfat_epsilon;
-    send_packet_i1_bytes( c, PACKETTYPE_S2R_GRID_CREATE_SNAPSHOT, prop_id, (char*)&pkt, sizeof(pkt) );
-    if( g->index_table ) {
-        int nbytes = g->width * g->height * sizeof(int);
-        send_packet_i3_bytes( c, PACKETTYPE_S2R_GRID_TABLE_SNAPSHOT, prop_id, g->id, nbytes, (const char*) g->index_table, nbytes );
-    }
-    if( g->xflip_table ) {
-        assert(false);
-    }
-    if( g->yflip_table ) {
-        assert(false);        
-    }
-    if( g->texofs_table ) {
-        assert(false);        
-    }
-    if( g->rot_table ) {
-        assert(false);        
-    }
-    if( g->color_table ) {
-        assert(false);        
+TrackerGrid::TrackerGrid( RemoteHead *rh, Grid *target ) : target_grid(target), cur_buffer_index(0), parent_rh(rh) {
+    size_t sz = target->width * target->height * sizeof(int32_t);
+    for(int i=0;i<2;i++) {
+        index_table[i] = (int32_t*) MALLOC(sz);
+        index_table[i] = (int32_t*) MALLOC(sz);
     }
 }
-void sendS2RProp2DGrid( conn_t *c, Prop2D *p, Grid *g ) {
-    if(p->debug) print("sendProp2DGrid. p:%d g:%d", p->id, g->id );
-    send_packet_i2( c, PACKETTYPE_S2R_PROP2D_GRID, p->id, g->id );
+TrackerGrid::~TrackerGrid() {
+    parent_rh->notifyGridDeleted(target_grid);   
 }
-
-
-
-
-
-void sendS2RImageLoadPNG( conn_t *c, Image *img, const char *filename ) {
-    print("sendS2RImageLoadPNG: id:%d file:%s", img->id, filename );
-    send_packet_i1_str( c, PACKETTYPE_S2R_IMAGE_LOAD_PNG, img->id, filename );
-}
-void sendS2RTextureCreate( conn_t *c, Texture *tex ) {
-    print("sendS2RTextureCreate: id:%d", tex->id );
-    send_packet_i1( c, PACKETTYPE_S2R_TEXTURE_CREATE, tex->id );
-}
-void sendS2RTextureImage( conn_t *c, Texture *tex, Image *img ) {
-    print("sendS2RTextureImage: tex:%d img:%d", tex->id, img->id );
-    send_packet_i2( c, PACKETTYPE_S2R_TEXTURE_IMAGE, tex->id, img->id );
-}
-void sendS2RTileDeckCreate( conn_t *c, TileDeck *dk ) {
-    print("sendS2RTileDeckCreate id:%d", dk->id );
-    send_packet_i1( c, PACKETTYPE_S2R_TILEDECK_CREATE, dk->id );
-}
-void sendS2RTileDeckTexture( conn_t *c, TileDeck *dk, Texture *tex ) {
-    print("sendS2RTileDeckTexture dk:%d tex:%d", dk->id, tex->id );
-    send_packet_i2( c, PACKETTYPE_S2R_TILEDECK_TEXTURE, dk->id, tex->id );
-}
-void sendS2RTileDeckSize( conn_t *c, TileDeck *dk, int sprw, int sprh, int cellw, int cellh ) {
-    print("sendS2RTileDeckSize: id:%d %d,%d,%d,%d", dk->id, sprw, sprh, cellw, cellh );
-    send_packet_i5( c, PACKETTYPE_S2R_TILEDECK_SIZE, dk->id, sprw, sprh, cellw, cellh );
-}
-
-
-
-
-
-
-void sendS2RProp2DCreateSnapshot( conn_t *c, Prop2D *p ) {
-    PacketProp2DCreateSnapshot pkt;
-    pkt.prop_id = p->id;
-    Group *g = p->getParentGroup();
-    pkt.layer_id = g->id;
-    pkt.loc.x = p->getLocX();
-    pkt.loc.y = p->getLocY();
-    if(p->debug) print("sendProp2DCreateSnapshot: id:%d gid:%d loc:(%f,%f)",p->id, p->getParentGroup()->id, p->getLocX(), p->getLocY());
-    pkt.scl.x = p->getSclX();
-    pkt.scl.y = p->getSclY();
-    pkt.index = p->getIndex();
-    pkt.tiledeck_id = p->getDeckId();
-    pkt.grid_id = p->getGridId();
-    pkt.debug = p->debug;
-    pkt.rot = p->getRot();
-    pkt.xflip = p->getXFlip();
-    pkt.yflip = p->getYFlip();
-    Color col = p->getColor();
-    pkt.color.r = col.r;
-    pkt.color.g = col.g;
-    pkt.color.b = col.b;
-    pkt.color.a = col.a;    
-    send_packet_bytes( c, PACKETTYPE_S2R_PROP2D_CREATE_SNAPSHOT, (char*)&pkt, sizeof(pkt) );
-    Grid *grid = p->getGrid();
-    if( grid ) {
-        sendS2RGridCreateSnapshot( c, p->id, grid );
-        sendS2RProp2DGrid( c, p, grid );
+void TrackerGrid::scanGrid() {
+    for(int y=0;y<target_grid->height;y++){
+        for(int x=0;x<target_grid->width;x++){
+            int ind = x + y * target_grid->width;
+            index_table[cur_buffer_index][ind] = target_grid->get(x,y);
+        }
     }
 }
-
-
-#endif
+void TrackerGrid::flipCurrentBuffer() {
+    cur_buffer_index = ( cur_buffer_index == 0 ? 1 : 0 );    
+}
+// packet data: Array of int32_t with length of width*height
+size_t TrackerGrid::getCurrentPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t maxoutsize ) {
+    switch(gtt) {
+    case GTT_INDEX:
+        {
+            size_t sz_required = target_grid->width * target_grid->height * sizeof(int32_t);
+            assert( maxoutsize >= sz_required );
+            memcpy( outpktbuf, index_table[cur_buffer_index], sz_required );
+            return sz_required;
+        }
+    default:
+        assertmsg(false, "not implemented" );
+        break;
+    }
+}
+// TODO: add a new packet type of sending changes in each cells.
+size_t TrackerGrid::getDiffPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t maxoutsize ) {
+    int32_t *curtbl, *prevtbl;
+    if(cur_buffer_index==0) {
+        curtbl = index_table[0];
+        prevtbl = index_table[1];
+    } else {
+        curtbl = index_table[1];
+        prevtbl = index_table[0];        
+    }
+    size_t compsz = target_grid->width*target_grid->height*sizeof(int32_t);
+    int cmp = memcmp( curtbl, prevtbl, compsz );
+    if( cmp ) {
+        assert( maxoutsize >= compsz );
+        memcpy( outpktbuf, curtbl, compsz );
+        return compsz;
+    } else {
+        return 0;
+    }
+}

@@ -11,6 +11,7 @@ ObjectPool<Texture> g_texture_pool;
 ObjectPool<Image> g_image_pool;
 ObjectPool<TileDeck> g_tiledeck_pool;
 ObjectPool<Prop2D> g_prop2d_pool;
+ObjectPool<Grid> g_grid_pool;
 
 MoyaiClient *g_moyai_client;        
 Network *g_nw;
@@ -104,16 +105,14 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
                 break;
             }
 
-            TileDeck *dk = g_tiledeck_pool.get( pkt.tiledeck_id );
-            if(!dk) {
-                break;
-            }
+            TileDeck *dk = g_tiledeck_pool.get( pkt.tiledeck_id ); // deck can be null (may have grid,textbox)
             Prop2D *prop = g_prop2d_pool.get(pkt.prop_id);
             if(!prop) {
+                print("prop2d new: id:%d", pkt.prop_id);
                 prop = g_prop2d_pool.ensure(pkt.prop_id);
                 layer->insertProp(prop);
             }
-            prop->setDeck(dk);
+            if(dk) prop->setDeck(dk);
             prop->setIndex(pkt.index);
             prop->setScl( Vec2(pkt.scl.x,pkt.scl.y) );
             prop->setLoc( Vec2(pkt.loc.x, pkt.loc.y) );
@@ -315,7 +314,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         break;
     case PACKETTYPE_S2C_PROP2D_DELETE:
         {
-            unsigned int prop_id = get_u32(argdata);
+            uint32_t prop_id = get_u32(argdata);
             Prop2D *prop = g_prop2d_pool.get(prop_id);
             if(prop) {
                 prt("D[%d]", prop_id);
@@ -324,7 +323,68 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             }
         }
         break;
-        
+
+    case PACKETTYPE_S2C_GRID_CREATE:
+        {
+            uint32_t grid_id = get_u32(argdata);
+            uint32_t w = get_u32(argdata+4);
+            uint32_t h = get_u32(argdata+8);
+            print("grid_create. id:%d w:%d h:%d", grid_id, w, h );
+            Grid *g = g_grid_pool.ensure( grid_id, w, h );
+            assert(g);
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_DECK:
+        {
+            uint32_t grid_id = get_u32(argdata);
+            uint32_t deck_id = get_u32(argdata+4);
+            print("grid_deck. id:%d tid:%d", grid_id, deck_id );
+            Grid *g = g_grid_pool.get(grid_id);
+            if(g) {
+                TileDeck *td = g_tiledeck_pool.get(deck_id);
+                if(td) {
+                    g->setDeck(td);
+                } else {
+                    print("grid_deck: can't find td:%d", deck_id);
+                }                
+            } else {
+                print("can't find grid id:%d",grid_id);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_PROP2D:
+        {
+            uint32_t grid_id = get_u32(argdata);
+            uint32_t prop_id = get_u32(argdata+4);
+            print("grid_prop2d: id:%d pid:%d", grid_id, prop_id );
+            Grid *g = g_grid_pool.get(grid_id);
+            Prop2D *p = g_prop2d_pool.get(prop_id);
+            if( g && p ) {
+                p->setGrid(g);                
+            } else {
+                print("grid_prop2d: grid:%p or prop:%p not found", g,p);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT:
+        {
+            uint32_t grid_id = get_u32(argdata);            
+            print("grid_tbl_ind_ss: id:%d", grid_id);
+            Grid *g = g_grid_pool.get(grid_id);
+            if(g) {
+                g->bulkSetIndex((int*)(argdata+4));
+            } else {
+                print("grid %d not found", grid_id);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_DELETE:
+        {
+            uint32_t grid_id = get_u32(argdata);
+            print("grid_del: id:%d", grid_id);
+            g_grid_pool.del(grid_id);
+        }
+        break;
     default:
         print("unhandled packet type:%d", funcid );
         break;

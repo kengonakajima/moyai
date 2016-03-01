@@ -110,7 +110,7 @@ public:
 			if(children[i]) delete children[i];
 		}        
 		if(prim_drawer) delete prim_drawer;
-        if(tracker) tracker->notifyDeleted(this);
+        if(tracker) delete tracker;
 	}
 
 	virtual bool prop2DPoll(double dt){ return true;}
@@ -172,7 +172,6 @@ public:
 		assert(index>=0 && index < elementof(grids) ) ;
 		return grids[index];
 	}
-
 	inline void clearGrid() {
 		grid_used_num = 0; // object have to be freed by app
 		updateMinMaxSizeCache();        
