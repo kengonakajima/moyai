@@ -106,14 +106,14 @@ void RemoteHead::track2D() {
                 // A new prop!
                 p->tracker = new Tracker2D(this);
                 p->tracker->scanProp2D(p);
-                char pktbuf[1024];
+                char pktbuf[MAX_PACKET_SIZE];
                 size_t pkt_size;
                 pkt_size = p->tracker->getCurrentPacket(pktbuf, sizeof(pktbuf) );
                 //                if( pkt_size>0) print("track2D: new: prop[%d] pkt size:%d", p->id, pkt_size );
             } else {
                 p->tracker->flipCurrentBuffer();
                 p->tracker->scanProp2D(p);
-                char pktbuf[1024]; 
+                char pktbuf[MAX_PACKET_SIZE]; 
                 size_t pkt_size;
                 PACKETTYPE pkttype;
                 pkt_size = p->tracker->getDiffPacket(pktbuf, sizeof(pktbuf), &pkttype );
@@ -234,6 +234,29 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
 
 
 }
+// Send snapshots of all props and grids
+void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
+    for(int i=0;i<Moyai::MAXGROUPS;i++) {
+        Group *grp = target_moyai->getGroupByIndex(i);
+        if(!grp)continue;
+
+        Prop *cur = grp->prop_top;
+        while(cur) {
+            Prop2D *p = (Prop2D*) cur;
+            if(!p->tracker) {
+                p->tracker = new Tracker2D(this);
+                p->tracker->scanProp2D(p);
+            }
+            char pktbuf[MAX_PACKET_SIZE];
+            size_t pkt_size;
+            pkt_size = p->tracker->getCurrentPacket( pktbuf, sizeof(pktbuf) );
+            if( pkt_size > 0 ) {
+                listener->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, pktbuf, pkt_size );
+            }            
+            cur = cur->next;
+        }
+    }    
+}
 
 void RemoteHead::heartbeat() {
     track2D();
@@ -266,6 +289,7 @@ void HMPListener::onAccept( int newfd ) {
     addConn(c);
     print("HMPListener::onAccept. newcon id:%d", c->id );
     remote_head->scanSendAllGraphicsPrerequisites(c);
+    remote_head->scanSendAllProp2DSnapshots(c);
 }
 
 void HMPConn::onError( NET_ERROR e, int eno ) {

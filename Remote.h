@@ -26,6 +26,7 @@ typedef struct  {
     PacketColor color;
 } PacketProp2DSnapshot;
 
+#define MAX_PACKET_SIZE 1024
 
 ///////
 // HMP: Headless Moyai Protocol
@@ -64,6 +65,7 @@ public:
     bool startServer( int portnum, bool to_log_syscall = false );
     void heartbeat();
     void scanSendAllGraphicsPrerequisites( HMPConn *outco );
+    void scanSendAllProp2DSnapshots( HMPConn *c );
     void notifyDeleted( Prop2D *deleted );
 };
 
@@ -135,7 +137,9 @@ public:
     size_t getCurrentPacket( char *outpktbuf, size_t maxoutsize );
     void notifyDeleted( Prop2D *deleted );
 };
-
+class TrackerGrid {
+    
+};
 
 
 
