@@ -85,6 +85,12 @@ size_t Tracker2D::getCurrentPacket( char *outpktbuf, size_t maxoutsize ) {
     memcpy(outpktbuf, curpkt, outsz );
     return outsz;
 }
+void Tracker2D::notifyDeleted( Prop2D *deleted ) {
+    parent_rh->notifyDeleted(deleted);
+}
+void RemoteHead::notifyDeleted( Prop2D *deleted ) {
+    listener->broadcastUS1UI1( PACKETTYPE_S2C_PROP2D_DELETE, deleted->id );
+}
 
 // Assume all props in all layers are Prop2Ds.
 void RemoteHead::track2D() {
@@ -98,7 +104,7 @@ void RemoteHead::track2D() {
 
             if( !p->tracker ) {
                 // A new prop!
-                p->tracker = new Tracker2D();
+                p->tracker = new Tracker2D(this);
                 p->tracker->scanProp2D(p);
                 char pktbuf[1024];
                 size_t pkt_size;

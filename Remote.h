@@ -50,7 +50,7 @@ public:
     void sendFile( const char *filename );
     
 };
-
+class Prop2D;
 class RemoteHead {
 public:
     int tcp_port;
@@ -64,6 +64,7 @@ public:
     bool startServer( int portnum, bool to_log_syscall = false );
     void heartbeat();
     void scanSendAllGraphicsPrerequisites( HMPConn *outco );
+    void notifyDeleted( Prop2D *deleted );
 };
 
 
@@ -124,13 +125,15 @@ class Tracker2D {
 public:
     PacketProp2DSnapshot pktbuf[2]; // flip-flop    
     int cur_buffer_index;
-    Tracker2D() : cur_buffer_index(0) {
+    RemoteHead *parent_rh;
+    Tracker2D(RemoteHead *rh ) : cur_buffer_index(0), parent_rh(rh) {
         memset( pktbuf, 0, sizeof(pktbuf) );
     }
     void scanProp2D( Prop2D *);
     void flipCurrentBuffer();
     size_t getDiffPacket( char *outpktbuf, size_t maxoutsize, PACKETTYPE *pkttype );
     size_t getCurrentPacket( char *outpktbuf, size_t maxoutsize );
+    void notifyDeleted( Prop2D *deleted );
 };
 
 

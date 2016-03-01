@@ -376,10 +376,16 @@ void Listener::addConn( Conn *c ) {
 void Listener::delConn( Conn *c ) {
     conn_pool.del(c->id);
 }
-void Listener::broadcastUS1Bytes( uint16_t ival, const char *data, size_t datalen ) {
+void Listener::broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen ) {
     for( ConnIteratorType it = conn_pool.idmap.begin(); it != conn_pool.idmap.end(); ++it ) {
         Conn *c = it->second;
-        c->sendUS1Bytes( ival, data, datalen );
+        c->sendUS1Bytes( usval, data, datalen );
+    }
+}
+void Listener::broadcastUS1UI1( uint16_t usval, uint32_t uival ) {
+    for( ConnIteratorType it = conn_pool.idmap.begin(); it != conn_pool.idmap.end(); ++it ) {
+        Conn *c = it->second;
+        c->sendUS1UI1( usval, uival );
     }
 }
 

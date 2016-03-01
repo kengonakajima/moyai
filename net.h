@@ -102,6 +102,7 @@ public:
     void addConn(Conn*c);
     void delConn(Conn*c);
     void broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen );
+    void broadcastUS1UI1( uint16_t usval, uint32_t uival );
 };
 
 

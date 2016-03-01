@@ -106,7 +106,6 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
 
             TileDeck *dk = g_tiledeck_pool.get( pkt.tiledeck_id );
             if(!dk) {
-                prt("td?");
                 break;
             }
             Prop2D *prop = g_prop2d_pool.get(pkt.prop_id);
@@ -314,7 +313,17 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             g_filedepo->ensure( cstrpath, dataptr, datasize );
         }
         break;
-
+    case PACKETTYPE_S2C_PROP2D_DELETE:
+        {
+            unsigned int prop_id = get_u32(argdata);
+            Prop2D *prop = g_prop2d_pool.get(prop_id);
+            if(prop) {
+                prt("D[%d]", prop_id);
+                prop->to_clean = true;
+                g_prop2d_pool.del(prop_id);
+            }
+        }
+        break;
         
     default:
         print("unhandled packet type:%d", funcid );
