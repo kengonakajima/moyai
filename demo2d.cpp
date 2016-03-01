@@ -53,7 +53,7 @@ enum {
     ATLAS_MYSHIP = 0,
     ATLAS_BULLET0 = 32,  
     ATLAS_EXPLOSION = 96,
-    ATLAS_DIGIT0 = 80,  
+    ATLAS_DIGIT0 = 160,  
 };
 
 // config
@@ -267,8 +267,11 @@ public:
         setLoc(at);
         setAnim( g_digit_anim_curve );
         setDeck( g_base_deck );
-        setScl( range(10,40), range(10,40) );   
-		seekColor( Color(1,0,0,0.2),1);
+        setScl( range(10,40), range(10,40) );
+        seekColor( Color(1,0,0,0.2),0.5);
+    }
+    virtual bool prop2DPoll(double dt) {
+        return true;
     }
     virtual void onAnimFinished() {
         to_clean = true;
@@ -288,12 +291,20 @@ void createRandomDigit() {
 void gameUpdate(void) {
     static double last_print_at = 0;
     static int frame_counter = 0;
+    static int total_frame = 0;
     static double last_poll_at = now();
 
     double t = now();
     double dt = t - last_poll_at;
+    double ideal_frame_time = 1.0f / 60.0f;
+    if(dt < ideal_frame_time ) {
+        double to_sleep_sec = ideal_frame_time - dt;
+        int to_sleep_msec = (int) (to_sleep_sec*1000);
+        if( to_sleep_msec > 0 ) sleepMilliSec(to_sleep_msec);
+    }
     
     frame_counter ++;
+    total_frame ++;
     
     int cnt;
     cnt = g_moyai_client->poll(dt);
@@ -324,13 +335,14 @@ void gameUpdate(void) {
     }
     g_dyn_texture->setImage(g_img);
 
-    if( ( frame_counter % 171 ) == 0 ) {
+    if( ( total_frame % 30 ) == 0 ) {
         createRandomDigit();
     }
 
 
     static int capt_count =0;
-    if( (capt_count % 200)  == 0 ) {
+    if( capt_count == 0 && total_frame > 100 ) {
+        capt_count = 1;
         startMeasure("capt");
         Image *img = new Image();
         img->setSize( SCRW, SCRH );
@@ -343,7 +355,6 @@ void gameUpdate(void) {
         delete img;
         endMeasure();
     }
-    capt_count ++;
 
     // replace white to random color
     g_replacer_shader->setColor( Color(0xF7E26B), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
@@ -822,7 +833,7 @@ void gameInit( bool headless_mode ) {
 
 
 void gameRender() {
-        g_last_render_cnt = g_moyai_client->render();
+    g_last_render_cnt = g_moyai_client->render();
 }
 void gameFinish() {
     glfwTerminate();
