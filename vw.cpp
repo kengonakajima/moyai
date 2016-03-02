@@ -93,7 +93,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         {
             //        print("PACKETTYPE_S2C_PROP2D_SNAPSHOT len:%d", argdatalen );            
             PacketProp2DSnapshot pkt;
-            assert( argdatalen == sizeof(pkt) );
+            assertmsg( argdatalen == sizeof(pkt), "invalid argdatalen:%d",argdatalen );
             memcpy(&pkt,argdata,sizeof(pkt));
             //            prt("s%d ", pkt.prop_id );
 

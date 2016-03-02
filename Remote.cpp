@@ -44,8 +44,8 @@ static const int CHANGED_XFLIP = 0x10;
 static const int CHANGED_YFLIP = 0x20;
 static const int CHANGED_COLOR = 0x40;
 
-
-size_t Tracker2D::getDiffPacket( char *outpktbuf, size_t maxoutsize, PACKETTYPE *pktttype ) {
+// send packet if necessary
+void Tracker2D::broadcastDiff( Listener *listener, bool force ) {
     PacketProp2DSnapshot *curpkt, *prevpkt;
     if(cur_buffer_index==0) {
         curpkt = & pktbuf[0];
@@ -68,23 +68,14 @@ size_t Tracker2D::getDiffPacket( char *outpktbuf, size_t maxoutsize, PACKETTYPE 
     if(curpkt->color.r != prevpkt->color.r ) changes |= CHANGED_COLOR;
     if(curpkt->color.r != prevpkt->color.r ) changes |= CHANGED_COLOR;    
 
-    if( changes == 0 ) {
-        return 0;
+    if( changes == 0 && force == false ) {
+        return;
     }
-    *pktttype = PACKETTYPE_S2C_PROP2D_SNAPSHOT;
-    size_t outsz = sizeof(PacketProp2DSnapshot);
-    assertmsg( outsz <= maxoutsize, "buffer too small" );
-    memcpy(outpktbuf, curpkt, outsz );
-    return outsz;    
+    
+    // need to send!
+    listener->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)curpkt, sizeof(*curpkt) );
 }
 
-size_t Tracker2D::getCurrentPacket( char *outpktbuf, size_t maxoutsize ) {
-    PacketProp2DSnapshot *curpkt = & pktbuf[cur_buffer_index];
-    size_t outsz = sizeof(PacketProp2DSnapshot);
-    assertmsg( outsz <= maxoutsize, "buffer too small" );
-    memcpy(outpktbuf, curpkt, outsz );
-    return outsz;
-}
 Tracker2D::~Tracker2D() {
     parent_rh->notifyProp2DDeleted(target_prop2d);
 }
@@ -236,26 +227,16 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
                 p->tracker = new Tracker2D(this,p);
                 p->tracker->scanProp2D();
             }
-            char pktbuf[MAX_PACKET_SIZE];
-            size_t pkt_size;
-            pkt_size = p->tracker->getCurrentPacket( pktbuf, sizeof(pktbuf) );
-            if( pkt_size > 0 ) {
-                listener->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, pktbuf, pkt_size );
-            }
+            p->tracker->broadcastDiff(listener, true );
             // grid
             for(int i=0;i<p->grid_used_num;i++) {
                 Grid *g = p->grids[i];
                 if(!g->tracker) {
                     g->tracker = new TrackerGrid(this,g);
+                    g->tracker->scanGrid();                    
                 }
-                g->tracker->scanGrid();
-                broadcastGridConfs(p,g);
-                pkt_size = g->tracker->getCurrentPacket( GTT_INDEX, pktbuf, sizeof(pktbuf) );
-                if(pkt_size) listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, g->id, pktbuf, pkt_size );
-                pkt_size = g->tracker->getCurrentPacket( GTT_COLOR, pktbuf, sizeof(pktbuf) );
-                if(pkt_size) listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT, g->id, pktbuf, pkt_size );
+                g->tracker->broadcastDiff(p, listener, true );
             }
-
             cur = cur->next;
         }
     }    
@@ -352,59 +333,9 @@ void TrackerGrid::scanGrid() {
 void TrackerGrid::flipCurrentBuffer() {
     cur_buffer_index = ( cur_buffer_index == 0 ? 1 : 0 );    
 }
-// packet data: Array of int32_t with length of width*height
-size_t TrackerGrid::getCurrentPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t maxoutsize ) {
-    switch(gtt) {
-    case GTT_INDEX:
-        {
-            if( !target_grid->index_table ) return 0;            
-            size_t sz_required = target_grid->width * target_grid->height * sizeof(int32_t);
-            assert( maxoutsize >= sz_required );
-            memcpy( outpktbuf, index_table[cur_buffer_index], sz_required );
-            return sz_required;
-        }
-        break;
-    case GTT_XFLIP:
-        assertmsg(false,"not implemented");
-        break;        
-    case GTT_YFLIP:
-        assertmsg(false,"not implemented");        
-        break;        
-    case GTT_TEXOFS:
-        assertmsg(false,"not implemented");        
-        break;        
-    case GTT_UVROT:
-        assertmsg(false,"not implemented");        
-        break;
-    case GTT_COLOR:
-        {
-            if( !target_grid->color_table ) return 0;
-            size_t sz_required = target_grid->width * target_grid->height * sizeof(PacketColor);
-            assert( maxoutsize >= sz_required );
-            
-            for(int y=0;y<target_grid->height;y++) {
-                for(int x=0;x<target_grid->width;x++) {
-                    int ind = target_grid->index(x,y);
-                    PacketColor *outpktcol = (PacketColor*)( outpktbuf + sizeof(PacketColor) * ind );
-                    Color *srccol = & target_grid->color_table[ind];
-                    outpktcol->r = srccol->r;
-                    outpktcol->g = srccol->g;
-                    outpktcol->b = srccol->b;
-                    outpktcol->a = srccol->a;
-                    
-                }
-            }
-            return sz_required;
-        }
-        break;
-    default:
-        assertmsg(false, "invalid gtt:%d",gtt);
-        break;
-    }
-    return 0;    
-}
+
 // TODO: add a new packet type of sending changes in each cells.
-size_t TrackerGrid::getDiffPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t maxoutsize ) {
+bool TrackerGrid::checkDiff( GRIDTABLETYPE gtt ) { 
     char *curtbl, *prevtbl;
     int curind, prevind;
     
@@ -450,20 +381,29 @@ size_t TrackerGrid::getDiffPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t ma
         break;   
     }
     int cmp = memcmp( curtbl, prevtbl, compsz );
-    if( cmp ) {
-        assert( maxoutsize >= compsz );
-        memcpy( outpktbuf, curtbl, compsz );
-        return compsz;
-    } else {
-        return 0;
+    return cmp;
+}
+
+void TrackerGrid::broadcastDiff( Prop2D *owner, Listener *listener, bool force ) {
+    if( checkDiff( GTT_INDEX ) || force ) {
+        broadcastGridConfs(owner, listener); // TODO: not necessary to send every time
+        listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, target_grid->id,
+                                        (const char*) index_table[cur_buffer_index],
+                                        target_grid->getCellNum() * sizeof(int32_t) );
+    }
+    if( checkDiff( GTT_COLOR ) || force ) {
+        broadcastGridConfs(owner, listener); // TODO: not necessary to send every time
+        listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT, target_grid->id,
+                                        (const char*) color_table[cur_buffer_index],
+                                        target_grid->getCellNum() * sizeof(PacketColor) );
     }
 }
 
-void RemoteHead::broadcastGridConfs( Prop2D *p, Grid *g ) {
-    listener->broadcastUS1UI3( PACKETTYPE_S2C_GRID_CREATE, g->id, g->width, g->height );
+void TrackerGrid::broadcastGridConfs( Prop2D *owner, Listener *listener ) {
+    listener->broadcastUS1UI3( PACKETTYPE_S2C_GRID_CREATE, target_grid->id, target_grid->width, target_grid->height );
     int dk_id = 0;
-    if(g->deck) dk_id = g->deck->id; else if(p->deck) dk_id = p->deck->id;
-    print("broadcastGridConfs: dk_id:%d gdeck:%d pdeck:%d",dk_id, g->deck?g->deck->id:0, p->deck?p->deck->id:0);
-    if(dk_id) listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_DECK, g->id, dk_id );
-    listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_PROP2D, g->id, p->id );    
+    if(target_grid->deck) dk_id = target_grid->deck->id; else if(owner->deck) dk_id = owner->deck->id;
+    print("broadcastGridConfs: dk_id:%d gdeck:%d pdeck:%d",dk_id, target_grid->deck?target_grid->deck->id:0, owner->deck?owner->deck->id:0);
+    if(dk_id) listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_DECK, target_grid->id, dk_id );
+    listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_PROP2D, target_grid->id, owner->id );    
 }

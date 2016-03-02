@@ -69,9 +69,6 @@ public:
     void scanSendAllProp2DSnapshots( HMPConn *c );
     void notifyProp2DDeleted( Prop2D *prop_deleted );
     void notifyGridDeleted( Grid *grid_deleted );
-    // util sender funcs
-    void broadcastGridConfs( Prop2D *p, Grid *g );
-    
 };
 
 
@@ -143,8 +140,7 @@ public:
     ~Tracker2D();
     void scanProp2D();
     void flipCurrentBuffer();
-    size_t getDiffPacket( char *outpktbuf, size_t maxoutsize, PACKETTYPE *pkttype );
-    size_t getCurrentPacket( char *outpktbuf, size_t maxoutsize );
+    void broadcastDiff( Listener *listener, bool force );
 };
 typedef enum {
     GTT_INDEX = 1,
@@ -165,9 +161,10 @@ public:
     TrackerGrid(RemoteHead *rh, Grid *target);
     ~TrackerGrid();
     void scanGrid();
+    bool checkDiff(GRIDTABLETYPE gtt);
     void flipCurrentBuffer();
-    size_t getDiffPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t maxoutsize );    
-    size_t getCurrentPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t maxoutsize );
+    void broadcastDiff( Prop2D *owner, Listener *listener, bool force );
+    void broadcastGridConfs( Prop2D *owner, Listener *listener );
 };
 #if 0
 class TrackerTextBox {
