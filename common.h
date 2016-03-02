@@ -460,7 +460,7 @@ public:
         assert(freei>=0);
         groups[freei] = g;
     }
-    int poll(double dt );
+    virtual int poll(double dt );
     bool insertEvent( double delay, void (*cb)(void*argptr),void *argptr);
     void clearEvents();
     void pollEvents( double dt );

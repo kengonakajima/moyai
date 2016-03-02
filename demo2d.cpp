@@ -565,7 +565,8 @@ void gameInit( bool headless_mode ) {
             print("headless server: can't start server. port:%d", HEADLESS_SERVER_PORT );
             exit(1);
         }
-    }
+        g_moyai_client->setRemoteHead(g_rh);
+    }    
 
     g_viewport = new Viewport();
     int retina = 1;
@@ -875,12 +876,7 @@ void gameRender() {
 void gameFinish() {
     glfwTerminate();
 }
-void gameRemoteUpdate() {
-    if(!g_rh) return;
 
-    g_rh->track2D();
-    g_rh->heartbeat();
-}
 
 
 #if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
@@ -894,10 +890,8 @@ int main(int argc, char **argv )
         
     gameInit(headless_mode);
     while( !glfwWindowShouldClose(g_window) ){
-        gameUpdate();
-        gameRemoteUpdate();
+        gameUpdate();       
         gameRender();
-
     }
     gameFinish();
     print("program finished");

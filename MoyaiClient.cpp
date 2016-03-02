@@ -38,5 +38,11 @@ void MoyaiClient::capture( Image *img ) {
 	FREE(buf);
 }
 
-
-
+int MoyaiClient::poll( double dt ) {
+    int cnt = Moyai::poll(dt);
+    if( remote_head ) {
+        remote_head->track2D();
+        remote_head->heartbeat();
+    }    
+    return cnt;    
+}
