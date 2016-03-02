@@ -291,7 +291,6 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
                 listener->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, pktbuf, pkt_size );
             }
             // grid
-#if 1            
             for(int i=0;i<p->grid_used_num;i++) {
                 Grid *g = p->grids[i];
                 if(!g->tracker) {
@@ -300,9 +299,11 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
                 g->tracker->scanGrid();
                 broadcastGridConfs(p,g);
                 pkt_size = g->tracker->getCurrentPacket( GTT_INDEX, pktbuf, sizeof(pktbuf) );
-                listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, g->id, pktbuf, pkt_size );
+                if(pkt_size) listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, g->id, pktbuf, pkt_size );
+                pkt_size = g->tracker->getCurrentPacket( GTT_COLOR, pktbuf, sizeof(pktbuf) );
+                if(pkt_size) listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT, g->id, pktbuf, pkt_size );
             }
-#endif            
+
             cur = cur->next;
         }
     }    
@@ -400,15 +401,52 @@ size_t TrackerGrid::getCurrentPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t
     switch(gtt) {
     case GTT_INDEX:
         {
+            if( !target_grid->index_table ) return 0;            
             size_t sz_required = target_grid->width * target_grid->height * sizeof(int32_t);
             assert( maxoutsize >= sz_required );
             memcpy( outpktbuf, index_table[cur_buffer_index], sz_required );
             return sz_required;
         }
+        break;
+    case GTT_XFLIP:
+        assertmsg(false,"not implemented");
+        break;        
+    case GTT_YFLIP:
+        assertmsg(false,"not implemented");        
+        break;        
+    case GTT_TEXOFS:
+        assertmsg(false,"not implemented");        
+        break;        
+    case GTT_UVROT:
+        assertmsg(false,"not implemented");        
+        break;
+    case GTT_COLOR:
+        {
+            if( !target_grid->color_table ) return 0;
+            size_t sz_required = target_grid->width * target_grid->height * sizeof(PacketColor);
+            assert( maxoutsize >= sz_required );
+            
+            for(int y=0;y<target_grid->height;y++) {
+                for(int x=0;x<target_grid->width;x++) {
+                    int ind = target_grid->index(x,y);
+                    PacketColor *outpktcol = (PacketColor*)( outpktbuf + sizeof(PacketColor) * ind );
+                    Color *srccol = & target_grid->color_table[ind];
+                    outpktcol->r = srccol->r;
+                    outpktcol->g = srccol->g;
+                    outpktcol->b = srccol->b;
+                    outpktcol->a = srccol->a;
+                    
+                }
+            }
+            print("GTT_COLOR sz:%d",sz_required );
+            return sz_required;
+        }
+        break;
     default:
-        assertmsg(false, "not implemented" );
+        assertmsg(false, "invalid gtt:%d",gtt);
         break;
     }
+    return 0;    
 }
 // TODO: add a new packet type of sending changes in each cells.
 size_t TrackerGrid::getDiffPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t maxoutsize ) {

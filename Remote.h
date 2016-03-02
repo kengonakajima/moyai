@@ -120,7 +120,8 @@ typedef enum {
     PACKETTYPE_S2C_GRID_CREATE = 480, // with its size (id,w,h)
     PACKETTYPE_S2C_GRID_DECK = 481, // with gid,tdid
     PACKETTYPE_S2C_GRID_PROP2D = 482, // with gid,propid    
-    PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT = 484, // index table of a grid
+    PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT = 484, // index table, array of int32_t
+    PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT = 485, // color table, array of PacketColor: 4 * float32
     PACKETTYPE_S2C_GRID_DELETE = 490,
     PACKETTYPE_S2C_FILE = 500, // ファイルを直接送信する step 1: ファイルを作成してIDを割りつける。
 
@@ -146,7 +147,13 @@ public:
 };
 typedef enum {
     GTT_INDEX = 1,
+    GTT_XFLIP = 2,
+    GTT_YFLIP = 3,
+    GTT_TEXOFS = 4,
+    GTT_UVROT = 5,
+    GTT_COLOR = 6,
 } GRIDTABLETYPE;
+
 class TrackerGrid {
 public:
     Grid *target_grid;

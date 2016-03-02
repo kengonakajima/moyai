@@ -368,17 +368,32 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         }
         break;
     case PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT:
+    case PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT:        
         {
             uint32_t grid_id = get_u32(argdata);            
-            print("grid_tbl_ind_ss: id:%d", grid_id);
+            print("grid_tbl_*_ss: id:%d funcid:%d", grid_id, funcid );
             Grid *g = g_grid_pool.get(grid_id);
             if(g) {
-                print("grid %d found, w:%d h:%d l:%d", grid_id, g->width, g->height, argdatalen );
-                int32_t *inds = (int32_t*)(argdata+4);
-                for(int i=0;i<(argdatalen-4)/4;i++){
-                    prt(".%d ", inds[i] );
+                print("  grid %d found, w:%d h:%d l:%d", grid_id, g->width, g->height, argdatalen );
+                if( funcid == PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT ) {
+                    print("  applying index table");
+                    int32_t *inds = (int32_t*)(argdata+4);
+                    g->bulkSetIndex(inds);
+                } else if( funcid == PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT ) {
+                    print("  applying color table");
+                    PacketColor *cols = (PacketColor*)(argdata+4);
+                    int n = (argdatalen-4)/sizeof(PacketColor);
+                    for(int i=0;i<n;i++) {
+                        Color outcol;
+                        outcol.r = cols[i].r;
+                        outcol.g = cols[i].g;
+                        outcol.b = cols[i].b;
+                        outcol.a = cols[i].a;
+                        g->setColorIndex(i,outcol);
+                    }
+                } else {
+                    assertmsg( false, "  invalid snapshot type?:%d",funcid);
                 }
-                g->bulkSetIndex((int*)(argdata+4));
             } else {
                 print("grid %d not found", grid_id);
             }
@@ -489,5 +504,7 @@ int main( int argc, char **argv ) {
         last_poll_at = t;
     }
     delete g_nw;
+
+    glfwTerminate();    
     return 0;
 }

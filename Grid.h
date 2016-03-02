@@ -125,6 +125,9 @@ public:
         }
         color_changed = true;        
 	}
+    inline void setColorIndex( int ind, Color col ) {
+        setColor( ind % width, ind / width, col );
+    }
 	inline Color getColor( int x, int y ) {
 		ENSURE_GRID_TABLE( color_table, Color, Color(1,1,1,1) );
 		return color_table[ index(x,y) ];
