@@ -117,7 +117,7 @@ void RemoteHead::track2D() {
             PACKETTYPE pkttype;
             if(first_time) {
                 pkttype = PACKETTYPE_S2C_PROP2D_SNAPSHOT;
-                print("sending prop2d_snapshot first time. id:%d", p->id );
+                //                print("sending prop2d_snapshot first time. id:%d", p->id );
                 pkt_size = p->tracker->getCurrentPacket(pktbuf, sizeof(pktbuf) );
             } else {
                 pkt_size = p->tracker->getDiffPacket(pktbuf, sizeof(pktbuf), &pkttype );                
@@ -140,18 +140,13 @@ void RemoteHead::track2D() {
                 char pktbuf[MAX_PACKET_SIZE];
                 size_t pkt_size;
                 if(first_time) {
-                    listener->broadcastUS1UI3( PACKETTYPE_S2C_GRID_CREATE, g->id, g->width, g->height );
-                    int dk_id = 0;
-                    if(g->deck) dk_id = g->deck->id; else if(p->deck) dk_id = p->deck->id;
-                    if(dk_id) listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_DECK, g->id, dk_id );
-                    print("sending grid_prop2d: g:%d p:%d", g->id, p->id );
-                    listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_PROP2D, g->id, p->id );
+                    broadcastGridConfs(p,g);
                     pkt_size = g->tracker->getCurrentPacket( GTT_INDEX, pktbuf, sizeof(pktbuf) );
                 } else {
                     pkt_size = g->tracker->getDiffPacket( GTT_INDEX, pktbuf, sizeof(pktbuf) );
                 }
                 if(pkt_size>0) {
-                    print("sending indx table of grid %d. size:%d", g->id, pkt_size );
+                    //                    print("sending indx table of grid %d. size:%d", g->id, pkt_size );
                     listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, g->id, pktbuf, pkt_size );
                 }
                 g->tracker->flipCurrentBuffer();
@@ -225,6 +220,18 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
                     }
                 }
             }
+            for(int i=0;i<p->grid_used_num;i++) {
+                Grid *g = p->grids[i];
+                if(g->deck) {
+                    tdmap[g->deck->id] = g->deck;
+                    if( g->deck->tex) {
+                        texmap[g->deck->tex->id] = g->deck->tex;
+                        if( g->deck->tex->image ) {
+                            imgmap[g->deck->tex->image->id] = g->deck->tex->image;
+                        }
+                    }
+                }
+            }
             cur = cur->next;
         }
     }
@@ -271,6 +278,8 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
         Prop *cur = grp->prop_top;
         while(cur) {
             Prop2D *p = (Prop2D*) cur;
+
+            // prop body
             if(!p->tracker) {
                 p->tracker = new Tracker2D(this,p);
                 p->tracker->scanProp2D();
@@ -280,7 +289,20 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
             pkt_size = p->tracker->getCurrentPacket( pktbuf, sizeof(pktbuf) );
             if( pkt_size > 0 ) {
                 listener->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, pktbuf, pkt_size );
-            }            
+            }
+            // grid
+#if 1            
+            for(int i=0;i<p->grid_used_num;i++) {
+                Grid *g = p->grids[i];
+                if(!g->tracker) {
+                    g->tracker = new TrackerGrid(this,g);
+                }
+                g->tracker->scanGrid();
+                broadcastGridConfs(p,g);
+                pkt_size = g->tracker->getCurrentPacket( GTT_INDEX, pktbuf, sizeof(pktbuf) );
+                listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, g->id, pktbuf, pkt_size );
+            }
+#endif            
             cur = cur->next;
         }
     }    
@@ -407,4 +429,13 @@ size_t TrackerGrid::getDiffPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t ma
     } else {
         return 0;
     }
+}
+
+void RemoteHead::broadcastGridConfs( Prop2D *p, Grid *g ) {
+    listener->broadcastUS1UI3( PACKETTYPE_S2C_GRID_CREATE, g->id, g->width, g->height );
+    int dk_id = 0;
+    if(g->deck) dk_id = g->deck->id; else if(p->deck) dk_id = p->deck->id;
+    print("broadcastGridConfs: dk_id:%d gdeck:%d pdeck:%d",dk_id, g->deck?g->deck->id:0, p->deck?p->deck->id:0);
+    if(dk_id) listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_DECK, g->id, dk_id );
+    listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_PROP2D, g->id, p->id );    
 }

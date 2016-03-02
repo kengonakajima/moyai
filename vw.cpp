@@ -343,6 +343,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             if(g) {
                 TileDeck *td = g_tiledeck_pool.get(deck_id);
                 if(td) {
+                    print("grid_deck: td:%d found. %d,%d,%d,%d",deck_id, td->cell_width, td->cell_height, td->tile_width, td->tile_height );
                     g->setDeck(td);
                 } else {
                     print("grid_deck: can't find td:%d", deck_id);
@@ -372,6 +373,11 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             print("grid_tbl_ind_ss: id:%d", grid_id);
             Grid *g = g_grid_pool.get(grid_id);
             if(g) {
+                print("grid %d found, w:%d h:%d l:%d", grid_id, g->width, g->height, argdatalen );
+                int32_t *inds = (int32_t*)(argdata+4);
+                for(int i=0;i<(argdatalen-4)/4;i++){
+                    prt(".%d ", inds[i] );
+                }
                 g->bulkSetIndex((int*)(argdata+4));
             } else {
                 print("grid %d not found", grid_id);

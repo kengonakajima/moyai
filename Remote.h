@@ -68,6 +68,9 @@ public:
     void scanSendAllProp2DSnapshots( HMPConn *c );
     void notifyProp2DDeleted( Prop2D *prop_deleted );
     void notifyGridDeleted( Grid *grid_deleted );
+    // util sender funcs
+    void broadcastGridConfs( Prop2D *p, Grid *g );
+    
 };
 
 
