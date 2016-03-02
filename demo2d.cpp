@@ -228,6 +228,12 @@ public:
         if( accum_time > 3 ) {
             return false;
         }
+        // changing index
+        int ind = ( (int)(accum_time*2)%2)+1;
+        g->set(1,0,ind);
+        // changing color
+        float fcol = ( (int)(accum_time*3)%2 ) * 0.5 + 0.5;
+        g->setColor(2,0, Color(fcol,fcol,fcol,1.0f) );
         return true;
     }
     static Blocks *create() {

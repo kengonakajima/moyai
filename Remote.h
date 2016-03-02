@@ -158,6 +158,7 @@ class TrackerGrid {
 public:
     Grid *target_grid;
     int32_t *index_table[2];
+    PacketColor *color_table[2];
     int cur_buffer_index;
     RemoteHead *parent_rh;
     TrackerGrid(RemoteHead *rh, Grid *target);

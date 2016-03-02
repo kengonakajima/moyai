@@ -149,7 +149,17 @@ void RemoteHead::track2D() {
                     //                    print("sending indx table of grid %d. size:%d", g->id, pkt_size );
                     listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, g->id, pktbuf, pkt_size );
                 }
-                g->tracker->flipCurrentBuffer();
+                if(first_time) {
+                    pkt_size = g->tracker->getCurrentPacket( GTT_COLOR, pktbuf, sizeof(pktbuf));
+                } else {
+                    pkt_size = g->tracker->getDiffPacket( GTT_COLOR, pktbuf, sizeof(pktbuf));
+                }
+                if( pkt_size>0) {
+                    listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT, g->id, pktbuf, pkt_size );
+                }
+
+                //
+                g->tracker->flipCurrentBuffer();                
             }
             
             cur = cur->next;
@@ -376,10 +386,9 @@ void HMPConn::sendFile( const char *filename ) {
 
 
 TrackerGrid::TrackerGrid( RemoteHead *rh, Grid *target ) : target_grid(target), cur_buffer_index(0), parent_rh(rh) {
-    size_t sz = target->width * target->height * sizeof(int32_t);
     for(int i=0;i<2;i++) {
-        index_table[i] = (int32_t*) MALLOC(sz);
-        index_table[i] = (int32_t*) MALLOC(sz);
+        index_table[i] = (int32_t*) MALLOC(target->getCellNum() * sizeof(int32_t) );
+        color_table[i] = (PacketColor*) MALLOC(target->getCellNum() * sizeof(PacketColor) );
     }
 }
 TrackerGrid::~TrackerGrid() {
@@ -388,8 +397,13 @@ TrackerGrid::~TrackerGrid() {
 void TrackerGrid::scanGrid() {
     for(int y=0;y<target_grid->height;y++){
         for(int x=0;x<target_grid->width;x++){
-            int ind = x + y * target_grid->width;
+            int ind = target_grid->index(x,y);
             index_table[cur_buffer_index][ind] = target_grid->get(x,y);
+            Color col = target_grid->getColor(x,y);
+            color_table[cur_buffer_index][ind].r = col.r;
+            color_table[cur_buffer_index][ind].g = col.g;
+            color_table[cur_buffer_index][ind].b = col.b;
+            color_table[cur_buffer_index][ind].a = col.a;            
         }
     }
 }
@@ -438,7 +452,6 @@ size_t TrackerGrid::getCurrentPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t
                     
                 }
             }
-            print("GTT_COLOR sz:%d",sz_required );
             return sz_required;
         }
         break;
@@ -450,15 +463,50 @@ size_t TrackerGrid::getCurrentPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t
 }
 // TODO: add a new packet type of sending changes in each cells.
 size_t TrackerGrid::getDiffPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t maxoutsize ) {
-    int32_t *curtbl, *prevtbl;
+    char *curtbl, *prevtbl;
+    int curind, prevind;
+    
     if(cur_buffer_index==0) {
-        curtbl = index_table[0];
-        prevtbl = index_table[1];
+        curind = 0;
+        prevind = 1;
     } else {
-        curtbl = index_table[1];
-        prevtbl = index_table[0];        
+        curind = 1;
+        prevind = 0;
     }
-    size_t compsz = target_grid->width*target_grid->height*sizeof(int32_t);
+    switch(gtt) {
+    case GTT_INDEX:
+        curtbl = (char*) index_table[curind];
+        prevtbl = (char*) index_table[prevind];
+        break;
+    case GTT_XFLIP:
+    case GTT_YFLIP:
+    case GTT_TEXOFS:
+    case GTT_UVROT:
+        curtbl = prevtbl = NULL;
+        assertmsg(false, "not implemented");
+        break;
+    case GTT_COLOR:
+        curtbl = (char*) color_table[curind];
+        prevtbl = (char*) color_table[prevind];            
+        break;
+    }
+
+    size_t compsz;
+    switch(gtt){
+    case GTT_INDEX:
+        compsz = target_grid->getCellNum() * sizeof(int32_t);
+        break;
+    case GTT_XFLIP:
+    case GTT_YFLIP:
+    case GTT_TEXOFS:
+    case GTT_UVROT:
+        compsz = 0;
+        assertmsg(false, "not implemented");
+        break;
+    case GTT_COLOR:
+        compsz = target_grid->getCellNum() * sizeof(PacketColor);
+        break;   
+    }
     int cmp = memcmp( curtbl, prevtbl, compsz );
     if( cmp ) {
         assert( maxoutsize >= compsz );
