@@ -375,7 +375,6 @@ void Prop2D::updateMinMaxSizeCache(){
 
 
 void Prop2D::onTrack( RemoteHead *rh ) {
-
     if( !tracker ) {
         tracker = new Tracker2D(rh,this);
     }
@@ -386,10 +385,7 @@ void Prop2D::onTrack( RemoteHead *rh ) {
     // grids
     for(int i=0;i<grid_used_num;i++) {
         Grid *g = grids[i];
-        if(!g->tracker) {
-            g->tracker = new TrackerGrid(rh,g);
-            print("new trackergrid. grid id:%d",g->id);
-        }
+        if(!g->tracker) g->tracker = new TrackerGrid(rh,g);
         g->tracker->scanGrid();
         g->tracker->broadcastDiff(this,rh->listener, false );
         g->tracker->flipCurrentBuffer();

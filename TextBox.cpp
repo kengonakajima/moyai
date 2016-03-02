@@ -103,4 +103,10 @@ void TextBox::updateMesh() {
 }
 
 void TextBox::onTrack( RemoteHead *rh ) {
+    if(!tracker) {
+        tracker = new TrackerTextBox(rh,this);
+    }
+    tracker->scanTextBox();
+    tracker->broadcastDiff(rh->listener, false );
+    tracker->flipCurrentBuffer();
 }

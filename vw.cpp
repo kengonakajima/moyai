@@ -12,6 +12,7 @@ ObjectPool<Image> g_image_pool;
 ObjectPool<TileDeck> g_tiledeck_pool;
 ObjectPool<Prop2D> g_prop2d_pool;
 ObjectPool<Grid> g_grid_pool;
+ObjectPool<TextBox> g_textbox_pool;
 
 MoyaiClient *g_moyai_client;        
 Network *g_nw;
@@ -405,6 +406,30 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             print("grid_del: id:%d", grid_id);
             g_grid_pool.del(grid_id);
         }
+        break;
+    case PACKETTYPE_S2C_TEXTBOX_CREATE:
+        {
+            uint32_t tb_id = get_u32(argdata);
+            print("tb_creat id:%d", tb_id );
+            TextBox *tb = g_textbox_pool.ensure(tb_id);
+        }
+        break;
+    case PACKETTYPE_S2C_TEXTBOX_FONT:
+        break;
+    case PACKETTYPE_S2C_TEXTBOX_STRING_UTF8:
+        break;
+    case PACKETTYPE_S2C_TEXTBOX_LOC:
+        break;        
+    case PACKETTYPE_S2C_TEXTBOX_SCL:
+        break;        
+    case PACKETTYPE_S2C_TEXTBOX_COLOR:
+        break;
+
+    case PACKETTYPE_S2C_FONT_CREATE:
+        break;        
+    case PACKETTYPE_S2C_FONT_CHARCODES_UTF8:
+        break;        
+    case PACKETTYPE_S2C_FONT_LOADTTF:
         break;
     default:
         print("unhandled packet type:%d", funcid );

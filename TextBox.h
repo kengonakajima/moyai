@@ -10,8 +10,9 @@ public:
 	Font *font;
     int len_str;
     Mesh *mesh;
+    TrackerTextBox *tracker;
     
-	TextBox() : str(NULL), len_str(0), mesh(NULL) {
+	TextBox() : str(NULL), len_str(0), mesh(NULL), tracker(0) {
 		setScl(1,1);
 	}
     ~TextBox() {
@@ -19,6 +20,7 @@ public:
             mesh->deleteBuffers();
             delete mesh;
         }
+        if(tracker) delete tracker;
     }
 
 	inline void setFont( Font *f ){

@@ -1,4 +1,3 @@
-
 #include "common.h"
 #include "client.h"
 #include "Remote.h"
@@ -44,8 +43,25 @@ static const int CHANGED_XFLIP = 0x10;
 static const int CHANGED_YFLIP = 0x20;
 static const int CHANGED_COLOR = 0x40;
 
+int getPacketProp2DSnapshotDiff( PacketProp2DSnapshot *s0, PacketProp2DSnapshot *s1 ) {
+    int changes = 0;
+    if(s0->loc.x != s1->loc.x) changes |= CHANGED_LOC;
+    if(s0->loc.y != s1->loc.y) changes |= CHANGED_LOC;
+    if(s0->index != s1->index ) changes |= CHANGED_INDEX;
+    if(s0->scl.x != s1->scl.x) changes |= CHANGED_SCL;
+    if(s0->scl.y != s1->scl.y) changes |= CHANGED_SCL;
+    if(s0->rot != s1->rot ) changes |= CHANGED_ROT;
+    if(s0->xflip != s1->xflip ) changes |= CHANGED_XFLIP;
+    if(s0->yflip != s1->yflip ) changes |= CHANGED_YFLIP;
+    if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
+    if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;    
+    if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
+    if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;    
+    return changes;    
+}
+
 // send packet if necessary
-void Tracker2D::broadcastDiff( Listener *listener, bool force ) {
+bool Tracker2D::checkDiff() {
     PacketProp2DSnapshot *curpkt, *prevpkt;
     if(cur_buffer_index==0) {
         curpkt = & pktbuf[0];
@@ -54,26 +70,12 @@ void Tracker2D::broadcastDiff( Listener *listener, bool force ) {
         curpkt = & pktbuf[1];
         prevpkt = & pktbuf[0];        
     }
-    int changes = 0;
-    if(curpkt->loc.x != prevpkt->loc.x) changes |= CHANGED_LOC;
-    if(curpkt->loc.y != prevpkt->loc.y) changes |= CHANGED_LOC;
-    if(curpkt->index != prevpkt->index ) changes |= CHANGED_INDEX;
-    if(curpkt->scl.x != prevpkt->scl.x) changes |= CHANGED_SCL;
-    if(curpkt->scl.y != prevpkt->scl.y) changes |= CHANGED_SCL;
-    if(curpkt->rot != prevpkt->rot ) changes |= CHANGED_ROT;
-    if(curpkt->xflip != prevpkt->xflip ) changes |= CHANGED_XFLIP;
-    if(curpkt->yflip != prevpkt->yflip ) changes |= CHANGED_YFLIP;
-    if(curpkt->color.r != prevpkt->color.r ) changes |= CHANGED_COLOR;
-    if(curpkt->color.r != prevpkt->color.r ) changes |= CHANGED_COLOR;    
-    if(curpkt->color.r != prevpkt->color.r ) changes |= CHANGED_COLOR;
-    if(curpkt->color.r != prevpkt->color.r ) changes |= CHANGED_COLOR;    
-
-    if( changes == 0 && force == false ) {
-        return;
+    return getPacketProp2DSnapshotDiff( curpkt, prevpkt );
+}
+void Tracker2D::broadcastDiff( Listener *listener, bool force ) {
+    if( checkDiff() || force ) {
+        listener->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&pktbuf[cur_buffer_index], sizeof(PacketProp2DSnapshot) );
     }
-    
-    // need to send!
-    listener->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)curpkt, sizeof(*curpkt) );
 }
 
 Tracker2D::~Tracker2D() {
@@ -91,7 +93,6 @@ void RemoteHead::track2D() {
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
         Group *grp = target_moyai->getGroupByIndex(i);
         if(!grp)continue;
-
         Prop *cur = grp->prop_top;
         while(cur) {
             Prop2D *p = (Prop2D*) cur;
@@ -146,6 +147,7 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
     std::unordered_map<int,Image*> imgmap;
     std::unordered_map<int,Texture*> texmap;
     std::unordered_map<int,TileDeck*> tdmap;
+    std::unordered_map<int,Font*> fontmap;
     
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
         Group *grp = target_moyai->getGroupByIndex(i);
@@ -173,6 +175,12 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
                             imgmap[g->deck->tex->image->id] = g->deck->tex->image;
                         }
                     }
+                }
+            }
+            TextBox *tb = dynamic_cast<TextBox*>(cur); // TODO: refactor this!
+            if(tb) {
+                if(tb->font) {
+                    fontmap[tb->font->id] = tb->font;
                 }
             }
             cur = cur->next;
@@ -208,6 +216,14 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
         outco->sendUS1UI2( PACKETTYPE_S2C_TILEDECK_TEXTURE, td->id, td->tex->id );
         //        print("sendS2RTileDeckSize: id:%d %d,%d,%d,%d", td->id, sprw, sprh, cellw, cellh );        
         outco->sendUS1UI5( PACKETTYPE_S2C_TILEDECK_SIZE, td->id, td->tile_width, td->tile_height, td->cell_width, td->cell_height );        
+    }
+    for( std::unordered_map<int,Font*>::iterator it = fontmap.begin(); it != fontmap.end(); ++it ) {
+        Font *f = it->second;
+        print("sending font id:%d path:%s", f->id, f->last_load_file_path );
+        outco->sendUS1UI1( PACKETTYPE_S2C_FONT_CREATE, f->id );
+        // utf32toutf8
+        
+        
     }
 
 
@@ -307,6 +323,7 @@ void HMPConn::sendFile( const char *filename ) {
     sendUS1StrBytes( PACKETTYPE_S2C_FILE, filename, buf, sz );
 }
 
+////////////////
 
 TrackerGrid::TrackerGrid( RemoteHead *rh, Grid *target ) : target_grid(target), cur_buffer_index(0), parent_rh(rh) {
     for(int i=0;i<2;i++) {
@@ -315,7 +332,11 @@ TrackerGrid::TrackerGrid( RemoteHead *rh, Grid *target ) : target_grid(target), 
     }
 }
 TrackerGrid::~TrackerGrid() {
-    parent_rh->notifyGridDeleted(target_grid);   
+    parent_rh->notifyGridDeleted(target_grid);
+    for(int i=0;i<2;i++) {
+        FREE( index_table[i] );
+        FREE( color_table[i] );
+    }
 }
 void TrackerGrid::scanGrid() {
     for(int y=0;y<target_grid->height;y++){
@@ -403,7 +424,84 @@ void TrackerGrid::broadcastGridConfs( Prop2D *owner, Listener *listener ) {
     listener->broadcastUS1UI3( PACKETTYPE_S2C_GRID_CREATE, target_grid->id, target_grid->width, target_grid->height );
     int dk_id = 0;
     if(target_grid->deck) dk_id = target_grid->deck->id; else if(owner->deck) dk_id = owner->deck->id;
-    print("broadcastGridConfs: dk_id:%d gdeck:%d pdeck:%d",dk_id, target_grid->deck?target_grid->deck->id:0, owner->deck?owner->deck->id:0);
     if(dk_id) listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_DECK, target_grid->id, dk_id );
     listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_PROP2D, target_grid->id, owner->id );    
+}
+
+/////////////
+
+TrackerTextBox::TrackerTextBox(RemoteHead *rh, TextBox *target) : target_tb(target), cur_buffer_index(0), parent_rh(rh) {
+    memset( pktbuf, 0, sizeof(pktbuf) );
+    memset( strbuf, 0, sizeof(strbuf) );
+}
+TrackerTextBox::~TrackerTextBox() {
+    parent_rh->notifyProp2DDeleted(target_tb);
+}
+void TrackerTextBox::scanTextBox() {
+    PacketProp2DSnapshot *out = & pktbuf[cur_buffer_index];
+    out->prop_id = target_tb->id;
+    out->layer_id = target_tb->getParentLayer()->id;
+    out->loc.x = target_tb->loc.x;
+    out->loc.y = target_tb->loc.y;
+    out->scl.x = target_tb->scl.x;
+    out->scl.y = target_tb->scl.y;
+    out->index = 0; // fixed
+    out->tiledeck_id = 0; // fixed
+    out->grid_id = 0; // fixed
+    out->debug = target_tb->debug_id;
+    out->rot = 0; // fixed
+    out->xflip = 0; // fixed
+    out->yflip = 0; // fixed
+    out->color.r = target_tb->color.r;
+    out->color.g = target_tb->color.g;
+    out->color.b = target_tb->color.b;
+    out->color.a = target_tb->color.a;
+
+    size_t copy_sz = (target_tb->len_str + 1) * sizeof(wchar_t);
+    assertmsg( copy_sz <= MAX_STR_LEN, "textbox string too long" );
+
+    memcpy( strbuf[cur_buffer_index], target_tb->str, copy_sz );
+    str_bytes[cur_buffer_index] = copy_sz;
+    print("scantb: cpsz:%d id:%d s:%s l:%d cbi:%d",copy_sz, target_tb->id, target_tb->str, target_tb->len_str, cur_buffer_index );
+}
+bool TrackerTextBox::checkDiff() {
+    PacketProp2DSnapshot *curpkt, *prevpkt;
+    size_t cur_str_bytes, prev_str_bytes;
+    uint8_t *cur_str, *prev_str;
+    if(cur_buffer_index==0) {
+        curpkt = & pktbuf[0];
+        prevpkt = & pktbuf[1];
+        cur_str_bytes = str_bytes[0];
+        prev_str_bytes = str_bytes[1];
+        cur_str = strbuf[0];
+        prev_str = strbuf[1];        
+    } else {
+        curpkt = & pktbuf[1];
+        prevpkt = & pktbuf[0];
+        cur_str_bytes = str_bytes[1];
+        prev_str_bytes = str_bytes[0];        
+        cur_str = strbuf[1];
+        prev_str = strbuf[0];                
+    }
+    int pktchanges = getPacketProp2DSnapshotDiff( curpkt, prevpkt );
+    bool str_changed = false;
+    if( cur_str_bytes != prev_str_bytes ) {
+        str_changed = true;
+    } else if( memcmp( cur_str, prev_str, cur_str_bytes ) ){
+        str_changed = true;
+    }
+
+    if( str_changed ) {
+        print("string changed! id:%d l:%d", target_tb->id, cur_str_bytes );
+    }
+    
+    return pktchanges || str_changed;    
+}
+void TrackerTextBox::flipCurrentBuffer() {
+    cur_buffer_index = ( cur_buffer_index == 0 ? 1 : 0 );        
+}
+void TrackerTextBox::broadcastDiff( Listener *listener, bool force ) {
+    if( checkDiff() || force ) {
+        listener->broadcastUS1UI1( PACKETTYPE_S2C_TEXTBOX_CREATE, target_tb->id );
+    }
 }
