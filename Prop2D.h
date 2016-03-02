@@ -290,4 +290,6 @@ public:
     inline Viewport *getViewport() {
         return getParentLayer()->viewport;
     }
+
+    virtual void onTrack( RemoteHead *rh );
 };

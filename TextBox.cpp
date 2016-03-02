@@ -102,4 +102,5 @@ void TextBox::updateMesh() {
     }
 }
 
-
+void TextBox::onTrack( RemoteHead *rh ) {
+}

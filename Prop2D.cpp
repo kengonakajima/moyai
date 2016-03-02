@@ -374,3 +374,59 @@ void Prop2D::updateMinMaxSizeCache(){
 }
 
 
+void Prop2D::onTrack( RemoteHead *rh ) {
+    bool first_time = false;
+    if( !tracker ) {
+        tracker = new Tracker2D(rh,this);
+        first_time = true;
+    }
+    tracker->scanProp2D();
+    char pktbuf[MAX_PACKET_SIZE];
+    size_t pkt_size;
+    PACKETTYPE pkttype;
+    if(first_time) {
+        pkttype = PACKETTYPE_S2C_PROP2D_SNAPSHOT;
+        //                print("sending prop2d_snapshot first time. id:%d", id );
+        pkt_size = tracker->getCurrentPacket(pktbuf, sizeof(pktbuf) );
+    } else {
+        pkt_size = tracker->getDiffPacket(pktbuf, sizeof(pktbuf), &pkttype );                
+    }
+    if(pkt_size>0) {
+        rh->listener->broadcastUS1Bytes( pkttype, pktbuf, pkt_size );
+    }
+    tracker->flipCurrentBuffer();
+
+    // grids
+    for(int i=0;i<grid_used_num;i++) {
+        Grid *g = grids[i];
+        bool first_time = false;
+        if(!g->tracker) {
+            g->tracker = new TrackerGrid(rh,g);
+            print("new trackergrid. grid id:%d",g->id);
+            first_time = true;
+        }
+        g->tracker->scanGrid();
+        char pktbuf[MAX_PACKET_SIZE];
+        size_t pkt_size;
+        if(first_time) {
+            rh->broadcastGridConfs(this,g);
+            pkt_size = g->tracker->getCurrentPacket( GTT_INDEX, pktbuf, sizeof(pktbuf) );
+        } else {
+            pkt_size = g->tracker->getDiffPacket( GTT_INDEX, pktbuf, sizeof(pktbuf) );
+        }
+        if(pkt_size>0) {
+            //                    print("sending indx table of grid %d. size:%d", g->id, pkt_size );
+            rh->listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, g->id, pktbuf, pkt_size );
+        }
+        if(first_time) {
+            pkt_size = g->tracker->getCurrentPacket( GTT_COLOR, pktbuf, sizeof(pktbuf));
+        } else {
+            pkt_size = g->tracker->getDiffPacket( GTT_COLOR, pktbuf, sizeof(pktbuf));
+        }
+        if( pkt_size>0) {
+            rh->listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT, g->id, pktbuf, pkt_size );
+        }
+
+        g->tracker->flipCurrentBuffer();                
+    }
+}

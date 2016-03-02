@@ -104,67 +104,9 @@ void RemoteHead::track2D() {
         Prop *cur = grp->prop_top;
         while(cur) {
             Prop2D *p = (Prop2D*) cur;
-
-            // prop
-            bool first_time = false;
-            if( !p->tracker ) {
-                p->tracker = new Tracker2D(this,p);
-                first_time = true;
-            }
-            p->tracker->scanProp2D();
-            char pktbuf[MAX_PACKET_SIZE];
-            size_t pkt_size;
-            PACKETTYPE pkttype;
-            if(first_time) {
-                pkttype = PACKETTYPE_S2C_PROP2D_SNAPSHOT;
-                //                print("sending prop2d_snapshot first time. id:%d", p->id );
-                pkt_size = p->tracker->getCurrentPacket(pktbuf, sizeof(pktbuf) );
-            } else {
-                pkt_size = p->tracker->getDiffPacket(pktbuf, sizeof(pktbuf), &pkttype );                
-            }
-            if(pkt_size>0) {
-                listener->broadcastUS1Bytes( pkttype, pktbuf, pkt_size );
-            }
-            p->tracker->flipCurrentBuffer();
-
-            // grids
-            for(int i=0;i<p->grid_used_num;i++) {
-                Grid *g = p->grids[i];
-                bool first_time = false;
-                if(!g->tracker) {
-                    g->tracker = new TrackerGrid(this,g);
-                    print("new trackergrid. grid id:%d",g->id);
-                    first_time = true;
-                }
-                g->tracker->scanGrid();
-                char pktbuf[MAX_PACKET_SIZE];
-                size_t pkt_size;
-                if(first_time) {
-                    broadcastGridConfs(p,g);
-                    pkt_size = g->tracker->getCurrentPacket( GTT_INDEX, pktbuf, sizeof(pktbuf) );
-                } else {
-                    pkt_size = g->tracker->getDiffPacket( GTT_INDEX, pktbuf, sizeof(pktbuf) );
-                }
-                if(pkt_size>0) {
-                    //                    print("sending indx table of grid %d. size:%d", g->id, pkt_size );
-                    listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, g->id, pktbuf, pkt_size );
-                }
-                if(first_time) {
-                    pkt_size = g->tracker->getCurrentPacket( GTT_COLOR, pktbuf, sizeof(pktbuf));
-                } else {
-                    pkt_size = g->tracker->getDiffPacket( GTT_COLOR, pktbuf, sizeof(pktbuf));
-                }
-                if( pkt_size>0) {
-                    listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT, g->id, pktbuf, pkt_size );
-                }
-
-                //
-                g->tracker->flipCurrentBuffer();                
-            }
-            
+            p->onTrack(this);
             cur = cur->next;
-        }
-        
+        }        
     }
 }
 // Send all IDs of tiledecks, layers, textures, fonts, viwports by scanning all props and grids.

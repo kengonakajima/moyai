@@ -26,6 +26,7 @@ typedef struct  {
     PacketColor color;
 } PacketProp2DSnapshot;
 
+
 #define MAX_PACKET_SIZE (1024*8)
 
 ///////
@@ -168,8 +169,20 @@ public:
     size_t getDiffPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t maxoutsize );    
     size_t getCurrentPacket( GRIDTABLETYPE gtt, char *outpktbuf, size_t maxoutsize );
 };
-
-
+#if 0
+class TrackerTextBox {
+public:
+    TextBox *target_tb;
+    static const int MAX_STR_LEN = 1024;
+    // flip flop diff checker
+    uint8_t *strbuf[2];
+    PacketProp2DSnapshot pktbuf[2];
+    TrackerTextBox(RemoteHead *rh, TextBox *target);
+    ~TrackerTextBox();
+    void scanTextBox();
+    void flipCurrentBuffer();
+};
+#endif
 
 
 

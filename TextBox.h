@@ -71,4 +71,5 @@ public:
         }
     }
     void updateMesh();
+    virtual void onTrack( RemoteHead *rh );
 };
