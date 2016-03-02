@@ -461,9 +461,21 @@ int Network::connectToServer( const char *host, int portnum ) {
 
 
 void Network::heartbeat() {
+    double nt = now();
+    
     ev_loop( this->evloop, EVLOOP_NONBLOCK );
-}
 
+    if( nt > last_stats_at + 1.0f ) {
+        last_stats_at = nt;
+        ts.recv_bytes_per_sec = total_recv_bytes - ts.total_recv_bytes;
+        ts.sent_bytes_per_sec = total_sent_bytes - ts.total_sent_bytes;
+        ts.total_recv_bytes = total_recv_bytes;
+        ts.total_sent_bytes = total_sent_bytes;
+    }
+}
+void Network::getTrafficStats( TrafficStats *outstats ) {
+    memcpy( outstats, &ts, sizeof(ts) );
+}
 
 void Network::heartbeatWithTimeoutMicroseconds( int timeout_us ) {
     if( timeout_us == 0 ) {
@@ -480,6 +492,8 @@ void Network::heartbeatWithTimeoutMicroseconds( int timeout_us ) {
     }
 }
 
+
+/////
 int Conn::sendUS1( uint16_t usval ) {
     size_t totalsize = 2 + 2;
     if( getSendbufRoom() < totalsize ) return 0;

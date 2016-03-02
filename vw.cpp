@@ -498,7 +498,10 @@ int main( int argc, char **argv ) {
         g_nw->heartbeat();
         int polled = g_moyai_client->poll(dt);
         int rendered = g_moyai_client->render();
-        Format fmt( "polled:%d rendered:%d", polled, rendered );
+
+        TrafficStats ts;
+        g_nw->getTrafficStats(&ts);
+        Format fmt( "polled:%d rendered:%d %.1fKbps", polled, rendered, ts.recv_bytes_per_sec*8.0f/1000.0f );
         updateDebugStat( fmt.buf );
 
         last_poll_at = t;

@@ -110,14 +110,24 @@ public:
     void broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );    
 };
 
-
+class TrafficStats {
+public:
+    long long total_sent_bytes;
+    long long total_recv_bytes;
+    long long sent_bytes_per_sec;
+    long long recv_bytes_per_sec;
+    TrafficStats() : total_sent_bytes(0), total_recv_bytes(0), sent_bytes_per_sec(0), recv_bytes_per_sec(0) {}
+};
 class Network {
 public:
     bool syscall_log;
     long long total_sent_bytes;
     long long total_recv_bytes;
-    struct ev_loop *evloop;    
-    Network() : syscall_log(false), total_sent_bytes(0), total_recv_bytes(0) {
+    struct ev_loop *evloop;
+    TrafficStats ts;
+    double accum_time;
+    double last_stats_at;
+    Network() : syscall_log(false), total_sent_bytes(0), total_recv_bytes(0), accum_time(0), last_stats_at(0) {
         evloop = ev_default_loop(0);        
     }
     ~Network() {}
@@ -126,6 +136,7 @@ public:
     int connectToServer( const char *host, int portnum );
     void heartbeat();
     void heartbeatWithTimeoutMicroseconds( int timeout_us );
+    void getTrafficStats( TrafficStats *outstat );
 };
 
 
