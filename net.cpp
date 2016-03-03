@@ -506,20 +506,22 @@ int Conn::sendUS1( uint16_t usval ) {
     return totalsize;    
 }
 int Conn::sendUS1Bytes( uint16_t usval, const char *buf, uint16_t buflen ) {
-    size_t totalsize = 2 + 2 + buflen;
+    size_t totalsize = 2 + 2 + (4+buflen);
     if( getSendbufRoom() < totalsize ) return 0;
     sendbuf.pushU16( totalsize - 2 ); // record-len
     sendbuf.pushU16( usval );
+    sendbuf.pushU32( buflen );
     sendbuf.push( buf, buflen );
     ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
 int Conn::sendUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *buf, uint16_t buflen ) {
-    size_t totalsize = 2 + 2 + 4 + buflen;
+    size_t totalsize = 2 + 2 + 4 + (4+buflen);
     if( getSendbufRoom() < totalsize ) return 0;
     sendbuf.pushU16( totalsize - 2 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU32( uival );
+    sendbuf.pushU32( buflen );
     sendbuf.push( buf, buflen );
     ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
@@ -602,7 +604,7 @@ int Conn::sendUS1StrBytes( uint16_t usval, const char *cstr, const char *data, u
     sendbuf.pushU16( usval );
     sendbuf.pushU8( (unsigned char) cstrlen );
     sendbuf.push( cstr, cstrlen );
-    sendbuf.pushU16( datalen );
+    sendbuf.pushU16( datalen ); // TODO: use 32bits len
     sendbuf.push( data, datalen );
     ev_io_start( parent_nw->evloop, write_watcher );
     //    print("send_packet_str_bytes: cstrlen:%d datalen:%d totallen:%d", cstrlen, datalen, totalsize );

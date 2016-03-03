@@ -93,10 +93,11 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
     switch(funcid) {
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT:
         {
+            uint32_t pktsize = get_u32(argdata+0);
             //        print("PACKETTYPE_S2C_PROP2D_SNAPSHOT len:%d", argdatalen );            
             PacketProp2DSnapshot pkt;
-            assertmsg( argdatalen == sizeof(pkt), "invalid argdatalen:%d",argdatalen );
-            memcpy(&pkt,argdata,sizeof(pkt));
+            assertmsg( pktsize == sizeof(pkt), "invalid argdatalen:%d pktsize:%d",argdatalen, pktsize );
+            memcpy(&pkt,argdata+4,sizeof(pkt));
             //            prt("s%d ", pkt.prop_id );
 
 
@@ -376,14 +377,15 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             print("grid_tbl_*_ss: id:%d funcid:%d", grid_id, funcid );
             Grid *g = g_grid_pool.get(grid_id);
             if(g) {
-                print("  grid %d found, w:%d h:%d l:%d", grid_id, g->width, g->height, argdatalen );
+                uint32_t bufsize = get_u32(argdata+4);
+                print("  grid %d found, w:%d h:%d l:%d bufsz:%d", grid_id, g->width, g->height, argdatalen, bufsize );
                 if( funcid == PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT ) {
                     print("  applying index table");
-                    int32_t *inds = (int32_t*)(argdata+4);
+                    int32_t *inds = (int32_t*)(argdata+8);
                     g->bulkSetIndex(inds);
                 } else if( funcid == PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT ) {
                     print("  applying color table");
-                    PacketColor *cols = (PacketColor*)(argdata+4);
+                    PacketColor *cols = (PacketColor*)(argdata+8);
                     int n = (argdatalen-4)/sizeof(PacketColor);
                     for(int i=0;i<n;i++) {
                         Color outcol;
@@ -435,7 +437,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         break;        
     case PACKETTYPE_S2C_FONT_CHARCODES: // fontid, utf8str
         {
-            uint32_t font_id = get_u32(argdata);
+            uint32_t font_id = get_u32(argdata+0);
         }
         break;        
     case PACKETTYPE_S2C_FONT_LOADTTF:
