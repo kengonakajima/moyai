@@ -127,7 +127,7 @@ int main(int argc, char **argv )
     Grid *g=NULL;
     CharGrid *cg=NULL;
     
-#if 0    
+#if 1
     // normal single
     p = new Prop2D();
     p->setDeck(deck);
