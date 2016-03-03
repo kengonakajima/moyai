@@ -519,6 +519,7 @@ void TrackerTextBox::broadcastDiff( Listener *listener, bool force ) {
         listener->broadcastUS1UI2( PACKETTYPE_S2C_TEXTBOX_FONT, target_tb->id, target_tb->font->id );
         listener->broadcastUS1UI1Wstr( PACKETTYPE_S2C_TEXTBOX_STRING, target_tb->id, target_tb->str, target_tb->len_str );
         listener->broadcastUS1UI1F2( PACKETTYPE_S2C_TEXTBOX_LOC, target_tb->id, target_tb->loc.x, target_tb->loc.y );
+        listener->broadcastUS1UI1F2( PACKETTYPE_S2C_TEXTBOX_SCL, target_tb->id, target_tb->scl.x, target_tb->scl.y );        
         PacketColor pc;
         pc.r = target_tb->color.r;
         pc.g = target_tb->color.g;

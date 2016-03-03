@@ -505,7 +505,21 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             }
             tb->setLoc(x,y);
         }
-        break;        
+        break;
+    case PACKETTYPE_S2C_TEXTBOX_SCL:
+        {
+            uint32_t tb_id = get_u32(argdata);
+            float x = get_f32(argdata+4);
+            float y = get_f32(argdata+8);
+            print("tb %d scl:%f,%f",tb_id, x,y);
+            TextBox *tb = g_textbox_pool.get(tb_id);
+            if(!tb) {
+                print("tb %d not found", tb_id);
+                break;
+            }
+            tb->setScl(x,y);
+        }
+        break;                
     case PACKETTYPE_S2C_TEXTBOX_COLOR:
         {
             uint32_t tb_id = get_u32(argdata);
