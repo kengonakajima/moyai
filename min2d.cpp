@@ -11,8 +11,6 @@
 
 
 
-
-
 // config
 
 static const int SCRW=966, SCRH=544;
@@ -50,7 +48,11 @@ public:
 
 int main(int argc, char **argv )
 {
-    
+    bool headless_mode=false;
+    for(int i=0;;i++) {
+        if(!argv[i])break;
+        if(strcmp(argv[i], "--headless") == 0 ) headless_mode = true;
+    }
 
     print("program start");
 
@@ -85,6 +87,16 @@ int main(int argc, char **argv )
     glClearColor(0.2,0.2,0.2,1);
 
     MoyaiClient *moyai_client = new MoyaiClient(window);
+    
+    if( headless_mode ) {
+        Moyai::globalInitNetwork();
+        RemoteHead *rh = new RemoteHead( moyai_client );
+        if( rh->startServer(22222) == false ) {
+            print("headless server: can't start server. port:%d", 22222 );
+            exit(1);
+        }
+        moyai_client->setRemoteHead(rh);        
+    }
 
     Viewport *viewport = new Viewport();
     int retina = 1;
@@ -111,8 +123,13 @@ int main(int argc, char **argv )
     deck->setTexture(t);
     deck->setSize(32,32,8,8);
 
+    Prop2D *p=NULL, *pp=NULL;
+    Grid *g=NULL;
+    CharGrid *cg=NULL;
+    
+#if 0    
     // normal single
-    Prop2D *p = new Prop2D();
+    p = new Prop2D();
     p->setDeck(deck);
     p->setIndex(1);
     p->setScl(64,64);
@@ -120,7 +137,7 @@ int main(int argc, char **argv )
     l->insertProp(p);
 
     // with prim
-    Prop2D *pp = new Prop2D();
+    pp = new Prop2D();
     pp->setScl(1.0f);
     pp->setLoc(100,0);
     pp->addRect( Vec2(0,0), Vec2(-100,-100), Color(0,0,1,0.5) );
@@ -130,7 +147,7 @@ int main(int argc, char **argv )
    
 
     // grid
-    Grid *g = new Grid(4,4);
+    g = new Grid(4,4);
     for(int x=0;x<4;x++) {
         for(int y=0;y<4;y++) {
             //        g->set(x,y,80+((x+y)%10));
@@ -165,7 +182,7 @@ int main(int argc, char **argv )
     TileDeck *fdeck =new TileDeck();
     fdeck->setTexture(ft);
     fdeck->setSize(32,32,8,8);
-    CharGrid *cg = new CharGrid(8,8);
+    cg = new CharGrid(8,8);
     cg->ascii_offset = -32;
     cg->setDeck(fdeck);
     cg->printf(0,0,Color(1,1,1,1), "WHITE" );
@@ -193,7 +210,7 @@ int main(int argc, char **argv )
         chp->addChild(p);
     }
     l->insertProp(chp);
-    
+#endif    
     
     // text
     wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
@@ -248,31 +265,37 @@ int main(int argc, char **argv )
         loop_counter++;
         
         Vec2 at(::sin(t)*100,0);
-        p->setLoc(at);
-        if( loop_counter%21==0 )  p->setIndex( irange(0,3));
-        static float rot=0;
-        rot+=0.05;
-        p->setRot(rot);
-        pp->setRot(rot/2.0f);
-        p->setScl( 40 + ::sin(t/2) * 30 );
-        int cnt = moyai_client->poll(dt);
-        
-
-        if( loop_counter % 50 == 0 ) {
-            float alpha = range(0.2, 1.0f);
-            Color col(range(0,1),range(0,1),range(0,1),alpha);
-            p->setColor(col);
-        }
-        if( loop_counter % 120 == 0 ) {
-            switch(irange(0,3)) {
-            case 0: p->setXFlip( irange(0,2)); print("XFL"); break;
-            case 1: p->setYFlip( irange(0,2)); print("YFL"); break;
-            case 2: p->setUVRot( irange(0,2)); print("UVROT"); break;
+        if(p){
+            p->setLoc(at);
+            if( loop_counter%21==0 )  p->setIndex( irange(0,3));
+            static float rot=0;
+            rot+=0.05;
+            p->setRot(rot);
+            p->setScl( 40 + ::sin(t/2) * 30 );
+            if(pp) {
+                pp->setRot(rot/2.0f);
             }
+
+            if( loop_counter % 50 == 0 ) {
+                float alpha = range(0.2, 1.0f);
+                Color col(range(0,1),range(0,1),range(0,1),alpha);
+                p->setColor(col);
+            }
+            if( loop_counter % 120 == 0 ) {
+                switch(irange(0,3)) {
+                case 0: p->setXFlip( irange(0,2)); print("XFL"); break;
+                case 1: p->setYFlip( irange(0,2)); print("YFL"); break;
+                case 2: p->setUVRot( irange(0,2)); print("UVROT"); break;
+                }
+            }            
         }
 
-        g->set( irange(0,4), irange(0,4), irange(0,3) );
-        g->setColor( irange(0,4), irange(0,4), Color( range(0,1), range(0,1), range(0,1), range(0,1) ) );
+        int cnt = moyai_client->poll(dt);        
+
+        if(g) {
+            g->set( irange(0,4), irange(0,4), irange(0,3) );
+            g->setColor( irange(0,4), irange(0,4), Color( range(0,1), range(0,1), range(0,1), range(0,1) ) );
+        }
 
         float tbr = 4 + ::sin(t)*3;
         movtb->setScl(tbr);
@@ -330,7 +353,7 @@ int main(int argc, char **argv )
             }
         }
         if( glfwGetKey( window, '2' ) ) {
-            cg->printf(0,4, Color(1,1,1,1), Format( "CNT:%d", loop_counter).buf);
+            if(cg) cg->printf(0,4, Color(1,1,1,1), Format( "CNT:%d", loop_counter).buf);
         }
         
         glfwPollEvents();
