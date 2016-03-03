@@ -593,28 +593,28 @@ int Conn::sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr ) {
     ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
-// [record-len:16][usval:16][cstr-len:8][cstr-body][data-len:16][data-body]
+// [record-len:16][usval:16][cstr-len:8][cstr-body][data-len:32][data-body]
 int Conn::sendUS1StrBytes( uint16_t usval, const char *cstr, const char *data, unsigned short datalen ) {
     int cstrlen = strlen(cstr);
     assert( cstrlen <= 255 );
-    size_t totalsize = 2 + 2 + 1 + cstrlen + 2 + datalen;
+    size_t totalsize = 2 + 2 + (1+cstrlen) + (4+datalen);
     assertmsg( totalsize <= 65535, "datalen too big? : %d", datalen );
     if( getSendbufRoom() < totalsize ) return 0;
     sendbuf.pushU16( totalsize - 2 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU8( (unsigned char) cstrlen );
     sendbuf.push( cstr, cstrlen );
-    sendbuf.pushU16( datalen ); // TODO: use 32bits len
+    sendbuf.pushU32( datalen );
     sendbuf.push( data, datalen );
     ev_io_start( parent_nw->evloop, write_watcher );
     //    print("send_packet_str_bytes: cstrlen:%d datalen:%d totallen:%d", cstrlen, datalen, totalsize );
     return totalsize;
 }
 void Conn::parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize ) {
-    unsigned char slen = get_u8(inptr);
+    uint8_t slen = get_u8(inptr);
     char *s = inptr + 1;
-    unsigned short datalen = get_u16(inptr+1+slen);
-    *outptr = inptr + 1 + slen + 2;
+    uint32_t datalen = get_u32(inptr+1+slen);
+    *outptr = inptr + 1 + slen + 4;
     memcpy( outcstr, s, slen );
     outcstr[slen]='\0';
     *outsize = (size_t) datalen;
@@ -632,8 +632,8 @@ int Conn::sendUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wst
     ConversionResult r = ConvertUTF32toUTF8( &inbuf, inbuf+wstr_num_letters, &outbuf, outbuf+bufsz, strictConversion );
     assertmsg(r==conversionOK, "ConvertUTF32toUTF8 failed:%d bufsz:%d", r, bufsz );
     size_t outlen = outbuf - orig_outbuf;
-    print("ConvertUTF32toUTF8 result utf8 len:%d", outlen );
-    int ret = sendUS1UI1Str( usval, uival, (const char*) outbuf );
+    print("ConvertUTF32toUTF8 result utf8 len:%d out:'%s'", outlen, orig_outbuf );
+    int ret = sendUS1UI1Bytes( usval, uival, (const char*) orig_outbuf, outlen );
     FREE(orig_outbuf);
     return ret;    
 #else

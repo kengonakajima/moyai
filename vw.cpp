@@ -1,5 +1,8 @@
 // HMP (Headless Moyai Protocol viewer client)
+
 #include "client.h"
+#include "ConvertUTF.h"
+
 #include "vw.h"
 
 static const int SCRW=966, SCRH=544;
@@ -438,6 +441,26 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
     case PACKETTYPE_S2C_FONT_CHARCODES: // fontid, utf8str
         {
             uint32_t font_id = get_u32(argdata+0);
+            uint32_t bufsz = get_u32(argdata+4);
+            const UTF8 *in_u8 = (UTF8*)(argdata+8); // bin array. dont have null terminator
+            print("charcodes: bufsz:%d", bufsz );
+
+            Font *f = g_font_pool.get(font_id);
+            if(!f) {
+                print("font %d is not found", font_id);
+                break;
+            }
+            
+#if defined(__APPLE__)
+            UTF32 *out_u32 = (UTF32*) MALLOC(bufsz * sizeof(UTF32) );
+            UTF32 *orig_out_u32 = out_u32;
+            ConversionResult r = ConvertUTF8toUTF32(&in_u8,in_u8+bufsz,&out_u32,out_u32+bufsz, strictConversion );
+            assertmsg(r == conversionOK, "ConvertUTF8toUTF32 failed. result:%d",r );
+            wchar_t *charcodes = (wchar_t*) orig_out_u32;
+            f->setCharCodes(charcodes);            
+#else
+            assertmsg(false, "not implemented");
+#endif            
         }
         break;        
     case PACKETTYPE_S2C_FONT_LOADTTF:

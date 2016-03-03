@@ -21,4 +21,5 @@ public:
         charcode_table_used_num = 0;
 	}
 	bool loadFromTTF(const char *path, const wchar_t *codes, int pixelsz );
+    void setCharCodes( const wchar_t *codes );
 };

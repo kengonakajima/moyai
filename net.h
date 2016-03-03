@@ -60,8 +60,8 @@ public:
     virtual void onConnect() { print("Conn::onConnect"); }
     virtual void onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) { print("Conn::onFunction"); };
     
-    static const int SENDBUF_SIZE = 1024*1024;
-    static const int RECVBUF_SIZE = 1024*1024;
+    static const int SENDBUF_SIZE = 1024*1024*16; // Assets are sometimes big.. TODO:partial async transfer
+    static const int RECVBUF_SIZE = 1024*1024*1;
 
     Conn( Network *nw, int fd ); 
     virtual ~Conn();

@@ -223,6 +223,7 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
         outco->sendUS1UI1( PACKETTYPE_S2C_FONT_CREATE, f->id );
         // utf32toutf8
         outco->sendUS1UI1Wstr( PACKETTYPE_S2C_FONT_CHARCODES, f->id, f->charcode_table, f->charcode_table_used_num );
+        outco->sendFile( f->last_load_file_path );
         
     }
 
@@ -314,13 +315,15 @@ void HMPConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
 }
 
 void HMPConn::sendFile( const char *filename ) {
-    char buf[64*1024];
-    size_t sz = sizeof(buf);
+    const size_t MAXBUFSIZE = 1024*1024*4;
+    char *buf = (char*) MALLOC(MAXBUFSIZE);
+    assert(buf);
+    size_t sz = MAXBUFSIZE;
     bool res = readFile( filename, buf, &sz );
     assertmsg(res, "sendFile: file '%s' read error", filename );
-    assert( sz <= 65536-8 );
     print("sendFile: path:%s len:%d data:%x %x %x %x", filename, sz, buf[0], buf[1], buf[2], buf[3] );
-    sendUS1StrBytes( PACKETTYPE_S2C_FILE, filename, buf, sz );
+    int r = sendUS1StrBytes( PACKETTYPE_S2C_FILE, filename, buf, sz );
+    assert(r>0);
 }
 
 ////////////////
@@ -462,7 +465,7 @@ void TrackerTextBox::scanTextBox() {
 
     memcpy( strbuf[cur_buffer_index], target_tb->str, copy_sz );
     str_bytes[cur_buffer_index] = copy_sz;
-    print("scantb: cpsz:%d id:%d s:%s l:%d cbi:%d",copy_sz, target_tb->id, target_tb->str, target_tb->len_str, cur_buffer_index );
+    //    print("scantb: cpsz:%d id:%d s:%s l:%d cbi:%d",copy_sz, target_tb->id, target_tb->str, target_tb->len_str, cur_buffer_index );
 }
 bool TrackerTextBox::checkDiff() {
     PacketProp2DSnapshot *curpkt, *prevpkt;
@@ -492,7 +495,7 @@ bool TrackerTextBox::checkDiff() {
     }
 
     if( str_changed ) {
-        print("string changed! id:%d l:%d", target_tb->id, cur_str_bytes );
+        //        print("string changed! id:%d l:%d", target_tb->id, cur_str_bytes );
     }
     
     return pktchanges || str_changed;    
