@@ -28,7 +28,9 @@ void Tracker2D::scanProp2D() {
     out->color.r = target_prop2d->color.r;
     out->color.g = target_prop2d->color.g;
     out->color.b = target_prop2d->color.b;
-    out->color.a = target_prop2d->color.a;    
+    out->color.a = target_prop2d->color.a;
+    out->optbits = 0;
+    if( target_prop2d->use_additive_blend ) out->optbits |= PROP2D_OPTBIT_ADDITIVE_BLEND;
 }
 
 void Tracker2D::flipCurrentBuffer() {
@@ -42,6 +44,7 @@ static const int CHANGED_ROT = 0x8;
 static const int CHANGED_XFLIP = 0x10;
 static const int CHANGED_YFLIP = 0x20;
 static const int CHANGED_COLOR = 0x40;
+static const int CHANGED_ADDITIVE_BLEND = 0x80;
 
 int getPacketProp2DSnapshotDiff( PacketProp2DSnapshot *s0, PacketProp2DSnapshot *s1 ) {
     int changes = 0;
@@ -56,7 +59,8 @@ int getPacketProp2DSnapshotDiff( PacketProp2DSnapshot *s0, PacketProp2DSnapshot 
     if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
     if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;    
     if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
-    if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;    
+    if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
+    if( (s0->optbits & PROP2D_OPTBIT_ADDITIVE_BLEND) != (s1->optbits & PROP2D_OPTBIT_ADDITIVE_BLEND) ) changes |= CHANGED_ADDITIVE_BLEND;
     return changes;    
 }
 

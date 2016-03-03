@@ -22,10 +22,12 @@ typedef struct  {
     int32_t debug;
     float rot;
     uint32_t xflip; // TODO:smaller size
-    unsigned int yflip;
+    uint32_t yflip;
     PacketColor color;
+    uint32_t optbits; 
 } PacketProp2DSnapshot;
 
+#define PROP2D_OPTBIT_ADDITIVE_BLEND 0x00000001
 
 #define MAX_PACKET_SIZE (1024*8)
 
