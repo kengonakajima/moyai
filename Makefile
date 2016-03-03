@@ -1,9 +1,10 @@
 
 MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Remote.cpp net.cpp
-
-MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o)
-MOYAISVSRCS=common.cpp cumino.cpp  lodepng.cpp Camera.cpp Grid.cpp
-MOYAISVOBJS=$(MOYAISVSRCS:.cpp=.o)
+UTF8SRC=ConvertUTF.c
+UTF8OBJ=ConvertUTF.o
+MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o) $(UTF8OBJ)
+MOYAISVSRCS=common.cpp cumino.cpp  lodepng.cpp Camera.cpp Grid.cpp 
+MOYAISVOBJS=$(MOYAISVSRCS:.cpp=.o) $(UTF8OBJ)
 DEMO2DSRCS=demo2d.cpp 
 DEMO2DOBJS=$(DEMO2DSRCS:.cpp=.o)
 DEMO3DSRCS=demo3d.cpp
@@ -145,6 +146,8 @@ Remote.o : Remote.cpp
 	g++ -c $(CFLAGS) Remote.cpp -o Remote.o
 net.o : net.cpp
 	g++ -c $(CFLAGS) net.cpp -o net.o
+ConvertUTF.o : ConvertUTF.c
+	g++ -c $(CFLAGS) ConvertUTF.c -o ConvertUTF.o
 
 # freetype-gl
 texture-atlas.o :

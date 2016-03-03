@@ -82,6 +82,7 @@ public:
     int sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
     int sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr );
     int sendUS1StrBytes( uint16_t usval, const char *cstr, const char *data, uint16_t datalen );
+    int sendUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
     
     // parse helpers
     static void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize );

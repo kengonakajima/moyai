@@ -222,7 +222,7 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
         print("sending font id:%d path:%s", f->id, f->last_load_file_path );
         outco->sendUS1UI1( PACKETTYPE_S2C_FONT_CREATE, f->id );
         // utf32toutf8
-        
+        outco->sendUS1UI1Wstr( PACKETTYPE_S2C_FONT_CHARCODES, f->id, f->charcode_table, f->charcode_table_used_num );
         
     }
 

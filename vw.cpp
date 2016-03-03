@@ -13,6 +13,7 @@ ObjectPool<TileDeck> g_tiledeck_pool;
 ObjectPool<Prop2D> g_prop2d_pool;
 ObjectPool<Grid> g_grid_pool;
 ObjectPool<TextBox> g_textbox_pool;
+ObjectPool<Font> g_font_pool;
 
 MoyaiClient *g_moyai_client;        
 Network *g_nw;
@@ -411,12 +412,12 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         {
             uint32_t tb_id = get_u32(argdata);
             print("tb_creat id:%d", tb_id );
-            TextBox *tb = g_textbox_pool.ensure(tb_id);
+            g_textbox_pool.ensure(tb_id);
         }
         break;
     case PACKETTYPE_S2C_TEXTBOX_FONT:
         break;
-    case PACKETTYPE_S2C_TEXTBOX_STRING_UTF8:
+    case PACKETTYPE_S2C_TEXTBOX_STRING:
         break;
     case PACKETTYPE_S2C_TEXTBOX_LOC:
         break;        
@@ -426,8 +427,16 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         break;
 
     case PACKETTYPE_S2C_FONT_CREATE:
+        {
+            uint32_t font_id = get_u32(argdata);
+            print("font_create id:%d", font_id );
+            g_font_pool.ensure(font_id);            
+        }
         break;        
-    case PACKETTYPE_S2C_FONT_CHARCODES_UTF8:
+    case PACKETTYPE_S2C_FONT_CHARCODES: // fontid, utf8str
+        {
+            uint32_t font_id = get_u32(argdata);
+        }
         break;        
     case PACKETTYPE_S2C_FONT_LOADTTF:
         break;

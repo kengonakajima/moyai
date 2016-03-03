@@ -124,17 +124,17 @@ typedef enum {
 
     PACKETTYPE_S2C_TEXTBOX_CREATE = 500, // tb_id, uint32_t
     PACKETTYPE_S2C_TEXTBOX_FONT = 501,    // tb_id, font_id
-    PACKETTYPE_S2C_TEXTBOX_STRING_UTF8 = 502,    // tb_id, utf8str
+    PACKETTYPE_S2C_TEXTBOX_STRING = 502,    // tb_id, utf8str
     PACKETTYPE_S2C_TEXTBOX_LOC = 503,    // tb_id, x,y
     PACKETTYPE_S2C_TEXTBOX_SCL = 504,    // tb_id, x,y
     PACKETTYPE_S2C_TEXTBOX_COLOR = 505,    // tb_id, PacketColor
     PACKETTYPE_S2C_FONT_CREATE = 540, // fontid, utf8 string array
-    PACKETTYPE_S2C_FONT_CHARCODES_UTF8 = 541, // fontid, utf8str
+    PACKETTYPE_S2C_FONT_CHARCODES = 541, // fontid, utf8str
     PACKETTYPE_S2C_FONT_LOADTTF = 542, // fontid, filepath    
     
-    PACKETTYPE_S2C_FILE = 800, // ファイルを直接送信する step 1: ファイルを作成してIDを割りつける。
+    PACKETTYPE_S2C_FILE = 800, // send file body and path
 
-    PACKETTYPE_ERROR = 2000, // 何らかのエラー。エラー番号を返す
+    PACKETTYPE_ERROR = 2000, // error code
 } PACKETTYPE;
 
 

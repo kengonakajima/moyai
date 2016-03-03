@@ -295,6 +295,8 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 	}
 }
 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 void Layer::setupProjectionMatrix3D() {
 #if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
 	glMatrixMode(GL_PROJECTION);
@@ -327,6 +329,8 @@ Vec2 Layer::getScreenPos( Vec3 at ) {
 #endif    
 }
 
+
+
 Vec3 Layer::getWorldPos( Vec2 scrpos ) {
 #if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)                
 	setupProjectionMatrix3D();
@@ -349,6 +353,9 @@ Vec3 Layer::getWorldPos( Vec2 scrpos ) {
     return Vec3(0,0,0);
 #endif    
 }
+
+#pragma GCC diagnostic warning "-Wdeprecated-declarations"
+
 
 int Layer::getHighestPriority() {
 	int prio = 0;

@@ -305,7 +305,6 @@ ConversionResult ConvertUTF32toUTF8 (
             if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_LOW_END) {
                 --source; /* return to the illegal value itself */
                 result = sourceIllegal;
-                printf("xxxxx\n");
                 break;
             }
         }

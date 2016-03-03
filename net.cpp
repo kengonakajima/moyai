@@ -1,15 +1,18 @@
 // Moyai network : moynet
 
-#include "cumino.h"
-#include "common.h"
-#include "net.h"
-
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
+
+#include "ConvertUTF.h"
+
+#include "cumino.h"
+#include "common.h"
+#include "net.h"
+
 
 
 
@@ -613,4 +616,26 @@ void Conn::parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_
     memcpy( outcstr, s, slen );
     outcstr[slen]='\0';
     *outsize = (size_t) datalen;
+}
+
+// convert wchar_t to 
+int Conn::sendUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters ) {
+#if defined(__APPLE__) || defined(__linux__)
+    assert( sizeof(wchar_t) == sizeof(int32_t) );
+    size_t bufsz = wstr_num_letters * sizeof(int32_t);
+    UTF8 *outbuf = (UTF8*) MALLOC( bufsz + 1);
+    assert(outbuf);
+    UTF8 *orig_outbuf = outbuf;
+    const UTF32 *inbuf = (UTF32*) wstr;
+    ConversionResult r = ConvertUTF32toUTF8( &inbuf, inbuf+wstr_num_letters, &outbuf, outbuf+bufsz, strictConversion );
+    assertmsg(r==conversionOK, "ConvertUTF32toUTF8 failed:%d bufsz:%d", r, bufsz );
+    size_t outlen = outbuf - orig_outbuf;
+    print("ConvertUTF32toUTF8 result utf8 len:%d", outlen );
+    int ret = sendUS1UI1Str( usval, uival, (const char*) outbuf );
+    FREE(orig_outbuf);
+    return ret;    
+#else
+    assertmsg( false, "not implemented" );
+    return 0;
+#endif    
 }
