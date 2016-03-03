@@ -250,13 +250,13 @@ static void read_callback( struct ev_loop *loop, struct ev_io *watcher, int reve
         //        moynet_t *h = c->parent_moynet;
         while(true) { // process everything in one poll
             //            print("recvbuf:%d", c->recvbuf.used );
-            if( c->recvbuf.used < (2+2) ) return; // need more data from network
+            if( c->recvbuf.used < (4+2) ) return; // need more data from network
             //              <---RECORDLEN------>
             // [RECORDLEN32][FUNCID32][..DATA..]            
-            size_t record_len = get_u16( c->recvbuf.buf );
-            unsigned int func_id = get_u16( c->recvbuf.buf + 2 );
+            size_t record_len = get_u32( c->recvbuf.buf );
+            unsigned int func_id = get_u16( c->recvbuf.buf + 4 );
 
-            if( c->recvbuf.used < (2+record_len) ) {
+            if( c->recvbuf.used < (4+record_len) ) {
                 print("need. used:%d reclen:%d", c->recvbuf.used, record_len );
                 return; // need more data from network
             }
@@ -268,8 +268,8 @@ static void read_callback( struct ev_loop *loop, struct ev_io *watcher, int reve
             }
             //             fprintf(stderr, "dispatching func_id:%d record_len:%lu\n", func_id, record_len );
             // dump( c->recvbuf.buf, record_len-4);
-            c->onPacket( func_id, (char*) c->recvbuf.buf +2+2, record_len - 2 );
-            c->recvbuf.shift( 2 + record_len );
+            c->onPacket( func_id, (char*) c->recvbuf.buf +4+2, record_len - 4 );
+            c->recvbuf.shift( 4 + record_len );
             //            fprintf(stderr, "after dispatch recv func: buffer used: %zu\n", c->recvbuf.used );
             //            if( c->recvbuf.used > 0 ) dump( c->recvbuf.buf, c->recvbuf.used );
         }
@@ -498,17 +498,17 @@ void Network::heartbeatWithTimeoutMicroseconds( int timeout_us ) {
 
 /////
 int Conn::sendUS1( uint16_t usval ) {
-    size_t totalsize = 2 + 2;
+    size_t totalsize = 4 + 2;
     if( getSendbufRoom() < totalsize ) return 0;
-    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU32( totalsize - 4 ); // record-len
     sendbuf.pushU16( usval );
     ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;    
 }
 int Conn::sendUS1Bytes( uint16_t usval, const char *buf, uint16_t buflen ) {
-    size_t totalsize = 2 + 2 + (4+buflen);
+    size_t totalsize = 4 + 2 + (4+buflen);
     if( getSendbufRoom() < totalsize ) return 0;
-    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU32( totalsize - 4 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU32( buflen );
     sendbuf.push( buf, buflen );
@@ -516,9 +516,9 @@ int Conn::sendUS1Bytes( uint16_t usval, const char *buf, uint16_t buflen ) {
     return totalsize;
 }
 int Conn::sendUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *buf, uint16_t buflen ) {
-    size_t totalsize = 2 + 2 + 4 + (4+buflen);
+    size_t totalsize = 4 + 2 + 4 + (4+buflen);
     if( getSendbufRoom() < totalsize ) return 0;
-    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU32( totalsize - 4 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU32( uival );
     sendbuf.pushU32( buflen );
@@ -527,18 +527,18 @@ int Conn::sendUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *buf, uint
     return totalsize;
 }
 int Conn::sendUS1UI1( uint16_t usval, uint32_t uival ) {
-    size_t totalsize = 2 + 2 + 4;
+    size_t totalsize = 4 + 2 + 4;
     if( getSendbufRoom() < totalsize ) return 0;
-    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU32( totalsize - 4 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU32( uival );
     ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
 int Conn::sendUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
-    size_t totalsize = 2 + 2 + 4+4;
+    size_t totalsize = 4 + 2 + 4+4;
     if( getSendbufRoom() < totalsize ) return 0;
-    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU32( totalsize - 4 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU32( ui0 );
     sendbuf.pushU32( ui1 );    
@@ -546,9 +546,9 @@ int Conn::sendUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
     return totalsize;
 }
 int Conn::sendUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
-    size_t totalsize = 2 + 2 + 4+4+4;
+    size_t totalsize = 4 + 2 + 4+4+4;
     if( getSendbufRoom() < totalsize ) return 0;
-    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU32( totalsize - 4 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU32( ui0 );
     sendbuf.pushU32( ui1 );
@@ -557,9 +557,9 @@ int Conn::sendUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 )
     return totalsize;
 }
 int Conn::sendUS1UI5( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 ) {
-    size_t totalsize = 2 + 2 + 4+4+4+4+4;
+    size_t totalsize = 4 + 2 + 4+4+4+4+4;
     if( getSendbufRoom() < totalsize ) return 0;
-    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU32( totalsize - 4 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU32( ui0 );
     sendbuf.pushU32( ui1 );
@@ -570,9 +570,9 @@ int Conn::sendUS1UI5( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, 
     return totalsize;
 }
 int Conn::sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
-    size_t totalsize = 2 + 2 + 4+4+4;
+    size_t totalsize = 4 + 2 + 4+4+4;
     if( getSendbufRoom() < totalsize ) return 0;
-    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU32( totalsize - 4 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU32( uival );
     sendbuf.push( (char*)&f0, 4 );
@@ -583,9 +583,9 @@ int Conn::sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
 int Conn::sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr ) {
     int cstrlen = strlen(cstr);
     assert( cstrlen <= 255 );
-    size_t totalsize = 2 + 2 + 4 + 1 + cstrlen;
+    size_t totalsize = 4 + 2 + 4 + 1 + cstrlen;
     if( getSendbufRoom() < totalsize ) return 0;
-    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU32( totalsize - 4 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU32( uival );
     sendbuf.pushU8( (unsigned char) cstrlen );
@@ -594,13 +594,12 @@ int Conn::sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr ) {
     return totalsize;
 }
 // [record-len:16][usval:16][cstr-len:8][cstr-body][data-len:32][data-body]
-int Conn::sendUS1StrBytes( uint16_t usval, const char *cstr, const char *data, unsigned short datalen ) {
+int Conn::sendUS1StrBytes( uint16_t usval, const char *cstr, const char *data, uint32_t datalen ) {
     int cstrlen = strlen(cstr);
     assert( cstrlen <= 255 );
-    size_t totalsize = 2 + 2 + (1+cstrlen) + (4+datalen);
-    assertmsg( totalsize <= 65535, "datalen too big? : %d", datalen );
+    size_t totalsize = 4 + 2 + (1+cstrlen) + (4+datalen);
     if( getSendbufRoom() < totalsize ) return 0;
-    sendbuf.pushU16( totalsize - 2 ); // record-len
+    sendbuf.pushU32( totalsize - 4 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU8( (unsigned char) cstrlen );
     sendbuf.push( cstr, cstrlen );

@@ -321,9 +321,10 @@ void HMPConn::sendFile( const char *filename ) {
     size_t sz = MAXBUFSIZE;
     bool res = readFile( filename, buf, &sz );
     assertmsg(res, "sendFile: file '%s' read error", filename );
-    print("sendFile: path:%s len:%d data:%x %x %x %x", filename, sz, buf[0], buf[1], buf[2], buf[3] );
     int r = sendUS1StrBytes( PACKETTYPE_S2C_FILE, filename, buf, sz );
     assert(r>0);
+    print("sendFile: path:%s len:%d data:%x %x %x %x sendres:%d", filename, sz, buf[0], buf[1], buf[2], buf[3], r );
+    FREE(buf);
 }
 
 ////////////////

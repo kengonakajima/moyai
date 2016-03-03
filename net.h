@@ -61,7 +61,7 @@ public:
     virtual void onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) { print("Conn::onFunction"); };
     
     static const int SENDBUF_SIZE = 1024*1024*16; // Assets are sometimes big.. TODO:partial async transfer
-    static const int RECVBUF_SIZE = 1024*1024*1;
+    static const int RECVBUF_SIZE = 1024*1024*16;
 
     Conn( Network *nw, int fd ); 
     virtual ~Conn();
@@ -81,7 +81,7 @@ public:
     int sendUS1UI5( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 );        
     int sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
     int sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr );
-    int sendUS1StrBytes( uint16_t usval, const char *cstr, const char *data, uint16_t datalen );
+    int sendUS1StrBytes( uint16_t usval, const char *cstr, const char *data, uint32_t datalen );
     int sendUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
     
     // parse helpers
