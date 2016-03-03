@@ -213,7 +213,7 @@ int main(int argc, char **argv )
 #endif    
     
     // text
-    wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+    wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ほげ";
     
     Font *font = new Font();
     font->loadFromTTF("./assets/cinecaption227.ttf", charcodes, 24 );
@@ -228,7 +228,7 @@ int main(int argc, char **argv )
     }
     TextBox *movtb = new TextBox();
     movtb->setFont(font);
-    movtb->setString("ABCabc\n01234");
+    movtb->setString("ABCabc\n01234ほげ");
     movtb->setScl(3);
     movtb->setLoc(0,-150);
     l->insertProp(movtb);

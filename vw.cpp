@@ -1,5 +1,7 @@
 // HMP (Headless Moyai Protocol viewer client)
 
+#include <locale.h>
+
 #include "client.h"
 #include "ConvertUTF.h"
 
@@ -645,6 +647,13 @@ void updateDebugStat( const char *s ) {
 
 int main( int argc, char **argv ) {
 
+#ifdef __APPLE__    
+    setlocale( LC_ALL, "ja_JP");
+#endif
+#ifdef WIN32    
+    setlocale( LC_ALL, "jpn");
+#endif    
+    
     const char *host = "localhost";
     if( argc > 1 && argv[1] ) host = argv[1];
     int port = 22222;
