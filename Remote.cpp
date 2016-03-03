@@ -224,11 +224,10 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
         // utf32toutf8
         outco->sendUS1UI1Wstr( PACKETTYPE_S2C_FONT_CHARCODES, f->id, f->charcode_table, f->charcode_table_used_num );
         outco->sendFile( f->last_load_file_path );
-        
+        outco->sendUS1UI2Str( PACKETTYPE_S2C_FONT_LOADTTF, f->id, f->pixel_size, f->last_load_file_path );
     }
-
-
 }
+
 // Send snapshots of all props and grids
 void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
@@ -239,20 +238,29 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
         while(cur) {
             Prop2D *p = (Prop2D*) cur;
 
-            // prop body
-            if(!p->tracker) {
-                p->tracker = new Tracker2D(this,p);
-                p->tracker->scanProp2D();
-            }
-            p->tracker->broadcastDiff(listener, true );
-            // grid
-            for(int i=0;i<p->grid_used_num;i++) {
-                Grid *g = p->grids[i];
-                if(!g->tracker) {
-                    g->tracker = new TrackerGrid(this,g);
-                    g->tracker->scanGrid();                    
+            TextBox *tb = dynamic_cast<TextBox*>(p);
+            if(tb) {
+                if(!tb->tracker) {
+                    tb->tracker = new TrackerTextBox(this,tb);
+                    tb->tracker->scanTextBox();
                 }
-                g->tracker->broadcastDiff(p, listener, true );
+                tb->tracker->broadcastDiff(listener,true );
+            } else {
+                // prop body
+                if(!p->tracker) {
+                    p->tracker = new Tracker2D(this,p);
+                    p->tracker->scanProp2D();
+                }
+                p->tracker->broadcastDiff(listener, true );
+                // grid
+                for(int i=0;i<p->grid_used_num;i++) {
+                    Grid *g = p->grids[i];
+                    if(!g->tracker) {
+                        g->tracker = new TrackerGrid(this,g);
+                        g->tracker->scanGrid();                    
+                    }
+                    g->tracker->broadcastDiff(p, listener, true );
+                }
             }
             cur = cur->next;
         }
@@ -507,5 +515,15 @@ void TrackerTextBox::flipCurrentBuffer() {
 void TrackerTextBox::broadcastDiff( Listener *listener, bool force ) {
     if( checkDiff() || force ) {
         listener->broadcastUS1UI1( PACKETTYPE_S2C_TEXTBOX_CREATE, target_tb->id );
+        listener->broadcastUS1UI2( PACKETTYPE_S2C_TEXTBOX_LAYER, target_tb->id, target_tb->getParentLayer()->id );        
+        listener->broadcastUS1UI2( PACKETTYPE_S2C_TEXTBOX_FONT, target_tb->id, target_tb->font->id );
+        listener->broadcastUS1UI1Wstr( PACKETTYPE_S2C_TEXTBOX_STRING, target_tb->id, target_tb->str, target_tb->len_str );
+        listener->broadcastUS1UI1F2( PACKETTYPE_S2C_TEXTBOX_LOC, target_tb->id, target_tb->loc.x, target_tb->loc.y );
+        PacketColor pc;
+        pc.r = target_tb->color.r;
+        pc.g = target_tb->color.g;
+        pc.b = target_tb->color.b;
+        pc.a = target_tb->color.a;        
+        listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_TEXTBOX_COLOR, target_tb->id, (const char*)&pc, sizeof(pc) );            
     }
 }

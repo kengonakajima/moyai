@@ -37,8 +37,17 @@ File::File( const char *inpath, const char *indata, size_t indata_len ) {
     data_len = indata_len;
     print("File: init. path:'%s' size:%d data:%x %x %x %x", path, indata_len, indata[0], indata[1], indata[2], indata[3] );
 }
-
-
+// save a file in directory 
+bool File::saveInTmpDir( const char *dir_prefix, char *outpath, size_t outpathsize ) {
+    snprintf( outpath, outpathsize, "%s/tmp_%s", dir_prefix, path );
+    gsubString( outpath+strlen(dir_prefix)+1, '/', '_' );           
+    bool wr = writeFile( outpath, data, data_len );
+    if(!wr) {
+        print("saveInTmpDir: can't write file: '%s'", outpath );
+        return false;
+    }
+    return true;
+}
 File *FileDepo::get( char *path ) {
     for(int i=0;i<elementof(files);i++) {
         if( files[i] && files[i]->comparePath(path) ) {
@@ -68,7 +77,6 @@ File *FileDepo::getByIndex(int ind) {
 }
 
 
-
 ///////////////////
 
 void winclose_callback( GLFWwindow *w ){
@@ -78,6 +86,22 @@ void winclose_callback( GLFWwindow *w ){
 void glfw_error_cb( int code, const char *desc ) {
     print("glfw_error_cb. code:%d desc:'%s'", code, desc );
 }
+
+wchar_t *allocateWCharStringFromUTF8String( const uint8_t *in_uint8ary, size_t sz ) {
+#if defined(__APPLE__)
+    const UTF8 *in_u8 = (UTF8*) in_uint8ary;
+    UTF32 *out_u32 = (UTF32*) MALLOC(sz * sizeof(UTF32) );
+    memset(out_u32,0, sz*sizeof(UTF32));
+    UTF32 *orig_out_u32 = out_u32;
+    ConversionResult r = ConvertUTF8toUTF32(&in_u8,in_u8+sz,&out_u32,out_u32+sz, strictConversion );
+    assertmsg(r == conversionOK, "ConvertUTF8toUTF32 failed. result:%d",r );
+    wchar_t *charcodes = (wchar_t*) orig_out_u32;
+    return charcodes;
+#else
+            assertmsg(false, "not implemented");
+#endif
+}
+
 
 
 ///////////////////
@@ -114,8 +138,8 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             TileDeck *dk = g_tiledeck_pool.get( pkt.tiledeck_id ); // deck can be null (may have grid,textbox)
             Prop2D *prop = g_prop2d_pool.get(pkt.prop_id);
             if(!prop) {
-                print("prop2d new: id:%d", pkt.prop_id);
                 prop = g_prop2d_pool.ensure(pkt.prop_id);
+                print("new prop2d(snapshot): id:%d ptr:%p", pkt.prop_id, prop );
                 layer->insertProp(prop);
             }
             if(dk) prop->setDeck(dk);
@@ -329,7 +353,6 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             }
         }
         break;
-
     case PACKETTYPE_S2C_GRID_CREATE:
         {
             uint32_t grid_id = get_u32(argdata);
@@ -415,21 +438,112 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         break;
     case PACKETTYPE_S2C_TEXTBOX_CREATE:
         {
+            //                        static int hoge = 0;
+            //                        hoge++;
+            //                        if(hoge>8) exit(0);
+
+
+            
             uint32_t tb_id = get_u32(argdata);
-            print("tb_creat id:%d", tb_id );
-            g_textbox_pool.ensure(tb_id);
+            //            TextBox *hogetb = g_textbox_pool.get(tb_id);
+            //            if(hogetb) {
+            //                print("ALREADY tb.%d par:%p", tb_id, hogetb->getParentLayer() );
+            //                break;
+            //            }
+            TextBox *tb = g_textbox_pool.ensure(tb_id);
+            print("tb_creat id:%d ptr:%p par:%p", tb_id, tb, tb->getParentLayer() );
+
+
         }
         break;
     case PACKETTYPE_S2C_TEXTBOX_FONT:
+        {
+            uint32_t tb_id = get_u32(argdata);
+            uint32_t font_id = get_u32(argdata+4);
+            print("tb_font id:%d fid:%d", tb_id, font_id );
+            TextBox *tb = g_textbox_pool.get(tb_id);
+            if(!tb) {
+                print("tb_font: tb %d not found", tb_id);
+                break;
+            }
+            Font *f = g_font_pool.get(font_id);
+            if(!f) {
+                print("tb_font: font %d not found", font_id);
+                break;
+            }
+            tb->setFont(f);
+        }
         break;
     case PACKETTYPE_S2C_TEXTBOX_STRING:
+        {
+            uint32_t tb_id = get_u32(argdata);
+            uint32_t bufsz = get_u32(argdata+4);
+            uint8_t *str_utf8 = (uint8_t*)(argdata+8);
+            TextBox *tb = g_textbox_pool.get(tb_id);
+            if(!tb) {
+                print("tb %d not found",tb_id);
+                break;
+            }
+            char *tmpbuf = (char*)MALLOC( bufsz+1);
+            assert(tmpbuf);
+            memcpy(tmpbuf, str_utf8, bufsz );
+            tmpbuf[bufsz] = '\0';
+            print("tb_str. tb:%d bufsz:%d s:'%s'", tb_id, bufsz, tmpbuf );
+            tb->setString(tmpbuf);
+        }
         break;
     case PACKETTYPE_S2C_TEXTBOX_LOC:
-        break;        
-    case PACKETTYPE_S2C_TEXTBOX_SCL:
+        {
+            uint32_t tb_id = get_u32(argdata);
+            float x = get_f32(argdata+4);
+            float y = get_f32(argdata+8);
+            print("tb %d loc:%f,%f",tb_id, x,y);
+            TextBox *tb = g_textbox_pool.get(tb_id);
+            if(!tb) {
+                print("tb %d not found", tb_id);
+                break;
+            }
+            tb->setLoc(x,y);
+        }
         break;        
     case PACKETTYPE_S2C_TEXTBOX_COLOR:
+        {
+            uint32_t tb_id = get_u32(argdata);
+            uint32_t pktsz = get_u32(argdata+4);
+            char *pktdata = (char*)(argdata+4+4);
+            assert(pktsz == sizeof(PacketColor));
+            TextBox *tb = g_textbox_pool.get(tb_id);
+            if(!tb) {
+                print("tb %d not found", tb_id);
+                break;
+            }
+            PacketColor *pc = (PacketColor*) pktdata;
+            Color col( pc->r, pc->g, pc->b, pc->a );
+            print("tb %d color: %f %f %f %f par:%p", tb_id, col.r, col.g, col.b, col.a, tb->getParentLayer() );
+            tb->setColor(col);
+        }
         break;
+    case PACKETTYPE_S2C_TEXTBOX_LAYER:
+        {
+            uint32_t tb_id = get_u32(argdata);
+            uint32_t layer_id = get_u32(argdata+4);            
+            TextBox *tb = g_textbox_pool.get(tb_id);
+            Layer *l = g_layer_pool.get(layer_id);
+            if(!tb) {
+                print("tb_layer tb:%d not found", tb_id);
+                break;
+            }
+            print("tb_layer tb:%d l:%d par:%p", tb_id, layer_id, tb->getParentLayer() );
+            Layer *pl = tb->getParentLayer();
+            if( pl ) {
+                print("  tb %d already has parent layer id:%d, argument:%d", tb_id, pl->id, layer_id );
+                break;
+            } else {
+                l->insertProp(tb);
+            }
+        }
+        break;
+
 
     case PACKETTYPE_S2C_FONT_CREATE:
         {
@@ -442,7 +556,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         {
             uint32_t font_id = get_u32(argdata+0);
             uint32_t bufsz = get_u32(argdata+4);
-            const UTF8 *in_u8 = (UTF8*)(argdata+8); // bin array. dont have null terminator
+            const uint8_t *in_u8 = (UTF8*)(argdata+8); // bin array. dont have null terminator
             print("charcodes: bufsz:%d", bufsz );
 
             Font *f = g_font_pool.get(font_id);
@@ -450,20 +564,37 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
                 print("font %d is not found", font_id);
                 break;
             }
-            
-#if defined(__APPLE__)
-            UTF32 *out_u32 = (UTF32*) MALLOC(bufsz * sizeof(UTF32) );
-            UTF32 *orig_out_u32 = out_u32;
-            ConversionResult r = ConvertUTF8toUTF32(&in_u8,in_u8+bufsz,&out_u32,out_u32+bufsz, strictConversion );
-            assertmsg(r == conversionOK, "ConvertUTF8toUTF32 failed. result:%d",r );
-            wchar_t *charcodes = (wchar_t*) orig_out_u32;
-            f->setCharCodes(charcodes);            
-#else
-            assertmsg(false, "not implemented");
-#endif            
+            wchar_t *charcodes = allocateWCharStringFromUTF8String(in_u8,bufsz);
+            f->setCharCodes(charcodes);
+            FREE(charcodes);
         }
         break;        
     case PACKETTYPE_S2C_FONT_LOADTTF:
+        {
+            uint32_t font_id = get_u32(argdata+0);
+            uint32_t pixel_size = get_u32(argdata+4);
+            uint8_t cstrlen = get_u8(argdata+4+4);
+            char *path = argdata+4+4+1;
+            char pathbuf[256+1];
+            memcpy( pathbuf, path, cstrlen );
+            pathbuf[cstrlen] = '\0';
+            print("font_loadttf id:%d ps:%d path:'%s'", font_id, pixel_size, pathbuf );
+            Font *f = g_font_pool.get(font_id);
+            if(!f) {
+                print("font %d not found", font_id);
+                break;
+            }
+            // freetype-gl can only read TTF from file, not from memory
+            File *file = g_filedepo->get(pathbuf);
+            if(!file) {
+                print("  can't find file in filedepo:'%s'", pathbuf );
+                break;
+            }
+            char tmppath[1024];
+            file->saveInTmpDir( "/tmp", tmppath, sizeof(tmppath) );
+            bool res = f->loadFromTTF(tmppath,NULL,pixel_size);
+            assert(res);            
+        }
         break;
     default:
         print("unhandled packet type:%d", funcid );
@@ -563,6 +694,8 @@ int main( int argc, char **argv ) {
         Format fmt( "polled:%d rendered:%d %.1fKbps", polled, rendered, ts.recv_bytes_per_sec*8.0f/1000.0f );
         updateDebugStat( fmt.buf );
 
+        if( glfwGetKey( g_window, 'Q') ) break;
+        
         last_poll_at = t;
     }
     delete g_nw;

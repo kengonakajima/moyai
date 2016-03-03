@@ -81,6 +81,7 @@ public:
     int sendUS1UI5( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 );        
     int sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
     int sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr );
+    int sendUS1UI2Str( uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr );
     int sendUS1StrBytes( uint16_t usval, const char *cstr, const char *data, uint32_t datalen );
     int sendUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
     
@@ -108,7 +109,9 @@ public:
     void broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen );    
     void broadcastUS1UI1( uint16_t usval, uint32_t uival );
     void broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );
-    void broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );    
+    void broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
+    void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
+    void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );    
 };
 
 class TrafficStats {

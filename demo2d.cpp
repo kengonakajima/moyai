@@ -47,6 +47,8 @@ RemoteHead *g_rh;
 
 GLFWwindow *g_window;
 
+bool g_game_done = false;
+
 // data
 
 enum {
@@ -397,7 +399,8 @@ void gameUpdate(void) {
 
     if( glfwGetKey( g_window, 'Q') ) {
         print("Q pressed");
-        exit(0);
+        g_game_done = true;
+        return;
     }
 
     if( g_pc->accum_time > 10 ) {
@@ -730,6 +733,7 @@ void gameInit( bool headless_mode ) {
     g_tb->setFont(font);
     g_tb->setString("dummy");
     g_tb->setScl(1);
+    g_tb->setLoc(22,22);
     g_main_layer->insertProp(g_tb);
 
     TextBox *t3 = new TextBox();
@@ -889,7 +893,7 @@ int main(int argc, char **argv )
     }
         
     gameInit(headless_mode);
-    while( !glfwWindowShouldClose(g_window) ){
+    while( !glfwWindowShouldClose(g_window) && (!g_game_done) ){
         gameUpdate();       
         gameRender();
     }

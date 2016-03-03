@@ -95,7 +95,7 @@ typedef enum {
     PACKETTYPE_S2C_PROP2D_ROT = 405,
     PACKETTYPE_S2C_PROP2D_XFLIP = 406,
     PACKETTYPE_S2C_PROP2D_YFLIP = 407,
-    PACKETTYPE_S2C_PROP2D_COLOR = 408,
+    PACKETTYPE_S2C_PROP2D_COLOR = 408,    
     PACKETTYPE_S2C_PROP2D_DELETE = 410,
     
     PACKETTYPE_S2C_LAYER_CREATE = 420,
@@ -126,8 +126,8 @@ typedef enum {
     PACKETTYPE_S2C_TEXTBOX_FONT = 501,    // tb_id, font_id
     PACKETTYPE_S2C_TEXTBOX_STRING = 502,    // tb_id, utf8str
     PACKETTYPE_S2C_TEXTBOX_LOC = 503,    // tb_id, x,y
-    PACKETTYPE_S2C_TEXTBOX_SCL = 504,    // tb_id, x,y
     PACKETTYPE_S2C_TEXTBOX_COLOR = 505,    // tb_id, PacketColor
+    PACKETTYPE_S2C_TEXTBOX_LAYER = 510,     // tb_id, l_id
     PACKETTYPE_S2C_FONT_CREATE = 540, // fontid, utf8 string array
     PACKETTYPE_S2C_FONT_CHARCODES = 541, // fontid, utf8str
     PACKETTYPE_S2C_FONT_LOADTTF = 542, // fontid, filepath    

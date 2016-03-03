@@ -32,7 +32,6 @@ void Moyai::globalInitNetwork() {
 }
 
 void *NET_MALLOC( size_t sz ) {
-    fprintf(stderr, "NET_MALLOC size: %lu\n", sz );
     void *ptr = malloc(sz);
     return ptr;
 }
@@ -268,7 +267,7 @@ static void read_callback( struct ev_loop *loop, struct ev_io *watcher, int reve
             }
             //             fprintf(stderr, "dispatching func_id:%d record_len:%lu\n", func_id, record_len );
             // dump( c->recvbuf.buf, record_len-4);
-            c->onPacket( func_id, (char*) c->recvbuf.buf +4+2, record_len - 4 );
+            c->onPacket( func_id, (char*) c->recvbuf.buf +4+2, record_len - 2 );
             c->recvbuf.shift( 4 + record_len );
             //            fprintf(stderr, "after dispatch recv func: buffer used: %zu\n", c->recvbuf.used );
             //            if( c->recvbuf.used > 0 ) dump( c->recvbuf.buf, c->recvbuf.used );
@@ -407,6 +406,18 @@ void Listener::broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint
     for( ConnIteratorType it = conn_pool.idmap.begin(); it != conn_pool.idmap.end(); ++it ) {
         Conn *c = it->second;
         c->sendUS1UI3( usval, ui0, ui1, ui2 );
+    }
+}
+void Listener::broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters ) {
+    for( ConnIteratorType it = conn_pool.idmap.begin(); it != conn_pool.idmap.end(); ++it ) {
+        Conn *c = it->second;
+        c->sendUS1UI1Wstr( usval, uival, wstr, wstr_num_letters );
+    }
+}
+void Listener::broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
+    for( ConnIteratorType it = conn_pool.idmap.begin(); it != conn_pool.idmap.end(); ++it ) {
+        Conn *c = it->second;
+        c->sendUS1UI1F2( usval, uival, f0, f1 );
     }
 }
 
@@ -583,11 +594,25 @@ int Conn::sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
 int Conn::sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr ) {
     int cstrlen = strlen(cstr);
     assert( cstrlen <= 255 );
-    size_t totalsize = 4 + 2 + 4 + 1 + cstrlen;
+    size_t totalsize = 4 + 2 + 4 + (1+cstrlen);
     if( getSendbufRoom() < totalsize ) return 0;
     sendbuf.pushU32( totalsize - 4 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU32( uival );
+    sendbuf.pushU8( (unsigned char) cstrlen );
+    sendbuf.push( cstr, cstrlen );
+    ev_io_start( parent_nw->evloop, write_watcher );
+    return totalsize;
+}
+int Conn::sendUS1UI2Str( uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr ) {
+    int cstrlen = strlen(cstr);
+    assert( cstrlen <= 255 );
+    size_t totalsize = 4 + 2 + 4+4 + (1+cstrlen);
+    if( getSendbufRoom() < totalsize ) return 0;
+    sendbuf.pushU32( totalsize - 4 ); // record-len
+    sendbuf.pushU16( usval );
+    sendbuf.pushU32( ui0 );
+    sendbuf.pushU32( ui1 );    
     sendbuf.pushU8( (unsigned char) cstrlen );
     sendbuf.push( cstr, cstrlen );
     ev_io_start( parent_nw->evloop, write_watcher );
@@ -624,16 +649,16 @@ int Conn::sendUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wst
 #if defined(__APPLE__) || defined(__linux__)
     assert( sizeof(wchar_t) == sizeof(int32_t) );
     size_t bufsz = wstr_num_letters * sizeof(int32_t);
-    UTF8 *outbuf = (UTF8*) MALLOC( bufsz + 1);
+    UTF8 *outbuf = (UTF8*) NET_MALLOC( bufsz + 1);
     assert(outbuf);
     UTF8 *orig_outbuf = outbuf;
     const UTF32 *inbuf = (UTF32*) wstr;
     ConversionResult r = ConvertUTF32toUTF8( &inbuf, inbuf+wstr_num_letters, &outbuf, outbuf+bufsz, strictConversion );
     assertmsg(r==conversionOK, "ConvertUTF32toUTF8 failed:%d bufsz:%d", r, bufsz );
     size_t outlen = outbuf - orig_outbuf;
-    print("ConvertUTF32toUTF8 result utf8 len:%d out:'%s'", outlen, orig_outbuf );
+    //    print("ConvertUTF32toUTF8 result utf8 len:%d out:'%s'", outlen, orig_outbuf );
     int ret = sendUS1UI1Bytes( usval, uival, (const char*) orig_outbuf, outlen );
-    FREE(orig_outbuf);
+    free(orig_outbuf);
     return ret;    
 #else
     assertmsg( false, "not implemented" );

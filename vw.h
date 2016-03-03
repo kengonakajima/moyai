@@ -26,6 +26,7 @@ public:
     bool comparePath( const char *comparepath ) {
         return strcmp( path, comparepath) == 0 ;
     }
+    bool saveInTmpDir( const char *dir_prefix, char *outpath, size_t outpathsize );
 };
 class FileDepo {
 public:

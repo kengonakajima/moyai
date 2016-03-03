@@ -643,4 +643,9 @@ const char *platformCStringPath( const char *path ) {
     return cpath;
 }
 
-
+void gsubString(char *s, char from, char to ) {
+    while(*s) {
+        if(*s == from ) *s = to;
+        s++;
+    }
+}

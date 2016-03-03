@@ -274,4 +274,6 @@ int countChar(const char *s, int ch);
 void sleepMilliSec( int ms );
 const char *platformCStringPath( const char *path );
 
+void gsubString(char *s, char from, char to );
+
 #endif
