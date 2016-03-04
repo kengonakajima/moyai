@@ -242,15 +242,17 @@ public:
 	inline void ensurePrimDrawer(){
 		if(!prim_drawer ) prim_drawer = new PrimDrawer();
 	}
-	inline void addLine(Vec2 from, Vec2 to, Color c, int width=1 ){
+	inline Prim *addLine(Vec2 from, Vec2 to, Color c, int width=1 ){
 		ensurePrimDrawer();
-		prim_drawer->addLine( from, to, c, width );
+        Prim *p = prim_drawer->addLine( from, to, c, width );
 		updateMinMaxSizeCache();
+        return p;
 	}
-	inline void addRect( Vec2 from, Vec2 to, Color c ){
+	inline Prim *addRect( Vec2 from, Vec2 to, Color c ){
 		ensurePrimDrawer();
-		prim_drawer->addRect( from, to, c );
+        Prim *p = prim_drawer->addRect( from, to, c );
 		updateMinMaxSizeCache();
+        return p;
 	}
 	inline void clearPrims(){
 		if(prim_drawer)prim_drawer->clear();

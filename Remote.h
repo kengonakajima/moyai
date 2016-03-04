@@ -50,6 +50,13 @@ inline void copyPacketColorToColor( Color *dest, PacketColor *src ) {
     dest->a = src->a;        
 }
 
+typedef struct {
+    uint8_t prim_type; // from PRIMTYPE
+    PacketVec2 from;
+    PacketVec2 to;
+    float width;
+} PacketPrim;
+
 
 
 #define MAX_PACKET_SIZE (1024*8)

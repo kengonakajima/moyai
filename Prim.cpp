@@ -3,7 +3,9 @@
 #include "Viewport.h"
 #include "Prim.h"
 
-Prim::Prim( PRIMTYPE t, Vec2 a, Vec2 b, Color c, int line_width ) : type(t), a(a),b(b), color(c), line_width(line_width) {
+int Prim::idgen = 1;
+
+Prim::Prim( PRIMTYPE t, Vec2 a, Vec2 b, Color c, int line_width ) : id(idgen++), type(t), a(a),b(b), color(c), line_width(line_width) {
 }
 void Prim::draw( Viewport *vp, DrawBatchList *bl, Vec2 tr, Vec2 scl, float radrot ) {
     switch(type) {

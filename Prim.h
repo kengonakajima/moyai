@@ -9,11 +9,13 @@
 
 class Prim {
 public:
+    int id;
 	PRIMTYPE type;
 	Vec2 a,b;
 	Color color;
 	int line_width;
-
+    static int idgen;
+    
 	Prim( PRIMTYPE t, Vec2 a, Vec2 b, Color c, int line_width = 1 );
     ~Prim() {
     }
