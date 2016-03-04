@@ -286,7 +286,9 @@ public:
         *b = (code) & 0xff;
     }
     inline Color operator*(float f) { return Color( r*f, g*f, b*f, a*f ); }
-    inline Color operator+( Color c) { return Color(r+c.r, g+c.g, b+c.b, a+c.a); }
+    inline Color operator+( Color c ) { return Color(r+c.r, g+c.g, b+c.b, a+c.a); }
+    inline Color operator==( Color c ) { return (r==c.r && g==c.g && b==c.b && a==c.a); }
+    inline Color operator!=( Color c ) { return (r!=c.r || g!=c.g || b!=c.b || a!=c.a); }    
 };
 
 

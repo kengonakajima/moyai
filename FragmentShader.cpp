@@ -3,6 +3,8 @@
 
 #include "FragmentShader.h"
 
+int FragmentShader::idgen = 1;
+
 #if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)
 
 static bool shaderCompile(GLuint shader, const char *src){

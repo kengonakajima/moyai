@@ -24,10 +24,33 @@ typedef struct  {
     uint32_t xflip; // TODO:smaller size
     uint32_t yflip;
     PacketColor color;
+    uint32_t shader_id;
     uint32_t optbits; 
 } PacketProp2DSnapshot;
 
 #define PROP2D_OPTBIT_ADDITIVE_BLEND 0x00000001
+
+typedef struct {
+    uint32_t shader_id;
+    float epsilon;
+    PacketColor from_color;
+    PacketColor to_color;
+} PacketColorReplacerShaderSnapshot;
+
+inline void copyColorToPacketColor( PacketColor *dest, Color *src ) {
+    dest->r = src->r;
+    dest->g = src->g;
+    dest->b = src->b;
+    dest->a = src->a;    
+}
+inline void copyPacketColorToColor( Color *dest, PacketColor *src ) {
+    dest->r = src->r;
+    dest->g = src->g;
+    dest->b = src->b;
+    dest->a = src->a;        
+}
+
+
 
 #define MAX_PACKET_SIZE (1024*8)
 
@@ -97,8 +120,8 @@ typedef enum {
     PACKETTYPE_S2C_PROP2D_ROT = 405,
     PACKETTYPE_S2C_PROP2D_XFLIP = 406,
     PACKETTYPE_S2C_PROP2D_YFLIP = 407,
-    PACKETTYPE_S2C_PROP2D_COLOR = 408,    
-    PACKETTYPE_S2C_PROP2D_DELETE = 410,
+    PACKETTYPE_S2C_PROP2D_COLOR = 408,
+    PACKETTYPE_S2C_PROP2D_DELETE = 410,    
     
     PACKETTYPE_S2C_LAYER_CREATE = 420,
     PACKETTYPE_S2C_LAYER_VIEWPORT = 421,
@@ -134,6 +157,8 @@ typedef enum {
     PACKETTYPE_S2C_FONT_CREATE = 540, // fontid, utf8 string array
     PACKETTYPE_S2C_FONT_CHARCODES = 541, // fontid, utf8str
     PACKETTYPE_S2C_FONT_LOADTTF = 542, // fontid, filepath    
+
+    PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT = 600, // 
     
     PACKETTYPE_S2C_FILE = 800, // send file body and path
 
@@ -201,5 +226,17 @@ public:
     void broadcastDiff( Listener *listener, bool force );
 };
 
-
+class TrackerColorReplacerShader {
+public:
+    ColorReplacerShader *target_shader;
+    PacketColorReplacerShaderSnapshot pktbuf[2];
+    int cur_buffer_index;
+    RemoteHead *parent_rh;
+    TrackerColorReplacerShader(RemoteHead *rh, ColorReplacerShader *target ) : target_shader(target), parent_rh(rh) {};
+    ~TrackerColorReplacerShader();
+    void scanShader();
+    void flipCurrentBuffer();
+    bool checkDiff();
+    void broadcastDiff( Listener *listener, bool force );    
+};
 #endif

@@ -2,6 +2,14 @@
 #include "client.h"
 #include "Remote.h"
 
+void setupPacketColorReplacerShaderSnapshot( PacketColorReplacerShaderSnapshot *outpkt, ColorReplacerShader *crs ) {
+    outpkt->shader_id = crs->id;
+    outpkt->epsilon = crs->epsilon;
+    copyColorToPacketColor( &outpkt->from_color, &crs->from_color );
+    copyColorToPacketColor( &outpkt->to_color, &crs->to_color );
+}
+
+//////////////
 
 void Tracker2D::scanProp2D() {
     PacketProp2DSnapshot *out = & pktbuf[cur_buffer_index];
@@ -29,6 +37,7 @@ void Tracker2D::scanProp2D() {
     out->color.g = target_prop2d->color.g;
     out->color.b = target_prop2d->color.b;
     out->color.a = target_prop2d->color.a;
+    out->shader_id = target_prop2d->fragment_shader ? target_prop2d->fragment_shader->id : 0;
     out->optbits = 0;
     if( target_prop2d->use_additive_blend ) out->optbits |= PROP2D_OPTBIT_ADDITIVE_BLEND;
 }
@@ -44,7 +53,9 @@ static const int CHANGED_ROT = 0x8;
 static const int CHANGED_XFLIP = 0x10;
 static const int CHANGED_YFLIP = 0x20;
 static const int CHANGED_COLOR = 0x40;
-static const int CHANGED_ADDITIVE_BLEND = 0x80;
+static const int CHANGED_SHADER = 0x80;
+static const int CHANGED_ADDITIVE_BLEND = 0x100;
+
 
 int getPacketProp2DSnapshotDiff( PacketProp2DSnapshot *s0, PacketProp2DSnapshot *s1 ) {
     int changes = 0;
@@ -60,6 +71,7 @@ int getPacketProp2DSnapshotDiff( PacketProp2DSnapshot *s0, PacketProp2DSnapshot 
     if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;    
     if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
     if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
+    if(s0->shader_id != s1->shader_id ) changes |= CHANGED_SHADER;
     if( (s0->optbits & PROP2D_OPTBIT_ADDITIVE_BLEND) != (s1->optbits & PROP2D_OPTBIT_ADDITIVE_BLEND) ) changes |= CHANGED_ADDITIVE_BLEND;
     return changes;    
 }
@@ -152,6 +164,7 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
     std::unordered_map<int,Texture*> texmap;
     std::unordered_map<int,TileDeck*> tdmap;
     std::unordered_map<int,Font*> fontmap;
+    std::unordered_map<int,ColorReplacerShader*> crsmap;
     
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
         Group *grp = target_moyai->getGroupByIndex(i);
@@ -168,6 +181,12 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
                         imgmap[p->deck->tex->image->id] = p->deck->tex->image;
                     }
                 }
+            }
+            if(p->fragment_shader) {
+                ColorReplacerShader *crs = dynamic_cast<ColorReplacerShader*>(p->fragment_shader); // TODO: avoid using dyncast..
+                if(crs) {
+                    crsmap[crs->id] = crs;
+                }                
             }
             for(int i=0;i<p->grid_used_num;i++) {
                 Grid *g = p->grids[i];
@@ -229,6 +248,13 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
         outco->sendUS1UI1Wstr( PACKETTYPE_S2C_FONT_CHARCODES, f->id, f->charcode_table, f->charcode_table_used_num );
         outco->sendFile( f->last_load_file_path );
         outco->sendUS1UI2Str( PACKETTYPE_S2C_FONT_LOADTTF, f->id, f->pixel_size, f->last_load_file_path );
+    }
+    for( std::unordered_map<int,ColorReplacerShader*>::iterator it = crsmap.begin(); it != crsmap.end(); ++it ) {
+        ColorReplacerShader *crs = it->second;
+        print("sending col repl shader id:%d", crs->id );
+        PacketColorReplacerShaderSnapshot ss;
+        setupPacketColorReplacerShaderSnapshot(&ss,crs);
+        outco->sendUS1Bytes( PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT, (const char*)&ss, sizeof(ss) );        
     }
 }
 
@@ -530,5 +556,49 @@ void TrackerTextBox::broadcastDiff( Listener *listener, bool force ) {
         pc.b = target_tb->color.b;
         pc.a = target_tb->color.a;        
         listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_TEXTBOX_COLOR, target_tb->id, (const char*)&pc, sizeof(pc) );            
+    }
+}
+
+//////////////
+
+TrackerColorReplacerShader::~TrackerColorReplacerShader() {
+}
+void TrackerColorReplacerShader::scanShader() {
+    PacketColorReplacerShaderSnapshot *out = &pktbuf[cur_buffer_index];
+    out->epsilon = target_shader->epsilon;
+    copyColorToPacketColor( &out->from_color, &target_shader->from_color );
+    copyColorToPacketColor( &out->to_color, &target_shader->to_color );
+}
+void TrackerColorReplacerShader::flipCurrentBuffer() {
+    cur_buffer_index = ( cur_buffer_index == 0 ? 1 : 0 );            
+}
+bool TrackerColorReplacerShader::checkDiff() {
+    PacketColorReplacerShaderSnapshot *curpkt, *prevpkt;
+    if(cur_buffer_index==0) {
+        curpkt = &pktbuf[0];
+        prevpkt = &pktbuf[1];
+    } else {
+        curpkt = &pktbuf[1];
+        prevpkt = &pktbuf[0];        
+    }
+    if( ( curpkt->epsilon != prevpkt->epsilon ) ||
+        ( curpkt->from_color.r != prevpkt->from_color.r ) ||
+        ( curpkt->from_color.g != prevpkt->from_color.g ) ||
+        ( curpkt->from_color.b != prevpkt->from_color.b ) ||
+        ( curpkt->from_color.a != prevpkt->from_color.a ) ||        
+        ( curpkt->to_color.r != prevpkt->to_color.r ) ||
+        ( curpkt->to_color.g != prevpkt->to_color.g ) ||
+        ( curpkt->to_color.b != prevpkt->to_color.b ) ||
+        ( curpkt->to_color.a != prevpkt->to_color.a ) ) {        
+        return true;
+    } else {
+        return false;
+    }
+}
+void TrackerColorReplacerShader::broadcastDiff( Listener *listener, bool force ) {
+    if( checkDiff() || force ) {
+        PacketColorReplacerShaderSnapshot pkt;
+        setupPacketColorReplacerShaderSnapshot( &pkt, target_shader );
+        listener->broadcastUS1Bytes( PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT, (const char*)&pkt, sizeof(pkt) );
     }
 }

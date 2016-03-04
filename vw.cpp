@@ -19,6 +19,7 @@ ObjectPool<Prop2D> g_prop2d_pool;
 ObjectPool<Grid> g_grid_pool;
 ObjectPool<TextBox> g_textbox_pool;
 ObjectPool<Font> g_font_pool;
+ObjectPool<ColorReplacerShader> g_crshader_pool;
 
 MoyaiClient *g_moyai_client;        
 Network *g_nw;
@@ -154,6 +155,15 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             Color col( pkt.color.r, pkt.color.g, pkt.color.b, pkt.color.a );
             prop->setColor(col);
             prop->use_additive_blend = pkt.optbits & PROP2D_OPTBIT_ADDITIVE_BLEND;
+            if(pkt.shader_id != 0 ) {
+                // TODO: now moyai only has color replacer shader.
+                ColorReplacerShader *crs = g_crshader_pool.get(pkt.shader_id);
+                if(crs) {
+                    prop->setFragmentShader(crs);
+                } else {
+                    print("  colorreplacershader %d not found", pkt.shader_id);
+                }
+            }
         }
 
         break;
@@ -613,6 +623,28 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             assert(res);            
         }
         break;
+    case PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT:
+        {
+            uint32_t pktsize = get_u32(argdata+0);
+            assert(pktsize == sizeof(PacketColorReplacerShaderSnapshot));
+            PacketColorReplacerShaderSnapshot pkt;
+            memcpy(&pkt, argdata+4, sizeof(pkt) );
+            print("crs ss id:%d", pkt.shader_id );
+            ColorReplacerShader *s = g_crshader_pool.get(pkt.shader_id);
+            if(!s) {
+                print("  crs new..");
+                s = g_crshader_pool.ensure(pkt.shader_id);
+            }
+            if( !s->init() ) {
+                assertmsg(false, "shader %d init failed, fatal", pkt.shader_id);
+            }
+            Color fromcol, tocol;
+            copyPacketColorToColor( &fromcol, &pkt.from_color);
+            copyPacketColorToColor( &tocol, &pkt.to_color);
+            s->setColor( fromcol, tocol, pkt.epsilon);
+        }
+        break;
+        
     default:
         print("unhandled packet type:%d", funcid );
         break;

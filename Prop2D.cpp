@@ -390,4 +390,12 @@ void Prop2D::onTrack( RemoteHead *rh ) {
         g->tracker->broadcastDiff(this,rh->listener, false );
         g->tracker->flipCurrentBuffer();
     }
+
+    // shader
+    if(fragment_shader) {
+        ColorReplacerShader *crs = dynamic_cast<ColorReplacerShader*>(fragment_shader);
+        if(crs) {
+            crs->onTrack(rh);
+        }
+    }
 }

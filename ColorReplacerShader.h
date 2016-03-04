@@ -1,14 +1,18 @@
 #pragma once
 
-#include "FragmentShader.h"
 #include "common.h"
+#include "FragmentShader.h"
 
+
+class TrackerColorReplacerShader;
+class RemoteHead;
 class ColorReplacerShader : public FragmentShader {
 public:
 	float epsilon;
 	Color from_color;
 	Color to_color;
-	ColorReplacerShader() : epsilon(0), from_color(0,0,0,0), to_color(0,0,0,0){};
+    TrackerColorReplacerShader *tracker;
+	ColorReplacerShader() : epsilon(0), from_color(0,0,0,0), to_color(0,0,0,0), tracker(0) {};
 	bool init();
 	void setColor( Color from, Color to, float eps ) {
 		epsilon = eps;
@@ -16,4 +20,5 @@ public:
 		from_color = from;
 	}
 	virtual void updateUniforms();
+    virtual void onTrack( RemoteHead *rh );    
 };
