@@ -398,4 +398,9 @@ void Prop2D::onTrack( RemoteHead *rh ) {
             crs->onTrack(rh);
         }
     }
+
+    // prims
+    if( prim_drawer ) {
+        prim_drawer->onTrack(this,rh);
+    }
 }

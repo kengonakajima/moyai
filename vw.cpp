@@ -20,6 +20,7 @@ ObjectPool<Grid> g_grid_pool;
 ObjectPool<TextBox> g_textbox_pool;
 ObjectPool<Font> g_font_pool;
 ObjectPool<ColorReplacerShader> g_crshader_pool;
+ObjectPool<Prim> g_prim_pool;
 
 MoyaiClient *g_moyai_client;        
 Network *g_nw;
@@ -629,7 +630,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             assert(pktsize == sizeof(PacketColorReplacerShaderSnapshot));
             PacketColorReplacerShaderSnapshot pkt;
             memcpy(&pkt, argdata+4, sizeof(pkt) );
-            print("crs ss id:%d", pkt.shader_id );
+            //            print("crs ss id:%d", pkt.shader_id );
             ColorReplacerShader *s = g_crshader_pool.get(pkt.shader_id);
             if(!s) {
                 print("  crs new..");
@@ -642,6 +643,47 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             copyPacketColorToColor( &fromcol, &pkt.from_color);
             copyPacketColorToColor( &tocol, &pkt.to_color);
             s->setColor( fromcol, tocol, pkt.epsilon);
+        }
+        break;
+
+    case PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT:
+        {
+            uint32_t pktsize = get_u32(argdata+0);
+            int pktnum = pktsize / sizeof(PacketPrim);
+            assert( pktsize % sizeof(PacketPrim) == 0 );
+            
+            //            print("prim bulk. pktsize:%d num:%d",pktsize, pktnum );
+            for(int i=0;i<pktnum;i++){
+                PacketPrim *pkt = & ((PacketPrim*)(argdata+4))[i];
+                Prim *prim = g_prim_pool.ensure( pkt->prim_id );
+                prim->type = (PRIMTYPE) pkt->prim_type;
+                prim->a.x = pkt->a.x;
+                prim->a.y = pkt->a.y;
+                prim->b.x = pkt->b.x;
+                prim->b.y = pkt->b.y;
+                copyPacketColorToColor( &prim->color, &pkt->color );
+                prim->line_width = pkt->line_width;
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PRIM_PROP2D:
+        {
+            uint32_t prim_id = get_u32(argdata+0);
+            uint32_t prop_id = get_u32(argdata+4);
+            //            print("prim:%d to prop:%d ", prim_id, prop_id );
+            Prop2D *prop = g_prop2d_pool.get(prop_id);
+            if(!prop) {
+                print("  prop not found");
+                break;
+            }
+            Prim *prim = g_prim_pool.get(prim_id);
+            if(!prim) {
+                print("  prim %d not found", prim_id);
+                break;
+            }
+            prop->ensurePrimDrawer();
+            prop->prim_drawer->ensurePrim(prim);
+            
         }
         break;
         

@@ -602,3 +602,87 @@ void TrackerColorReplacerShader::broadcastDiff( Listener *listener, bool force )
         listener->broadcastUS1Bytes( PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT, (const char*)&pkt, sizeof(pkt) );
     }
 }
+//////////////////
+TrackerPrimDrawer::~TrackerPrimDrawer() {
+    if( pktbuf[0] ) FREE(pktbuf[0]);
+    if( pktbuf[1] ) FREE(pktbuf[1]);
+}
+void TrackerPrimDrawer::flipCurrentBuffer() {
+    cur_buffer_index = ( cur_buffer_index == 0 ? 1 : 0 );                
+}
+void TrackerPrimDrawer::scanPrimDrawer() {
+    // ensure buffer
+    if( pktnum[cur_buffer_index] < target_pd->prim_num ) {
+        if( pktbuf[cur_buffer_index] ) {
+            FREE( pktbuf[cur_buffer_index] );
+        } else {
+            pktbuf[cur_buffer_index] = (PacketPrim*) MALLOC( target_pd->prim_num * sizeof(PacketPrim) );
+        }
+        pktnum[cur_buffer_index] = target_pd->prim_num;
+    }
+
+    // scan
+    for(int i=0;i<pktnum[cur_buffer_index];i++){
+        PacketPrim *outpkt = &pktbuf[cur_buffer_index][i];
+        Prim *srcprim = target_pd->prims[i];
+        outpkt->prim_id = srcprim->id;
+        outpkt->prim_type = srcprim->type;
+        outpkt->a.x = srcprim->a.x;
+        outpkt->a.y = srcprim->a.y;
+        outpkt->b.x = srcprim->b.x;
+        outpkt->b.y = srcprim->b.y;
+        copyColorToPacketColor( &outpkt->color, &srcprim->color );
+        outpkt->line_width = srcprim->line_width;
+    }
+}
+bool TrackerPrimDrawer::checkDiff() {
+    PacketPrim *curary, *prevary;
+    int curnum, prevnum;
+    if(cur_buffer_index==0) {
+        curary = pktbuf[0];
+        curnum = pktnum[0];
+        prevary = pktbuf[1];
+        prevnum = pktnum[1];
+    } else {
+        curary = pktbuf[1];
+        curnum = pktnum[1];        
+        prevary = pktbuf[0];
+        prevnum = pktnum[0];        
+    }
+
+    if( prevnum != curnum ) return true;
+
+    for(int i=0;i<curnum;i++ ) {
+        PacketPrim *curpkt = &curary[i];
+        PacketPrim *prevpkt = &prevary[i];
+        if( ( curpkt->prim_id != prevpkt->prim_id ) ||
+            ( curpkt->prim_type != prevpkt->prim_type ) ||
+            ( curpkt->a.x != prevpkt->a.x ) ||
+            ( curpkt->a.y != prevpkt->a.y ) ||
+            ( curpkt->b.x != prevpkt->b.x ) ||
+            ( curpkt->b.y != prevpkt->b.y ) ||            
+            ( curpkt->color.r != prevpkt->color.r ) ||
+            ( curpkt->color.g != prevpkt->color.g ) ||
+            ( curpkt->color.b != prevpkt->color.b ) ||
+            ( curpkt->color.a != prevpkt->color.a ) ||
+            ( curpkt->line_width != prevpkt->line_width ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+void TrackerPrimDrawer::broadcastDiff( Prop2D *owner, Listener *listener, bool force ) {
+    if( checkDiff() || force ) {
+        if( pktnum[cur_buffer_index] > 0 ) {
+            //            print("sending %d prims for prop %d", pktnum[cur_buffer_index], owner->id );
+            listener->broadcastUS1Bytes( PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT,
+                                         (const char*) pktbuf[cur_buffer_index],
+                                         pktnum[cur_buffer_index] * sizeof(PacketPrim) );
+            // TODO: need refactor: please kill this loop!
+            for(int i=0;i<pktnum[cur_buffer_index];i++) {
+                //                print("  prim:%d prop:%d", pktbuf[cur_buffer_index][i].prim_id, owner->id );
+                listener->broadcastUS1UI2( PACKETTYPE_S2C_PRIM_PROP2D, pktbuf[cur_buffer_index][i].prim_id, owner->id );
+            }
+        }
+    }
+}

@@ -66,3 +66,23 @@ void PrimDrawer::clear(){
     prim_num = 0;
     prim_max = 0;
 }
+void PrimDrawer::onTrack( Prop2D *owner, RemoteHead *rh ) {
+    if(!tracker) {
+        tracker = new TrackerPrimDrawer(rh,this);
+    }
+    tracker->scanPrimDrawer();
+    tracker->broadcastDiff(owner,rh->listener, false );
+    tracker->flipCurrentBuffer();        
+}
+
+// 
+void PrimDrawer::ensurePrim( Prim *p ) {
+    Prim *existing = getPrimById(p->id);
+    if(existing) return;
+    addPrim(p);
+}
+void PrimDrawer::addPrim( Prim *p ) {
+    ensurePrims();
+    assertmsg( prim_num <= prim_max, "too many prims" );
+    prims[prim_num++] = p;        
+}
