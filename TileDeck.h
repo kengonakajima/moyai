@@ -34,6 +34,7 @@ public:
     inline float getUperCell() { return (float) cell_width / (float) image_width; }
     inline float getVperCell() { return (float) cell_height / (float) image_height; }    
 	inline void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
+        assert( image_width > 0 && image_height > 0 );
 		float uunit = (float) cell_width / (float) image_width;
 		float vunit = (float) cell_height / (float) image_height;
 		int start_x = cell_width * (int)( ind % tile_width );

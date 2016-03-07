@@ -33,6 +33,20 @@ Layer *g_debug_layer;
 Font *g_debug_font;
 TextBox *g_debug_tb;
 
+///////////////
+
+// debug funcs
+Prop2D *findProp2DByTexture( uint32_t tex_id ) {
+    for( std::unordered_map<unsigned int,Prop2D*>::iterator it = g_prop2d_pool.idmap.begin(); it != g_prop2d_pool.idmap.end(); ++it ) {
+        Prop2D *p =  it->second;
+        if( p->deck && p->deck->tex && p->deck->tex->id == tex_id ) {
+            return p;
+        }
+    }
+    return NULL;
+}
+
+///////////////
 
 File::File( const char *inpath, const char *indata, size_t indata_len ) {
     strncpy( path, inpath, sizeof(path) );
@@ -276,7 +290,24 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         {
             unsigned int tex_id = get_u32(argdata);
             unsigned int img_id = get_u32(argdata+4);
-            print("received texture_image. tex:%d img:%d", tex_id, img_id );
+            //            print("received texture_image. tex:%d img:%d", tex_id, img_id );
+#if 0
+
+            {
+                Prop2D *p = findProp2DByTexture(tex_id);
+                if(p) {
+                    p->debug_id = 111;
+                    print("  deck info: %d,%d,%d,%d  ind:%d scl:%f,%f",
+                          p->deck->cell_width, p->deck->cell_height, p->deck->tile_width, p->deck->tile_height,
+                          p->index, p->scl.x, p->scl.y
+                          );
+                } else {
+                    print("  deck not found for prop, tex_id:%d ", tex_id );
+                }
+            }
+              
+            
+#endif            
             Texture *tex = g_texture_pool.get(tex_id);
             assert(tex);
             Image *img = g_image_pool.get(img_id);
@@ -312,7 +343,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
     case PACKETTYPE_S2C_TILEDECK_CREATE:
         {
             unsigned int dk_id = get_u32(argdata);
-            print("received tiledeck_create. id:%d", dk_id);
+            //            print("received tiledeck_create. id:%d", dk_id);
             TileDeck *dk = g_tiledeck_pool.ensure(dk_id);
             assert(dk);
         }
@@ -321,7 +352,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         {
             unsigned int dk_id = get_u32(argdata);
             unsigned int tex_id = get_u32(argdata+4);
-            print("received tiledeck_texture. dk:%d tex:%d", dk_id, tex_id );
+            //            print("received tiledeck_texture. dk:%d tex:%d", dk_id, tex_id );
             
             TileDeck *dk = g_tiledeck_pool.get(dk_id);
             assert(dk);
@@ -693,7 +724,45 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             
         }            
         break;
-        
+    case PACKETTYPE_S2C_IMAGE_ENSURE_SIZE: // for dynamic images
+        {
+            uint32_t img_id = get_u32(argdata+0);
+            uint32_t w = get_u32(argdata+4);
+            uint32_t h = get_u32(argdata+8);
+            //            print("image_ensure_size. id:%d w:%d h:%d", img_id, w, h);
+            Image *img = g_image_pool.get(img_id);
+            if(!img) {
+                print("  image not found. id:%d", img_id);
+                break;
+            }
+            if( img->buffer ) {
+                assertmsg( img->width == w && img->height == h, "dynamic image size is not implemented" );
+            } else {
+                print("  ensuring image buffer %d %d %d", img_id, w, h );
+                img->setSize(w,h);
+                img->ensureBuffer();
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_IMAGE_RAW: // for dynamic images
+        {
+            uint32_t img_id = get_u32(argdata+0);
+            uint32_t data_size = get_u32(argdata+4);
+            
+            //            print("image_raw. id:%d datasz:%d", img_id, data_size );
+            Image *img = g_image_pool.get(img_id);
+            if(!img) {
+                print("  image not found:%d",img_id);
+                break;
+            }
+            assertmsg( img->getBufferSize() == data_size, "dynamic image size is not implemented. local:%d pkt:%d", img->getBufferSize(), data_size);
+
+            uint8_t *data = (uint8_t*)( argdata+8);
+            //            ::dump( (const char*) data, 256 );            
+            img->setAreaRaw( 0, 0, img->width, img->height, data, img->getBufferSize() );
+            //            img->writePNG("./ppo.png");            
+        }
+        break;
     default:
         print("unhandled packet type:%d", funcid );
         break;

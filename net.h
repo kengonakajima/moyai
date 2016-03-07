@@ -74,7 +74,7 @@ public:
     // send funcs
     int sendUS1( uint16_t usval );
     int sendUS1Bytes( uint16_t usval, const char *buf, uint16_t datalen );
-    int sendUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *buf, uint16_t datalen );
+    int sendUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *buf, uint32_t datalen );
     int sendUS1UI1( uint16_t usval, uint32_t ui0 );
     int sendUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );    
     int sendUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );    

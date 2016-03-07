@@ -526,7 +526,7 @@ int Conn::sendUS1Bytes( uint16_t usval, const char *buf, uint16_t buflen ) {
     ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
-int Conn::sendUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *buf, uint16_t buflen ) {
+int Conn::sendUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *buf, uint32_t buflen ) {
     size_t totalsize = 4 + 2 + 4 + (4+buflen);
     if( getSendbufRoom() < totalsize ) return 0;
     sendbuf.pushU32( totalsize - 4 ); // record-len

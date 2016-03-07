@@ -9,7 +9,6 @@
 
 #include "client.h"
 
-
 MoyaiClient *g_moyai_client;
 Viewport *g_viewport;
 Layer *g_main_layer;
@@ -550,7 +549,7 @@ void gameInit( bool headless_mode ) {
     g_bgm_sound = g_sound_system->newBGM( "./assets/gymno1_1min.wav" );
     g_bgm_sound->play(); // stop this later
     {
-        float samples[44100];
+        float samples[44100/4];
         for(int i=0;i<elementof(samples);i++) samples[i] = cos( (float)(i) / 20.0f );
         g_mem_sound = g_sound_system->newSoundFromMemory( samples, elementof(samples) );
     }

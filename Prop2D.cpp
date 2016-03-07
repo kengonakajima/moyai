@@ -403,4 +403,9 @@ void Prop2D::onTrack( RemoteHead *rh ) {
     if( prim_drawer ) {
         prim_drawer->onTrack(this,rh);
     }
+
+    // dynamic image
+    if( deck && deck->tex && deck->tex->image ) {
+        deck->tex->image->onTrack( deck, rh );        
+    }
 }

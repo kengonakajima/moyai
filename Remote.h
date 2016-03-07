@@ -87,6 +87,11 @@ public:
     
 };
 class Prop2D;
+class MoyaiClient;
+class Grid;
+class ColorReplacerShader;
+class PrimDrawer;
+
 class RemoteHead {
 public:
     int tcp_port;
@@ -145,6 +150,8 @@ typedef enum {
     PACKETTYPE_S2C_TEXTURE_IMAGE = 451,
     PACKETTYPE_S2C_IMAGE_CREATE = 460,
     PACKETTYPE_S2C_IMAGE_LOAD_PNG = 461,
+    PACKETTYPE_S2C_IMAGE_ENSURE_SIZE = 464,
+    PACKETTYPE_S2C_IMAGE_RAW = 465,
     
     PACKETTYPE_S2C_TILEDECK_CREATE = 470,
     PACKETTYPE_S2C_TILEDECK_TEXTURE = 471,
@@ -269,5 +276,21 @@ public:
     bool checkDiff();
     void broadcastDiff( Prop2D *owner, Listener *listener, bool force );
 };
+
+class TrackerImage {
+public:
+    Image *target_image;
+    uint8_t *imgbuf[2];
+    int cur_buffer_index;
+    RemoteHead *parent_rh;
+    TrackerImage( RemoteHead *rh, Image *target );
+    ~TrackerImage();
+    void scanImage();
+    void flipCurrentBuffer();
+    bool checkDiff();
+    void broadcastDiff( TileDeck *owner_dk, Listener *listener, bool force );
+
+};
+
 
 #endif

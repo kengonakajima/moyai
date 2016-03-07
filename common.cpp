@@ -3,6 +3,8 @@
 #define LODEPNG_COMPILE_ERROR_TEXT
 #include "lodepng.h"
 
+#include "Remote.h"
+
 int Prop::idgen = 1;
 int Group::idgen = 1;
 int Image::idgen = 1;
@@ -183,7 +185,7 @@ void Image::setSize(int w, int h ) {
 }    
 void Image::ensureBuffer() {
     if(!buffer){
-        size_t sz = width*height*4;
+        size_t sz = getBufferSize();
         buffer = (unsigned char*) MALLOC(sz);
         assert(buffer);
         memset(buffer, 0, sz );
@@ -466,4 +468,13 @@ void Image::fillBoxLeftBottom( Color c, int draw_width, int draw_height ) {
             setPixel(x,y,c);
         }
     }
+}
+
+void Image::onTrack( TileDeck *owner_dk, RemoteHead *rh ) {
+    if(!tracker) {
+        tracker = new TrackerImage(rh,this);
+    }
+    tracker->scanImage();
+    tracker->broadcastDiff( owner_dk, rh->listener, false );
+    tracker->flipCurrentBuffer();
 }

@@ -225,6 +225,10 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
             print("sending image_load_png: '%s'", img->last_load_file_path );
             outco->sendUS1UI1Str( PACKETTYPE_S2C_IMAGE_LOAD_PNG, img->id, img->last_load_file_path );                
         }
+        if( img->width>0 && img->buffer) {
+            // this image is not from file, maybe generated.
+            outco->sendUS1UI3( PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, img->id, img->width, img->height );            
+        }
     }
     for( std::unordered_map<int,Texture*>::iterator it = texmap.begin(); it != texmap.end(); ++it ) {
         Texture *tex = it->second;
@@ -685,5 +689,50 @@ void TrackerPrimDrawer::broadcastDiff( Prop2D *owner, Listener *listener, bool f
                                          (const char*) pktbuf[cur_buffer_index],
                                          pktnum[cur_buffer_index] * sizeof(PacketPrim) );
         }
+    }
+}
+//////////////////
+
+TrackerImage::TrackerImage( RemoteHead *rh, Image *target ) : target_image(target), cur_buffer_index(0), parent_rh(rh) {
+    size_t sz = target->getBufferSize();
+    for(int i=0;i<2;i++) {
+        imgbuf[i] = (uint8_t*) MALLOC(sz);
+        assert(imgbuf[i]);
+    }
+}
+TrackerImage::~TrackerImage() {
+    for(int i=0;i<2;i++) if( imgbuf[i] ) FREE(imgbuf[i]);
+}
+void TrackerImage::scanImage() {
+    uint8_t *dest = imgbuf[cur_buffer_index];
+    memcpy( dest, target_image->buffer, target_image->getBufferSize() );
+}
+void TrackerImage::flipCurrentBuffer() {
+    cur_buffer_index = ( cur_buffer_index == 0 ? 1 : 0 );
+}
+bool TrackerImage::checkDiff() {
+    uint8_t *curimg, *previmg;
+    if( cur_buffer_index==0) {
+        curimg = imgbuf[0];
+        previmg = imgbuf[1];
+    } else {
+        curimg = imgbuf[1];
+        previmg = imgbuf[0];
+    }
+    if( memcmp( curimg, previmg, target_image->getBufferSize() ) != 0 ) {
+        return true;
+    } else {
+        return false;
+    }
+}
+void TrackerImage::broadcastDiff( TileDeck *owner_dk, Listener *listener, bool force ) {
+    if( checkDiff() || force ) {
+        //        print("TrackerImage::broadcastDiff bufsz:%d", target_image->getBufferSize() );
+        listener->broadcastUS1UI3( PACKETTYPE_S2C_IMAGE_ENSURE_SIZE,
+                                   target_image->id, target_image->width, target_image->height );
+        listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_IMAGE_RAW,
+                                        target_image->id, (const char*) imgbuf[cur_buffer_index], target_image->getBufferSize() );
+        listener->broadcastUS1UI2( PACKETTYPE_S2C_TEXTURE_IMAGE, owner_dk->tex->id, target_image->id );
+        listener->broadcastUS1UI2( PACKETTYPE_S2C_TILEDECK_TEXTURE, owner_dk->id, owner_dk->tex->id ); // to update tileeck's image_width/height
     }
 }
