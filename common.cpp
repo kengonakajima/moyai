@@ -277,12 +277,24 @@ void Image::setPixelRaw( int x, int y, unsigned char r,  unsigned char g,  unsig
     }
 }
 
+// Copied original from SOIL: Jonathan Dummer, 2007-07-26-10.36
 static void multiplyAlphaRGBA( unsigned char *img, int width, int height) {
     for(int i=0;i<4*width*height;i+=4) {
-        // Copied from SOIL: Jonathan Dummer, 2007-07-26-10.36
-        img[i+0] = (img[i+0] * img[i+3] + 128) >> 8;                                                                                       
-        img[i+1] = (img[i+1] * img[i+3] + 128) >> 8;                                                                                       
-        img[i+2] = (img[i+2] * img[i+3] + 128) >> 8;          
+        if( img[i+0] == 0xff && img[i+3] == 0xff ) {
+            img[i+0] = 0xff;
+        } else {
+            img[i+0] = (img[i+0] * img[i+3] + 128) >> 8;
+        }
+        if( img[i+1] == 0xff && img[i+3] == 0xff ) {
+            img[i+1] = 0xff;
+        } else {
+            img[i+1] = (img[i+1] * img[i+3] + 128) >> 8;
+        }
+        if( img[i+1] == 0xff && img[i+3] == 0xff ) {
+            img[i+2] = 0xff;
+        } else {
+            img[i+2] = (img[i+2] * img[i+3] + 128) >> 8;
+        }        
     }
 }
 
@@ -310,7 +322,21 @@ bool Image::loadPNG( const char *path, bool multiply_color_by_alpha ) {
     width = w;
     height = h;
 
+    if( w==8 && h == 8 ) {
+        for(int y=0;y<h;y++) {
+            for(int x=0;x<w;x++) prt("%02x ", image_data[(x+y*w)*4] );
+            print("");
+        }
+    }
     if( multiply_color_by_alpha ) multiplyAlphaRGBA(image_data,width,height);
+
+    print("=");
+    if( w==8 && h == 8 ) {
+        for(int y=0;y<h;y++) {
+            for(int x=0;x<w;x++) prt("%02x ", image_data[(x+y*w)*4] );
+            print("");
+        }
+    }
     
     ensureBuffer();
 #define IMAGE_BUFFER_COPY \
