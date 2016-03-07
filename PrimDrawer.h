@@ -27,4 +27,5 @@ public:
     void onTrack( Prop2D *owner, RemoteHead *rh );
     void ensurePrim( Prim *p );
     void addPrim( Prim *p );
+    void deletePrim( int prim_id );
 };

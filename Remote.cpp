@@ -612,16 +612,20 @@ void TrackerPrimDrawer::flipCurrentBuffer() {
 }
 void TrackerPrimDrawer::scanPrimDrawer() {
     // ensure buffer
-    if( pktnum[cur_buffer_index] < target_pd->prim_num ) {
+    if( pktmax[cur_buffer_index] < target_pd->prim_num ) {
         if( pktbuf[cur_buffer_index] ) {
+            print("free buf:%d", cur_buffer_index );
             FREE( pktbuf[cur_buffer_index] );
-        } else {
-            pktbuf[cur_buffer_index] = (PacketPrim*) MALLOC( target_pd->prim_num * sizeof(PacketPrim) );
         }
-        pktnum[cur_buffer_index] = target_pd->prim_num;
+        
+        size_t sz = target_pd->prim_num * sizeof(PacketPrim);
+        pktbuf[cur_buffer_index] = (PacketPrim*) MALLOC(sz);
+        pktmax[cur_buffer_index] = target_pd->prim_num;
+        print( "scanPrimDrawer: malloc buf:%d pktmax:%d sz:%d", cur_buffer_index, pktmax[cur_buffer_index], sz);
     }
-
+    // 
     // scan
+    pktnum[cur_buffer_index] = target_pd->prim_num;
     for(int i=0;i<pktnum[cur_buffer_index];i++){
         PacketPrim *outpkt = &pktbuf[cur_buffer_index][i];
         Prim *srcprim = target_pd->prims[i];
@@ -675,14 +679,11 @@ void TrackerPrimDrawer::broadcastDiff( Prop2D *owner, Listener *listener, bool f
     if( checkDiff() || force ) {
         if( pktnum[cur_buffer_index] > 0 ) {
             //            print("sending %d prims for prop %d", pktnum[cur_buffer_index], owner->id );
-            listener->broadcastUS1Bytes( PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT,
+            //            for(int i=0;i<pktnum[cur_buffer_index];i++) print("#### primid:%d", pktbuf[cur_buffer_index][i].prim_id );
+            listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT,
+                                         owner->id,
                                          (const char*) pktbuf[cur_buffer_index],
                                          pktnum[cur_buffer_index] * sizeof(PacketPrim) );
-            // TODO: need refactor: please kill this loop!
-            for(int i=0;i<pktnum[cur_buffer_index];i++) {
-                //                print("  prim:%d prop:%d", pktbuf[cur_buffer_index][i].prim_id, owner->id );
-                listener->broadcastUS1UI2( PACKETTYPE_S2C_PRIM_PROP2D, pktbuf[cur_buffer_index][i].prim_id, owner->id );
-            }
         }
     }
 }

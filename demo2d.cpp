@@ -408,8 +408,32 @@ void gameUpdate(void) {
         g_bgm_sound->stop();
     }
 
+    // moving lines
     g_narrow_line_prim->a = Vec2(0,0);
     g_narrow_line_prim->b = Vec2(100, range(100,150));
+
+#if 1    
+    // add/del prims
+    {
+        static int ylcnt=0;
+        ylcnt++;
+        static int yellow_line_prim_id=0;
+        if( ylcnt%100 == 50 ){
+            Prim *yl = g_linep->addLine( Vec2(0,0), Vec2( -30, range(-30,-100)), Color(0,1,1,1), 3 );
+            if(yl) {
+                yellow_line_prim_id = yl->id;
+            }
+        }
+        if( ylcnt%100 == 99 ) {
+            if( yellow_line_prim_id > 0 ) {
+                Prim *yl = g_linep->getPrimById(yellow_line_prim_id);
+                if(yl) {
+                    g_linep->deletePrim(yl->id);
+                }
+            }
+        }
+    }
+#endif
     
     glfwPollEvents();        
 
@@ -777,6 +801,7 @@ void gameInit( bool headless_mode ) {
             unsigned char r,g,b,a;
             dragonimg->getPixelRaw( x,y, &r, &g, &b, &a );
             if( r == 255 && g == 255 && b == 255 && a == 255 ) {
+                print("setPixelRaw: %d,%d",x,y);
                 dragonimg->setPixelRaw( x,y, 255,0,0,255 );
             }
         }

@@ -143,7 +143,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             Prop2D *prop = g_prop2d_pool.get(pkt.prop_id);
             if(!prop) {
                 prop = g_prop2d_pool.ensure(pkt.prop_id);
-                print("new prop2d(snapshot): id:%d ptr:%p", pkt.prop_id, prop );
+                //                print("new prop2d(snapshot): id:%d ptr:%p", pkt.prop_id, prop );
                 layer->insertProp(prop);
             }
             if(dk) prop->setDeck(dk);
@@ -372,7 +372,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             uint32_t grid_id = get_u32(argdata);
             uint32_t w = get_u32(argdata+4);
             uint32_t h = get_u32(argdata+8);
-            print("grid_create. id:%d w:%d h:%d", grid_id, w, h );
+            //            print("grid_create. id:%d w:%d h:%d", grid_id, w, h );
             Grid *g = g_grid_pool.ensure( grid_id, w, h );
             assert(g);
         }
@@ -381,12 +381,12 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         {
             uint32_t grid_id = get_u32(argdata);
             uint32_t deck_id = get_u32(argdata+4);
-            print("grid_deck. id:%d tid:%d", grid_id, deck_id );
+            //            print("grid_deck. id:%d tid:%d", grid_id, deck_id );
             Grid *g = g_grid_pool.get(grid_id);
             if(g) {
                 TileDeck *td = g_tiledeck_pool.get(deck_id);
                 if(td) {
-                    print("grid_deck: td:%d found. %d,%d,%d,%d",deck_id, td->cell_width, td->cell_height, td->tile_width, td->tile_height );
+                    //                    print("grid_deck: td:%d found. %d,%d,%d,%d",deck_id, td->cell_width, td->cell_height, td->tile_width, td->tile_height );
                     g->setDeck(td);
                 } else {
                     print("grid_deck: can't find td:%d", deck_id);
@@ -400,7 +400,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         {
             uint32_t grid_id = get_u32(argdata);
             uint32_t prop_id = get_u32(argdata+4);
-            print("grid_prop2d: id:%d pid:%d", grid_id, prop_id );
+            //            print("grid_prop2d: id:%d pid:%d", grid_id, prop_id );
             Grid *g = g_grid_pool.get(grid_id);
             Prop2D *p = g_prop2d_pool.get(prop_id);
             if( g && p ) {
@@ -414,17 +414,15 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
     case PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT:        
         {
             uint32_t grid_id = get_u32(argdata);            
-            print("grid_tbl_*_ss: id:%d funcid:%d", grid_id, funcid );
+            //            print("grid_tbl_*_ss: id:%d funcid:%d", grid_id, funcid );
             Grid *g = g_grid_pool.get(grid_id);
             if(g) {
-                uint32_t bufsize = get_u32(argdata+4);
-                print("  grid %d found, w:%d h:%d l:%d bufsz:%d", grid_id, g->width, g->height, argdatalen, bufsize );
+                //                uint32_t bufsize = get_u32(argdata+4);
+                //                print("  grid %d found, w:%d h:%d l:%d bufsz:%d", grid_id, g->width, g->height, argdatalen, bufsize );
                 if( funcid == PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT ) {
-                    print("  applying index table");
                     int32_t *inds = (int32_t*)(argdata+8);
                     g->bulkSetIndex(inds);
                 } else if( funcid == PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT ) {
-                    print("  applying color table");
                     PacketColor *cols = (PacketColor*)(argdata+8);
                     int n = (argdatalen-4)/sizeof(PacketColor);
                     for(int i=0;i<n;i++) {
@@ -446,7 +444,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
     case PACKETTYPE_S2C_GRID_DELETE:
         {
             uint32_t grid_id = get_u32(argdata);
-            print("grid_del: id:%d", grid_id);
+            //            print("grid_del: id:%d", grid_id);
             g_grid_pool.del(grid_id);
         }
         break;
@@ -464,17 +462,15 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             //                print("ALREADY tb.%d par:%p", tb_id, hogetb->getParentLayer() );
             //                break;
             //            }
-            TextBox *tb = g_textbox_pool.ensure(tb_id);
-            print("tb_creat id:%d ptr:%p par:%p", tb_id, tb, tb->getParentLayer() );
-
-
+            g_textbox_pool.ensure(tb_id);
+            //            print("tb_creat id:%d ptr:%p par:%p", tb_id, tb, tb->getParentLayer() );
         }
         break;
     case PACKETTYPE_S2C_TEXTBOX_FONT:
         {
             uint32_t tb_id = get_u32(argdata);
             uint32_t font_id = get_u32(argdata+4);
-            print("tb_font id:%d fid:%d", tb_id, font_id );
+            //            print("tb_font id:%d fid:%d", tb_id, font_id );
             TextBox *tb = g_textbox_pool.get(tb_id);
             if(!tb) {
                 print("tb_font: tb %d not found", tb_id);
@@ -502,7 +498,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             assert(tmpbuf);
             memcpy(tmpbuf, str_utf8, bufsz );
             tmpbuf[bufsz] = '\0';
-            print("tb_str. tb:%d bufsz:%d s:'%s'", tb_id, bufsz, tmpbuf );
+            //            print("tb_str. tb:%d bufsz:%d s:'%s'", tb_id, bufsz, tmpbuf );
             tb->setString(tmpbuf);
         }
         break;
@@ -511,7 +507,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             uint32_t tb_id = get_u32(argdata);
             float x = get_f32(argdata+4);
             float y = get_f32(argdata+8);
-            print("tb %d loc:%f,%f",tb_id, x,y);
+            //            print("tb %d loc:%f,%f",tb_id, x,y);
             TextBox *tb = g_textbox_pool.get(tb_id);
             if(!tb) {
                 print("tb %d not found", tb_id);
@@ -525,7 +521,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             uint32_t tb_id = get_u32(argdata);
             float x = get_f32(argdata+4);
             float y = get_f32(argdata+8);
-            print("tb %d scl:%f,%f",tb_id, x,y);
+            //            print("tb %d scl:%f,%f",tb_id, x,y);
             TextBox *tb = g_textbox_pool.get(tb_id);
             if(!tb) {
                 print("tb %d not found", tb_id);
@@ -547,7 +543,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             }
             PacketColor *pc = (PacketColor*) pktdata;
             Color col( pc->r, pc->g, pc->b, pc->a );
-            print("tb %d color: %f %f %f %f par:%p", tb_id, col.r, col.g, col.b, col.a, tb->getParentLayer() );
+            //            print("tb %d color: %f %f %f %f par:%p", tb_id, col.r, col.g, col.b, col.a, tb->getParentLayer() );
             tb->setColor(col);
         }
         break;
@@ -561,10 +557,10 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
                 print("tb_layer tb:%d not found", tb_id);
                 break;
             }
-            print("tb_layer tb:%d l:%d par:%p", tb_id, layer_id, tb->getParentLayer() );
+            //            print("tb_layer tb:%d l:%d par:%p", tb_id, layer_id, tb->getParentLayer() );
             Layer *pl = tb->getParentLayer();
             if( pl ) {
-                print("  tb %d already has parent layer id:%d, argument:%d", tb_id, pl->id, layer_id );
+                //                print("  tb %d already has parent layer id:%d, argument:%d", tb_id, pl->id, layer_id );
                 break;
             } else {
                 l->insertProp(tb);
@@ -648,13 +644,22 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
 
     case PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT:
         {
-            uint32_t pktsize = get_u32(argdata+0);
+            uint32_t prop_id = get_u32(argdata+0);
+            uint32_t pktsize = get_u32(argdata+4);
             int pktnum = pktsize / sizeof(PacketPrim);
             assert( pktsize % sizeof(PacketPrim) == 0 );
+
+            Prop2D *prop = g_prop2d_pool.get(prop_id);
+            if(!prop) {
+                print("primbulk: can't find prop %d", prop_id );
+                break;
+            }
             
+            prop->ensurePrimDrawer();
+                
             //            print("prim bulk. pktsize:%d num:%d",pktsize, pktnum );
             for(int i=0;i<pktnum;i++){
-                PacketPrim *pkt = & ((PacketPrim*)(argdata+4))[i];
+                PacketPrim *pkt = & ((PacketPrim*)(argdata+8))[i];
                 Prim *prim = g_prim_pool.ensure( pkt->prim_id );
                 prim->type = (PRIMTYPE) pkt->prim_type;
                 prim->a.x = pkt->a.x;
@@ -663,28 +668,30 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
                 prim->b.y = pkt->b.y;
                 copyPacketColorToColor( &prim->color, &pkt->color );
                 prim->line_width = pkt->line_width;
+                prop->prim_drawer->ensurePrim(prim);                
             }
-        }
-        break;
-    case PACKETTYPE_S2C_PRIM_PROP2D:
-        {
-            uint32_t prim_id = get_u32(argdata+0);
-            uint32_t prop_id = get_u32(argdata+4);
-            //            print("prim:%d to prop:%d ", prim_id, prop_id );
-            Prop2D *prop = g_prop2d_pool.get(prop_id);
-            if(!prop) {
-                print("  prop not found");
-                break;
+
+            // check for deleted prims
+            if( prop->prim_drawer->prim_num > pktnum ) {
+                //                print( "primitive deleted? pkt:%d local:%d", pktnum, prop->prim_drawer->prim_num );
+                for(int i=0;i<prop->prim_drawer->prim_num;i++) {
+                    Prim *prim = prop->prim_drawer->prims[i];
+                    bool found = false;
+                    for(int j=0;j<pktnum;j++) {                        
+                        PacketPrim *pkt = & ((PacketPrim*)(argdata+8))[i];
+                        if( pkt->prim_id == prim->id ) {
+                            found = true;
+                        }
+                    }
+                    if(!found) {
+                        print("  local prim id:%d not found in bulk packet. deleting.", prim->id );
+                        prop->prim_drawer->deletePrim(prim->id);
+                    }
+                }
             }
-            Prim *prim = g_prim_pool.get(prim_id);
-            if(!prim) {
-                print("  prim %d not found", prim_id);
-                break;
-            }
-            prop->ensurePrimDrawer();
-            prop->prim_drawer->ensurePrim(prim);
             
-        }
+            
+        }            
         break;
         
     default:

@@ -294,4 +294,15 @@ public:
     }
 
     virtual void onTrack( RemoteHead *rh );
+
+    Prim *getPrimById( int prim_id ) {
+        if( prim_drawer ) {
+            return prim_drawer->getPrimById(prim_id);
+        } else {
+            return NULL;
+        }
+    }
+    void deletePrim( int prim_id ) {
+        if( prim_drawer ) prim_drawer->deletePrim(prim_id);
+    }
 };

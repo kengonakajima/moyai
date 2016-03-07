@@ -66,6 +66,26 @@ void PrimDrawer::clear(){
     prim_num = 0;
     prim_max = 0;
 }
+void PrimDrawer::deletePrim( int prim_id ) {
+    Prim *prim = getPrimById(prim_id);
+    if(!prim) return;
+    int found_index = -1;
+    for(int i=0;i<prim_num;i++) {
+        //        prt("PT:%d:ID:%d ", prims[i]->type, prims[i]->id );
+        if( prims[i]->id == prim_id ) {
+            delete prims[i];
+            found_index = i;
+            break;
+        }
+    }
+    //    print("found_index:%d prim_num:%d", found_index, prim_num );
+    assert( found_index >= 0 );
+    for(int i=found_index;i<prim_num-1;i++) {
+        prims[i] = prims[i+1];
+    }
+    prim_num--;
+    prims[prim_num] = NULL;
+}
 void PrimDrawer::onTrack( Prop2D *owner, RemoteHead *rh ) {
     if(!tracker) {
         tracker = new TrackerPrimDrawer(rh,this);

@@ -169,7 +169,6 @@ typedef enum {
 
     PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT = 600, //
     PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT = 610, // array of PacketPrim
-    PACKETTYPE_S2C_PRIM_PROP2D = 611, // prim_id, prop_id
     
     PACKETTYPE_S2C_FILE = 800, // send file body and path
 
@@ -256,11 +255,13 @@ public:
     PrimDrawer *target_pd;
     PacketPrim *pktbuf[2]; // Each points to an array of PacketPrim
     int pktnum[2];
+    int pktmax[2]; // malloced size
     int cur_buffer_index;
     RemoteHead *parent_rh;
     TrackerPrimDrawer( RemoteHead *rh, PrimDrawer *target )     : target_pd(target), cur_buffer_index(0), parent_rh(rh) {
         pktbuf[0] = pktbuf[1] = 0;
         pktnum[0] = pktnum[1] = 0;
+        pktmax[0] = pktmax[1] = 0;
     }
     ~TrackerPrimDrawer();
     void scanPrimDrawer();
