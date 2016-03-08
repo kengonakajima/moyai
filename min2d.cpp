@@ -90,12 +90,13 @@ int main(int argc, char **argv )
     
     if( headless_mode ) {
         Moyai::globalInitNetwork();
-        RemoteHead *rh = new RemoteHead( moyai_client );
+        RemoteHead *rh = new RemoteHead();
         if( rh->startServer(22222) == false ) {
             print("headless server: can't start server. port:%d", 22222 );
             exit(1);
         }
-        moyai_client->setRemoteHead(rh);        
+        moyai_client->setRemoteHead(rh);
+        rh->setTargetMoyaiClient(moyai_client);
     }
 
     Viewport *viewport = new Viewport();

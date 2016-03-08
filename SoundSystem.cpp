@@ -4,7 +4,7 @@
 #include "SoundSystem.h"
 #include "Sound.h"
 
-SoundSystem::SoundSystem()  : id_gen(1), sys(0) {
+SoundSystem::SoundSystem()  : id_gen(1), sys(0), remote_head(0) {
 	FMOD_RESULT r;
 	r = FMOD_System_Create(&sys);
 	FMOD_ERRCHECK(r);

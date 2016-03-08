@@ -12,11 +12,14 @@ inline void FMOD_ERRCHECK(FMOD_RESULT result){
 	}
 }
 
+class RemoteHead;
 class SoundSystem {
 public:
     int id_gen;
 	FMOD_SYSTEM *sys;
     Sound *sounds[1024];
+    RemoteHead *remote_head;
+    
 	SoundSystem();
 
 	Sound * newSE( const char *path ) { return newSE(path,1.0f); }
@@ -30,4 +33,6 @@ public:
 
     void append( Sound*s );
     Sound *getById( int id );
+
+    void setRemoteHead(RemoteHead*rh) { remote_head = rh; };
 };

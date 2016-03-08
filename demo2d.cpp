@@ -590,12 +590,15 @@ void gameInit( bool headless_mode ) {
     
     if( headless_mode ) {
         Moyai::globalInitNetwork();
-        g_rh = new RemoteHead( g_moyai_client );
+        g_rh = new RemoteHead();
         if( g_rh->startServer(HEADLESS_SERVER_PORT) == false ) {
             print("headless server: can't start server. port:%d", HEADLESS_SERVER_PORT );
             exit(1);
         }
         g_moyai_client->setRemoteHead(g_rh);
+        g_rh->setTargetMoyaiClient(g_moyai_client);
+        g_sound_system->setRemoteHead(g_rh);
+        g_rh->setTargetSoundSystem(g_sound_system);
     }    
 
     g_viewport = new Viewport();

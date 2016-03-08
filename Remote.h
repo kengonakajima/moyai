@@ -91,6 +91,7 @@ class MoyaiClient;
 class Grid;
 class ColorReplacerShader;
 class PrimDrawer;
+class SoundSystem;
 
 class RemoteHead {
 public:
@@ -98,8 +99,9 @@ public:
     Network *nw;
     HMPListener *listener;
     MoyaiClient *target_moyai;
+    SoundSystem *target_soundsystem;
     static const int DEFAULT_PORT = 22222;
-    RemoteHead( MoyaiClient *m ) : tcp_port(0), nw(0), listener(0), target_moyai(m) {
+    RemoteHead() : tcp_port(0), nw(0), listener(0), target_moyai(0), target_soundsystem(0) {
     }
     void track2D();
     bool startServer( int portnum, bool to_log_syscall = false );
@@ -108,6 +110,8 @@ public:
     void scanSendAllProp2DSnapshots( HMPConn *c );
     void notifyProp2DDeleted( Prop2D *prop_deleted );
     void notifyGridDeleted( Grid *grid_deleted );
+    void setTargetSoundSystem(SoundSystem*ss) { target_soundsystem = ss; }
+    void setTargetMoyaiClient(MoyaiClient*mc) { target_moyai = mc; }
 };
 
 
