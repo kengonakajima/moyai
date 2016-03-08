@@ -403,7 +403,8 @@ public:
     char optional_load_path[256]; // for application use
     char last_load_file_path[256];
     TrackerImage *tracker;
-    Image() : buffer(NULL), width(0), height(0), tracker(0) { id = idgen++;  optional_load_path[0] = '\0'; last_load_file_path[0] = '\0'; }
+    int modified_pixel_num;
+    Image() : buffer(NULL), width(0), height(0), tracker(0), modified_pixel_num(0) { id = idgen++;  optional_load_path[0] = '\0'; last_load_file_path[0] = '\0'; }
     ~Image() { if(buffer)FREE(buffer); }
     void setSize(int w, int h ); 
     void setPixel( int x, int y, Color c );

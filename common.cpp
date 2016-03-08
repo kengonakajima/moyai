@@ -202,6 +202,7 @@ void Image::setPixel( int x, int y, Color c ){
         buffer[index+2] = (unsigned char) (c.b*255);
         buffer[index+3] = (unsigned char) (c.a*255);
     }
+    modified_pixel_num += 1;
 }
 Color Image::getPixel( int x, int y ) {
     assert( width > 0 && height > 0 );
@@ -265,7 +266,8 @@ void Image::setAreaRaw( int x0, int y0, int w, int h, unsigned char *in, size_t 
             buffer[index+2] = in[in_index+2]; // b
             buffer[index+3] = in[in_index+3]; // a            
         }
-    }    
+    }
+    modified_pixel_num += w*h;
 }
 void Image::setPixelRaw( int x, int y, unsigned char r,  unsigned char g,  unsigned char b,  unsigned char a ) {
     assert( width > 0 && height > 0 );
@@ -277,6 +279,7 @@ void Image::setPixelRaw( int x, int y, unsigned char r,  unsigned char g,  unsig
         buffer[index+2] = b;
         buffer[index+3] = a;
     }
+    modified_pixel_num += 1;
 }
 
 // Copied original from SOIL: Jonathan Dummer, 2007-07-26-10.36
@@ -357,7 +360,6 @@ bool Image::loadPNG( const char *path, bool multiply_color_by_alpha ) {
     // clean up
     FREE(image_data);
     fclose(fp);
-
     strncpy( last_load_file_path, path, sizeof(last_load_file_path) );
     return true;
 }
@@ -405,10 +407,9 @@ void Image::copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0,
             a = total_a;
             
             setPixelRaw( tox, toy, r, g, b, a );
-        
-            
         }
     }
+    modified_pixel_num += w*h;
 }
 
 bool Image::writePNGMem( unsigned char **out, size_t *outsize ) {
@@ -456,6 +457,7 @@ void Image::fill( Color c ) {
             setPixel(x,y,c);
         }
     }
+    modified_pixel_num += width*height;
 }
 
 void Image::setOptionalLoadPath( const char *cstrpath ) {
@@ -468,6 +470,7 @@ void Image::fillBoxLeftBottom( Color c, int draw_width, int draw_height ) {
             setPixel(x,y,c);
         }
     }
+    modified_pixel_num += draw_width*draw_height;
 }
 
 void Image::onTrack( TileDeck *owner_dk, RemoteHead *rh ) {

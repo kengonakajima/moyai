@@ -227,7 +227,13 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
         }
         if( img->width>0 && img->buffer) {
             // this image is not from file, maybe generated.
-            outco->sendUS1UI3( PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, img->id, img->width, img->height );            
+            outco->sendUS1UI3( PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, img->id, img->width, img->height );
+        }
+        if( img->modified_pixel_num > 0 ) {
+            // modified image (includes loadPNG case)
+            outco->sendUS1UI3( PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, img->id, img->width, img->height );
+            listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_IMAGE_RAW,
+                                            img->id, (const char*) img->buffer, img->getBufferSize() );                
         }
     }
     for( std::unordered_map<int,Texture*>::iterator it = texmap.begin(); it != texmap.end(); ++it ) {
