@@ -402,11 +402,10 @@ void gameUpdate(void) {
         g_game_done = true;
         return;
     }
-
-    if( g_pc->accum_time > 10 ) {
-        g_bgm_sound->stop();
+    if( glfwGetKey( g_window, 'K' ) ) {
+        print("bgm position: %f", g_bgm_sound->getTimePositionSec() );
     }
-
+    
     // moving lines
     g_narrow_line_prim->a = Vec2(0,0);
     g_narrow_line_prim->b = Vec2(100, range(100,150));

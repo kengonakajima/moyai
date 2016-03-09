@@ -75,3 +75,16 @@ void Sound::updateLastSamples( float *samples, int samples_num ) {
     memcpy( last_samples, samples, sz );
     last_samples_num = samples_num;
 }
+
+// returns -1 if not playing
+float Sound::getTimePositionSec() {
+    if(!this->ch) return -1;
+    unsigned int pos_ms;
+    FMOD_RESULT r = FMOD_Channel_GetPosition( this->ch, &pos_ms, FMOD_TIMEUNIT_MS );
+    if( r != FMOD_OK ) {
+        print("FMOD_Channel_GetPosition: failed. ret:%d", r );
+        return -1;
+    }
+    return (float)(pos_ms) / 1000.0f;
+}
+

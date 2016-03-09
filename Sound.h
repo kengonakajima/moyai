@@ -28,5 +28,6 @@ public:
 	bool isPlaying();
     void setVolume(float v);
     float getVolume();
+    float getTimePositionSec();
     void updateLastSamples( float *samples, int samples_num );
 };

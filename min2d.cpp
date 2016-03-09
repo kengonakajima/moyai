@@ -99,6 +99,10 @@ int main(int argc, char **argv )
         rh->setTargetMoyaiClient(moyai_client);
     }
 
+    SoundSystem *ss = new SoundSystem();
+    Sound *bgm = ss->newSound( "assets/gymno1_1min.wav" );
+    bgm->play();
+    
     Viewport *viewport = new Viewport();
     int retina = 1;
 #if defined(__APPLE__)
