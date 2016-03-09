@@ -616,6 +616,8 @@ void gameInit( bool headless_mode ) {
         g_rh->setTargetMoyaiClient(g_moyai_client);
         g_sound_system->setRemoteHead(g_rh);
         g_rh->setTargetSoundSystem(g_sound_system);
+        g_keyboard->setRemoteHead(g_rh);
+        g_rh->setTargetKeyboard(g_keyboard);
     }    
 
     g_viewport = new Viewport();

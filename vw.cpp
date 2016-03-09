@@ -134,7 +134,6 @@ void HMPClientConn::onClose() {
 }
 void HMPClientConn::onConnect() {
     print("HMPClientConn::onConnect");
-    sendUS1( PACKETTYPE_C2S_GET_ALL_PREREQUISITES );
 }
 void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
     //    print("HMPClientConn::onPacket");
@@ -887,6 +886,12 @@ void setupDebugStat() {
 void updateDebugStat( const char *s ) {
     g_debug_tb->setString(s);
 }
+void keyboardCallback( GLFWwindow *window, int keycode, int scancode, int action, int mods ) {
+    int mod_shift = mods & GLFW_MOD_SHIFT;
+    int mod_ctrl = mods & GLFW_MOD_CONTROL;
+    int mod_alt = mods & GLFW_MOD_ALT;
+    g_conn->sendUS1UI5( PACKETTYPE_C2S_KEYBOARD, keycode, action, mod_shift, mod_ctrl, mod_alt );
+}
 
 int main( int argc, char **argv ) {
 
@@ -936,6 +941,8 @@ int main( int argc, char **argv ) {
 	glewInit();
 #endif
     glClearColor(0.2,0.2,0.2,1);
+
+    glfwSetKeyCallback( g_window, keyboardCallback );
     
     g_moyai_client = new MoyaiClient( g_window );
 

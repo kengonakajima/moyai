@@ -3,7 +3,7 @@
 #include "Keyboard.h"
 
 
-Keyboard::Keyboard() {
+Keyboard::Keyboard() : remote_head(0) {
     memset(keys,0,sizeof(keys));
 }
 void Keyboard::validateKeyCode(int keycode) {

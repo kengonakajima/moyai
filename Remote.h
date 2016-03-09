@@ -59,8 +59,6 @@ typedef struct {
     float line_width;
 } PacketPrim;
 
-
-
 #define MAX_PACKET_SIZE (1024*8)
 
 ///////
@@ -75,7 +73,8 @@ public:
 };
 class HMPConn : public Conn {
 public:
-    HMPConn( Network *nw, int newfd ) : Conn(nw,newfd) {};
+    RemoteHead *remote_head;
+    HMPConn( RemoteHead *rh, Network *nw, int newfd ) : Conn(nw,newfd), remote_head(rh) {};
     virtual ~HMPConn() {};
     virtual void onError( NET_ERROR e, int eno );
     virtual void onClose();
@@ -92,6 +91,7 @@ class Grid;
 class ColorReplacerShader;
 class PrimDrawer;
 class SoundSystem;
+class Keyboard;
 
 class RemoteHead {
 public:
@@ -100,6 +100,8 @@ public:
     HMPListener *listener;
     MoyaiClient *target_moyai;
     SoundSystem *target_soundsystem;
+    Keyboard *target_keyboard;
+    
     static const int DEFAULT_PORT = 22222;
     RemoteHead() : tcp_port(0), nw(0), listener(0), target_moyai(0), target_soundsystem(0) {
     }
@@ -112,6 +114,7 @@ public:
     void notifyGridDeleted( Grid *grid_deleted );
     void setTargetSoundSystem(SoundSystem*ss) { target_soundsystem = ss; }
     void setTargetMoyaiClient(MoyaiClient*mc) { target_moyai = mc; }
+    void setTargetKeyboard(Keyboard*kbd) { target_keyboard = kbd; }
 };
 
 
@@ -119,16 +122,13 @@ typedef enum {
     // generic
     PACKETTYPE_PING = 1,    
     // client to server 
-    PACKETTYPE_C2S_GET_ALL_PREREQUISITES = 100,    
-    PACKETTYPE_C2S_KEYBOARD_DOWN = 200,
-    PACKETTYPE_C2S_KEYBOARD_UP = 201,    
-    PACKETTYPE_C2S_MOUSE_DOWN = 202,
-    PACKETTYPE_C2S_MOUSE_UP = 203,    
+    PACKETTYPE_C2S_KEYBOARD = 200,
+    PACKETTYPE_C2S_MOUSE = 202,
     PACKETTYPE_C2S_TOUCH_BEGIN = 204,
     PACKETTYPE_C2S_TOUCH_MOVE = 205,
     PACKETTYPE_C2S_TOUCH_END = 206,
     PACKETTYPE_C2S_TOUCH_CANCEL = 207,
-    
+
     // server to client
     PACKETTYPE_S2C_PROP2D_SNAPSHOT = 400, 
     PACKETTYPE_S2C_PROP2D_LOC = 401,
@@ -189,7 +189,7 @@ typedef enum {
     PACKETTYPE_S2C_SOUND_POSITION = 662,
     
     PACKETTYPE_S2C_FILE = 800, // send file body and path
-
+    
     PACKETTYPE_ERROR = 2000, // error code
 } PACKETTYPE;
 
