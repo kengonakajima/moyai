@@ -302,6 +302,18 @@ public:
     void broadcastDiff( TileDeck *owner_dk, Listener *listener, bool force );
 
 };
-
+class TrackerCamera {
+public:
+    Camera *target_camera;
+    Vec2 locbuf[2];
+    int cur_buffer_index;
+    RemoteHead *parent_rh;
+    TrackerCamera( RemoteHead *rh, Camera *target );
+    ~TrackerCamera();
+    void scanCamera();
+    void flipCurrentBuffer();
+    bool checkDiff();
+    void broadcastDiff( Listener *listener, bool force );    
+};
 
 #endif

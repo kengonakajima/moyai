@@ -107,9 +107,10 @@ void RemoteHead::notifyGridDeleted( Grid *deleted ) {
 // Assume all props in all layers are Prop2Ds.
 void RemoteHead::track2D() {
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
-        Group *grp = target_moyai->getGroupByIndex(i);
-        if(!grp)continue;
-        Prop *cur = grp->prop_top;
+        Layer *layer = (Layer*) target_moyai->getGroupByIndex(i);
+        if(!layer)continue;
+        if(layer->camera) layer->camera->onTrack(this);
+        Prop *cur = layer->prop_top;
         while(cur) {
             Prop2D *p = (Prop2D*) cur;
             p->onTrack(this);
@@ -770,5 +771,33 @@ void TrackerImage::broadcastDiff( TileDeck *owner_dk, Listener *listener, bool f
                                         target_image->id, (const char*) imgbuf[cur_buffer_index], target_image->getBufferSize() );
         listener->broadcastUS1UI2( PACKETTYPE_S2C_TEXTURE_IMAGE, owner_dk->tex->id, target_image->id );
         listener->broadcastUS1UI2( PACKETTYPE_S2C_TILEDECK_TEXTURE, owner_dk->id, owner_dk->tex->id ); // to update tileeck's image_width/height
+    }
+}
+////////////////////
+TrackerCamera::TrackerCamera( RemoteHead *rh, Camera *target ) : target_camera(target), cur_buffer_index(0), parent_rh(rh) {
+    parent_rh = 0; // not used yet
+}
+TrackerCamera::~TrackerCamera() {
+}
+void TrackerCamera::scanCamera() {
+    locbuf[cur_buffer_index] = Vec2( target_camera->loc.x, target_camera->loc.y );
+}
+void TrackerCamera::flipCurrentBuffer() {
+    cur_buffer_index = ( cur_buffer_index == 0 ? 1 : 0 );    
+}
+bool TrackerCamera::checkDiff() {
+    Vec2 curloc, prevloc;
+    if( cur_buffer_index == 0 ) {
+        curloc = locbuf[0];
+        prevloc = locbuf[1];
+    } else {
+        curloc = locbuf[1];
+        prevloc = locbuf[0];
+    }
+    return curloc != prevloc;
+}
+void TrackerCamera::broadcastDiff( Listener *listener, bool force ) {
+    if( checkDiff() || force ) {
+        listener->broadcastUS1UI1F2( PACKETTYPE_S2C_CAMERA_LOC, target_camera->id, locbuf[cur_buffer_index].x, locbuf[cur_buffer_index].y );
     }
 }

@@ -2,13 +2,17 @@
 
 #include "common.h"
 
+class TrackerCamera;
+
 class Camera {
 public:
     static int id_gen;
     int id;
 	Vec3 loc;
 	Vec3 look_at, look_up;
-	Camera() { id = id_gen++; }
+    TrackerCamera *tracker;
+    
+	Camera() : tracker(0) { id = id_gen++; }
 	inline void setLoc(Vec2 lc) {
 		loc.x = lc.x;
 		loc.y = lc.y;
@@ -55,4 +59,5 @@ public:
 			loc.y = top;
 		}
 	}
+    void onTrack( RemoteHead *rh );
 };
