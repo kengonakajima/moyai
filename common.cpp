@@ -327,22 +327,8 @@ bool Image::loadPNG( const char *path, bool multiply_color_by_alpha ) {
     width = w;
     height = h;
 
-    if( w==8 && h == 8 ) {
-        for(int y=0;y<h;y++) {
-            for(int x=0;x<w;x++) prt("%02x ", image_data[(x+y*w)*4] );
-            print("");
-        }
-    }
     if( multiply_color_by_alpha ) multiplyAlphaRGBA(image_data,width,height);
 
-    print("=");
-    if( w==8 && h == 8 ) {
-        for(int y=0;y<h;y++) {
-            for(int x=0;x<w;x++) prt("%02x ", image_data[(x+y*w)*4] );
-            print("");
-        }
-    }
-    
     ensureBuffer();
 #define IMAGE_BUFFER_COPY \
     for(int i=0;i<width*height;i++){ \

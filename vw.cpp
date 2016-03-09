@@ -21,6 +21,7 @@ ObjectPool<TextBox> g_textbox_pool;
 ObjectPool<Font> g_font_pool;
 ObjectPool<ColorReplacerShader> g_crshader_pool;
 ObjectPool<Prim> g_prim_pool;
+ObjectPool<Sound> g_sound_pool;
 
 MoyaiClient *g_moyai_client;        
 Network *g_nw;
@@ -32,6 +33,8 @@ Viewport *g_debug_viewport;
 Layer *g_debug_layer;
 Font *g_debug_font;
 TextBox *g_debug_tb;
+
+SoundSystem *g_soundsystem;
 
 ///////////////
 
@@ -763,6 +766,44 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             //            img->writePNG("./ppo.png");            
         }
         break;
+    case PACKETTYPE_S2C_SOUND_CREATE_FROM_FILE:
+        {
+            uint32_t snd_id = get_u32(argdata+0);
+            Sound *snd = g_sound_pool.get(snd_id);
+            if(snd) {
+                print("sound_create_from_file: snd %d found, ignore", snd_id );
+                break;
+            }
+            uint8_t path_cstr_len = *(argdata+4);
+            const char *path_cstr_head = argdata+4+1;
+            assert( path_cstr_len <= 255 );
+            char path[256];
+            memcpy( path, path_cstr_head, path_cstr_len );
+            path[path_cstr_len] = '\0';
+            print("sound_create_from_file. id:%d path:%s", snd_id, path );
+            snd = g_soundsystem->newSound( path );
+            g_sound_pool.set( snd_id, snd );                
+        }
+        break;
+    case PACKETTYPE_S2C_SOUND_CREATE_FROM_SAMPLES:
+        {
+            uint32_t snd_id = get_u32(argdata+0);
+            Sound *snd = g_sound_pool.get(snd_id);
+            if(snd) {
+                print("sound_create_from_samples: snd %d found, ignore", snd_id );
+                break;
+            }
+            uint32_t bytenum = get_u32(argdata+4);
+            assertmsg( bytenum % sizeof(float) == 0, "invalid sample format" );
+            size_t samples_num = bytenum / sizeof(float);
+            float* samples = (float*)(argdata+4+4);
+            snd = g_soundsystem->newSoundFromMemory( samples, samples_num );
+            g_sound_pool.set( snd_id, snd );
+            print("sound_create_from_samples: id:%d samples_num:%d", snd_id, samples_num );
+        }
+        break;
+    case PACKETTYPE_S2C_SOUND_VOLUME:
+        break;
     default:
         print("unhandled packet type:%d", funcid );
         break;
@@ -820,6 +861,8 @@ int main( int argc, char **argv ) {
     }
     g_conn = new HMPClientConn(g_nw,fd);
 
+    g_soundsystem = new SoundSystem();
+    
     //
 
     if( !glfwInit() ) {

@@ -256,7 +256,8 @@ static void read_callback( struct ev_loop *loop, struct ev_io *watcher, int reve
             unsigned int func_id = get_u16( c->recvbuf.buf + 4 );
 
             if( c->recvbuf.used < (4+record_len) ) {
-                print("need. used:%d reclen:%d", c->recvbuf.used, record_len );
+                //   print("need. used:%d reclen:%d", c->recvbuf.used, record_len );
+                prt("_p ");
                 return; // need more data from network
             }
             if( record_len < 2 ) {
@@ -420,6 +421,12 @@ void Listener::broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, floa
         c->sendUS1UI1F2( usval, uival, f0, f1 );
     }
 }
+void Listener::broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
+    for( ConnIteratorType it = conn_pool.idmap.begin(); it != conn_pool.idmap.end(); ++it ) {
+        Conn *c = it->second;
+        c->sendUS1UI1F1( usval, uival, f0 );
+    }
+}
 
 // returns valid fd when success or -1
 int Network::connectToServer( const char *host, int portnum ) {
@@ -579,6 +586,16 @@ int Conn::sendUS1UI5( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, 
     sendbuf.pushU32( ui4 );        
     ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
+}
+int Conn::sendUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
+    size_t totalsize = 4 + 2 + 4+4;
+    if( getSendbufRoom() < totalsize ) return 0;
+    sendbuf.pushU32( totalsize - 4 ); // record-len
+    sendbuf.pushU16( usval );
+    sendbuf.pushU32( uival );
+    sendbuf.push( (char*)&f0, 4 );
+    ev_io_start( parent_nw->evloop, write_watcher );
+    return totalsize;    
 }
 int Conn::sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
     size_t totalsize = 4 + 2 + 4+4+4;

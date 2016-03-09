@@ -78,7 +78,8 @@ public:
     int sendUS1UI1( uint16_t usval, uint32_t ui0 );
     int sendUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );    
     int sendUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );    
-    int sendUS1UI5( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 );        
+    int sendUS1UI5( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 );
+    int sendUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );    
     int sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
     int sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr );
     int sendUS1UI2Str( uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr );
@@ -111,6 +112,7 @@ public:
     void broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );
     void broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
     void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
+    void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
     void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );    
 };
 

@@ -12,7 +12,11 @@ public:
 	FMOD_CHANNEL *ch;
 
 	float default_volume;
-    int external_id;
+    int external_id; // for app use
+
+    char last_load_file_path[256]; // for headless
+    float *last_samples;  // for headless
+    int last_samples_num; // for headless, number of floats
     
 	Sound( SoundSystem *s);
 	void setLoop( bool flag );
@@ -24,4 +28,5 @@ public:
 	bool isPlaying();
     void setVolume(float v);
     float getVolume();
+    void updateLastSamples( float *samples, int samples_num );
 };

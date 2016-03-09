@@ -36,6 +36,7 @@ Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_curre
 	out->sound = s;
 	out->default_volume = vol;
     out->id = id_gen;
+    strncpy( out->last_load_file_path, path, sizeof(out->last_load_file_path) );
     id_gen++;
     append(out);
 	return out;
@@ -63,6 +64,7 @@ Sound *SoundSystem::newSoundFromMemory( float *samples, int samples_num ) {
     out->sound = s;
     out->default_volume = 1;
     out->id = id_gen;
+    out->updateLastSamples(samples, samples_num);
     id_gen++;
     append(out);
     return out;

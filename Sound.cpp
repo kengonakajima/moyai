@@ -1,7 +1,9 @@
 #include "Sound.h"
 #include "SoundSystem.h"
 
-Sound::Sound( SoundSystem *s) : sound(0), parent(s), ch(0), default_volume(1), external_id(0) { }
+Sound::Sound( SoundSystem *s) : sound(0), parent(s), ch(0), default_volume(1), external_id(0), last_samples(0), last_samples_num(0) {
+    last_load_file_path[0] = '\0';
+}
 void Sound::play(){
 	play(default_volume);
 }
@@ -62,4 +64,12 @@ void Sound::setLoop( bool flag ) {
 	} else {
 		FMOD_Sound_SetMode( sound, FMOD_LOOP_OFF );    
 	}
+}
+void Sound::updateLastSamples( float *samples, int samples_num ) {
+    if( last_samples ) FREE(last_samples);
+
+    size_t sz = samples_num*sizeof(float);
+    last_samples = (float*)MALLOC(sz);
+    memcpy( last_samples, samples, sz );
+    last_samples_num = samples_num;
 }

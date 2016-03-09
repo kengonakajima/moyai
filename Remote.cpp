@@ -266,6 +266,22 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
         setupPacketColorReplacerShaderSnapshot(&ss,crs);
         outco->sendUS1Bytes( PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT, (const char*)&ss, sizeof(ss) );        
     }
+
+    // sounds
+    for(int i=0;i<elementof(target_soundsystem->sounds);i++){
+        Sound *snd = target_soundsystem->sounds[i];
+        if(!snd)continue;
+
+        if( snd->last_load_file_path[0] ) {
+            print("sending sound load file: %d, '%s'", snd->id, snd->last_load_file_path );
+            outco->sendUS1UI1Str( PACKETTYPE_S2C_SOUND_CREATE_FROM_FILE, snd->id, snd->last_load_file_path );
+        } else if( snd->last_samples ){
+            outco->sendUS1UI1Bytes( PACKETTYPE_S2C_SOUND_CREATE_FROM_SAMPLES, snd->id,
+                                    (const char*) snd->last_samples,
+                                    snd->last_samples_num * sizeof(snd->last_samples[0]) );
+        }
+        outco->sendUS1UI1F1( PACKETTYPE_S2C_SOUND_VOLUME, snd->id, snd->default_volume );        
+    }
 }
 
 // Send snapshots of all props and grids
