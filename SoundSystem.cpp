@@ -89,3 +89,8 @@ Sound *SoundSystem::getById( int id ) {
     return NULL;
 }
 
+void SoundSystem::notifySoundPlay( int id, float vol ) {
+    if(!remote_head)return;
+
+    remote_head->listener->broadcastUS1UI1F1( PACKETTYPE_S2C_SOUND_PLAY, id, vol );
+}

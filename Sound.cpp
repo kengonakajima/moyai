@@ -18,6 +18,8 @@ void Sound::play(float vol){
 	}
 	FMOD_ERRCHECK(r);
 	FMOD_Channel_SetVolume(ch, default_volume * vol );
+
+    parent->notifySoundPlay(id, default_volume * vol );
 }
 
 void Sound::playDistance(float mindist, float maxdist, float dist, float relvol) {

@@ -802,7 +802,31 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             print("sound_create_from_samples: id:%d samples_num:%d", snd_id, samples_num );
         }
         break;
-    case PACKETTYPE_S2C_SOUND_VOLUME:
+    case PACKETTYPE_S2C_SOUND_DEFAULT_VOLUME:
+        {
+            uint32_t snd_id = get_u32(argdata+0);
+            float vol = get_f32(argdata+4);
+            Sound *snd = g_sound_pool.get(snd_id);
+            if(snd) {
+                snd->default_volume = vol;
+            } else {
+                print("sound_default_volume: id:%d vol:%f", snd_id, vol );
+                break;
+            }            
+        }
+        break;
+    case PACKETTYPE_S2C_SOUND_PLAY:
+        {
+            uint32_t snd_id = get_u32(argdata+0);
+            float vol = get_f32(argdata+4);
+            Sound *snd = g_sound_pool.get(snd_id);
+            if(snd) {
+                snd->play(vol);
+            } else {
+                print("sound_play: %d not found", snd_id );
+            }
+                
+        }
         break;
     default:
         print("unhandled packet type:%d", funcid );

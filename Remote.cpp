@@ -280,7 +280,7 @@ void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
                                     (const char*) snd->last_samples,
                                     snd->last_samples_num * sizeof(snd->last_samples[0]) );
         }
-        outco->sendUS1UI1F1( PACKETTYPE_S2C_SOUND_VOLUME, snd->id, snd->default_volume );        
+        outco->sendUS1UI1F1( PACKETTYPE_S2C_SOUND_DEFAULT_VOLUME, snd->id, snd->default_volume );        
     }
 }
 
