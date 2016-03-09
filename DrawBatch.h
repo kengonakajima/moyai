@@ -52,7 +52,7 @@ public:
         delete vb;
         delete ib;
     };
-    bool shouldContinue( VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew = 1);
+    bool shouldContinue( Viewport *vp, VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew = 1);
     void draw();
     int hasVertexRoom( int n ) {
         return MAXVERTEX - vert_used;
