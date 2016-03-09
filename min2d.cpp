@@ -10,6 +10,7 @@
 #include "client.h"
 
 
+Keyboard *g_keyboard;
 
 // config
 
@@ -43,6 +44,10 @@ public:
         return true;
     }
 };
+
+void kbdCallback( GLFWwindow *window, int keycode, int scancode, int action, int mods ) {
+    g_keyboard->update( keycode, action, 0, 0, 0 ); // dont read mod keys
+}
 
 //
 
@@ -81,11 +86,18 @@ int main(int argc, char **argv )
     glfwSetWindowCloseCallback( window, winclose_callback );
     glfwSetInputMode( window, GLFW_STICKY_KEYS, GL_TRUE );
     glfwSwapInterval(1); // vsync
+    glfwSetKeyCallback( window, kbdCallback );
 #ifdef WIN32
 	glewInit();
 #endif
     glClearColor(0.2,0.2,0.2,1);
 
+    SoundSystem *ss = new SoundSystem();
+    Sound *bgm = ss->newSound( "assets/gymno1_1min.wav" );
+    bgm->play();
+
+    g_keyboard = new Keyboard();
+    
     MoyaiClient *moyai_client = new MoyaiClient(window);
     
     if( headless_mode ) {
@@ -97,11 +109,12 @@ int main(int argc, char **argv )
         }
         moyai_client->setRemoteHead(rh);
         rh->setTargetMoyaiClient(moyai_client);
+        ss->setRemoteHead(rh);
+        rh->setTargetSoundSystem(ss);
+        g_keyboard->setRemoteHead(rh);
+        rh->setTargetKeyboard(g_keyboard);
     }
 
-    SoundSystem *ss = new SoundSystem();
-    Sound *bgm = ss->newSound( "assets/gymno1_1min.wav" );
-    bgm->play();
     
     Viewport *viewport = new Viewport();
     int retina = 1;
@@ -264,6 +277,12 @@ int main(int argc, char **argv )
         
         double t = now();
         double dt = t - last_poll_at;
+        double ideal_frame_time = 1.0f / 60.0f;
+        if(dt < ideal_frame_time ) {
+            double to_sleep_sec = ideal_frame_time - dt;
+            int to_sleep_msec = (int) (to_sleep_sec*1000);
+            if( to_sleep_msec > 0 ) sleepMilliSec(to_sleep_msec);
+        }
         last_poll_at = t;
         
         frame_counter ++;
@@ -320,44 +339,44 @@ int main(int argc, char **argv )
 
         moyai_client->render();
         //        print("drawcnt:%d", moyai_client->last_draw_call_count );
-        if( glfwGetKey( window, 'Q') ) {
+        if( g_keyboard->getKey( 'Q') ) {
             print("Q pressed");
             exit(0);
             break;
         }
-        if( glfwGetKey( window, 'L' ) ) {
+        if( g_keyboard->getKey( 'L' ) ) {
             zoom_rate += 0.2;
             if( zoom_rate > 8 ) zoom_rate = 8;
         }
-        if( glfwGetKey( window, 'K' ) ) {
+        if( g_keyboard->getKey( 'K' ) ) {
             zoom_rate -= 0.1;
             if( zoom_rate < 0.1 ) zoom_rate = 0.1;
         }
         viewport->setScale2D(SCRW * zoom_rate,SCRH * zoom_rate); 
 
         float scrollspeed = 10;
-        if( glfwGetKey( window, 'W' ) ) {
+        if( g_keyboard->getKey( 'W' ) ) {
             center.y -= scrollspeed;
         }
-        if( glfwGetKey( window, 'S' ) ) {
+        if( g_keyboard->getKey( 'S' ) ) {
             center.y += scrollspeed;
         }
-        if( glfwGetKey( window, 'A' ) ) {
+        if( g_keyboard->getKey( 'A' ) ) {
             center.x += scrollspeed;
         }
-        if( glfwGetKey( window, 'D' ) ) {
+        if( g_keyboard->getKey( 'D' ) ) {
             center.x -= scrollspeed;
         }
         camera->setLoc(center);
 
         
-        if( glfwGetKey( window, '1' ) ) {
+        if( g_keyboard->getKey( '1' ) ) {
             for(int i=0;i<50;i++) {
                 Prop *p = new Particle(deck);
                 l->insertProp(p);
             }
         }
-        if( glfwGetKey( window, '2' ) ) {
+        if( g_keyboard->getKey( '2' ) ) {
             if(cg) cg->printf(0,4, Color(1,1,1,1), Format( "CNT:%d", loop_counter).buf);
         }
         
