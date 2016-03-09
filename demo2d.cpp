@@ -407,6 +407,9 @@ void gameUpdate(void) {
         print("bgm position: %f", bgmpos );
         g_bgm_sound->setTimePositionSec( bgmpos + 2.0f );
     }
+    if( glfwGetKey( g_window, 'L' ) ) {
+        g_bgm_sound->stop();
+    }
     
     // moving lines
     g_narrow_line_prim->a = Vec2(0,0);

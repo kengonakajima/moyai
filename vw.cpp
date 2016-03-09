@@ -828,6 +828,33 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
                 
         }
         break;
+    case PACKETTYPE_S2C_SOUND_STOP:
+        {
+            uint32_t snd_id = get_u32(argdata+0);
+            Sound *snd = g_sound_pool.get(snd_id);
+            if(snd) {
+                snd->stop();
+            } else {
+                print( "sound_stop: snd %d not found", snd_id );
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_SOUND_POSITION:
+        {
+            uint32_t snd_id = get_u32(argdata+0);
+            float pos_sec = get_f32(argdata+4);
+            float last_play_vol = get_f32(argdata+8);
+            
+            Sound *snd = g_sound_pool.get(snd_id);
+            if(snd) {
+                print("sound_position: id:%d pos:%f last:%f", snd_id, pos_sec, last_play_vol );
+                if(snd->isPlaying() == false ) snd->play(last_play_vol);
+                snd->setTimePositionSec( pos_sec );
+            } else {
+                print("sound_position: %d not found", snd_id );
+            }
+        }
+        break;
     default:
         print("unhandled packet type:%d", funcid );
         break;
