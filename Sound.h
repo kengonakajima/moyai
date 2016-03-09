@@ -29,5 +29,6 @@ public:
     void setVolume(float v);
     float getVolume();
     float getTimePositionSec();
+    void setTimePositionSec(float sec);
     void updateLastSamples( float *samples, int samples_num );
 };

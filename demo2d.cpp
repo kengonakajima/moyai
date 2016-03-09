@@ -403,7 +403,9 @@ void gameUpdate(void) {
         return;
     }
     if( glfwGetKey( g_window, 'K' ) ) {
-        print("bgm position: %f", g_bgm_sound->getTimePositionSec() );
+        float bgmpos = g_bgm_sound->getTimePositionSec();
+        print("bgm position: %f", bgmpos );
+        g_bgm_sound->setTimePositionSec( bgmpos + 2.0f );
     }
     
     // moving lines
@@ -432,9 +434,12 @@ void gameUpdate(void) {
         }
     }
 #endif
-    
-    glfwPollEvents();        
 
+    if( g_bgm_sound->isPlaying() == false ) {
+        g_bgm_sound->play();
+    }
+
+    glfwPollEvents();            
         
     last_poll_at = t;
 }
@@ -546,7 +551,7 @@ void gameInit( bool headless_mode ) {
     g_explosion_sound = g_sound_system->newSound("./assets/blobloblll.wav" );
     g_explosion_sound->play();
     g_bgm_sound = g_sound_system->newBGM( "./assets/gymno1_1min.wav" );
-    g_bgm_sound->play(); // stop this later
+
     {
         float samples[44100/4];
         for(int i=0;i<elementof(samples);i++) samples[i] = cos( (float)(i) / 20.0f );

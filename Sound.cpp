@@ -87,4 +87,12 @@ float Sound::getTimePositionSec() {
     }
     return (float)(pos_ms) / 1000.0f;
 }
+void Sound::setTimePositionSec( float sec ) {
+    if(!this->ch) return;
+    unsigned int pos_ms = (unsigned int)(sec * 1000);
+    FMOD_RESULT r = FMOD_Channel_SetPosition( this->ch, pos_ms, FMOD_TIMEUNIT_MS );
+    if( r != FMOD_OK ) {
+        print("FMOD_Channel_SetPosition: failed. ret:%d", r );
+    }
+}
 
