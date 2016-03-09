@@ -292,11 +292,6 @@ void Prop2D::render(Camera *cam, DrawBatchList *bl ) {
 
 	// primitives should go over image sprites
 	if( prim_drawer ){
-        glDisable( GL_TEXTURE_2D );
-        glLoadIdentity();
-        glTranslatef( loc.x - camx, loc.y - camy, 0 );
-        glRotatef( rot * (180.0f/M_PI), 0,0,1);
-        glScalef( scl.x, scl.y, 1 );
 		prim_drawer->drawAll( bl, getViewport(), loc - Vec2(camx,camy),scl,rot);
 	}
 }
