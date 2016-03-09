@@ -1,10 +1,10 @@
 #include "client.h"
 #include "Pad.h"
+#include "Keyboard.h"
 
-void Pad::readGLFW(GLFWwindow *w) 
-{
-	up = glfwGetKey(w,'W');
-	left = glfwGetKey(w,'A');
-	down = glfwGetKey(w,'S');    
-	right = glfwGetKey(w,'D');
+void Pad::readKeyboard(Keyboard *kbd) {
+	up = kbd->getKey('W');
+	left = kbd->getKey('A');
+	down = kbd->getKey('S');    
+	right = kbd->getKey('D');
 }

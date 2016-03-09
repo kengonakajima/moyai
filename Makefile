@@ -1,5 +1,5 @@
 
-MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Remote.cpp net.cpp
+MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Remote.cpp net.cpp Keyboard.cpp
 UTF8SRC=ConvertUTF.c
 UTF8OBJ=ConvertUTF.o
 MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o) $(UTF8OBJ)
@@ -148,6 +148,8 @@ net.o : net.cpp
 	g++ -c $(CFLAGS) net.cpp -o net.o
 ConvertUTF.o : ConvertUTF.c
 	g++ -c $(CFLAGS) ConvertUTF.c -o ConvertUTF.o
+Keyboard.o : Keyboard.cpp
+	g++ -c $(CFLAGS) Keyboard.cpp -o Keyboard.o
 
 # freetype-gl
 texture-atlas.o :

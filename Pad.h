@@ -3,13 +3,14 @@
 #include "common.h"
 #include "client.h"
 
+class Keyboard;
 class Pad {
 public:
 	bool up, down, left, right;
 
 	Pad() : up(false), down(false), left(false), right(false) {
 	}
-	void readGLFW(GLFWwindow *w);
+    void readKeyboard(Keyboard *kbd);
 	void getVec( Vec2 *v ){
 		float dx=0,dy=0;
 		if( up ) dy=1.0;

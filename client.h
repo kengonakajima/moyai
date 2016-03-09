@@ -57,6 +57,7 @@
 #include "TileDeck.h"
 #include "VertexFormat.h"
 #include "PerformanceCounter.h"
+#include "Keyboard.h"
 
 #if defined(_MSC_VER)
 	#include "Dependencies.h"

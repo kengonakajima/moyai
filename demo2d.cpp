@@ -49,7 +49,11 @@ GLFWwindow *g_window;
 
 bool g_game_done = false;
 
-// data
+Keyboard *g_keyboard;
+Pad *g_pad;
+
+
+// game data
 
 enum {
     ATLAS_MYSHIP = 0,
@@ -113,8 +117,6 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-Pad *g_pad;
 
 
 class MyShip;    
@@ -325,6 +327,9 @@ void createRandomDigit() {
 }
 
 void gameUpdate(void) {
+    glfwPollEvents();            
+    g_pad->readKeyboard(g_keyboard);
+    
     static double last_print_at = 0;
     static int frame_counter = 0;
     static int total_frame = 0;
@@ -340,20 +345,9 @@ void gameUpdate(void) {
     }
     
     frame_counter ++;
-    total_frame ++;
-    
-    int cnt;
-    cnt = g_moyai_client->poll(dt);
+    total_frame ++;    
 
-    if(last_print_at == 0){
-        last_print_at = t;
-    } else if( last_print_at < t-1 ){
-        fprintf(stderr,"FPS:%d prop:%d render:%d\n", frame_counter, cnt, g_last_render_cnt  );
-        frame_counter = 0;
-        last_print_at = t;
-    }
-
-
+    // update texts    
     char hoge[100];
     snprintf(hoge,sizeof(hoge),"hoge:%d", frame_counter );
     wchar_t whoge[100];
@@ -363,7 +357,7 @@ void gameUpdate(void) {
 
     g_linep->loc.y = sin( now() ) * 200;
 
-    g_pad->readGLFW(g_window);
+
     
     // update dynamic image
     for(int i=0;i<1000;i++){
@@ -397,17 +391,17 @@ void gameUpdate(void) {
     // replace white to random color
     g_replacer_shader->setColor( Color(0xF7E26B), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
 
-    if( glfwGetKey( g_window, 'Q') ) {
+    if( g_keyboard->getKey( 'Q') ) {
         print("Q pressed");
         g_game_done = true;
         return;
     }
-    if( glfwGetKey( g_window, 'K' ) ) {
+    if( g_keyboard->getKey( 'K' ) ) {
         float bgmpos = g_bgm_sound->getTimePositionSec();
         print("bgm position: %f", bgmpos );
         g_bgm_sound->setTimePositionSec( bgmpos + 2.0f );
     }
-    if( glfwGetKey( g_window, 'L' ) ) {
+    if( g_keyboard->getKey( 'L' ) ) {
         g_bgm_sound->stop();
     }
     
@@ -442,8 +436,17 @@ void gameUpdate(void) {
         g_bgm_sound->play();
     }
 
-    glfwPollEvents();            
-        
+    int cnt;
+    cnt = g_moyai_client->poll(dt);
+
+    if(last_print_at == 0){
+        last_print_at = t;
+    } else if( last_print_at < t-1 ){
+        fprintf(stderr,"FPS:%d prop:%d render:%d\n", frame_counter, cnt, g_last_render_cnt  );
+        frame_counter = 0;
+        last_print_at = t;
+    }
+    
     last_poll_at = t;
 }
 
@@ -536,6 +539,10 @@ void glfw_error_cb( int code, const char *desc ) {
 }
 
 
+void keyboardCallback( GLFWwindow *window, int key, int scancode, int action, int mods ) {
+    g_keyboard->update( key, action, mods & GLFW_MOD_SHIFT, mods & GLFW_MOD_CONTROL, mods & GLFW_MOD_ALT );
+}
+
 void gameInit( bool headless_mode ) {
     qstest();
     optest();
@@ -576,7 +583,7 @@ void gameInit( bool headless_mode ) {
     }
     glfwMakeContextCurrent(g_window);    
     glfwSetWindowCloseCallback( g_window, winclose_callback );
-    glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
+    //    glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
     glfwSwapInterval(1); // vsync
 #ifdef WIN32
 	glewInit();
@@ -584,6 +591,9 @@ void gameInit( bool headless_mode ) {
     glClearColor(0.2,0.2,0.2,1);
 
     // controls
+    g_keyboard = new Keyboard();
+    glfwSetKeyCallback( g_window, keyboardCallback );
+    
     g_pad = new Pad();
 
     // shader    
