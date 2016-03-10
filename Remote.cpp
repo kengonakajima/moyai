@@ -33,6 +33,7 @@ void Tracker2D::scanProp2D() {
     out->rot = target_prop2d->rot;
     out->xflip = target_prop2d->xflip;
     out->yflip = target_prop2d->yflip;
+    out->uvrot = target_prop2d->uvrot;
     out->color.r = target_prop2d->color.r;
     out->color.g = target_prop2d->color.g;
     out->color.b = target_prop2d->color.b;

@@ -23,6 +23,7 @@ typedef struct  {
     float rot;
     uint32_t xflip; // TODO:smaller size
     uint32_t yflip;
+    uint32_t uvrot; 
     PacketColor color;
     uint32_t shader_id;
     uint32_t optbits; 

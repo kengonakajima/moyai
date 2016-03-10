@@ -169,6 +169,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             prop->setRot( pkt.rot );
             prop->setXFlip( pkt.xflip );
             prop->setYFlip( pkt.yflip );
+            prop->setUVRot( pkt.uvrot );
             Color col( pkt.color.r, pkt.color.g, pkt.color.b, pkt.color.a );
             prop->setColor(col);
             prop->use_additive_blend = pkt.optbits & PROP2D_OPTBIT_ADDITIVE_BLEND;
