@@ -186,6 +186,15 @@ public:
 		updateMinMaxSizeCache();
 		return true;
 	}
+    inline Prop2D *getChild( int child_prop_id ) {
+        for(int i=0;i<children_num;i++) {
+            Prop2D *chp = (Prop2D*)children[i];
+            if( chp->id == child_prop_id ) {
+                return chp;
+            }
+        }
+        return NULL;
+    }
 	inline void clearChildren() {
 		children_num=0;
 	}
@@ -293,7 +302,7 @@ public:
         return getParentLayer()->viewport;
     }
 
-    virtual void onTrack( RemoteHead *rh );
+    virtual void onTrack( RemoteHead *rh, Prop2D *parentprop );
 
     Prim *getPrimById( int prim_id ) {
         if( prim_drawer ) {

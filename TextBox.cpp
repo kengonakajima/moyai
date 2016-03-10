@@ -102,7 +102,7 @@ void TextBox::updateMesh() {
     }
 }
 
-void TextBox::onTrack( RemoteHead *rh ) {
+void TextBox::onTrack( RemoteHead *rh, Prop2D *parentprop ) {
     if(!tracker) {
         tracker = new TrackerTextBox(rh,this);
     }

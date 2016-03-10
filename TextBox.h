@@ -73,5 +73,5 @@ public:
         }
     }
     void updateMesh();
-    virtual void onTrack( RemoteHead *rh );
+    virtual void onTrack( RemoteHead *rh, Prop2D *parentprop );
 };

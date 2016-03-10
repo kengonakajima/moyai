@@ -13,7 +13,8 @@ typedef struct {
 } PacketColor;
 typedef struct  {
     uint32_t prop_id; // non-zero
-    uint32_t layer_id; // non-zero
+    uint32_t layer_id; // non-zero for layer, zero for child props
+    uint32_t parent_prop_id; // non-zero for child props, zero for layer props
     PacketVec2 loc;
     PacketVec2 scl;
     int32_t index;
@@ -206,7 +207,7 @@ public:
         memset( pktbuf, 0, sizeof(pktbuf) );
     }
     ~Tracker2D();
-    void scanProp2D();
+    void scanProp2D( Prop2D *parentprop );
     void flipCurrentBuffer();
     bool checkDiff();
     void broadcastDiff( Listener *listener, bool force );

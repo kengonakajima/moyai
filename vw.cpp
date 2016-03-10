@@ -149,9 +149,19 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
 
 
             if( pkt.debug) print("packettype_prop2d_create! id:%d layer_id:%d loc:%f,%f scl:%f,%f index:%d tdid:%d", pkt.prop_id, pkt.layer_id, pkt.loc.x, pkt.loc.y, pkt.scl.x, pkt.scl.y, pkt.index, pkt.tiledeck_id );
-            Layer *layer = g_layer_pool.get( pkt.layer_id );
-            if(!layer) {
-                prt("_l");
+
+            Layer *layer = NULL;
+            Prop2D *parent_prop = NULL;
+            
+            if( pkt.layer_id > 0 ) {
+                layer = g_layer_pool.get( pkt.layer_id );
+            } else if( pkt.parent_prop_id > 0 ) {
+                print("Child prop.id:%d par:%d", pkt.prop_id, pkt.parent_prop_id );                
+                parent_prop = g_prop2d_pool.get(pkt.parent_prop_id);
+            }
+            if( !(layer || parent_prop ) ) {
+                // no parent!
+                print("prop %d no parent? layerid:%d parentpropid:%d", pkt.prop_id, pkt.layer_id, pkt.parent_prop_id );
                 break;
             }
 
@@ -159,8 +169,16 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             Prop2D *prop = g_prop2d_pool.get(pkt.prop_id);
             if(!prop) {
                 prop = g_prop2d_pool.ensure(pkt.prop_id);
-                //                print("new prop2d(snapshot): id:%d ptr:%p", pkt.prop_id, prop );
-                layer->insertProp(prop);
+                if(layer) {
+                    print("  inserting prop %d to layer %d", pkt.prop_id, pkt.layer_id );
+                    layer->insertProp(prop);
+                } else if(parent_prop) {
+                    Prop2D *found_prop = prop->getChild( pkt.prop_id );
+                    if(!found_prop) {
+                        print("  adding child prop %d to a prop %d", pkt.prop_id, pkt.parent_prop_id );
+                        parent_prop->addChild(prop);
+                    }
+                }
             }
             if(dk) prop->setDeck(dk);
             prop->setIndex(pkt.index);
@@ -248,7 +266,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             unsigned int camera_id = get_u32(argdata);
             float x = get_f32(argdata+4);
             float y = get_f32(argdata+4+4);
-            print("received camera_loc. id:%d (%f,%f)", camera_id, x,y );            
+            //            print("received camera_loc. id:%d (%f,%f)", camera_id, x,y );            
             Camera *cam = g_camera_pool.get(camera_id);
             assert(cam);
             cam->setLoc(x,y);

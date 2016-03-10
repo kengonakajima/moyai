@@ -11,11 +11,17 @@ void setupPacketColorReplacerShaderSnapshot( PacketColorReplacerShaderSnapshot *
 
 //////////////
 
-void Tracker2D::scanProp2D() {
+void Tracker2D::scanProp2D( Prop2D *parentprop ) {
     PacketProp2DSnapshot *out = & pktbuf[cur_buffer_index];
 
     out->prop_id = target_prop2d->id;
-    out->layer_id = target_prop2d->getParentLayer()->id;
+    if( parentprop ) {
+        out->layer_id = 0;
+        out->parent_prop_id = parentprop->id;
+    } else {
+        out->layer_id = target_prop2d->getParentLayer()->id;
+        out->parent_prop_id = 0;
+    }
     out->loc.x = target_prop2d->loc.x;
     out->loc.y = target_prop2d->loc.y;
     out->scl.x = target_prop2d->scl.x;
@@ -114,7 +120,7 @@ void RemoteHead::track2D() {
         Prop *cur = layer->prop_top;
         while(cur) {
             Prop2D *p = (Prop2D*) cur;
-            p->onTrack(this);
+            p->onTrack(this, NULL);
             cur = cur->next;
         }        
     }
@@ -311,7 +317,7 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
                 // prop body
                 if(!p->tracker) {
                     p->tracker = new Tracker2D(this,p);
-                    p->tracker->scanProp2D();
+                    p->tracker->scanProp2D(NULL);
                 }
                 p->tracker->broadcastDiff(listener, true );
                 // grid
@@ -322,6 +328,15 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
                         g->tracker->scanGrid();                    
                     }
                     g->tracker->broadcastDiff(p, listener, true );
+                }
+                // children
+                for(int i=0;i<p->children_num;i++) {
+                    Prop2D *chp = p->children[i];
+                    if(!chp->tracker) {
+                        chp->tracker = new Tracker2D(this,chp);
+                        chp->tracker->scanProp2D(p);
+                    }
+                    chp->tracker->broadcastDiff(listener,true);
                 }
             }
             cur = cur->next;

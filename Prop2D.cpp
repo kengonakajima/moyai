@@ -369,11 +369,11 @@ void Prop2D::updateMinMaxSizeCache(){
 }
 
 
-void Prop2D::onTrack( RemoteHead *rh ) {
+void Prop2D::onTrack( RemoteHead *rh, Prop2D *parentprop ) {
     if( !tracker ) {
         tracker = new Tracker2D(rh,this);
     }
-    tracker->scanProp2D();
+    tracker->scanProp2D(parentprop);
     tracker->broadcastDiff(rh->listener, false );
     tracker->flipCurrentBuffer();
 
@@ -402,5 +402,11 @@ void Prop2D::onTrack( RemoteHead *rh ) {
     // dynamic image
     if( deck && deck->tex && deck->tex->image ) {
         deck->tex->image->onTrack( deck, rh );        
+    }
+
+    // children
+    for(int i=0;i<children_num;i++) {
+        Prop2D *p = (Prop2D*) children[i];
+        p->onTrack( rh, this );
     }
 }

@@ -20,5 +20,5 @@ public:
 		from_color = from;
 	}
 	virtual void updateUniforms();
-    virtual void onTrack( RemoteHead *rh );    
+    void onTrack( RemoteHead *rh );    
 };
