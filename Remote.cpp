@@ -467,6 +467,8 @@ void HMPConn::sendFile( const char *filename ) {
 TrackerGrid::TrackerGrid( RemoteHead *rh, Grid *target ) : target_grid(target), cur_buffer_index(0), parent_rh(rh) {
     for(int i=0;i<2;i++) {
         index_table[i] = (int32_t*) MALLOC(target->getCellNum() * sizeof(int32_t) );
+        flip_table[i] = (uint8_t*) MALLOC(target->getCellNum() * sizeof(uint8_t) );
+        texofs_table[i] = (PacketVec2*) MALLOC(target->getCellNum() * sizeof(PacketVec2) );
         color_table[i] = (PacketColor*) MALLOC(target->getCellNum() * sizeof(PacketColor) );
     }
 }
@@ -474,6 +476,8 @@ TrackerGrid::~TrackerGrid() {
     parent_rh->notifyGridDeleted(target_grid);
     for(int i=0;i<2;i++) {
         FREE( index_table[i] );
+        FREE( flip_table[i] );
+        FREE( texofs_table[i] );
         FREE( color_table[i] );
     }
 }
@@ -482,6 +486,15 @@ void TrackerGrid::scanGrid() {
         for(int x=0;x<target_grid->width;x++){
             int ind = target_grid->index(x,y);
             index_table[cur_buffer_index][ind] = target_grid->get(x,y);
+            uint8_t bits = 0;
+            if( target_grid->getXFlip(x,y) ) bits |= GTT_FLIP_BIT_X;
+            if( target_grid->getYFlip(x,y) ) bits |= GTT_FLIP_BIT_Y;
+            if( target_grid->getUVRot(x,y) ) bits |= GTT_FLIP_BIT_UVROT;
+            flip_table[cur_buffer_index][ind] = bits;
+            Vec2 texofs;
+            target_grid->getTexOffset(x,y,&texofs);
+            texofs_table[cur_buffer_index][ind].x = texofs.x;
+            texofs_table[cur_buffer_index][ind].y = texofs.y;
             Color col = target_grid->getColor(x,y);
             color_table[cur_buffer_index][ind].r = col.r;
             color_table[cur_buffer_index][ind].g = col.g;
@@ -511,12 +524,13 @@ bool TrackerGrid::checkDiff( GRIDTABLETYPE gtt ) {
         curtbl = (char*) index_table[curind];
         prevtbl = (char*) index_table[prevind];
         break;
-    case GTT_XFLIP:
-    case GTT_YFLIP:
+    case GTT_FLIP:
+        curtbl = (char*) flip_table[curind];
+        prevtbl = (char*) flip_table[prevind];
+        break;
     case GTT_TEXOFS:
-    case GTT_UVROT:
-        curtbl = prevtbl = NULL;
-        assertmsg(false, "not implemented");
+        curtbl = (char*) texofs_table[curind];
+        prevtbl = (char*) texofs_table[prevind];
         break;
     case GTT_COLOR:
         curtbl = (char*) color_table[curind];
@@ -529,12 +543,11 @@ bool TrackerGrid::checkDiff( GRIDTABLETYPE gtt ) {
     case GTT_INDEX:
         compsz = target_grid->getCellNum() * sizeof(int32_t);
         break;
-    case GTT_XFLIP:
-    case GTT_YFLIP:
+    case GTT_FLIP:
+        compsz = target_grid->getCellNum() * sizeof(uint8_t);
+        break;
     case GTT_TEXOFS:
-    case GTT_UVROT:
-        compsz = 0;
-        assertmsg(false, "not implemented");
+        compsz = target_grid->getCellNum() * sizeof(Vec2);
         break;
     case GTT_COLOR:
         compsz = target_grid->getCellNum() * sizeof(PacketColor);
@@ -550,6 +563,18 @@ void TrackerGrid::broadcastDiff( Prop2D *owner, Listener *listener, bool force )
         listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, target_grid->id,
                                         (const char*) index_table[cur_buffer_index],
                                         target_grid->getCellNum() * sizeof(int32_t) );
+    }
+    if( checkDiff( GTT_FLIP) || force ) {
+        broadcastGridConfs(owner, listener); // TODO: not necessary to send every time
+        listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_FLIP_SNAPSHOT, target_grid->id,
+                                        (const char*) flip_table[cur_buffer_index],
+                                        target_grid->getCellNum() * sizeof(uint8_t) );
+    }
+    if( checkDiff( GTT_TEXOFS ) || force ) {
+        broadcastGridConfs(owner, listener);
+        listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_TEXOFS_SNAPSHOT, target_grid->id,
+                                        (const char*) texofs_table[cur_buffer_index],
+                                        target_grid->getCellNum() * sizeof(Vec2) );
     }
     if( checkDiff( GTT_COLOR ) || force ) {
         broadcastGridConfs(owner, listener); // TODO: not necessary to send every time

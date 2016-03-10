@@ -69,11 +69,25 @@ public:
 		xflip_table[ index(x,y) ] = flag;
         uv_changed = true;
 	}
+    inline void setXFlipIndex( int i, bool flag ) {
+        setXFlip( i % width, i / width, flag );
+    }
+    inline bool getXFlip( int x, int y ) {
+        if( !xflip_table ) return false;
+        return xflip_table[ index(x,y) ];
+    }
 	inline void setYFlip( int x, int y, bool flag ){
 		ENSURE_GRID_TABLE( yflip_table, bool, false );
 		yflip_table[ index(x,y) ] = flag;
         uv_changed = true;        
 	}
+    inline void setYFlipIndex( int i, bool flag ) {
+        setYFlip( i % width, i / width, flag );
+    }    
+    inline bool getYFlip( int x, int y ) {
+        if( !yflip_table ) return false;
+        return yflip_table[ index(x,y) ];
+    }
 	// 0~1. 1 for just a cell. not by whole texture
 	inline void setTexOffset( int x, int y, Vec2 *v ) {
 		ENSURE_GRID_TABLE( texofs_table, Vec2, Vec2(0,0) );
@@ -82,11 +96,30 @@ public:
 		texofs_table[i].y = v->y;
         uv_changed = true;        
 	}
+    inline void setTexOffsetIndex( int ind, Vec2 *v ) {
+        setTexOffset( ind % width, ind / width, v );
+    }
+    inline void getTexOffset( int x, int y, Vec2 *outv ) {
+        if( !texofs_table ) {
+            outv->x = outv->y = 0;
+        } else {
+            int i = index(x,y);
+            outv->x = texofs_table[i].x;
+            outv->y = texofs_table[i].y;
+        }
+    }
 	inline void setUVRot( int x, int y, bool flag ){
 		ENSURE_GRID_TABLE( rot_table, bool, false );
 		rot_table[ index(x,y) ] = flag;
         uv_changed = true;        
 	}
+    inline void setUVRotIndex( int i, bool flag ) {
+        setUVRot( i % width, i / width, flag );
+    }
+    inline bool getUVRot( int x, int y ) {
+		ENSURE_GRID_TABLE( rot_table, bool, false );
+		return rot_table[ index(x,y) ];
+    }
 	inline void setColor( int x, int y, Color col ) {
 		ENSURE_GRID_TABLE( color_table, Color, Color(1,1,1,1) );
 		color_table[ index(x,y) ] = col;
@@ -96,7 +129,7 @@ public:
         setColor( ind % width, ind / width, col );
     }
 	inline Color getColor( int x, int y ) {
-		ENSURE_GRID_TABLE( color_table, Color, Color(1,1,1,1) );
+        if(!color_table) return Color(1,1,1,1);
 		return color_table[ index(x,y) ];
 	}
 	inline void setFragmentShader( FragmentShader *fs ){

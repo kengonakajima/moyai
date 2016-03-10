@@ -172,7 +172,9 @@ typedef enum {
     PACKETTYPE_S2C_GRID_DECK = 481, // with gid,tdid
     PACKETTYPE_S2C_GRID_PROP2D = 482, // with gid,propid    
     PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT = 484, // index table, array of int32_t
-    PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT = 485, // color table, array of PacketColor: 4 * float32
+    PACKETTYPE_S2C_GRID_TABLE_FLIP_SNAPSHOT = 485, // xfl|yfl|uvrot bitfield in array of uint8_t
+    PACKETTYPE_S2C_GRID_TABLE_TEXOFS_SNAPSHOT = 486, //  array of Vec2
+    PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT = 487, // color table, array of PacketColor: 4 * float32    
     PACKETTYPE_S2C_GRID_DELETE = 490,
 
     PACKETTYPE_S2C_TEXTBOX_CREATE = 500, // tb_id, uint32_t
@@ -220,17 +222,21 @@ public:
 };
 typedef enum {
     GTT_INDEX = 1,
-    GTT_XFLIP = 2,
-    GTT_YFLIP = 3,
-    GTT_TEXOFS = 4,
-    GTT_UVROT = 5,
-    GTT_COLOR = 6,
+    GTT_FLIP = 2,
+    GTT_TEXOFS = 3,
+    GTT_COLOR = 4,
 } GRIDTABLETYPE;
+
+#define GTT_FLIP_BIT_X 0x01
+#define GTT_FLIP_BIT_Y 0x02
+#define GTT_FLIP_BIT_UVROT 0x04
 
 class TrackerGrid {
 public:
     Grid *target_grid;
     int32_t *index_table[2];
+    uint8_t *flip_table[2]; // ORing GTT_FLIP_BIT_*
+    PacketVec2 *texofs_table[2];
     PacketColor *color_table[2];
     int cur_buffer_index;
     RemoteHead *parent_rh;

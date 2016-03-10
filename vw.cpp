@@ -476,33 +476,64 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         }
         break;
     case PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT:
-    case PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT:        
         {
             uint32_t grid_id = get_u32(argdata);            
-            //            print("grid_tbl_*_ss: id:%d funcid:%d", grid_id, funcid );
             Grid *g = g_grid_pool.get(grid_id);
             if(g) {
-                //                uint32_t bufsize = get_u32(argdata+4);
-                //                print("  grid %d found, w:%d h:%d l:%d bufsz:%d", grid_id, g->width, g->height, argdatalen, bufsize );
-                if( funcid == PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT ) {
-                    int32_t *inds = (int32_t*)(argdata+8);
-                    g->bulkSetIndex(inds);
-                } else if( funcid == PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT ) {
-                    PacketColor *cols = (PacketColor*)(argdata+8);
-                    int n = (argdatalen-4)/sizeof(PacketColor);
-                    for(int i=0;i<n;i++) {
-                        Color outcol;
-                        outcol.r = cols[i].r;
-                        outcol.g = cols[i].g;
-                        outcol.b = cols[i].b;
-                        outcol.a = cols[i].a;
-                        g->setColorIndex(i,outcol);
-                    }
-                } else {
-                    assertmsg( false, "  invalid snapshot type?:%d",funcid);
+                int32_t *inds = (int32_t*)(argdata+8);
+                g->bulkSetIndex(inds);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_TABLE_FLIP_SNAPSHOT:
+        {
+            uint32_t grid_id = get_u32(argdata);
+            uint32_t bytes_num = get_u32(argdata+4);            
+            Grid *g = g_grid_pool.get(grid_id);
+            if(g) {
+                uint8_t *flips = (uint8_t*)(argdata+8);
+                for(int i=0;i<bytes_num;i++) {
+                    uint8_t flipbits = flips[i];
+                    g->setXFlipIndex( i, flipbits & GTT_FLIP_BIT_X );
+                    g->setYFlipIndex( i, flipbits & GTT_FLIP_BIT_Y );
+                    g->setUVRotIndex( i, flipbits & GTT_FLIP_BIT_UVROT );
                 }
-            } else {
-                print("grid %d not found", grid_id);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_TABLE_TEXOFS_SNAPSHOT:
+        {
+            uint32_t grid_id = get_u32(argdata);
+            uint32_t bytes_num = get_u32(argdata+4);            
+            Grid *g = g_grid_pool.get(grid_id);
+            if(g) {
+                assert( (bytes_num % sizeof(PacketVec2) ) == 0 );                
+                PacketVec2 *ofstbl = (PacketVec2*)(argdata+8);
+                int n = bytes_num / sizeof(PacketVec2);
+                for(int i=0; i < n; i++ ) {
+                    Vec2 ofs(ofstbl[i].x, ofstbl[i].y);
+                    g->setTexOffsetIndex( i, &ofs );
+                }
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT:
+        {
+            uint32_t grid_id = get_u32(argdata);
+            uint32_t bytes_num = get_u32(argdata+4);
+            Grid *g = g_grid_pool.get(grid_id);
+            if(g) {
+                PacketColor *cols = (PacketColor*)(argdata+8);
+                int n = bytes_num/sizeof(PacketColor);
+                assert( (bytes_num % sizeof(PacketColor)) == 0 );
+                for(int i=0;i<n;i++) {
+                    Color outcol;
+                    outcol.r = cols[i].r;
+                    outcol.g = cols[i].g;
+                    outcol.b = cols[i].b;
+                    outcol.a = cols[i].a;
+                    g->setColorIndex(i,outcol);
+                }
             }
         }
         break;
@@ -749,7 +780,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
                         }
                     }
                     if(!found) {
-                        print("  local prim id:%d not found in bulk packet. deleting.", prim->id );
+                        //                        print("  local prim id:%d not found in bulk packet. deleting.", prim->id );
                         prop->prim_drawer->deletePrim(prim->id);
                     }
                 }
