@@ -749,6 +749,13 @@ void gameInit( bool headless_mode ) {
             for(int y=0;y<8;y++){
                 g->set(x,y,iii % 3);
                 g->setColor( x,y, Color(range(0.5,1), range(0.5,1), range(0.5,1), range(0.5,1) ));
+                if(x==0) g->setXFlip(x,y,true);
+                if(x==1) g->setYFlip(x,y,true);
+                if(x==2) g->setUVRot(x,y,true);
+                if(x==3) {
+                    Vec2 ofs(0.5,0.5);
+                    g->setTexOffset(x,y,&ofs);
+                }
                 iii++;
             }
         }
