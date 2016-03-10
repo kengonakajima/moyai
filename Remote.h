@@ -114,6 +114,7 @@ public:
     void scanSendAllProp2DSnapshots( HMPConn *c );
     void notifyProp2DDeleted( Prop2D *prop_deleted );
     void notifyGridDeleted( Grid *grid_deleted );
+    void notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop );
     void setTargetSoundSystem(SoundSystem*ss) { target_soundsystem = ss; }
     void setTargetMoyaiClient(MoyaiClient*mc) { target_moyai = mc; }
     void setTargetKeyboard(Keyboard*kbd) { target_keyboard = kbd; }
@@ -141,7 +142,8 @@ typedef enum {
     PACKETTYPE_S2C_PROP2D_XFLIP = 406,
     PACKETTYPE_S2C_PROP2D_YFLIP = 407,
     PACKETTYPE_S2C_PROP2D_COLOR = 408,
-    PACKETTYPE_S2C_PROP2D_DELETE = 410,    
+    PACKETTYPE_S2C_PROP2D_DELETE = 410,
+    PACKETTYPE_S2C_PROP2D_CLEAR_CHILD = 412,
     
     PACKETTYPE_S2C_LAYER_CREATE = 420,
     PACKETTYPE_S2C_LAYER_VIEWPORT = 421,
@@ -304,6 +306,7 @@ public:
     void broadcastDiff( TileDeck *owner_dk, Listener *listener, bool force );
 
 };
+class Camera;
 class TrackerCamera {
 public:
     Camera *target_camera;

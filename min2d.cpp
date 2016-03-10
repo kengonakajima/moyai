@@ -227,6 +227,13 @@ int main(int argc, char **argv )
         p->setScl( 36-i*3 );
         chp->addChild(p);
     }
+    
+    Prop2D *dynchp = new Prop2D();
+    dynchp->setLoc( chp->loc + Vec2(0,-30) );
+    dynchp->setIndex(0);
+    dynchp->setScl(32);
+    dynchp->setDeck(deck);
+    chp->addChild(dynchp);
     l->insertProp(chp);
 #endif    
     
@@ -307,9 +314,9 @@ int main(int argc, char **argv )
             }
             if( loop_counter % 120 == 0 ) {
                 switch(irange(0,3)) {
-                case 0: p->setXFlip( irange(0,2)); print("XFL"); break;
-                case 1: p->setYFlip( irange(0,2)); print("YFL"); break;
-                case 2: p->setUVRot( irange(0,2)); print("UVROT"); break;
+                case 0: p->setXFlip( irange(0,2)); break;
+                case 1: p->setYFlip( irange(0,2)); break;
+                case 2: p->setUVRot( irange(0,2)); break;
                 }
             }            
         }
@@ -378,6 +385,21 @@ int main(int argc, char **argv )
         }
         if( g_keyboard->getKey( '2' ) ) {
             if(cg) cg->printf(0,4, Color(1,1,1,1), Format( "CNT:%d", loop_counter).buf);
+        }
+        if( loop_counter % 25 == 0 ) {
+            if( dynchp ) {
+                bool res = chp->clearChild(dynchp);
+                assert(res);
+                delete dynchp;
+                dynchp = NULL;
+            } else {
+                dynchp = new Prop2D();
+                dynchp->setLoc( chp->loc + Vec2(0,-30) );
+                dynchp->setIndex(0);
+                dynchp->setScl(32);
+                dynchp->setDeck(deck);
+                chp->addChild(dynchp);
+            }            
         }
         
         glfwPollEvents();

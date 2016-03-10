@@ -310,11 +310,11 @@ public:
     static const int MAXINTERVAL = 8;
     double last_interval_at[MAXINTERVAL];
     
-    
-    static const int CHILDREN_ABS_MAX = 64;
+    static const int CHILDREN_ABS_MAX = 64;    
+
 	static double frame_step_time;
 
-    inline Prop() : id(++idgen), debug_id(0), next(NULL), prev(NULL), to_clean(false), accum_time(0), poll_accum_time(0.0), poll_count(0), parent_group(NULL)  {
+    inline Prop() : id(++idgen), debug_id(0), next(NULL), prev(NULL), to_clean(false), accum_time(0), poll_accum_time(0.0), poll_count(0), parent_group(NULL) {
         for(int i=0;i<MAXINTERVAL;i++) last_interval_at[i]=0;
     }
     virtual ~Prop() {

@@ -156,7 +156,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             if( pkt.layer_id > 0 ) {
                 layer = g_layer_pool.get( pkt.layer_id );
             } else if( pkt.parent_prop_id > 0 ) {
-                print("Child prop.id:%d par:%d", pkt.prop_id, pkt.parent_prop_id );                
+                //                print("Child prop.id:%d par:%d", pkt.prop_id, pkt.parent_prop_id );                
                 parent_prop = g_prop2d_pool.get(pkt.parent_prop_id);
             }
             if( !(layer || parent_prop ) ) {
@@ -170,12 +170,12 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
             if(!prop) {
                 prop = g_prop2d_pool.ensure(pkt.prop_id);
                 if(layer) {
-                    print("  inserting prop %d to layer %d", pkt.prop_id, pkt.layer_id );
+                    //                    print("  inserting prop %d to layer %d", pkt.prop_id, pkt.layer_id );
                     layer->insertProp(prop);
                 } else if(parent_prop) {
                     Prop2D *found_prop = prop->getChild( pkt.prop_id );
                     if(!found_prop) {
-                        print("  adding child prop %d to a prop %d", pkt.prop_id, pkt.parent_prop_id );
+                        //                        print("  adding child prop %d to a prop %d", pkt.prop_id, pkt.parent_prop_id );
                         parent_prop->addChild(prop);
                     }
                 }
@@ -416,6 +416,19 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
                 prt("D[%d]", prop_id);
                 prop->to_clean = true;
                 g_prop2d_pool.del(prop_id);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_CLEAR_CHILD:
+        {
+            uint32_t owner_prop_id = get_u32(argdata);
+            uint32_t child_prop_id = get_u32(argdata+4);
+            
+            Prop2D *owner_prop = g_prop2d_pool.get(owner_prop_id);
+            if(owner_prop) {
+                Prop2D *child_prop = g_prop2d_pool.get(child_prop_id);
+                owner_prop->clearChild(child_prop);
+                //                print("prop2d_clear_child remove %d from owner %d", child_prop_id, owner_prop_id );
             }
         }
         break;

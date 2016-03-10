@@ -23,8 +23,7 @@ public:
 	int grid_used_num;
 
 	Color color;
-
-	Prop2D *children[Prop::CHILDREN_ABS_MAX];
+	Prop2D *children[CHILDREN_ABS_MAX];
 	int children_num;
 
 	AnimCurve *anim_curve;
@@ -195,21 +194,8 @@ public:
         }
         return NULL;
     }
-	inline void clearChildren() {
-		children_num=0;
-	}
-	inline bool clearChild( Prop2D *p ) {
-		for(int i=0;i<elementof(children);i++) {
-			if( children[i] ==p ) {
-				for(int j=i;j<elementof(children)-1;j++){
-					children[j] = children[j+1];
-				}
-				children_num --;
-				return true;
-			}
-		}
-		return false;
-	}
+	void clearChildren();
+	bool clearChild( Prop2D *p );
 	inline void setColor( Color c ){
 		color = c;
 	}

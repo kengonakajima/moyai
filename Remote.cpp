@@ -107,6 +107,9 @@ Tracker2D::~Tracker2D() {
 void RemoteHead::notifyProp2DDeleted( Prop2D *deleted ) {
     listener->broadcastUS1UI1( PACKETTYPE_S2C_PROP2D_DELETE, deleted->id );
 }
+void RemoteHead::notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop ) {
+    listener->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_CLEAR_CHILD, owner_prop->id, child_prop->id );
+}
 void RemoteHead::notifyGridDeleted( Grid *deleted ) {
     listener->broadcastUS1UI1( PACKETTYPE_S2C_GRID_DELETE, deleted->id );
 }

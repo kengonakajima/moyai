@@ -410,3 +410,28 @@ void Prop2D::onTrack( RemoteHead *rh, Prop2D *parentprop ) {
         p->onTrack( rh, this );
     }
 }
+
+void Prop2D::clearChildren() {
+    if(tracker) {
+        for(int i=0;i<children_num;i++) {
+            Prop2D *p = (Prop2D*)children[i];
+            tracker->parent_rh->notifyChildCleared(this,p);
+        }
+    }
+    children_num=0;
+}
+
+bool Prop2D::clearChild( Prop2D *p ) {
+    for(int i=0;i<elementof(children);i++) {
+        if( children[i] ==p ) {
+            for(int j=i;j<elementof(children)-1;j++){
+                children[j] = children[j+1];
+            }
+            if(tracker) tracker->parent_rh->notifyChildCleared(this,p);
+            children[children_num-1] = NULL;
+            children_num --;
+            return true;
+        }
+    }
+    return false;
+}
