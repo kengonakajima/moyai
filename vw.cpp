@@ -785,8 +785,6 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
                     }
                 }
             }
-            
-            
         }            
         break;
     case PACKETTYPE_S2C_IMAGE_ENSURE_SIZE: // for dynamic images

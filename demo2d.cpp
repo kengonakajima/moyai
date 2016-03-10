@@ -240,6 +240,12 @@ public:
         // changing color
         float fcol = ( (int)(accum_time*3)%2 ) * 0.5 + 0.5;
         g->setColor(2,0, Color(fcol,fcol,fcol,1.0f) );
+        g->setXFlip(3,0,(int)(accum_time*3.1)%2);
+        g->setYFlip(3,1,(int)(accum_time*2.8)%2);
+        g->setUVRot(3,2,(int)(accum_time*2.4)%2);
+        Vec2 texofs(0,0);
+        if( (int)(accum_time*2.2)%2 == 0 ) texofs = Vec2(0.5,0.5);
+        g->setTexOffset(3,3, &texofs);
         return true;
     }
     static Blocks *create() {
