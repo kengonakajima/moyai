@@ -16,14 +16,16 @@ Moai SDK: https://github.com/moai/moai-dev
   - FMOD based ( http://fmod.com/ )
  - Font
   - FreeType2 based, reads TTF files, multi-byte chars
-  
+ - Headless mode
+  - Transfer all geometry data every frame via TCP, to enable remote rendering.
 
 # Compatibility
  - OSX 10.8/10.9
  - Windows7 (VS2012)
-
+ - working on iOS
+ 
 # Performance target
-8K~10K sprites at 60FPS with -O0 on UNIX, -O1 on VC++
+10K~20K sprites at 60FPS with -O0 on UNIX, -O1 on VC++
 
 
 # Example
@@ -198,6 +200,31 @@ delete img;
 </code>
 </pre>
 
+Headless
+----
+Simply create RemoteHead and startServer, then setup necessary things.
+<pre lang="c">
+<code>
+Moyai::globalInitNetwork();
+
+RemoteHead *rh = new RemoteHead();
+rh->startServer(22222);
+
+moyai_client->setRemoteHead(rh);
+rh->setTargetMoyaiClient(moyai_client);
+
+sound_system->setRemoteHead(rh); // If you want to transfer sounds
+rh->setTargetSoundSystem(sound_system);
+
+keyboard->setRemoteHead(rh); // If you want to receive remote keyboard input
+rh->setTargetKeyboard(keyboard);
+
+mouse->setRemoteHead(rh); // If you want to receive remote mouse input
+rh->setTargetMouse(mouse);
+</code>
+</pre>
+
+    
 Build
 =====
 
@@ -260,6 +287,9 @@ List of classes defined in moyai.h :
 - Audio
   - <code>SoundSystem</code>
   - <code>Sound</code>
+
+- Headless
+  - <code>RemoteHead</code>
 
 License notes
 =====
