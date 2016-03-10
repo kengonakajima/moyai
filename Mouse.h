@@ -28,6 +28,13 @@ public:
         validateButtonIndex(button);
         return buttons[button];
     }
+    void updateCursorPosition( float x, float y ) {
+        cursor_pos.x = x;
+        cursor_pos.y = y;
+    }
+    Vec2 getCursorPos() {
+        return cursor_pos;
+    }
 };
 
 #endif

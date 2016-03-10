@@ -408,7 +408,8 @@ void gameUpdate(void) {
     }
 
     if( g_mouse->getButton(0) ) {
-        print("mouse button 0");
+        Vec2 cp = g_mouse->getCursorPos();
+        print("mouse button 0 %f,%f", cp.x, cp.y );
     }
     
     // moving lines
@@ -551,6 +552,9 @@ void keyboardCallback( GLFWwindow *window, int key, int scancode, int action, in
 void mouseButtonCallback( GLFWwindow *window, int button, int action, int mods ) {
     g_mouse->updateButton( button, action, mods & GLFW_MOD_SHIFT, mods & GLFW_MOD_CONTROL, mods & GLFW_MOD_ALT );
 }
+void cursorPosCallback( GLFWwindow *window, double x, double y ) {
+    g_mouse->updateCursorPosition( x,y);
+}
 
 void gameInit( bool headless_mode ) {
     qstest();
@@ -604,6 +608,7 @@ void gameInit( bool headless_mode ) {
     glfwSetKeyCallback( g_window, keyboardCallback );
     g_mouse = new Mouse();
     glfwSetMouseButtonCallback( g_window, mouseButtonCallback );
+    glfwSetCursorPosCallback( g_window, cursorPosCallback );
     
     g_pad = new Pad();
 
