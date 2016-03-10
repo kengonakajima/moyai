@@ -608,6 +608,16 @@ int Conn::sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
     ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;    
 }
+int Conn::sendUS1F2( uint16_t usval, float f0, float f1 ) {
+    size_t totalsize = 4 + 2 + 4+4;
+    if( getSendbufRoom() < totalsize ) return 0;
+    sendbuf.pushU32( totalsize - 4 ); // record-len
+    sendbuf.pushU16( usval );
+    sendbuf.push( (char*)&f0, 4 );
+    sendbuf.push( (char*)&f1, 4 );
+    ev_io_start( parent_nw->evloop, write_watcher );
+    return totalsize;
+}
 int Conn::sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr ) {
     int cstrlen = strlen(cstr);
     assert( cstrlen <= 255 );

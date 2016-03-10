@@ -408,9 +408,39 @@ void HMPConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
             uint32_t mod_ctrl = get_u32(argdata+12);
             uint32_t mod_alt = get_u32(argdata+16);
             assert(remote_head);
+            print("kbd: %d %d %d %d %d", keycode, action, mod_shift, mod_ctrl, mod_alt );            
             Keyboard *kbd = remote_head->target_keyboard;
-            print("kbd: %d %d %d %d %d", keycode, action, mod_shift, mod_ctrl, mod_alt );
-            kbd->update(keycode, action, mod_shift, mod_ctrl, mod_alt );
+            if(kbd) {
+                kbd->update(keycode, action, mod_shift, mod_ctrl, mod_alt );
+            }
+        }
+        break;
+    case PACKETTYPE_C2S_MOUSE_BUTTON:
+        {
+            uint32_t button = get_u32(argdata);
+            uint32_t action = get_u32(argdata+4);
+            uint32_t mod_shift = get_u32(argdata+8);
+            uint32_t mod_ctrl = get_u32(argdata+12);
+            uint32_t mod_alt = get_u32(argdata+16);
+            assert(remote_head);
+            print("mou: %d %d %d %d %d", button, action, mod_shift, mod_ctrl, mod_alt );
+            Mouse *mou = remote_head->target_mouse;
+            if(mou) {
+                mou->updateButton( button, action, mod_shift, mod_ctrl, mod_alt );
+            }
+        }
+        break;
+    case PACKETTYPE_C2S_CURSOR_POS:
+        {
+            float x = get_f32(argdata);
+            float y = get_f32(argdata+4);
+            assert(remote_head);
+            print("pos: %f %f", x,y);
+            Mouse *mou = remote_head->target_mouse;
+            if(mou) {
+                mou->updateCursorPosition(x,y);
+            }
+            
         }
         break;
     default:

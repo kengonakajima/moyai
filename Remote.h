@@ -94,6 +94,7 @@ class ColorReplacerShader;
 class PrimDrawer;
 class SoundSystem;
 class Keyboard;
+class Mouse;
 
 class RemoteHead {
 public:
@@ -103,9 +104,10 @@ public:
     MoyaiClient *target_moyai;
     SoundSystem *target_soundsystem;
     Keyboard *target_keyboard;
+    Mouse *target_mouse;
     
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), nw(0), listener(0), target_moyai(0), target_soundsystem(0) {
+    RemoteHead() : tcp_port(0), nw(0), listener(0), target_moyai(0), target_soundsystem(0), target_mouse(0) {
     }
     void track2D();
     bool startServer( int portnum, bool to_log_syscall = false );
@@ -118,6 +120,7 @@ public:
     void setTargetSoundSystem(SoundSystem*ss) { target_soundsystem = ss; }
     void setTargetMoyaiClient(MoyaiClient*mc) { target_moyai = mc; }
     void setTargetKeyboard(Keyboard*kbd) { target_keyboard = kbd; }
+    void setTargetMouse(Mouse*mou) { target_mouse = mou; }
 };
 
 
@@ -126,7 +129,8 @@ typedef enum {
     PACKETTYPE_PING = 1,    
     // client to server 
     PACKETTYPE_C2S_KEYBOARD = 200,
-    PACKETTYPE_C2S_MOUSE = 202,
+    PACKETTYPE_C2S_MOUSE_BUTTON = 202,
+    PACKETTYPE_C2S_CURSOR_POS = 203,
     PACKETTYPE_C2S_TOUCH_BEGIN = 204,
     PACKETTYPE_C2S_TOUCH_MOVE = 205,
     PACKETTYPE_C2S_TOUCH_END = 206,

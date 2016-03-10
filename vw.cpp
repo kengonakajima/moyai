@@ -924,6 +924,17 @@ void keyboardCallback( GLFWwindow *window, int keycode, int scancode, int action
     int mod_alt = mods & GLFW_MOD_ALT;
     g_conn->sendUS1UI5( PACKETTYPE_C2S_KEYBOARD, keycode, action, mod_shift, mod_ctrl, mod_alt );
 }
+void mouseButtonCallback( GLFWwindow *window, int button, int action, int mods ) {
+    int mod_shift = mods & GLFW_MOD_SHIFT;
+    int mod_ctrl = mods & GLFW_MOD_CONTROL;
+    int mod_alt = mods & GLFW_MOD_ALT;
+    g_conn->sendUS1UI5( PACKETTYPE_C2S_MOUSE_BUTTON, button, action, mod_shift, mod_ctrl, mod_alt );
+}
+void cursorPosCallback( GLFWwindow *window, double x, double y ) {
+    g_conn->sendUS1F2( PACKETTYPE_C2S_CURSOR_POS, x, y );
+}
+
+    
 
 int main( int argc, char **argv ) {
 
@@ -975,6 +986,8 @@ int main( int argc, char **argv ) {
     glClearColor(0.2,0.2,0.2,1);
 
     glfwSetKeyCallback( g_window, keyboardCallback );
+    glfwSetMouseButtonCallback( g_window, mouseButtonCallback );
+    glfwSetCursorPosCallback( g_window, cursorPosCallback );
     
     g_moyai_client = new MoyaiClient( g_window );
 

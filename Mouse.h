@@ -1,6 +1,8 @@
 #ifndef _MOUSE_H_
 #define _MOUSE_H_
 
+class RemoteHead;
+
 class Mouse {
 public:
     Vec2 cursor_pos;
@@ -9,8 +11,9 @@ public:
     int mod_shift;
     int mod_ctrl;
     int mod_alt;
+    RemoteHead *remote_head;
     
-    Mouse() {
+    Mouse() : remote_head(0) {
         memset(buttons,0,sizeof(buttons));
     }
     void validateButtonIndex( unsigned int bti ) {
@@ -35,6 +38,7 @@ public:
     Vec2 getCursorPos() {
         return cursor_pos;
     }
+    void setRemoteHead( RemoteHead *rh ) { remote_head = rh; }
 };
 
 #endif
