@@ -110,7 +110,7 @@ public:
     void track2D();
     bool startServer( int portnum, bool to_log_syscall = false );
     void heartbeat();
-    void scanSendAllGraphicsPrerequisites( HMPConn *outco );
+    void scanSendAllPrerequisites( HMPConn *outco );
     void scanSendAllProp2DSnapshots( HMPConn *c );
     void notifyProp2DDeleted( Prop2D *prop_deleted );
     void notifyGridDeleted( Grid *grid_deleted );

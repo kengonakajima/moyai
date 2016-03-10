@@ -642,10 +642,32 @@ void gameInit( bool headless_mode ) {
         return 0;
     }
 #endif
-    
-    Layer *l = new Layer();
-    g_moyai_client->insertLayer(l);
-    l->setViewport(g_viewport);
+
+    g_main_layer = new Layer();
+    g_moyai_client->insertLayer(g_main_layer);
+    g_main_layer->setViewport(g_viewport);
+
+    g_camera = new Camera();
+    g_camera->setLoc(0,0);
+    g_main_layer->setCamera(g_camera);
+
+    // atlas
+    g_base_atlas = new Texture();
+    g_base_atlas->load("./assets/base.png");
+    g_base_deck = new TileDeck();
+    g_base_deck->setTexture(g_base_atlas);
+    g_base_deck->setSize(32,32,8,8 );
+
+    g_bmpfont_atlas = new Texture();
+    g_bmpfont_atlas->load("./assets/font_only.png");
+    g_bmpfont_deck = new TileDeck();
+    g_bmpfont_deck->setTexture( g_bmpfont_atlas );
+    g_bmpfont_deck->setSize(32,32, 8,8 );
+
+    //    
+    Layer *tmplayer = new Layer();
+    g_moyai_client->insertLayer(tmplayer);
+    tmplayer->setViewport(g_viewport);
 
     Texture *t = new Texture();
     t->load( "./assets/base.png" );
@@ -660,16 +682,6 @@ void gameInit( bool headless_mode ) {
     d2->setTexture(t2);
     d2->setSize(32,32,8,8 );
 
-    for(int i=0;i<10;i++ ){
-        Prop2D *p = new Prop2D();
-        p->setDeck(deck);
-        int cands[] = { 0,1,2, 16,17,18, 24,25,26,27, 32,40,41 };
-        p->setIndex( cands[ irange(0, elementof(cands)) ]);
-        float s = range(16,32);
-        p->setScl(s,s);
-        p->setLoc(range(-100,100), range(-100,100));
-        l->insertProp(p);
-    }
     Prop2D *sclp = new Prop2D();
     sclp->setDeck(deck);
     sclp->setIndex(1);
@@ -677,7 +689,7 @@ void gameInit( bool headless_mode ) {
     sclp->setLoc(-200,0);
     sclp->seekScl( 128,128, 8);
     sclp->setRot( M_PI/8 );
-    l->insertProp(sclp);
+    g_main_layer->insertProp(sclp);
 
     Prop2D *sclprot = new Prop2D();
     sclprot->setDeck(deck);
@@ -688,18 +700,23 @@ void gameInit( bool headless_mode ) {
     sclprot->setRot( M_PI/8 );
     sclprot->seekRot( M_PI*2, 4 );
     sclprot->setUVRot(true);
-    l->insertProp(sclprot);    
+    g_main_layer->insertProp(sclprot);    
 
+    Prop2D *colp = new Prop2D();
+    colp->setColor(1,0,0,1);
+    colp->setDeck(d2);
+    colp->setIndex(1);
+    colp->setScl(24,24);
+    colp->setLoc( range(-100,100), range(-100,100));
+    g_main_layer->insertProp(colp);
 
-    for(int i=0;i<10;i++){
-        Prop2D *p = new Prop2D();
-        p->setColor(range(0,1),range(0,1),range(0,1),range(0,1));
-        p->setDeck(d2);
-        p->setIndex( 1 + (i%2) ); //irange(0,16) );
-        p->setScl(24,24);
-        p->setLoc( range(-100,100), range(-100,100));
-        l->insertProp(p);
-    }
+    Prop2D *statprimp = new Prop2D(); // a prop that has a prim with no changes
+    statprimp->setDeck(g_base_deck);
+    statprimp->setIndex(1);
+    statprimp->setColor(0,0,1,1);
+    statprimp->addLine(Vec2(0,0),Vec2(1,1),Color(1,1,1,1), 3);
+    statprimp->setLoc(100,-100);
+    g_main_layer->insertProp(statprimp);
 
     // static grids
     {
@@ -718,7 +735,7 @@ void gameInit( bool headless_mode ) {
             }
         }
         p->addGrid(g);
-        l->insertProp(p);
+        g_main_layer->insertProp(p);
 
         Prop2D *p2 = new Prop2D();
         p2->setColor(1,1,0,0.5);
@@ -726,29 +743,11 @@ void gameInit( bool headless_mode ) {
         p2->setScl(12,12);
         p2->setLoc(-100,100);
         p2->addGrid(g);
-        l->insertProp(p2);
+        tmplayer->insertProp(p2);
     }
     
-    g_main_layer = new Layer();
-    g_moyai_client->insertLayer(g_main_layer);
-    g_main_layer->setViewport(g_viewport);
 
-    g_base_atlas = new Texture();
-    g_base_atlas->load("./assets/base.png");
-    g_base_deck = new TileDeck();
-    g_base_deck->setTexture(g_base_atlas);
-    g_base_deck->setSize(32,32,8,8 );
-
-    g_bmpfont_atlas = new Texture();
-    g_bmpfont_atlas->load("./assets/font_only.png");
-    g_bmpfont_deck = new TileDeck();
-    g_bmpfont_deck->setTexture( g_bmpfont_atlas );
-    g_bmpfont_deck->setSize(32,32, 8,8 );
     
-    g_camera = new Camera();
-    g_camera->setLoc(0,0);
-
-    g_main_layer->setCamera(g_camera);
 
     int bulletinds[] = { ATLAS_BULLET0, ATLAS_BULLET0+1, ATLAS_BULLET0+2,ATLAS_BULLET0+3};
     g_bullet_anim_curve = new AnimCurve( 0.2, true, bulletinds, elementof(bulletinds));

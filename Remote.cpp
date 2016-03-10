@@ -130,7 +130,7 @@ void RemoteHead::track2D() {
 }
 // Send all IDs of tiledecks, layers, textures, fonts, viwports by scanning all props and grids.
 // This occurs only when new player is comming in.
-void RemoteHead::scanSendAllGraphicsPrerequisites( HMPConn *outco ) {
+void RemoteHead::scanSendAllPrerequisites( HMPConn *outco ) {
     std::unordered_map<int,Viewport*> vpmap;
     std::unordered_map<int,Camera*> cammap;
     
@@ -332,6 +332,13 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
                     }
                     g->tracker->broadcastDiff(p, listener, true );
                 }
+                // prims
+                if(p->prim_drawer) {
+                    if( !p->prim_drawer->tracker) p->prim_drawer->tracker = new TrackerPrimDrawer(this,p->prim_drawer);
+                    p->prim_drawer->tracker->scanPrimDrawer();
+                    p->prim_drawer->tracker->broadcastDiff(p,listener, true );
+                }
+                
                 // children
                 for(int i=0;i<p->children_num;i++) {
                     Prop2D *chp = p->children[i];
@@ -377,7 +384,7 @@ void HMPListener::onAccept( int newfd ) {
     HMPConn *c = new HMPConn(remote_head, this->parent_nw,newfd);
     addConn(c);
     print("HMPListener::onAccept. newcon id:%d", c->id );
-    remote_head->scanSendAllGraphicsPrerequisites(c);
+    remote_head->scanSendAllPrerequisites(c);
     remote_head->scanSendAllProp2DSnapshots(c);
 }
 
