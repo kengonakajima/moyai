@@ -8,18 +8,6 @@ class TileDeck;
 #include "FragmentShader.h"
 
 
-typedef enum {
-    GRID_CHANGE_INDEX = 1, // int
-    GRID_CHANGE_XFLIP = 2, // int
-    GRID_CHANGE_YFLIP = 3, // int
-    GRID_CHANGE_TEXOFS = 4, // float, float
-    GRID_CHANGE_UVROT = 5, // int
-    GRID_CHANGE_COLOR = 6, // float, float, float, float
-    GRID_CHANGE_BULK_INDEX = 7, // int * w * h
-} GRID_CHANGE_TYPE;
-
-extern void (*g_moyai_grid_change_callback)( void *grid, GRID_CHANGE_TYPE t, int x, int y, void *data, size_t datasize );
-
 class TrackerGrid;
 class Grid {
 public:
@@ -63,7 +51,6 @@ public:
 	inline void set(int x, int y, int ind ){
 		ENSURE_GRID_TABLE( index_table, int, GRID_NOT_USED );
 		index_table[ index(x,y) ] = ind;
-        if( g_moyai_grid_change_callback ) g_moyai_grid_change_callback( this, GRID_CHANGE_INDEX, x, y, &ind, 4 );
         uv_changed = true;
 	}
 	inline int get(int x, int y){
@@ -75,25 +62,16 @@ public:
     void bulkSetIndex( int *inds ) {
         ENSURE_GRID_TABLE( index_table, int, GRID_NOT_USED );
         memcpy( index_table, inds, width*height*sizeof(int) );
-        if( g_moyai_grid_change_callback ) g_moyai_grid_change_callback( this, GRID_CHANGE_BULK_INDEX, 0,0, inds, 4 * width * height );
         uv_changed = true;
     }
 	inline void setXFlip( int x, int y, bool flag ){
 		ENSURE_GRID_TABLE( xflip_table, bool, false );
 		xflip_table[ index(x,y) ] = flag;
-        if( g_moyai_grid_change_callback ) {
-            int f = flag;
-            g_moyai_grid_change_callback( this, GRID_CHANGE_XFLIP, x, y, &f, 4 );
-        }
         uv_changed = true;
 	}
 	inline void setYFlip( int x, int y, bool flag ){
 		ENSURE_GRID_TABLE( yflip_table, bool, false );
 		yflip_table[ index(x,y) ] = flag;
-        if( g_moyai_grid_change_callback ) {
-            int f = flag;
-            g_moyai_grid_change_callback( this, GRID_CHANGE_YFLIP, x, y, &f, 4 );
-        }
         uv_changed = true;        
 	}
 	// 0~1. 1 for just a cell. not by whole texture
@@ -102,28 +80,16 @@ public:
 		int i = index(x,y);
 		texofs_table[i].x = v->x;
 		texofs_table[i].y = v->y;
-        if( g_moyai_grid_change_callback) {
-            float val[2] = { v->x, v->y };
-            g_moyai_grid_change_callback( this, GRID_CHANGE_TEXOFS, x, y, val, 4*2 );
-        }
         uv_changed = true;        
 	}
 	inline void setUVRot( int x, int y, bool flag ){
 		ENSURE_GRID_TABLE( rot_table, bool, false );
 		rot_table[ index(x,y) ] = flag;
-        if( g_moyai_grid_change_callback ) {
-            int f = flag;
-            g_moyai_grid_change_callback( this, GRID_CHANGE_UVROT, x, y, &f, 4 );
-        }
         uv_changed = true;        
 	}
 	inline void setColor( int x, int y, Color col ) {
 		ENSURE_GRID_TABLE( color_table, Color, Color(1,1,1,1) );
 		color_table[ index(x,y) ] = col;
-        if( g_moyai_grid_change_callback ) {
-            float val[4] = { col.r, col.g, col.b, col.a };
-            g_moyai_grid_change_callback( this, GRID_CHANGE_COLOR, x, y, val, 4*4 );
-        }
         color_changed = true;        
 	}
     inline void setColorIndex( int ind, Color col ) {

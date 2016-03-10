@@ -3,7 +3,6 @@
 #include "Grid.h"
 #include "Remote.h"
 
-void (*g_moyai_grid_change_callback)( void *grid, GRID_CHANGE_TYPE t, int x, int y, void *data, size_t datasize );
 
 int Grid::idgen = 1;
 
