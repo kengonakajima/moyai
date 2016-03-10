@@ -50,7 +50,9 @@ GLFWwindow *g_window;
 bool g_game_done = false;
 
 Keyboard *g_keyboard;
+Mouse *g_mouse;
 Pad *g_pad;
+
 
 
 // game data
@@ -404,6 +406,10 @@ void gameUpdate(void) {
     if( g_keyboard->getKey( 'L' ) ) {
         g_bgm_sound->stop();
     }
+
+    if( g_mouse->getButton(0) ) {
+        print("mouse button 0");
+    }
     
     // moving lines
     g_narrow_line_prim->a = Vec2(0,0);
@@ -542,6 +548,9 @@ void glfw_error_cb( int code, const char *desc ) {
 void keyboardCallback( GLFWwindow *window, int key, int scancode, int action, int mods ) {
     g_keyboard->update( key, action, mods & GLFW_MOD_SHIFT, mods & GLFW_MOD_CONTROL, mods & GLFW_MOD_ALT );
 }
+void mouseButtonCallback( GLFWwindow *window, int button, int action, int mods ) {
+    g_mouse->updateButton( button, action, mods & GLFW_MOD_SHIFT, mods & GLFW_MOD_CONTROL, mods & GLFW_MOD_ALT );
+}
 
 void gameInit( bool headless_mode ) {
     qstest();
@@ -593,6 +602,8 @@ void gameInit( bool headless_mode ) {
     // controls
     g_keyboard = new Keyboard();
     glfwSetKeyCallback( g_window, keyboardCallback );
+    g_mouse = new Mouse();
+    glfwSetMouseButtonCallback( g_window, mouseButtonCallback );
     
     g_pad = new Pad();
 
