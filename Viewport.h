@@ -11,7 +11,7 @@ public:
 	DIMENSION dimension;
 	Vec3 scl;
 	float near_clip, far_clip;
-	Viewport() : screen_width(0), screen_height(0), dimension(DIMENSION_2D), scl(0,0,0), near_clip(0.01), far_clip(100) {
+	Viewport() : screen_width(0), screen_height(0), dimension(DIMENSION_2D), scl(0,0,0), near_clip(0.01f), far_clip(100) {
         id = id_gen++;
     }
 	void setSize(int scrw, int scrh );
