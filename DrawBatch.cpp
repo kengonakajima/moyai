@@ -196,7 +196,7 @@ bool DrawBatchList::appendSprite1( Viewport *vp, FragmentShader *fs, BLENDTYPE b
         }
     }
     
-    // 頂点は4、三角形は2個なのでindexは6個
+    // 4 vertices for 2 trigles. requires 6 indexes
     // C --- D
     // |     |
     // A --- B
