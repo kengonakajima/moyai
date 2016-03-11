@@ -15,7 +15,7 @@ typedef int ssize_t;
 #endif
 
 
-
+#include <ev.h>
 
 #include "ConvertUTF.h"
 
@@ -436,6 +436,11 @@ void Listener::broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
         Conn *c = it->second;
         c->sendUS1UI1F1( usval, uival, f0 );
     }
+}
+
+//////////////////////
+Network::Network() : syscall_log(false), total_sent_bytes(0), total_recv_bytes(0), accum_time(0), last_stats_at(0) {
+    evloop = ev_default_loop(0);        
 }
 
 // returns valid fd when success or -1

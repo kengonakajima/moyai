@@ -1,7 +1,7 @@
 #ifndef _NET_H_
 #define _NET_H_
 
-#include <ev.h>
+
 
 #if defined(WIN32)
 #include <stdint.h>
@@ -138,9 +138,7 @@ public:
     TrafficStats ts;
     double accum_time;
     double last_stats_at;
-    Network() : syscall_log(false), total_sent_bytes(0), total_recv_bytes(0), accum_time(0), last_stats_at(0) {
-        evloop = ev_default_loop(0);        
-    }
+    Network();
     ~Network() {}
     static Network *create();
 
