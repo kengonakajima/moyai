@@ -1,11 +1,21 @@
 // Moyai network : moynet
 
+#if defined(WIN32)
+#include <winsock2.h>
+typedef int ssize_t;
+#define MSG_DONTWAIT 0 // no support in windows send func
+#include <ws2tcpip.h>
+#else
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
+#endif
+
+
+
 
 #include "ConvertUTF.h"
 
@@ -499,6 +509,9 @@ void Network::getTrafficStats( TrafficStats *outstats ) {
 }
 
 void Network::heartbeatWithTimeoutMicroseconds( int timeout_us ) {
+#if defined(WIN32)
+    assertmsg( false, "not implemented in windows" );
+#else    
     if( timeout_us == 0 ) {
         heartbeat();
     } else {
@@ -511,6 +524,7 @@ void Network::heartbeatWithTimeoutMicroseconds( int timeout_us ) {
             usleep( (timeout-dt) * 1000000 );
         }
     }
+#endif    
 }
 
 

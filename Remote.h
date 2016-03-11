@@ -1,6 +1,10 @@
 #ifndef _REMOTE_H_
 #define _REMOTE_H_
 
+#if defined(WIN32)
+#include <stdint.h>
+#endif
+
 // packet structures
 typedef struct {
     float x,y;

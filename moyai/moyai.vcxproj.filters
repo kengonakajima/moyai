@@ -22,6 +22,9 @@
     <Filter Include="Header Files\GFX API Specific">
       <UniqueIdentifier>{372b994f-1ecf-4701-9323-d25d790f0f32}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\libev">
+      <UniqueIdentifier>{7279611f-3683-4575-8529-6afad81ed9b9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\common.cpp">
@@ -104,6 +107,18 @@
     </ClCompile>
     <ClCompile Include="..\FragmentShader.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Keyboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Remote.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\net.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libev-4.22\ev.c">
+      <Filter>Source Files\libev</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

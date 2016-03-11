@@ -3,6 +3,10 @@
 
 #include <ev.h>
 
+#if defined(WIN32)
+#include <stdint.h>
+#endif
+
 #include "Pool.h"
 
 
