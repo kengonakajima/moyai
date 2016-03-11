@@ -203,6 +203,7 @@ delete img;
 Headless
 ----
 Simply create RemoteHead and startServer, then setup necessary things.
+
 <pre lang="c">
 <code>
 Moyai::globalInitNetwork();
@@ -223,6 +224,15 @@ mouse->setRemoteHead(rh); // If you want to receive remote mouse input
 rh->setTargetMouse(mouse);
 </code>
 </pre>
+
+Use viewer program (Implemented in vw.cpp) as a head of the headless server.
+
+Command line:
+
+<code>./viewer localhost</code>
+
+This will connect to the server and render the stream.
+
 
     
 Build
