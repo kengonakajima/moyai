@@ -74,7 +74,7 @@ inline void Prop3D::performRenderOptions() {
 	glDepthMask( depth_mask );
 	if( alpha_test ) {
 		glEnable( GL_ALPHA_TEST );
-		glAlphaFunc( GL_GREATER, 0.01 );
+		glAlphaFunc( GL_GREATER, 0.01f );
 	} else {
 		glDisable( GL_ALPHA_TEST );
 	}
