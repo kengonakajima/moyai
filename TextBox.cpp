@@ -107,6 +107,6 @@ void TextBox::onTrack( RemoteHead *rh, Prop2D *parentprop ) {
         tracker = new TrackerTextBox(rh,this);
     }
     tracker->scanTextBox();
-    tracker->broadcastDiff(rh->listener, false );
+    tracker->broadcastDiff( false );
     tracker->flipCurrentBuffer();
 }

@@ -23,7 +23,6 @@
 #endif
 
 #include "cumino.h"
-#include "net.h"
 
 #ifdef WIN32
 #undef min
@@ -47,19 +46,19 @@ public:
     inline float len(Vec3 tgt){
         return ::len( x,y,z,tgt.x,tgt.y,tgt.z);
     }
-    inline DIR toDir() {
+    inline DIR4 toDir() {
         const float pi4 = (float) M_PI / 4.0f;
         float at = atan2( x,y );
         if( at >= -pi4  && at <= pi4 ){
-            return DIR_UP;
+            return DIR4_UP;
         } else if( at >= pi4 && at <= pi4*3){
-            return DIR_RIGHT;
+            return DIR4_RIGHT;
         } else if( at >= pi4*3 || at <= -pi4*3 ){
-            return DIR_DOWN;
+            return DIR4_DOWN;
         } else if( at <= -pi4 && at >= -pi4*3 ){
-            return DIR_LEFT;
+            return DIR4_LEFT;
         } else {
-            return DIR_NONE;
+            return DIR4_NONE;
         }
     }
     inline Vec3 mul(float val){ return Vec3( x*val, y*val, z*val); }
@@ -103,7 +102,7 @@ public:
     }
     static inline Vec3 random(float v) { return Vec3(0,0,0).randomize(v); }
     static inline Vec3 random() { return random(1); }
-    static inline Vec3 fromDir(DIR d){
+    static inline Vec3 fromDir(DIR4 d){
         int dx,dy;
         dirToDXDY(d,&dx,&dy);
         return Vec3( (float)dx, (float)dy);
@@ -171,12 +170,12 @@ public:
     inline float len(Vec2 tgt){
         return ::len( x,y,tgt.x,tgt.y);
     }
-    inline DIR toDir() {
-        if( x==0.0f && y==0.0f) return DIR_NONE;
+    inline DIR4 toDir() {
+        if( x==0.0f && y==0.0f) return DIR4_NONE;
         if( y > 0 ) {
-            if( absolute(x) < absolute(y) ) return DIR_UP; else if( x > 0 ) return DIR_RIGHT; else return DIR_LEFT;
+            if( absolute(x) < absolute(y) ) return DIR4_UP; else if( x > 0 ) return DIR4_RIGHT; else return DIR4_LEFT;
         } else {
-            if( absolute(x) < absolute(y) ) return DIR_DOWN; else if( x > 0 ) return DIR_RIGHT; else return DIR_LEFT;
+            if( absolute(x) < absolute(y) ) return DIR4_DOWN; else if( x > 0 ) return DIR4_RIGHT; else return DIR4_LEFT;
         }
     }
     inline Vec2 mul(float val){ return Vec2( x*val, y*val); }
@@ -216,7 +215,7 @@ public:
     }
     static inline Vec2 random(float v) { return Vec2(0,0).randomize(v); }
     static inline Vec2 random() { return random(1); }
-    static inline Vec2 fromDir(DIR d){
+    static inline Vec2 fromDir(DIR4 d){
         int dx,dy;
         dirToDXDY(d,&dx,&dy);
         return Vec2( (float)dx, (float)dy);

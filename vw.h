@@ -1,7 +1,7 @@
 #ifndef _VW_H_
 #define _VW_H_
 
-
+#if 0
 class HMPClientConn : public Conn {
 public:
     HMPClientConn(Network *nw, int fd) : Conn(nw,fd) {
@@ -13,8 +13,8 @@ public:
     virtual void onClose();
     virtual void onConnect();
     virtual void onPacket( uint16_t funcid, char *argdata, size_t argdatalen );
-    
 };
+#endif
 
 class File {
 public:

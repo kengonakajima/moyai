@@ -374,7 +374,7 @@ void Prop2D::onTrack( RemoteHead *rh, Prop2D *parentprop ) {
         tracker = new Tracker2D(rh,this);
     }
     tracker->scanProp2D(parentprop);
-    tracker->broadcastDiff(rh->listener, false );
+    tracker->broadcastDiff( false );
     tracker->flipCurrentBuffer();
 
     // grids
@@ -382,7 +382,7 @@ void Prop2D::onTrack( RemoteHead *rh, Prop2D *parentprop ) {
         Grid *g = grids[i];
         if(!g->tracker) g->tracker = new TrackerGrid(rh,g);
         g->tracker->scanGrid();
-        g->tracker->broadcastDiff(this,rh->listener, false );
+        g->tracker->broadcastDiff(this, false );
         g->tracker->flipCurrentBuffer();
     }
 

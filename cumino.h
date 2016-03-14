@@ -188,22 +188,22 @@ void quickSortF(SorterEntry array[], int left ,int right);
 
 
 typedef enum {
-    DIR_NONE=-1,    
-    DIR_UP=0,
-    DIR_RIGHT=1,
-    DIR_DOWN=2,
-    DIR_LEFT=3,
-} DIR;
+    DIR4_NONE=-1,    
+    DIR4_UP=0,
+    DIR4_RIGHT=1,
+    DIR4_DOWN=2,
+    DIR4_LEFT=3,
+} DIR4;
 
-DIR randomDir();
-DIR reverseDir(DIR d);
-DIR randomTurnDir( DIR d );
-DIR dxdyToDir(int dx, int dy );
-void dirToDXDY( DIR d, int *dx, int *dy );
+DIR4 randomDir();
+DIR4 reverseDir(DIR4 d);
+DIR4 randomTurnDir( DIR4 d );
+DIR4 dxdyToDir(int dx, int dy );
+void dirToDXDY( DIR4 d, int *dx, int *dy );
 bool birandom();
-DIR rightDir( DIR d );
-DIR leftDir( DIR d );
-bool validateDir( DIR d);
+DIR4 rightDir( DIR4 d );
+DIR4 leftDir( DIR4 d );
+bool validateDir( DIR4 d);
 
 inline int sign(float f){
     if(f>0) return 1; else if(f<0) return -1; else return 0;

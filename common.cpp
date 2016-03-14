@@ -464,6 +464,6 @@ void Image::onTrack( TileDeck *owner_dk, RemoteHead *rh ) {
         tracker = new TrackerImage(rh,this);
     }
     tracker->scanImage();
-    tracker->broadcastDiff( owner_dk, rh->listener, false );
+    tracker->broadcastDiff( owner_dk, false );
     tracker->flipCurrentBuffer();
 }

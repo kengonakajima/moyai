@@ -19,6 +19,6 @@ void Camera::onTrack( RemoteHead *rh ) {
         tracker = new TrackerCamera(rh,this);
     }
     tracker->scanCamera();
-    tracker->broadcastDiff(rh->listener,false);
+    tracker->broadcastDiff(false);
     tracker->flipCurrentBuffer();
 }

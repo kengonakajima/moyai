@@ -5,6 +5,21 @@
 #include <stdint.h>
 #endif
 
+#include <uv.h>
+
+#include "Pool.h"
+
+// basic buffering
+
+extern inline unsigned int get_u32(const char *buf){ return *((unsigned int*)(buf)); }
+extern inline unsigned short get_u16(const char *buf){ return *((unsigned short*)(buf)); }
+extern inline unsigned char get_u8(const char *buf){ return *((unsigned char*)(buf)); }
+extern inline void set_u32(char *buf, unsigned int v){ (*((unsigned int*)(buf))) = (unsigned int)(v) ; }
+extern inline void set_u16(char *buf, unsigned short v){ (*((unsigned short*)(buf))) = (unsigned short)(v); }
+extern inline void set_u8( char *buf, unsigned char v){ (*((unsigned char*)(buf))) = (unsigned char)(v); }
+extern inline float get_f32(const char *buf) { return *((float*)(buf)); }
+
+
 // packet structures
 typedef struct {
     float x,y;
@@ -69,6 +84,7 @@ typedef struct {
 
 ///////
 // HMP: Headless Moyai Protocol
+#if 0
 class RemoteHead;
 class HMPListener : public Listener {
 public:
@@ -89,8 +105,9 @@ public:
 
     // send
     void sendFile( const char *filename );
-    
 };
+#endif
+
 class Prop2D;
 class MoyaiClient;
 class Grid;
@@ -100,24 +117,26 @@ class SoundSystem;
 class Keyboard;
 class Mouse;
 
+typedef std::unordered_map<unsigned int,uv_stream_t*>::iterator UvStreamIteratorType;
+
 class RemoteHead {
 public:
     int tcp_port;
-    Network *nw;
-    HMPListener *listener;
+    uv_tcp_t listener;
     MoyaiClient *target_moyai;
     SoundSystem *target_soundsystem;
     Keyboard *target_keyboard;
     Mouse *target_mouse;
+    ObjectPool<uv_stream_t> stream_pool;
     
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), nw(0), listener(0), target_moyai(0), target_soundsystem(0), target_mouse(0) {
+    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), target_mouse(0) {
     }
     void track2D();
-    bool startServer( int portnum, bool to_log_syscall = false );
+    bool startServer( int portnum );
     void heartbeat();
-    void scanSendAllPrerequisites( HMPConn *outco );
-    void scanSendAllProp2DSnapshots( HMPConn *c );
+    void scanSendAllPrerequisites( uv_stream_t *outstream );
+    void scanSendAllProp2DSnapshots( uv_stream_t *outstream );
     void notifyProp2DDeleted( Prop2D *prop_deleted );
     void notifyGridDeleted( Grid *grid_deleted );
     void notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop );
@@ -125,6 +144,16 @@ public:
     void setTargetMoyaiClient(MoyaiClient*mc) { target_moyai = mc; }
     void setTargetKeyboard(Keyboard*kbd) { target_keyboard = kbd; }
     void setTargetMouse(Mouse*mou) { target_mouse = mou; }
+    
+    void broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen );
+    void broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen );    
+    void broadcastUS1UI1( uint16_t usval, uint32_t uival );
+    void broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );
+    void broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
+    void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
+    void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
+    void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );    
+    
 };
 
 
@@ -222,7 +251,7 @@ public:
     void scanProp2D( Prop2D *parentprop );
     void flipCurrentBuffer();
     bool checkDiff();
-    void broadcastDiff( Listener *listener, bool force );
+    void broadcastDiff( bool force );
 };
 typedef enum {
     GTT_INDEX = 1,
@@ -249,8 +278,8 @@ public:
     void scanGrid();
     bool checkDiff(GRIDTABLETYPE gtt);
     void flipCurrentBuffer();
-    void broadcastDiff( Prop2D *owner, Listener *listener, bool force );
-    void broadcastGridConfs( Prop2D *owner, Listener *listener ); // util sendfunc
+    void broadcastDiff( Prop2D *owner, bool force );
+    void broadcastGridConfs( Prop2D *owner ); // util sendfunc
 };
 
 class TextBox;
@@ -269,7 +298,7 @@ public:
     void scanTextBox();
     void flipCurrentBuffer();
     bool checkDiff();    
-    void broadcastDiff( Listener *listener, bool force );
+    void broadcastDiff( bool force );
 };
 
 class TrackerColorReplacerShader {
@@ -283,7 +312,7 @@ public:
     void scanShader();
     void flipCurrentBuffer();
     bool checkDiff();
-    void broadcastDiff( Listener *listener, bool force );    
+    void broadcastDiff( bool force );    
 };
 
 class TrackerPrimDrawer {
@@ -303,7 +332,7 @@ public:
     void scanPrimDrawer();
     void flipCurrentBuffer();
     bool checkDiff();
-    void broadcastDiff( Prop2D *owner, Listener *listener, bool force );
+    void broadcastDiff( Prop2D *owner, bool force );
 };
 
 class TrackerImage {
@@ -317,7 +346,7 @@ public:
     void scanImage();
     void flipCurrentBuffer();
     bool checkDiff();
-    void broadcastDiff( TileDeck *owner_dk, Listener *listener, bool force );
+    void broadcastDiff( TileDeck *owner_dk, bool force );
 
 };
 class Camera;
@@ -332,7 +361,65 @@ public:
     void scanCamera();
     void flipCurrentBuffer();
     bool checkDiff();
-    void broadcastDiff( Listener *listener, bool force );    
+    void broadcastDiff( bool force );    
 };
+
+
+class Buffer {
+public:
+    char *buf;
+    size_t size;
+    size_t used;
+    Buffer();
+    ~Buffer();
+    void ensureMemory( size_t sz );
+    size_t getRoom() { return size - used; }
+    bool shift( size_t toshift );    
+    bool pushWithNum32( const char *data, size_t datasz );
+    bool push( const char *data, size_t datasz );
+    bool pushU32( unsigned int val );
+    bool pushU16( unsigned short val );
+    bool pushU8( unsigned char val );
+            
+};
+
+class Client {
+public:
+    static int idgen;
+    int id;
+    Buffer recvbuf;
+    uv_tcp_t *tcp;
+    RemoteHead *parent_rh;
+    Client( uv_tcp_t *sk, RemoteHead *rh );
+    ~Client();
+    bool receiveData( const char *data, size_t datalen );
+    void onPacket( uint16_t funcid, char *argdata, size_t argdatalen );    
+};
+
+
+
+// send funcs
+int sendUS1( uv_stream_t *out, uint16_t usval );
+int sendUS1Bytes( uv_stream_t *out, uint16_t usval, const char *buf, uint16_t datalen );
+int sendUS1UI1Bytes( uv_stream_t *out, uint16_t usval, uint32_t uival, const char *buf, uint32_t datalen );
+int sendUS1UI1( uv_stream_t *out, uint16_t usval, uint32_t ui0 );
+int sendUS1UI2( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1 );    
+int sendUS1UI3( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );    
+int sendUS1UI5( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 );
+int sendUS1UI1F1( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0 );    
+int sendUS1UI1F2( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0, float f1 );
+int sendUS1UI1Str( uv_stream_t *out, uint16_t usval, uint32_t uival, const char *cstr );
+int sendUS1UI2Str( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr );
+int sendUS1StrBytes( uv_stream_t *out, uint16_t usval, const char *cstr, const char *data, uint32_t datalen );
+int sendUS1UI1Wstr( uv_stream_t *out, uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
+int sendUS1F2( uv_stream_t *out, uint16_t usval, float f0, float f1 );
+void sendFile( uv_stream_t *outstream, const char *filename );
+
+
+// parse helpers
+void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize );
+
+
+
 
 #endif

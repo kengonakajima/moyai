@@ -459,6 +459,8 @@ void gameUpdate(void) {
         frame_counter = 0;
         last_print_at = t;
     }
+
+    if(g_rh) g_rh->heartbeat();
     
     last_poll_at = t;
 }

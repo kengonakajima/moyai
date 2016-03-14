@@ -24,9 +24,8 @@ ObjectPool<Prim> g_prim_pool;
 ObjectPool<Sound> g_sound_pool;
 
 MoyaiClient *g_moyai_client;        
-Network *g_nw;
 FileDepo *g_filedepo;
-HMPClientConn *g_conn;
+uv_stream_t *g_stream;
 GLFWwindow *g_window;
 
 Viewport *g_debug_viewport;
@@ -126,15 +125,7 @@ wchar_t *allocateWCharStringFromUTF8String( const uint8_t *in_uint8ary, size_t s
 
 
 ///////////////////
-void HMPClientConn::onError( NET_ERROR e, int eno ) {
-    print("HMPClientConn::onError. e:%d eno:%d",e,eno);
-}
-void HMPClientConn::onClose() {
-    print("HMPClientConn::onClose.");    
-}
-void HMPClientConn::onConnect() {
-    print("HMPClientConn::onConnect");
-}
+#if 0
 void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
     //    print("HMPClientConn::onPacket");
     switch(funcid) {
@@ -921,6 +912,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
     }
     
 }
+#endif
 
 
 void setupDebugStat() {
@@ -951,19 +943,25 @@ void keyboardCallback( GLFWwindow *window, int keycode, int scancode, int action
     int mod_shift = mods & GLFW_MOD_SHIFT;
     int mod_ctrl = mods & GLFW_MOD_CONTROL;
     int mod_alt = mods & GLFW_MOD_ALT;
-    g_conn->sendUS1UI5( PACKETTYPE_C2S_KEYBOARD, keycode, action, mod_shift, mod_ctrl, mod_alt );
+    sendUS1UI5( g_stream, PACKETTYPE_C2S_KEYBOARD, keycode, action, mod_shift, mod_ctrl, mod_alt );
 }
 void mouseButtonCallback( GLFWwindow *window, int button, int action, int mods ) {
     int mod_shift = mods & GLFW_MOD_SHIFT;
     int mod_ctrl = mods & GLFW_MOD_CONTROL;
     int mod_alt = mods & GLFW_MOD_ALT;
-    g_conn->sendUS1UI5( PACKETTYPE_C2S_MOUSE_BUTTON, button, action, mod_shift, mod_ctrl, mod_alt );
+    sendUS1UI5( g_stream, PACKETTYPE_C2S_MOUSE_BUTTON, button, action, mod_shift, mod_ctrl, mod_alt );
 }
 void cursorPosCallback( GLFWwindow *window, double x, double y ) {
-    g_conn->sendUS1F2( PACKETTYPE_C2S_CURSOR_POS, x, y );
+    sendUS1F2( g_stream, PACKETTYPE_C2S_CURSOR_POS, x, y );
 }
 
-    
+uv_connect_t *g_connect_t;
+uv_tcp_t g_tcp;
+uv_connect_t g_connect;
+
+void on_connect( uv_connect_t *connect, int status ) {
+    print("on_connect status:%d",status);
+}
 
 int main( int argc, char **argv ) {
 
@@ -981,13 +979,16 @@ int main( int argc, char **argv ) {
     print("viewer config: host:'%s' port:%d", host, port );
     
     Moyai::globalInitNetwork();
-    g_nw = new Network();    
-    int fd = g_nw->connectToServer(host,port);
-    if(fd<0) {
-        print("can't connect to server");
+
+    uv_tcp_init( uv_default_loop(), &g_tcp );
+    struct sockaddr_in svaddr;
+    uv_ip4_addr( host, port, &svaddr );
+    
+    int r = uv_tcp_connect( &g_connect, &g_tcp, (struct sockaddr*) &svaddr, on_connect );
+    if(r) {
+        print("uv_tcp_connect failed");
         return 1;
     }
-    g_conn = new HMPClientConn(g_nw,fd);
 
     g_soundsystem = new SoundSystem();
     
@@ -1034,20 +1035,22 @@ int main( int argc, char **argv ) {
         double dt = t - last_poll_at;
 
         glfwPollEvents();
-        g_nw->heartbeat();
+        uv_run( uv_default_loop(), UV_RUN_NOWAIT );
         int polled = g_moyai_client->poll(dt);
         int rendered = g_moyai_client->render();
 
+#if 0        
         TrafficStats ts;
         g_nw->getTrafficStats(&ts);
-        Format fmt( "polled:%d rendered:%d %.1fKbps", polled, rendered, ts.recv_bytes_per_sec*8.0f/1000.0f );
+        Format fmt( "polled:%d rendered:%d %.1fKbps", polled, rendered, ts.recv_bytes_per_sec*8.0f/1000.0f );        
+#endif                
+        Format fmt( "polled:%d rendered:%d", polled, rendered );
         updateDebugStat( fmt.buf );
 
         if( glfwGetKey( g_window, 'Q') ) break;
         
         last_poll_at = t;
     }
-    delete g_nw;
 
     glfwTerminate();    
     return 0;

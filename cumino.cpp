@@ -180,99 +180,99 @@ void quickSortF(SorterEntry array[],  int left ,int right){
 }
 
 
-bool validateDir( DIR d ) {
+bool validateDir( DIR4 d ) {
     switch(d) {
-    case DIR_UP:
-    case DIR_DOWN:
-    case DIR_RIGHT:
-    case DIR_LEFT:
+    case DIR4_UP:
+    case DIR4_DOWN:
+    case DIR4_RIGHT:
+    case DIR4_LEFT:
         return true;
     default:
         return false;
     }
 }
-DIR randomDir(){
+DIR4 randomDir(){
     switch( irange(0,4) ) {
-    case 0: return DIR_UP;
-    case 1: return DIR_RIGHT;
-    case 2: return DIR_LEFT;
-    case 3: return DIR_DOWN;
+    case 0: return DIR4_UP;
+    case 1: return DIR4_RIGHT;
+    case 2: return DIR4_LEFT;
+    case 3: return DIR4_DOWN;
     }
     assert(false);/* not reached */
-    return DIR_NONE; 
+    return DIR4_NONE; 
 }
-DIR randomTurnDir( DIR d ){
+DIR4 randomTurnDir( DIR4 d ){
     switch(d){
-    case DIR_UP:
-    case DIR_DOWN:
-        return birandom() ? DIR_LEFT : DIR_RIGHT;
-    case DIR_RIGHT:
-    case DIR_LEFT:
-        return birandom() ? DIR_UP : DIR_DOWN;
+    case DIR4_UP:
+    case DIR4_DOWN:
+        return birandom() ? DIR4_LEFT : DIR4_RIGHT;
+    case DIR4_RIGHT:
+    case DIR4_LEFT:
+        return birandom() ? DIR4_UP : DIR4_DOWN;
     default:
-        return DIR_NONE;
+        return DIR4_NONE;
     }
 }
-DIR reverseDir( DIR d ){
+DIR4 reverseDir( DIR4 d ){
     switch(d){
-    case DIR_UP: return DIR_DOWN;
-    case DIR_DOWN: return DIR_UP;
-    case DIR_RIGHT: return DIR_LEFT;
-    case DIR_LEFT: return DIR_RIGHT;
+    case DIR4_UP: return DIR4_DOWN;
+    case DIR4_DOWN: return DIR4_UP;
+    case DIR4_RIGHT: return DIR4_LEFT;
+    case DIR4_LEFT: return DIR4_RIGHT;
     default:
-        return DIR_NONE;
+        return DIR4_NONE;
     }
 }
 
-DIR rightDir( DIR d ) {
+DIR4 rightDir( DIR4 d ) {
     switch(d){
-    case DIR_UP: return DIR_RIGHT; 
-    case DIR_DOWN: return DIR_LEFT;
-    case DIR_RIGHT: return DIR_DOWN;
-    case DIR_LEFT: return DIR_UP;
+    case DIR4_UP: return DIR4_RIGHT; 
+    case DIR4_DOWN: return DIR4_LEFT;
+    case DIR4_RIGHT: return DIR4_DOWN;
+    case DIR4_LEFT: return DIR4_UP;
     default:
-        return DIR_NONE;
+        return DIR4_NONE;
     }
 }
-DIR leftDir( DIR d ) {
+DIR4 leftDir( DIR4 d ) {
     switch(d){
-    case DIR_UP: return DIR_LEFT;
-    case DIR_DOWN: return DIR_RIGHT;
-    case DIR_RIGHT: return DIR_UP;
-    case DIR_LEFT: return DIR_DOWN;
+    case DIR4_UP: return DIR4_LEFT;
+    case DIR4_DOWN: return DIR4_RIGHT;
+    case DIR4_RIGHT: return DIR4_UP;
+    case DIR4_LEFT: return DIR4_DOWN;
     default:
-        return DIR_NONE;
+        return DIR4_NONE;
     }    
 }
 
 // 4方向のみ
-DIR dxdyToDir(int dx, int dy ){
+DIR4 dxdyToDir(int dx, int dy ){
     if(dx>0){
         assert(dy==0);
-        return DIR_RIGHT;
+        return DIR4_RIGHT;
     } else if(dx<0){
         assert(dy==0);        
-        return DIR_LEFT;
+        return DIR4_LEFT;
     } else if(dy>0){
         assert(dx==0);        
-        return DIR_UP;
+        return DIR4_UP;
     }else if(dy<0){
         assert(dx==0);                
-        return DIR_DOWN;
+        return DIR4_DOWN;
     } else {
         assert(dx==0&&dy==0);                
-        return DIR_NONE;
+        return DIR4_NONE;
     }
 }
 
-void dirToDXDY( DIR d, int *dx, int *dy ){
+void dirToDXDY( DIR4 d, int *dx, int *dy ){
     *dx = *dy = 0;
     switch(d){
-    case DIR_NONE: return;
-    case DIR_RIGHT: *dx = 1; return;
-    case DIR_LEFT: *dx = -1; return;
-    case DIR_UP: *dy = 1; return;
-    case DIR_DOWN: *dy = -1; return;
+    case DIR4_NONE: return;
+    case DIR4_RIGHT: *dx = 1; return;
+    case DIR4_LEFT: *dx = -1; return;
+    case DIR4_UP: *dy = 1; return;
+    case DIR4_DOWN: *dy = -1; return;
     }
 }
 

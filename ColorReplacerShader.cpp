@@ -47,6 +47,6 @@ void ColorReplacerShader::onTrack( RemoteHead *rh ) {
         tracker = new TrackerColorReplacerShader(rh,this);
     }
     tracker->scanShader();
-    tracker->broadcastDiff(rh->listener, false );
+    tracker->broadcastDiff( false );
     tracker->flipCurrentBuffer();
 }

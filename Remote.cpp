@@ -2,6 +2,30 @@
 #include "client.h"
 #include "Remote.h"
 
+#include "ConvertUTF.h"
+
+
+
+////////
+
+void Moyai::globalInitNetwork() {
+    static bool g_global_init_done = false;
+    
+    if( g_global_init_done ) return;
+    
+#ifdef WIN32
+    WSADATA data;
+    WSAStartup(MAKEWORD(2,0), &data);
+#endif
+#ifndef WIN32
+    signal( SIGPIPE, SIG_IGN );
+#endif        
+
+}
+
+
+///////////
+
 void setupPacketColorReplacerShaderSnapshot( PacketColorReplacerShaderSnapshot *outpkt, ColorReplacerShader *crs ) {
     outpkt->shader_id = crs->id;
     outpkt->epsilon = crs->epsilon;
@@ -95,9 +119,9 @@ bool Tracker2D::checkDiff() {
     }
     return getPacketProp2DSnapshotDiff( curpkt, prevpkt );
 }
-void Tracker2D::broadcastDiff( Listener *listener, bool force ) {
+void Tracker2D::broadcastDiff( bool force ) {
     if( checkDiff() || force ) {
-        listener->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&pktbuf[cur_buffer_index], sizeof(PacketProp2DSnapshot) );
+        parent_rh->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&pktbuf[cur_buffer_index], sizeof(PacketProp2DSnapshot) );
     }
 }
 
@@ -105,13 +129,13 @@ Tracker2D::~Tracker2D() {
     parent_rh->notifyProp2DDeleted(target_prop2d);
 }
 void RemoteHead::notifyProp2DDeleted( Prop2D *deleted ) {
-    listener->broadcastUS1UI1( PACKETTYPE_S2C_PROP2D_DELETE, deleted->id );
+    broadcastUS1UI1( PACKETTYPE_S2C_PROP2D_DELETE, deleted->id );
 }
 void RemoteHead::notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop ) {
-    listener->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_CLEAR_CHILD, owner_prop->id, child_prop->id );
+    broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_CLEAR_CHILD, owner_prop->id, child_prop->id );
 }
 void RemoteHead::notifyGridDeleted( Grid *deleted ) {
-    listener->broadcastUS1UI1( PACKETTYPE_S2C_GRID_DELETE, deleted->id );
+    broadcastUS1UI1( PACKETTYPE_S2C_GRID_DELETE, deleted->id );
 }
 
 // Assume all props in all layers are Prop2Ds.
@@ -130,7 +154,7 @@ void RemoteHead::track2D() {
 }
 // Send all IDs of tiledecks, layers, textures, fonts, viwports by scanning all props and grids.
 // This occurs only when new player is comming in.
-void RemoteHead::scanSendAllPrerequisites( HMPConn *outco ) {
+void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
     std::unordered_map<int,Viewport*> vpmap;
     std::unordered_map<int,Camera*> cammap;
     
@@ -149,15 +173,15 @@ void RemoteHead::scanSendAllPrerequisites( HMPConn *outco ) {
     for( std::unordered_map<int,Viewport*>::iterator it = vpmap.begin(); it != vpmap.end(); ++it ) {
         Viewport *vp = it->second;
         print("sending viewport_create id:%d sz:%d,%d scl:%f,%f", vp->id, vp->screen_width, vp->screen_height, vp->scl.x, vp->scl.y );
-        outco->sendUS1UI1( PACKETTYPE_S2C_VIEWPORT_CREATE, vp->id );
-        outco->sendUS1UI1F2( PACKETTYPE_S2C_VIEWPORT_SIZE, vp->id, vp->screen_width, vp->screen_height );
-        outco->sendUS1UI1F2( PACKETTYPE_S2C_VIEWPORT_SCALE, vp->id, vp->scl.x, vp->scl.y );
+        sendUS1UI1( outstream, PACKETTYPE_S2C_VIEWPORT_CREATE, vp->id );
+        sendUS1UI1F2( outstream, PACKETTYPE_S2C_VIEWPORT_SIZE, vp->id, vp->screen_width, vp->screen_height );
+        sendUS1UI1F2( outstream, PACKETTYPE_S2C_VIEWPORT_SCALE, vp->id, vp->scl.x, vp->scl.y );
     }
     for( std::unordered_map<int,Camera*>::iterator it = cammap.begin(); it != cammap.end(); ++it ) {
         Camera *cam = it->second;
         print("sending camera_create id:%d", cam->id );
-        outco->sendUS1UI1( PACKETTYPE_S2C_CAMERA_CREATE, cam->id );
-        outco->sendUS1UI1F2( PACKETTYPE_S2C_CAMERA_LOC, cam->id, cam->loc.x, cam->loc.y );
+        sendUS1UI1( outstream, PACKETTYPE_S2C_CAMERA_CREATE, cam->id );
+        sendUS1UI1F2( outstream, PACKETTYPE_S2C_CAMERA_LOC, cam->id, cam->loc.x, cam->loc.y );
     }
     
     // Layers(Groups) don't need scanning props
@@ -165,9 +189,9 @@ void RemoteHead::scanSendAllPrerequisites( HMPConn *outco ) {
         Layer *l = (Layer*) target_moyai->getGroupByIndex(i);
         if(!l)continue;
         print("sending layer_create id:%d",l->id);
-        outco->sendUS1UI1( PACKETTYPE_S2C_LAYER_CREATE, l->id );
-        if( l->viewport ) outco->sendUS1UI2( PACKETTYPE_S2C_LAYER_VIEWPORT, l->id, l->viewport->id);
-        if( l->camera ) outco->sendUS1UI2( PACKETTYPE_S2C_LAYER_CAMERA, l->id, l->camera->id );
+        sendUS1UI1( outstream, PACKETTYPE_S2C_LAYER_CREATE, l->id );
+        if( l->viewport ) sendUS1UI2( outstream, PACKETTYPE_S2C_LAYER_VIEWPORT, l->id, l->viewport->id);
+        if( l->camera ) sendUS1UI2( outstream, PACKETTYPE_S2C_LAYER_CAMERA, l->id, l->camera->id );
     }
     
     // Image, Texture, tiledeck
@@ -225,57 +249,57 @@ void RemoteHead::scanSendAllPrerequisites( HMPConn *outco ) {
         Image *img = it->second;
         if( img->last_load_file_path[0] ) {
             print("sending file path:'%s' in image %d", img->last_load_file_path, img->id );
-            outco->sendFile( img->last_load_file_path );
+            sendFile( outstream, img->last_load_file_path );
         }
     }
     for( std::unordered_map<int,Image*>::iterator it = imgmap.begin(); it != imgmap.end(); ++it ) {
         Image *img = it->second;
         print("sending image_create id:%d", img->id );
-        outco->sendUS1UI1( PACKETTYPE_S2C_IMAGE_CREATE, img->id );
+        sendUS1UI1( outstream, PACKETTYPE_S2C_IMAGE_CREATE, img->id );
         if( img->last_load_file_path[0] ) {
             print("sending image_load_png: '%s'", img->last_load_file_path );
-            outco->sendUS1UI1Str( PACKETTYPE_S2C_IMAGE_LOAD_PNG, img->id, img->last_load_file_path );                
+            sendUS1UI1Str( outstream, PACKETTYPE_S2C_IMAGE_LOAD_PNG, img->id, img->last_load_file_path );                
         }
         if( img->width>0 && img->buffer) {
             // this image is not from file, maybe generated.
-            outco->sendUS1UI3( PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, img->id, img->width, img->height );
+            sendUS1UI3( outstream, PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, img->id, img->width, img->height );
         }
         if( img->modified_pixel_num > 0 ) {
             // modified image (includes loadPNG case)
-            outco->sendUS1UI3( PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, img->id, img->width, img->height );
-            listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_IMAGE_RAW,
-                                            img->id, (const char*) img->buffer, img->getBufferSize() );                
+            sendUS1UI3( outstream, PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, img->id, img->width, img->height );
+            broadcastUS1UI1Bytes( PACKETTYPE_S2C_IMAGE_RAW,
+                                  img->id, (const char*) img->buffer, img->getBufferSize() );                
         }
     }
     for( std::unordered_map<int,Texture*>::iterator it = texmap.begin(); it != texmap.end(); ++it ) {
         Texture *tex = it->second;
         print("sending texture_create id:%d", tex->id );
-        outco->sendUS1UI1( PACKETTYPE_S2C_TEXTURE_CREATE, tex->id );
-        outco->sendUS1UI2( PACKETTYPE_S2C_TEXTURE_IMAGE, tex->id, tex->image->id );
+        sendUS1UI1( outstream, PACKETTYPE_S2C_TEXTURE_CREATE, tex->id );
+        sendUS1UI2( outstream, PACKETTYPE_S2C_TEXTURE_IMAGE, tex->id, tex->image->id );
     }
     for( std::unordered_map<int,TileDeck*>::iterator it = tdmap.begin(); it != tdmap.end(); ++it ) {
         TileDeck *td = it->second;
         print("sending tiledeck_create id:%d", td->id );
-        outco->sendUS1UI1( PACKETTYPE_S2C_TILEDECK_CREATE, td->id );
-        outco->sendUS1UI2( PACKETTYPE_S2C_TILEDECK_TEXTURE, td->id, td->tex->id );
+        sendUS1UI1( outstream, PACKETTYPE_S2C_TILEDECK_CREATE, td->id );
+        sendUS1UI2( outstream, PACKETTYPE_S2C_TILEDECK_TEXTURE, td->id, td->tex->id );
         //        print("sendS2RTileDeckSize: id:%d %d,%d,%d,%d", td->id, sprw, sprh, cellw, cellh );        
-        outco->sendUS1UI5( PACKETTYPE_S2C_TILEDECK_SIZE, td->id, td->tile_width, td->tile_height, td->cell_width, td->cell_height );        
+        sendUS1UI5( outstream, PACKETTYPE_S2C_TILEDECK_SIZE, td->id, td->tile_width, td->tile_height, td->cell_width, td->cell_height );        
     }
     for( std::unordered_map<int,Font*>::iterator it = fontmap.begin(); it != fontmap.end(); ++it ) {
         Font *f = it->second;
         print("sending font id:%d path:%s", f->id, f->last_load_file_path );
-        outco->sendUS1UI1( PACKETTYPE_S2C_FONT_CREATE, f->id );
+        sendUS1UI1( outstream, PACKETTYPE_S2C_FONT_CREATE, f->id );
         // utf32toutf8
-        outco->sendUS1UI1Wstr( PACKETTYPE_S2C_FONT_CHARCODES, f->id, f->charcode_table, f->charcode_table_used_num );
-        outco->sendFile( f->last_load_file_path );
-        outco->sendUS1UI2Str( PACKETTYPE_S2C_FONT_LOADTTF, f->id, f->pixel_size, f->last_load_file_path );
+        sendUS1UI1Wstr( outstream, PACKETTYPE_S2C_FONT_CHARCODES, f->id, f->charcode_table, f->charcode_table_used_num );
+        sendFile( outstream, f->last_load_file_path );
+        sendUS1UI2Str( outstream, PACKETTYPE_S2C_FONT_LOADTTF, f->id, f->pixel_size, f->last_load_file_path );
     }
     for( std::unordered_map<int,ColorReplacerShader*>::iterator it = crsmap.begin(); it != crsmap.end(); ++it ) {
         ColorReplacerShader *crs = it->second;
         print("sending col repl shader id:%d", crs->id );
         PacketColorReplacerShaderSnapshot ss;
         setupPacketColorReplacerShaderSnapshot(&ss,crs);
-        outco->sendUS1Bytes( PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT, (const char*)&ss, sizeof(ss) );        
+        sendUS1Bytes( outstream, PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT, (const char*)&ss, sizeof(ss) );        
     }
 
     // sounds
@@ -285,22 +309,22 @@ void RemoteHead::scanSendAllPrerequisites( HMPConn *outco ) {
 
         if( snd->last_load_file_path[0] ) {
             print("sending sound load file: %d, '%s'", snd->id, snd->last_load_file_path );
-            outco->sendUS1UI1Str( PACKETTYPE_S2C_SOUND_CREATE_FROM_FILE, snd->id, snd->last_load_file_path );
+            sendUS1UI1Str( outstream, PACKETTYPE_S2C_SOUND_CREATE_FROM_FILE, snd->id, snd->last_load_file_path );
         } else if( snd->last_samples ){
-            outco->sendUS1UI1Bytes( PACKETTYPE_S2C_SOUND_CREATE_FROM_SAMPLES, snd->id,
+            sendUS1UI1Bytes( outstream, PACKETTYPE_S2C_SOUND_CREATE_FROM_SAMPLES, snd->id,
                                     (const char*) snd->last_samples,
                                     snd->last_samples_num * sizeof(snd->last_samples[0]) );
         }
-        outco->sendUS1UI1F1( PACKETTYPE_S2C_SOUND_DEFAULT_VOLUME, snd->id, snd->default_volume );
+        sendUS1UI1F1( outstream, PACKETTYPE_S2C_SOUND_DEFAULT_VOLUME, snd->id, snd->default_volume );
         if(snd->isPlaying()) {
-            outco->sendUS1UI1F2( PACKETTYPE_S2C_SOUND_POSITION, snd->id, snd->getTimePositionSec(), snd->last_play_volume );
+            sendUS1UI1F2( outstream, PACKETTYPE_S2C_SOUND_POSITION, snd->id, snd->getTimePositionSec(), snd->last_play_volume );
         }
     }
 
 }
 
 // Send snapshots of all props and grids
-void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
+void RemoteHead::scanSendAllProp2DSnapshots( uv_stream_t *outstream ) {
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
         Group *grp = target_moyai->getGroupByIndex(i);
         if(!grp)continue;
@@ -315,14 +339,14 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
                     tb->tracker = new TrackerTextBox(this,tb);
                     tb->tracker->scanTextBox();
                 }
-                tb->tracker->broadcastDiff(listener,true );
+                tb->tracker->broadcastDiff(true);
             } else {
                 // prop body
                 if(!p->tracker) {
                     p->tracker = new Tracker2D(this,p);
                     p->tracker->scanProp2D(NULL);
                 }
-                p->tracker->broadcastDiff(listener, true );
+                p->tracker->broadcastDiff(true);
                 // grid
                 for(int i=0;i<p->grid_used_num;i++) {
                     Grid *g = p->grids[i];
@@ -330,13 +354,13 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
                         g->tracker = new TrackerGrid(this,g);
                         g->tracker->scanGrid();                    
                     }
-                    g->tracker->broadcastDiff(p, listener, true );
+                    g->tracker->broadcastDiff(p, true );
                 }
                 // prims
                 if(p->prim_drawer) {
                     if( !p->prim_drawer->tracker) p->prim_drawer->tracker = new TrackerPrimDrawer(this,p->prim_drawer);
                     p->prim_drawer->tracker->scanPrimDrawer();
-                    p->prim_drawer->tracker->broadcastDiff(p,listener, true );
+                    p->prim_drawer->tracker->broadcastDiff(p, true );
                 }
                 
                 // children
@@ -346,7 +370,7 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
                         chp->tracker = new Tracker2D(this,chp);
                         chp->tracker->scanProp2D(p);
                     }
-                    chp->tracker->broadcastDiff(listener,true);
+                    chp->tracker->broadcastDiff(true);
                 }
             }
             cur = cur->next;
@@ -356,47 +380,76 @@ void RemoteHead::scanSendAllProp2DSnapshots( HMPConn *c ) {
 
 void RemoteHead::heartbeat() {
     track2D();
-    nw->heartbeat();
+    uv_run( uv_default_loop(), UV_RUN_NOWAIT );
 }    
+void on_close_callback( uv_handle_t *s ) {
+    print("on_close_callback");
+}
+void on_read_callback( uv_stream_t *s, ssize_t nread, const uv_buf_t *inbuf ) {
+    Client *cl = (Client*) s->data;
+    if(nread>0) {
+        bool res = cl->receiveData( inbuf->base, nread );
+        if(!res) {
+            print("receiveData failed");
+            uv_close( (uv_handle_t*)s, on_close_callback );
+            return;
+        }        
+    } else if( nread <= 0 ) {
+        print("on_read_callback EOF. clid:%d", cl->id );
+        uv_close( (uv_handle_t*)s, on_close_callback );        
+    }
+}
 
+static void alloc_buffer( uv_handle_t *handle, size_t suggested_size, uv_buf_t *outbuf ) {
+    *outbuf = uv_buf_init( (char*) MALLOC(suggested_size), suggested_size );
+}
+
+void on_accept_callback( uv_stream_t *listener, int status ) {
+    if( status != 0 ) {
+        print("on_accept_callback status:%d", status);
+        return;
+    }
+
+    uv_tcp_t *newsock = (uv_tcp_t*) MALLOC( sizeof(uv_tcp_t) );
+    uv_tcp_init( uv_default_loop(), newsock );
+    if( uv_accept( listener, (uv_stream_t*) newsock ) == 0 ) {
+        Client *cl = new Client(newsock, (RemoteHead*)listener->data );
+        newsock->data = cl;
+        print("on_accept_callback. ok status:%d client-id:%d", status, cl->id );
+
+        int r = uv_read_start( (uv_stream_t*) newsock, alloc_buffer, on_read_callback );
+        if(r) {
+            print("uv_read_start: fail ret:%d",r);
+        }
+    }
+}
 
 // return false if can't
-bool RemoteHead::startServer( int portnum, bool to_log_syscall ) {        
+// TODO: implement error handling
+bool RemoteHead::startServer( int portnum ) {    
     tcp_port = portnum;
-
-    if(!nw) {
-        nw = new Network();
-        nw->syscall_log = to_log_syscall;
+    int r = uv_tcp_init( uv_default_loop(), &listener );
+    if(r) {
+        print("uv_tcp_init failed");
+        return false;
     }
-    if(!listener) {
-        listener = new HMPListener(nw,this);
-        bool success = listener->startListen( "", DEFAULT_PORT);
-        if(!success) {
-            print("RemoteHead::startServer: listen failed on port %d", DEFAULT_PORT );
-            delete listener;
-            return false;
-        }
+    listener.data = (void*)this;
+    struct sockaddr_in addr;
+    uv_ip4_addr("0.0.0.0", portnum, &addr );
+    r = uv_tcp_bind( &listener, (const struct sockaddr*) &addr, SO_REUSEADDR );
+    if(r) {
+        print("uv_tcp_bind failed");
+        return false;
+    }
+    r = uv_listen( (uv_stream_t*)&listener, 10, on_accept_callback );
+    if(r) {
+        print("uv_listen failed");
+        return false;
     }
     return true;
 }
 
-void HMPListener::onAccept( int newfd ) {
-    HMPConn *c = new HMPConn(remote_head, this->parent_nw,newfd);
-    addConn(c);
-    print("HMPListener::onAccept. newcon id:%d", c->id );
-    remote_head->scanSendAllPrerequisites(c);
-    remote_head->scanSendAllProp2DSnapshots(c);
-}
-
-void HMPConn::onError( NET_ERROR e, int eno ) {
-    print("HMPConn::onError: id:%d e:%d eno:%d",id,e,eno);
-}
-void HMPConn::onClose() {
-    print("HMPConn::onClose. id:%d",id);
-}
-void HMPConn::onConnect() {
-    print("HMPConn::onConnect. id:%d",id);
-}
+#if 0
 void HMPConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
     print("HMPConn::onfunction. id:%d fid:%d len:%d",id, funcid, argdatalen );
     switch(funcid) {
@@ -461,6 +514,7 @@ void HMPConn::sendFile( const char *filename ) {
     print("sendFile: path:%s len:%d data:%x %x %x %x sendres:%d", filename, sz, buf[0], buf[1], buf[2], buf[3], r );
     FREE(buf);
 }
+#endif
 
 ////////////////
 
@@ -557,39 +611,39 @@ bool TrackerGrid::checkDiff( GRIDTABLETYPE gtt ) {
     return cmp;
 }
 
-void TrackerGrid::broadcastDiff( Prop2D *owner, Listener *listener, bool force ) {
+void TrackerGrid::broadcastDiff( Prop2D *owner, bool force ) {
     if( checkDiff( GTT_INDEX ) || force ) {
-        broadcastGridConfs(owner, listener); // TODO: not necessary to send every time
-        listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, target_grid->id,
-                                        (const char*) index_table[cur_buffer_index],
-                                        target_grid->getCellNum() * sizeof(int32_t) );
+        broadcastGridConfs(owner); // TODO: not necessary to send every time
+        parent_rh->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, target_grid->id,
+                                         (const char*) index_table[cur_buffer_index],
+                                         target_grid->getCellNum() * sizeof(int32_t) );
     }
     if( checkDiff( GTT_FLIP) || force ) {
-        broadcastGridConfs(owner, listener); // TODO: not necessary to send every time
-        listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_FLIP_SNAPSHOT, target_grid->id,
-                                        (const char*) flip_table[cur_buffer_index],
-                                        target_grid->getCellNum() * sizeof(uint8_t) );
+        broadcastGridConfs(owner); // TODO: not necessary to send every time
+        parent_rh->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_FLIP_SNAPSHOT, target_grid->id,
+                                         (const char*) flip_table[cur_buffer_index],
+                                         target_grid->getCellNum() * sizeof(uint8_t) );
     }
     if( checkDiff( GTT_TEXOFS ) || force ) {
-        broadcastGridConfs(owner, listener);
-        listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_TEXOFS_SNAPSHOT, target_grid->id,
-                                        (const char*) texofs_table[cur_buffer_index],
-                                        target_grid->getCellNum() * sizeof(Vec2) );
+        broadcastGridConfs(owner);
+        parent_rh->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_TEXOFS_SNAPSHOT, target_grid->id,
+                                         (const char*) texofs_table[cur_buffer_index],
+                                         target_grid->getCellNum() * sizeof(Vec2) );
     }
     if( checkDiff( GTT_COLOR ) || force ) {
-        broadcastGridConfs(owner, listener); // TODO: not necessary to send every time
-        listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT, target_grid->id,
-                                        (const char*) color_table[cur_buffer_index],
-                                        target_grid->getCellNum() * sizeof(PacketColor) );
+        broadcastGridConfs(owner); // TODO: not necessary to send every time
+        parent_rh->broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT, target_grid->id,
+                                         (const char*) color_table[cur_buffer_index],
+                                         target_grid->getCellNum() * sizeof(PacketColor) );
     }
 }
 
-void TrackerGrid::broadcastGridConfs( Prop2D *owner, Listener *listener ) {
-    listener->broadcastUS1UI3( PACKETTYPE_S2C_GRID_CREATE, target_grid->id, target_grid->width, target_grid->height );
+void TrackerGrid::broadcastGridConfs( Prop2D *owner ) {
+    parent_rh->broadcastUS1UI3( PACKETTYPE_S2C_GRID_CREATE, target_grid->id, target_grid->width, target_grid->height );
     int dk_id = 0;
     if(target_grid->deck) dk_id = target_grid->deck->id; else if(owner->deck) dk_id = owner->deck->id;
-    if(dk_id) listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_DECK, target_grid->id, dk_id );
-    listener->broadcastUS1UI2( PACKETTYPE_S2C_GRID_PROP2D, target_grid->id, owner->id );    
+    if(dk_id) parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_GRID_DECK, target_grid->id, dk_id );
+    parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_GRID_PROP2D, target_grid->id, owner->id );    
 }
 
 /////////////
@@ -664,20 +718,20 @@ bool TrackerTextBox::checkDiff() {
 void TrackerTextBox::flipCurrentBuffer() {
     cur_buffer_index = ( cur_buffer_index == 0 ? 1 : 0 );        
 }
-void TrackerTextBox::broadcastDiff( Listener *listener, bool force ) {
+void TrackerTextBox::broadcastDiff( bool force ) {
     if( checkDiff() || force ) {
-        listener->broadcastUS1UI1( PACKETTYPE_S2C_TEXTBOX_CREATE, target_tb->id );
-        listener->broadcastUS1UI2( PACKETTYPE_S2C_TEXTBOX_LAYER, target_tb->id, target_tb->getParentLayer()->id );        
-        listener->broadcastUS1UI2( PACKETTYPE_S2C_TEXTBOX_FONT, target_tb->id, target_tb->font->id );
-        listener->broadcastUS1UI1Wstr( PACKETTYPE_S2C_TEXTBOX_STRING, target_tb->id, target_tb->str, target_tb->len_str );
-        listener->broadcastUS1UI1F2( PACKETTYPE_S2C_TEXTBOX_LOC, target_tb->id, target_tb->loc.x, target_tb->loc.y );
-        listener->broadcastUS1UI1F2( PACKETTYPE_S2C_TEXTBOX_SCL, target_tb->id, target_tb->scl.x, target_tb->scl.y );        
+        parent_rh->broadcastUS1UI1( PACKETTYPE_S2C_TEXTBOX_CREATE, target_tb->id );
+        parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_TEXTBOX_LAYER, target_tb->id, target_tb->getParentLayer()->id );        
+        parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_TEXTBOX_FONT, target_tb->id, target_tb->font->id );
+        parent_rh->broadcastUS1UI1Wstr( PACKETTYPE_S2C_TEXTBOX_STRING, target_tb->id, target_tb->str, target_tb->len_str );
+        parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_TEXTBOX_LOC, target_tb->id, target_tb->loc.x, target_tb->loc.y );
+        parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_TEXTBOX_SCL, target_tb->id, target_tb->scl.x, target_tb->scl.y );        
         PacketColor pc;
         pc.r = target_tb->color.r;
         pc.g = target_tb->color.g;
         pc.b = target_tb->color.b;
         pc.a = target_tb->color.a;        
-        listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_TEXTBOX_COLOR, target_tb->id, (const char*)&pc, sizeof(pc) );            
+        parent_rh->broadcastUS1UI1Bytes( PACKETTYPE_S2C_TEXTBOX_COLOR, target_tb->id, (const char*)&pc, sizeof(pc) );            
     }
 }
 
@@ -717,11 +771,11 @@ bool TrackerColorReplacerShader::checkDiff() {
         return false;
     }
 }
-void TrackerColorReplacerShader::broadcastDiff( Listener *listener, bool force ) {
+void TrackerColorReplacerShader::broadcastDiff( bool force ) {
     if( checkDiff() || force ) {
         PacketColorReplacerShaderSnapshot pkt;
         setupPacketColorReplacerShaderSnapshot( &pkt, target_shader );
-        listener->broadcastUS1Bytes( PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT, (const char*)&pkt, sizeof(pkt) );
+        parent_rh->broadcastUS1Bytes( PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT, (const char*)&pkt, sizeof(pkt) );
     }
 }
 //////////////////
@@ -797,12 +851,12 @@ bool TrackerPrimDrawer::checkDiff() {
     }
     return false;
 }
-void TrackerPrimDrawer::broadcastDiff( Prop2D *owner, Listener *listener, bool force ) {
+void TrackerPrimDrawer::broadcastDiff( Prop2D *owner, bool force ) {
     if( checkDiff() || force ) {
         if( pktnum[cur_buffer_index] > 0 ) {
             //            print("sending %d prims for prop %d", pktnum[cur_buffer_index], owner->id );
             //            for(int i=0;i<pktnum[cur_buffer_index];i++) print("#### primid:%d", pktbuf[cur_buffer_index][i].prim_id );
-            listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT,
+            parent_rh->broadcastUS1UI1Bytes( PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT,
                                          owner->id,
                                          (const char*) pktbuf[cur_buffer_index],
                                          pktnum[cur_buffer_index] * sizeof(PacketPrim) );
@@ -843,15 +897,15 @@ bool TrackerImage::checkDiff() {
         return false;
     }
 }
-void TrackerImage::broadcastDiff( TileDeck *owner_dk, Listener *listener, bool force ) {
+void TrackerImage::broadcastDiff( TileDeck *owner_dk, bool force ) {
     if( checkDiff() || force ) {
         //        print("TrackerImage::broadcastDiff bufsz:%d", target_image->getBufferSize() );
-        listener->broadcastUS1UI3( PACKETTYPE_S2C_IMAGE_ENSURE_SIZE,
+        parent_rh->broadcastUS1UI3( PACKETTYPE_S2C_IMAGE_ENSURE_SIZE,
                                    target_image->id, target_image->width, target_image->height );
-        listener->broadcastUS1UI1Bytes( PACKETTYPE_S2C_IMAGE_RAW,
+        parent_rh->broadcastUS1UI1Bytes( PACKETTYPE_S2C_IMAGE_RAW,
                                         target_image->id, (const char*) imgbuf[cur_buffer_index], target_image->getBufferSize() );
-        listener->broadcastUS1UI2( PACKETTYPE_S2C_TEXTURE_IMAGE, owner_dk->tex->id, target_image->id );
-        listener->broadcastUS1UI2( PACKETTYPE_S2C_TILEDECK_TEXTURE, owner_dk->id, owner_dk->tex->id ); // to update tileeck's image_width/height
+        parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_TEXTURE_IMAGE, owner_dk->tex->id, target_image->id );
+        parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_TILEDECK_TEXTURE, owner_dk->id, owner_dk->tex->id ); // to update tileeck's image_width/height
     }
 }
 ////////////////////
@@ -877,8 +931,410 @@ bool TrackerCamera::checkDiff() {
     }
     return curloc != prevloc;
 }
-void TrackerCamera::broadcastDiff( Listener *listener, bool force ) {
+void TrackerCamera::broadcastDiff( bool force ) {
     if( checkDiff() || force ) {
-        listener->broadcastUS1UI1F2( PACKETTYPE_S2C_CAMERA_LOC, target_camera->id, locbuf[cur_buffer_index].x, locbuf[cur_buffer_index].y );
+        parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_CAMERA_LOC, target_camera->id, locbuf[cur_buffer_index].x, locbuf[cur_buffer_index].y );
+    }
+}
+/////////////////////
+
+void RemoteHead::broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen ) {
+    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
+        uv_stream_t *s = it->second;
+        sendUS1Bytes( s, usval, data, datalen );
+    }
+}
+void RemoteHead::broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen ) {
+    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
+        uv_stream_t *s = it->second;
+        sendUS1UI1Bytes( s, usval, uival, data, datalen );
+    }
+}
+void RemoteHead::broadcastUS1UI1( uint16_t usval, uint32_t uival ) {
+    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
+        uv_stream_t *s = it->second;
+        sendUS1UI1( s, usval, uival );
+    }
+}
+void RemoteHead::broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
+    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
+        uv_stream_t *s = it->second;
+        sendUS1UI2( s, usval, ui0, ui1 );
+    }
+}
+void RemoteHead::broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
+    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
+        uv_stream_t *s = it->second;
+        sendUS1UI3( s, usval, ui0, ui1, ui2 );
+    }
+}
+void RemoteHead::broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters ) {
+    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
+        uv_stream_t *s = it->second;
+        sendUS1UI1Wstr( s, usval, uival, wstr, wstr_num_letters );
+    }
+}
+void RemoteHead::broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
+    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
+        uv_stream_t *s = it->second;
+        sendUS1UI1F2( s, usval, uival, f0, f1 );
+    }
+}
+void RemoteHead::broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
+    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
+        uv_stream_t *s = it->second;
+        sendUS1UI1F1( s, usval, uival, f0 );
+    }
+}
+
+///////////////////
+char sendbuf_work[1024*1024*8];
+void on_write_end( uv_write_t *req, int status ) {
+    if(status==-1) {
+        print("on_write_end: status:%d",status);
+    }
+}
+
+#define SET_RECORD_LEN_AND_US1 \
+    assert(totalsize<=sizeof(sendbuf_work));\
+    set_u32( sendbuf_work+0, totalsize - 4 ); \
+    set_u16( sendbuf_work+4, usval );
+
+#define SETUP_UV_WRITE \
+    uv_write_t write_req; \
+    uv_buf_t buf = uv_buf_init(sendbuf_work,sizeof(sendbuf_work)); \
+    uv_write( &write_req, s, &buf, 1, on_write_end );
+    
+int sendUS1( uv_stream_t *s, uint16_t usval ) {
+    size_t totalsize = 4 + 2;
+    SET_RECORD_LEN_AND_US1;
+    SETUP_UV_WRITE;
+    return totalsize;    
+}
+int sendUS1Bytes( uv_stream_t *s, uint16_t usval, const char *bytes, uint16_t byteslen ) {
+    size_t totalsize = 4 + 2 + (4+byteslen);
+    SET_RECORD_LEN_AND_US1;
+    memcpy( sendbuf_work+4+2+4, bytes, byteslen );
+    SETUP_UV_WRITE;
+    return totalsize;
+}
+int sendUS1UI1Bytes( uv_stream_t *s, uint16_t usval, uint32_t uival, const char *bytes, uint32_t byteslen ) {
+    size_t totalsize = 4 + 2 + 4 + (4+byteslen);
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, uival );
+    set_u32( sendbuf_work+4+2+4, byteslen );
+    memcpy( sendbuf_work+4+2+4+4, bytes, byteslen );
+    SETUP_UV_WRITE;
+    return totalsize;
+}
+int sendUS1UI1( uv_stream_t *s, uint16_t usval, uint32_t uival ) {
+    size_t totalsize = 4 + 2 + 4;
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, uival );
+    SETUP_UV_WRITE;
+    return totalsize;
+}
+int sendUS1UI2( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
+    size_t totalsize = 4 + 2 + 4+4;
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, ui0 );
+    set_u32( sendbuf_work+4+2+4, ui1 );
+    SETUP_UV_WRITE;
+    return totalsize;
+}
+int sendUS1UI3( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
+    size_t totalsize = 4 + 2 + 4+4+4;
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, ui0 );
+    set_u32( sendbuf_work+4+2+4, ui1 );
+    set_u32( sendbuf_work+4+2+4+4, ui2 );    
+    SETUP_UV_WRITE;
+    return totalsize;
+}
+int sendUS1UI5( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 ) {
+    size_t totalsize = 4 + 2 + 4+4+4+4+4;
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, ui0 );
+    set_u32( sendbuf_work+4+2+4, ui1 );
+    set_u32( sendbuf_work+4+2+4+4, ui2 );    
+    set_u32( sendbuf_work+4+2+4+4+4, ui3 );
+    set_u32( sendbuf_work+4+2+4+4+4+4, ui4 );        
+    SETUP_UV_WRITE;
+    return totalsize;
+}
+int sendUS1UI1F1( uv_stream_t *s, uint16_t usval, uint32_t uival, float f0 ) {
+    size_t totalsize = 4 + 2 + 4+4;
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, uival );
+    memcpy( sendbuf_work+4+2+4, &f0, 4 );
+    SETUP_UV_WRITE;
+    return totalsize;    
+}
+int sendUS1UI1F2( uv_stream_t *s, uint16_t usval, uint32_t uival, float f0, float f1 ) {
+    size_t totalsize = 4 + 2 + 4+4+4;
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, uival );
+    memcpy( sendbuf_work+4+2+4, &f0, 4 );
+    memcpy( sendbuf_work+4+2+4+4, &f1, 4 );
+    SETUP_UV_WRITE;
+    return totalsize;    
+}
+int sendUS1F2( uv_stream_t *s, uint16_t usval, float f0, float f1 ) {
+    size_t totalsize = 4 + 2 + 4+4;
+    SET_RECORD_LEN_AND_US1;
+    memcpy( sendbuf_work+4+2, &f0, 4 );
+    memcpy( sendbuf_work+4+2+4, &f1, 4 );
+    SETUP_UV_WRITE;
+    return totalsize;
+}
+int sendUS1UI1Str( uv_stream_t *s, uint16_t usval, uint32_t uival, const char *cstr ) {
+    int cstrlen = strlen(cstr);
+    assert( cstrlen <= 255 );
+    size_t totalsize = 4 + 2 + 4 + (1+cstrlen);
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, uival );
+    set_u8( sendbuf_work+4+2+4, (unsigned char) cstrlen );
+    memcpy( sendbuf_work+4+2+4+1, cstr, cstrlen );
+    SETUP_UV_WRITE;
+    return totalsize;
+}
+int sendUS1UI2Str( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr ) {
+    int cstrlen = strlen(cstr);
+    assert( cstrlen <= 255 );
+    size_t totalsize = 4 + 2 + 4+4 + (1+cstrlen);
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, ui0 );
+    set_u32( sendbuf_work+4+2+4, ui1 );    
+    set_u8( sendbuf_work+4+2+4+4, (unsigned char) cstrlen );
+    memcpy( sendbuf_work+4+2+4+4+1, cstr, cstrlen );
+    SETUP_UV_WRITE;
+    return totalsize;
+}
+// [record-len:16][usval:16][cstr-len:8][cstr-body][data-len:32][data-body]
+int sendUS1StrBytes( uv_stream_t *s, uint16_t usval, const char *cstr, const char *data, uint32_t datalen ) {
+    int cstrlen = strlen(cstr);
+    assert( cstrlen <= 255 );
+    size_t totalsize = 4 + 2 + (1+cstrlen) + (4+datalen);
+    SET_RECORD_LEN_AND_US1;
+    set_u8( sendbuf_work+4+2, (unsigned char) cstrlen );
+    memcpy( sendbuf_work+4+2+1, cstr, cstrlen );
+    set_u32( sendbuf_work+4+2+1+cstrlen, datalen );
+    memcpy( sendbuf_work+4+2+1+cstrlen+4, data, datalen );
+    SETUP_UV_WRITE;
+    //    print("send_packet_str_bytes: cstrlen:%d datalen:%d totallen:%d", cstrlen, datalen, totalsize );
+    return totalsize;
+}
+void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize ) {
+    uint8_t slen = get_u8(inptr);
+    char *s = inptr + 1;
+    uint32_t datalen = get_u32(inptr+1+slen);
+    *outptr = inptr + 1 + slen + 4;
+    memcpy( outcstr, s, slen );
+    outcstr[slen]='\0';
+    *outsize = (size_t) datalen;
+}
+
+// convert wchar_t to 
+int sendUS1UI1Wstr( uv_stream_t *s, uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters ) {
+#if defined(__APPLE__) || defined(__linux__)
+    assert( sizeof(wchar_t) == sizeof(int32_t) );
+    size_t bufsz = wstr_num_letters * sizeof(int32_t);
+    UTF8 *outbuf = (UTF8*) MALLOC( bufsz + 1);
+    assert(outbuf);
+    UTF8 *orig_outbuf = outbuf;
+    const UTF32 *inbuf = (UTF32*) wstr;
+    ConversionResult r = ConvertUTF32toUTF8( &inbuf, inbuf+wstr_num_letters, &outbuf, outbuf+bufsz, strictConversion );
+    assertmsg(r==conversionOK, "ConvertUTF32toUTF8 failed:%d bufsz:%d", r, bufsz );
+    size_t outlen = outbuf - orig_outbuf;
+    //    print("ConvertUTF32toUTF8 result utf8 len:%d out:'%s'", outlen, orig_outbuf );
+    int ret = sendUS1UI1Bytes( s, usval, uival, (const char*) orig_outbuf, outlen );
+    free(orig_outbuf);
+    return ret;    
+#else
+    assertmsg( false, "not implemented" );
+    return 0;
+#endif    
+}
+
+void sendFile( uv_stream_t *s, const char *filename ) {
+    const size_t MAXBUFSIZE = 1024*1024*4;
+    char *buf = (char*) MALLOC(MAXBUFSIZE);
+    assert(buf);
+    size_t sz = MAXBUFSIZE;
+    bool res = readFile( filename, buf, &sz );
+    assertmsg(res, "sendFile: file '%s' read error", filename );
+    int r = sendUS1StrBytes( s, PACKETTYPE_S2C_FILE, filename, buf, sz );
+    assert(r>0);
+    print("sendFile: path:%s len:%d data:%x %x %x %x sendres:%d", filename, sz, buf[0], buf[1], buf[2], buf[3], r );
+    FREE(buf);
+}
+
+////////////////////
+Buffer::Buffer() : buf(0), size(0), used(0) {
+}
+void Buffer::ensureMemory( size_t sz ) {
+    buf = (char*) MALLOC(sz);
+    assert(buf);
+    size = sz;
+    used = 0;    
+}
+
+Buffer::~Buffer() {
+    assert(buf);
+    free(buf);
+    size = used = 0;
+}
+
+bool Buffer::push( const char *data, size_t datasz ) {
+    size_t left = size - used;
+    if( left < datasz ) return false;
+    memcpy( buf + used, data, datasz );
+    used += datasz;
+    //    fprintf(stderr, "buffer_push: pushed %d bytes, used: %d\n", (int)datasz, (int)b->used );
+    return true;
+}
+bool Buffer::pushWithNum32( const char *data, size_t datasz ) {
+    size_t left = size - used;
+    if( left < 4 + datasz ) return false;
+    set_u32( buf + used, datasz );
+    used += 4;
+    push( data, datasz );
+    return true;
+}
+bool Buffer::pushU32( unsigned int val ) {
+    size_t left = size - used;
+    if( left < 4 ) return false;
+    set_u32( buf + used, val );
+    used += 4;
+    //    fprintf(stderr, "buffer_push_u32: pushed 4 bytes. val:%u\n",val );
+    return true;
+}
+bool Buffer::pushU16( unsigned short val ) {
+    size_t left = size - used;
+    if( left < 2 ) return false;
+    set_u16( buf + used, val );
+    used += 2;
+    return true;
+}
+bool Buffer::pushU8( unsigned char val ) {
+    size_t left = size - used;
+    if( left < 1 ) return false;
+    set_u8( buf + used, val );
+    used += 1;
+    return true;
+}
+
+// ALL or NOTHING. true when success
+bool Buffer::shift( size_t toshift ) {
+    if( used < toshift ) return false;
+    if( toshift == used ) { // most cases
+        used = 0;
+        return true;
+    }
+    // 0000000000 size=10
+    // uuuuu      used=5
+    // ss         shift=2
+    //   mmm      move=3
+    memmove( buf, buf + toshift, used - toshift );
+    used -= toshift;
+    return true;
+}
+
+
+//////////////////
+int Client::idgen = 1;
+Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : id(idgen++), tcp(sk), parent_rh(rh) {
+    recvbuf.ensureMemory(1024*1024*1);
+    
+}
+Client::~Client() {
+    
+}
+// return false when error(to close)
+bool Client::receiveData( const char *data, size_t datalen ) {
+    bool pushed = recvbuf.push( data, datalen );
+    print("receiveData: datalen:%d id:%d bufd:%d pushed:%d", datalen, id, recvbuf.used, pushed );
+
+    if(!pushed) {
+        print("recv buf full? close. clid:%d", id );
+        return false;
+    }
+
+    // Parse RPC
+    //        fprintf(stderr, "recvbuf used:%zu\n", c->recvbuf.used );
+    //        moynet_t *h = c->parent_moynet;
+    while(true) { // process everything in one poll
+        //            print("recvbuf:%d", c->recvbuf.used );
+        if( recvbuf.used < (4+2) ) return true; // need more data from network
+        //              <---RECORDLEN------>
+        // [RECORDLEN32][FUNCID32][..DATA..]            
+        size_t record_len = get_u32( recvbuf.buf );
+        unsigned int func_id = get_u16( recvbuf.buf + 4 );
+
+        if( recvbuf.used < (4+record_len) ) {
+            //   print("need. used:%d reclen:%d", recvbuf.used, record_len );
+            return true; // need more data from network
+        }
+        if( record_len < 2 ) {
+            fprintf(stderr, "invalid packet format" );
+            return false;
+        }
+        //             fprintf(stderr, "dispatching func_id:%d record_len:%lu\n", func_id, record_len );
+        // dump( recvbuf.buf, record_len-4);
+        onPacket( func_id, (char*) recvbuf.buf +4+2, record_len - 2 );
+        recvbuf.shift( 4 + record_len );
+        //            fprintf(stderr, "after dispatch recv func: buffer used: %zu\n", c->recvbuf.used );
+        //            if( c->recvbuf.used > 0 ) dump( c->recvbuf.buf, c->recvbuf.used );
+    }
+}
+
+void Client::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
+    assert(parent_rh);
+    
+    print("HMPConn::onfunction. id:%d fid:%d len:%d",id, funcid, argdatalen );
+    switch(funcid) {
+    case PACKETTYPE_C2S_KEYBOARD:
+        {
+            uint32_t keycode = get_u32(argdata);
+            uint32_t action = get_u32(argdata+4);
+            uint32_t mod_shift = get_u32(argdata+8);
+            uint32_t mod_ctrl = get_u32(argdata+12);
+            uint32_t mod_alt = get_u32(argdata+16);
+            print("kbd: %d %d %d %d %d", keycode, action, mod_shift, mod_ctrl, mod_alt );            
+            Keyboard *kbd = parent_rh->target_keyboard;
+            if(kbd) {
+                kbd->update(keycode, action, mod_shift, mod_ctrl, mod_alt );
+            }
+        }
+        break;
+    case PACKETTYPE_C2S_MOUSE_BUTTON:
+        {
+            uint32_t button = get_u32(argdata);
+            uint32_t action = get_u32(argdata+4);
+            uint32_t mod_shift = get_u32(argdata+8);
+            uint32_t mod_ctrl = get_u32(argdata+12);
+            uint32_t mod_alt = get_u32(argdata+16);
+            print("mou: %d %d %d %d %d", button, action, mod_shift, mod_ctrl, mod_alt );
+            Mouse *mou = parent_rh->target_mouse;
+            if(mou) {
+                mou->updateButton( button, action, mod_shift, mod_ctrl, mod_alt );
+            }
+        }
+        break;
+    case PACKETTYPE_C2S_CURSOR_POS:
+        {
+            float x = get_f32(argdata);
+            float y = get_f32(argdata+4);
+            print("pos: %f %f", x,y);
+            Mouse *mou = parent_rh->target_mouse;
+            if(mou) {
+                mou->updateCursorPosition(x,y);
+            }
+            
+        }
+        break;
+    default:
+        print("unhandled funcid: %d",funcid);
+        break;
     }
 }

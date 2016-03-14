@@ -15,7 +15,7 @@ typedef int ssize_t;
 #endif
 
 
-#include <ev.h>
+
 
 #include "ConvertUTF.h"
 
@@ -25,33 +25,16 @@ typedef int ssize_t;
 
 
 
+//////////////
 
-void Moyai::globalInitNetwork() {
-    static bool g_global_init_done = false;
-    
-    if( g_global_init_done ) return;
-    
-#ifdef WIN32
-    WSADATA data;
-    WSAStartup(MAKEWORD(2,0), &data);
-#endif
-#ifndef WIN32
-    signal( SIGPIPE, SIG_IGN );
-#endif        
 
-}
-
-void *NET_MALLOC( size_t sz ) {
-    void *ptr = malloc(sz);
-    return ptr;
-}
 
 /////////////
 
 Buffer::Buffer() : buf(0), size(0), used(0) {
 }
 void Buffer::ensureMemory( size_t sz ) {
-    buf = (char*) NET_MALLOC(sz);
+    buf = (char*) MALLOC(sz);
     assert(buf);
     size = sz;
     used = 0;    
@@ -64,24 +47,22 @@ Buffer::~Buffer() {
 }
 
 
-static void write_callback( struct ev_loop *loop, struct ev_io *watcher, int revents );
-static void read_callback( struct ev_loop *loop, struct ev_io *watcher, int revents );
+//int Conn::idgen = 1;
 
-int Conn::idgen = 1;
-
-Conn::Conn( Network *nw, int fd ) : fd(fd), connecting(false), userptr(0), read_watcher(0), write_watcher(0), parent_listener(0), parent_nw(nw) {
+#if 0
+Conn::Conn( Network *nw, uv_stream fd ) : stream(0), connecting(false), userptr(0), parent_listener(0), parent_nw(nw) {
     id = idgen++;
     fprintf(stderr, "Conn::Conn id:%d fd:%d",id,fd);
 
     sendbuf.ensureMemory( SENDBUF_SIZE );
     recvbuf.ensureMemory(  RECVBUF_SIZE );
     
-    write_watcher = (struct ev_io*) NET_MALLOC( sizeof(struct ev_io) );
+    write_watcher = (struct ev_io*) MALLOC( sizeof(struct ev_io) );
     ev_io_init( write_watcher, write_callback, fd, EV_WRITE );
     ev_io_start( nw->evloop, write_watcher );
     write_watcher->data  = this;
     
-    read_watcher = (struct ev_io*) NET_MALLOC( sizeof(struct ev_io) );    
+    read_watcher = (struct ev_io*) MALLOC( sizeof(struct ev_io) );    
     ev_io_init( read_watcher, read_callback, fd, EV_READ );
     ev_io_start( nw->evloop, read_watcher );
     read_watcher->data = this;
@@ -101,75 +82,21 @@ void Conn::notifyError( NET_ERROR he, int eno ) {
     onError( he, eno);
     onClose();    
 }
-
+#endif
 
 // ALL or NOTHING. never push part of the given data.
 // return true if all data is pushed.
-bool Buffer::push( const char *data, size_t datasz ) {
-    size_t left = size - used;
-    if( left < datasz ) return false;
-    memcpy( buf + used, data, datasz );
-    used += datasz;
-    //    fprintf(stderr, "buffer_push: pushed %d bytes, used: %d\n", (int)datasz, (int)b->used );
-    return true;
-}
-bool Buffer::pushWithNum32( const char *data, size_t datasz ) {
-    size_t left = size - used;
-    if( left < 4 + datasz ) return false;
-    set_u32( buf + used, datasz );
-    used += 4;
-    push( data, datasz );
-    return true;
-}
-bool Buffer::pushU32( unsigned int val ) {
-    size_t left = size - used;
-    if( left < 4 ) return false;
-    set_u32( buf + used, val );
-    used += 4;
-    //    fprintf(stderr, "buffer_push_u32: pushed 4 bytes. val:%u\n",val );
-    return true;
-}
-bool Buffer::pushU16( unsigned short val ) {
-    size_t left = size - used;
-    if( left < 2 ) return false;
-    set_u16( buf + used, val );
-    used += 2;
-    return true;
-}
-bool Buffer::pushU8( unsigned char val ) {
-    size_t left = size - used;
-    if( left < 1 ) return false;
-    set_u8( buf + used, val );
-    used += 1;
-    return true;
-}
-
-// ALL or NOTHING. true when success
-bool Buffer::shift( size_t toshift ) {
-    if( used < toshift ) return false;
-    if( toshift == used ) { // most cases
-        used = 0;
-        return true;
-    }
-    // 0000000000 size=10
-    // uuuuu      used=5
-    // ss         shift=2
-    //   mmm      move=3
-    memmove( buf, buf + toshift, used - toshift );
-    used -= toshift;
-    return true;
-}
-
-bool Conn::push( const char *data, size_t datasz ) {
-    return sendbuf.push( data, datasz );
-}
-size_t Conn::getSendbufRoom() {
-    return sendbuf.getRoom();
-}
+//bool Conn::push( const char *data, size_t datasz ) {
+//    return sendbuf.push( data, datasz );
+//}
+//size_t Conn::getSendbufRoom() {
+//    return sendbuf.getRoom();
+//}
 
 
 ///////////////
 
+#if 0
 // returns negative if error
 static void write_callback( struct ev_loop *loop, struct ev_io *watcher, int revents ) {
     Conn *c = (Conn*) watcher->data;
@@ -199,6 +126,8 @@ static void write_callback( struct ev_loop *loop, struct ev_io *watcher, int rev
         }
     }
 }
+#endif
+
 static bool is_would_block_error() {
 #if WIN32
     return( GetLastError() == WSAEWOULDBLOCK );
@@ -230,6 +159,7 @@ void moynet_dump( const char *s, size_t l ) {
     fprintf(stderr,"\n");
 }
 
+#if 0
 static void read_callback( struct ev_loop *loop, struct ev_io *watcher, int revents ) {
     Conn *c = (Conn*) watcher->data;
     assert(c);
@@ -319,7 +249,9 @@ static void accept_callback( struct ev_loop *loop, struct ev_io *watcher, int re
         // error
     }
 }
+#endif
 
+#if 0
 // returns true if success
 bool Listener::startListen( const char *addr, int tcpport ) {
     if(fd!=-1) {
@@ -378,7 +310,9 @@ bool Listener::startListen( const char *addr, int tcpport ) {
     ev_io_start( parent_nw->evloop, accept_watcher );
     return true;
 }
+#endif
 
+#if 0
 void Listener::addConn( Conn *c ) {
     Conn *stored = conn_pool.get(c->id);
     if(!stored) {
@@ -437,10 +371,10 @@ void Listener::broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
         c->sendUS1UI1F1( usval, uival, f0 );
     }
 }
+#endif
 
 //////////////////////
 Network::Network() : syscall_log(false), total_sent_bytes(0), total_recv_bytes(0), accum_time(0), last_stats_at(0) {
-    evloop = ev_default_loop(0);        
 }
 
 // returns valid fd when success or -1
@@ -499,7 +433,7 @@ int Network::connectToServer( const char *host, int portnum ) {
 void Network::heartbeat() {
     double nt = now();
     
-    ev_loop( this->evloop, EVLOOP_NONBLOCK );
+    uv_run( uv_default_loop(), UV_RUN_ONCE );
 
     if( nt > last_stats_at + 1.0f ) {
         last_stats_at = nt;
@@ -534,12 +468,12 @@ void Network::heartbeatWithTimeoutMicroseconds( int timeout_us ) {
 
 
 /////
+#if 0
 int Conn::sendUS1( uint16_t usval ) {
     size_t totalsize = 4 + 2;
     if( getSendbufRoom() < totalsize ) return 0;
     sendbuf.pushU32( totalsize - 4 ); // record-len
     sendbuf.pushU16( usval );
-    ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;    
 }
 int Conn::sendUS1Bytes( uint16_t usval, const char *buf, uint16_t buflen ) {
@@ -549,7 +483,6 @@ int Conn::sendUS1Bytes( uint16_t usval, const char *buf, uint16_t buflen ) {
     sendbuf.pushU16( usval );
     sendbuf.pushU32( buflen );
     sendbuf.push( buf, buflen );
-    ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
 int Conn::sendUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *buf, uint32_t buflen ) {
@@ -560,7 +493,6 @@ int Conn::sendUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *buf, uint
     sendbuf.pushU32( uival );
     sendbuf.pushU32( buflen );
     sendbuf.push( buf, buflen );
-    ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
 int Conn::sendUS1UI1( uint16_t usval, uint32_t uival ) {
@@ -569,7 +501,6 @@ int Conn::sendUS1UI1( uint16_t usval, uint32_t uival ) {
     sendbuf.pushU32( totalsize - 4 ); // record-len
     sendbuf.pushU16( usval );
     sendbuf.pushU32( uival );
-    ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
 int Conn::sendUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
@@ -579,7 +510,6 @@ int Conn::sendUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
     sendbuf.pushU16( usval );
     sendbuf.pushU32( ui0 );
     sendbuf.pushU32( ui1 );    
-    ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
 int Conn::sendUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
@@ -590,7 +520,6 @@ int Conn::sendUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 )
     sendbuf.pushU32( ui0 );
     sendbuf.pushU32( ui1 );
     sendbuf.pushU32( ui2 );        
-    ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
 int Conn::sendUS1UI5( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 ) {
@@ -603,7 +532,6 @@ int Conn::sendUS1UI5( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, 
     sendbuf.pushU32( ui2 );
     sendbuf.pushU32( ui3 );
     sendbuf.pushU32( ui4 );        
-    ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
 int Conn::sendUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
@@ -613,7 +541,6 @@ int Conn::sendUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
     sendbuf.pushU16( usval );
     sendbuf.pushU32( uival );
     sendbuf.push( (char*)&f0, 4 );
-    ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;    
 }
 int Conn::sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
@@ -624,7 +551,6 @@ int Conn::sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
     sendbuf.pushU32( uival );
     sendbuf.push( (char*)&f0, 4 );
     sendbuf.push( (char*)&f1, 4 );
-    ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;    
 }
 int Conn::sendUS1F2( uint16_t usval, float f0, float f1 ) {
@@ -634,7 +560,6 @@ int Conn::sendUS1F2( uint16_t usval, float f0, float f1 ) {
     sendbuf.pushU16( usval );
     sendbuf.push( (char*)&f0, 4 );
     sendbuf.push( (char*)&f1, 4 );
-    ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
 int Conn::sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr ) {
@@ -647,7 +572,6 @@ int Conn::sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr ) {
     sendbuf.pushU32( uival );
     sendbuf.pushU8( (unsigned char) cstrlen );
     sendbuf.push( cstr, cstrlen );
-    ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
 int Conn::sendUS1UI2Str( uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr ) {
@@ -661,7 +585,6 @@ int Conn::sendUS1UI2Str( uint16_t usval, uint32_t ui0, uint32_t ui1, const char 
     sendbuf.pushU32( ui1 );    
     sendbuf.pushU8( (unsigned char) cstrlen );
     sendbuf.push( cstr, cstrlen );
-    ev_io_start( parent_nw->evloop, write_watcher );
     return totalsize;
 }
 // [record-len:16][usval:16][cstr-len:8][cstr-body][data-len:32][data-body]
@@ -676,7 +599,6 @@ int Conn::sendUS1StrBytes( uint16_t usval, const char *cstr, const char *data, u
     sendbuf.push( cstr, cstrlen );
     sendbuf.pushU32( datalen );
     sendbuf.push( data, datalen );
-    ev_io_start( parent_nw->evloop, write_watcher );
     //    print("send_packet_str_bytes: cstrlen:%d datalen:%d totallen:%d", cstrlen, datalen, totalsize );
     return totalsize;
 }
@@ -695,7 +617,7 @@ int Conn::sendUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wst
 #if defined(__APPLE__) || defined(__linux__)
     assert( sizeof(wchar_t) == sizeof(int32_t) );
     size_t bufsz = wstr_num_letters * sizeof(int32_t);
-    UTF8 *outbuf = (UTF8*) NET_MALLOC( bufsz + 1);
+    UTF8 *outbuf = (UTF8*) MALLOC( bufsz + 1);
     assert(outbuf);
     UTF8 *orig_outbuf = outbuf;
     const UTF32 *inbuf = (UTF32*) wstr;
@@ -711,3 +633,4 @@ int Conn::sendUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wst
     return 0;
 #endif    
 }
+#endif

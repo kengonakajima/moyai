@@ -91,7 +91,7 @@ void PrimDrawer::onTrack( Prop2D *owner, RemoteHead *rh ) {
         tracker = new TrackerPrimDrawer(rh,this);
     }
     tracker->scanPrimDrawer();
-    tracker->broadcastDiff(owner,rh->listener, false );
+    tracker->broadcastDiff(owner, false );
     tracker->flipCurrentBuffer();        
 }
 

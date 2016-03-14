@@ -1,7 +1,7 @@
 #ifndef _NET_H_
 #define _NET_H_
 
-
+#include <uv.h>
 
 #if defined(WIN32)
 #include <stdint.h>
@@ -47,14 +47,14 @@ extern inline float get_f32(const char *buf) { return *((float*)(buf)); }
 class Listener;
 class Network;
 
+#if 0
 class Conn {
 public:
     int id;
-    int fd;
+    uv_stream_t *stream;
     Buffer sendbuf, recvbuf;
     bool connecting;
     void *userptr;
-    struct ev_io *read_watcher, *write_watcher;
     Listener *parent_listener;
     Network *parent_nw;
     static int idgen;
@@ -75,26 +75,10 @@ public:
 
     void notifyError( NET_ERROR e, int eno );
 
-    // send funcs
-    int sendUS1( uint16_t usval );
-    int sendUS1Bytes( uint16_t usval, const char *buf, uint16_t datalen );
-    int sendUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *buf, uint32_t datalen );
-    int sendUS1UI1( uint16_t usval, uint32_t ui0 );
-    int sendUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );    
-    int sendUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );    
-    int sendUS1UI5( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 );
-    int sendUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );    
-    int sendUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
-    int sendUS1UI1Str( uint16_t usval, uint32_t uival, const char *cstr );
-    int sendUS1UI2Str( uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr );
-    int sendUS1StrBytes( uint16_t usval, const char *cstr, const char *data, uint32_t datalen );
-    int sendUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
-    int sendUS1F2( uint16_t usval, float f0, float f1 );
-    
-    // parse helpers
-    static void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize );
 };
+#endif
 
+#if 0
 typedef std::unordered_map<unsigned int,Conn*>::iterator ConnIteratorType;
 
 class Listener {
@@ -120,6 +104,7 @@ public:
     void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
     void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );    
 };
+#endif
 
 class TrafficStats {
 public:
@@ -134,7 +119,6 @@ public:
     bool syscall_log;
     long long total_sent_bytes;
     long long total_recv_bytes;
-    struct ev_loop *evloop;
     TrafficStats ts;
     double accum_time;
     double last_stats_at;
@@ -147,6 +131,8 @@ public:
     void heartbeatWithTimeoutMicroseconds( int timeout_us );
     void getTrafficStats( TrafficStats *outstat );
 };
+
+
 
 
 
