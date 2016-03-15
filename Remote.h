@@ -83,30 +83,6 @@ typedef struct {
 #define MAX_PACKET_SIZE (1024*8)
 
 ///////
-// HMP: Headless Moyai Protocol
-#if 0
-class RemoteHead;
-class HMPListener : public Listener {
-public:
-    RemoteHead *remote_head;
-    HMPListener(Network *nw, RemoteHead *rh) : Listener(nw), remote_head(rh) {};
-    virtual ~HMPListener(){};
-    virtual void onAccept( int newfd );    
-};
-class HMPConn : public Conn {
-public:
-    RemoteHead *remote_head;
-    HMPConn( RemoteHead *rh, Network *nw, int newfd ) : Conn(nw,newfd), remote_head(rh) {};
-    virtual ~HMPConn() {};
-    virtual void onError( NET_ERROR e, int eno );
-    virtual void onClose();
-    virtual void onConnect();
-    virtual void onPacket( uint16_t funcid, char *argdata, size_t argdatalen );
-
-    // send
-    void sendFile( const char *filename );
-};
-#endif
 
 class Prop2D;
 class MoyaiClient;

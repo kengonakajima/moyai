@@ -956,6 +956,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
 }
 
 void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
+    prt("%d ", nread);
     parseRecord( s, &g_recvbuf, buf->base, nread, on_packet_callback );
     
 }

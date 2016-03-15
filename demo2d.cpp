@@ -368,8 +368,10 @@ void gameUpdate(void) {
 
     
     // update dynamic image
-    for(int i=0;i<1000;i++){
-        g_img->setPixel( irange(0,256), irange(0,256), Color( range(0,1), range(0,1), range(0,1),1 ) );
+    if( (total_frame % 200 ) == 0 ) {
+        for(int i=0;i<1000;i++){
+            g_img->setPixel( irange(0,256), irange(0,256), Color( range(0,1), range(0,1), range(0,1),1 ) );
+        }
     }
     g_dyn_texture->setImage(g_img);
 
