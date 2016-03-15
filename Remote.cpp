@@ -400,7 +400,7 @@ void on_read_callback( uv_stream_t *s, ssize_t nread, const uv_buf_t *inbuf ) {
     }
 }
 
-static void alloc_buffer( uv_handle_t *handle, size_t suggested_size, uv_buf_t *outbuf ) {
+void moyai_libuv_alloc_buffer( uv_handle_t *handle, size_t suggested_size, uv_buf_t *outbuf ) {
     *outbuf = uv_buf_init( (char*) MALLOC(suggested_size), suggested_size );
 }
 
@@ -417,10 +417,13 @@ void on_accept_callback( uv_stream_t *listener, int status ) {
         newsock->data = cl;
         print("on_accept_callback. ok status:%d client-id:%d", status, cl->id );
 
-        int r = uv_read_start( (uv_stream_t*) newsock, alloc_buffer, on_read_callback );
+        int r = uv_read_start( (uv_stream_t*) newsock, moyai_libuv_alloc_buffer, on_read_callback );
         if(r) {
             print("uv_read_start: fail ret:%d",r);
         }
+
+        cl->parent_rh->scanSendAllPrerequisites( (uv_stream_t*) newsock );
+        cl->parent_rh->scanSendAllProp2DSnapshots( (uv_stream_t*) newsock);
     }
 }
 
@@ -989,10 +992,13 @@ void RemoteHead::broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
 
 ///////////////////
 char sendbuf_work[1024*1024*8];
+
 void on_write_end( uv_write_t *req, int status ) {
     if(status==-1) {
         print("on_write_end: status:%d",status);
     }
+    free(req->data);
+    free(req);
 }
 
 #define SET_RECORD_LEN_AND_US1 \
@@ -1001,9 +1007,13 @@ void on_write_end( uv_write_t *req, int status ) {
     set_u16( sendbuf_work+4, usval );
 
 #define SETUP_UV_WRITE \
-    uv_write_t write_req; \
-    uv_buf_t buf = uv_buf_init(sendbuf_work,sizeof(sendbuf_work)); \
-    uv_write( &write_req, s, &buf, 1, on_write_end );
+    uv_write_t *write_req = (uv_write_t*)MALLOC(sizeof(uv_write_t));\
+    char *_data = (char*) MALLOC(totalsize);\
+    memcpy( _data, sendbuf_work, totalsize );\
+    write_req->data = _data;        \
+    uv_buf_t buf = uv_buf_init(_data,totalsize);\
+    int r = uv_write( write_req, s, &buf, 1, on_write_end );\
+    if(r) { print("uv_write fail. %d",r); return false; }
     
 int sendUS1( uv_stream_t *s, uint16_t usval ) {
     size_t totalsize = 4 + 2;
