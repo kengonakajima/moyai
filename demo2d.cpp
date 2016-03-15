@@ -368,7 +368,8 @@ void gameUpdate(void) {
 
     
     // update dynamic image
-    if( (total_frame % 200 ) == 0 ) {
+    if( (total_frame % 500 ) == 0 ) {
+        print("setpixel");
         for(int i=0;i<1000;i++){
             g_img->setPixel( irange(0,256), irange(0,256), Color( range(0,1), range(0,1), range(0,1),1 ) );
         }

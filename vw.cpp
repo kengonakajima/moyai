@@ -36,6 +36,8 @@ TextBox *g_debug_tb;
 
 SoundSystem *g_soundsystem;
 
+uint64_t g_total_read;
+
 ///////////////
 
 // debug funcs
@@ -956,7 +958,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
 }
 
 void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
-    prt("%d ", nread);
+    g_total_read += nread;
     parseRecord( s, &g_recvbuf, buf->base, nread, on_packet_callback );
     
 }
@@ -1039,6 +1041,9 @@ int main( int argc, char **argv ) {
     // Client side debug status
     setupDebugStat();
 
+    uint64_t last_total_read;
+    double last_total_read_at;
+    
     while( !glfwWindowShouldClose(g_window) ){
         static double last_poll_at = now();
 
@@ -1050,13 +1055,13 @@ int main( int argc, char **argv ) {
         int polled = g_moyai_client->poll(dt);
         int rendered = g_moyai_client->render();
 
-#if 0        
-        TrafficStats ts;
-        g_nw->getTrafficStats(&ts);
-        Format fmt( "polled:%d rendered:%d %.1fKbps", polled, rendered, ts.recv_bytes_per_sec*8.0f/1000.0f );        
-#endif                
-        Format fmt( "polled:%d rendered:%d", polled, rendered );
-        updateDebugStat( fmt.buf );
+        if(t>last_total_read_at+1) {
+            float kbps = (float)((g_total_read-last_total_read)*8)/1000.0f;
+            Format fmt( "polled:%d rendered:%d %.1fKbps", polled, rendered, kbps);
+            last_total_read = g_total_read;
+            last_total_read_at = t;
+            updateDebugStat( fmt.buf );
+        }
 
         if( glfwGetKey( g_window, 'Q') ) break;
         
