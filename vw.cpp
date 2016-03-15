@@ -26,6 +26,7 @@ ObjectPool<Sound> g_sound_pool;
 MoyaiClient *g_moyai_client;        
 FileDepo *g_filedepo;
 uv_stream_t *g_stream;
+Buffer g_recvbuf;
 GLFWwindow *g_window;
 
 Viewport *g_debug_viewport;
@@ -955,12 +956,24 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
     sendUS1F2( g_stream, PACKETTYPE_C2S_CURSOR_POS, x, y );
 }
 
-uv_connect_t *g_connect_t;
-uv_tcp_t g_tcp;
-uv_connect_t g_connect;
-
+void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
+    print("on_packet. argdatalen:%d", argdatalen);
+}
+void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
+    print("on_data. nread:%d", nread);
+    parseRecord( s, &g_recvbuf, buf->base, nread, on_packet_callback );
+    
+}
 void on_connect( uv_connect_t *connect, int status ) {
     print("on_connect status:%d",status);
+
+    
+    int r = uv_read_start( (uv_stream_t*)connect->handle, moyai_libuv_alloc_buffer, on_data );
+    if(r) {
+        print("uv_read_start: fail:%d",r);
+    }
+    g_stream = connect->handle;
+    g_recvbuf.ensureMemory(1024*1024*16);
 }
 
 int main( int argc, char **argv ) {
@@ -972,7 +985,7 @@ int main( int argc, char **argv ) {
     setlocale( LC_ALL, "jpn");
 #endif    
     
-    const char *host = "localhost";
+    const char *host = "127.0.0.1";
     if( argc > 1 && argv[1] ) host = argv[1];
     int port = 22222;
     if( argc > 2 && argv[2] ) port = atoi(argv[2]);
@@ -980,11 +993,14 @@ int main( int argc, char **argv ) {
     
     Moyai::globalInitNetwork();
 
-    uv_tcp_init( uv_default_loop(), &g_tcp );
+    uv_tcp_t *client = (uv_tcp_t*)MALLOC( sizeof(uv_tcp_t) );
+    uv_tcp_init( uv_default_loop(), client );
     struct sockaddr_in svaddr;
     uv_ip4_addr( host, port, &svaddr );
+
+    uv_connect_t *connect = (uv_connect_t*)MALLOC( sizeof(uv_connect_t));
     
-    int r = uv_tcp_connect( &g_connect, &g_tcp, (struct sockaddr*) &svaddr, on_connect );
+    int r = uv_tcp_connect( connect, client, (struct sockaddr*) &svaddr, on_connect );
     if(r) {
         print("uv_tcp_connect failed");
         return 1;

@@ -116,8 +116,10 @@ class PrimDrawer;
 class SoundSystem;
 class Keyboard;
 class Mouse;
+class Client;
 
-typedef std::unordered_map<unsigned int,uv_stream_t*>::iterator UvStreamIteratorType;
+typedef std::unordered_map<unsigned int,Client*>::iterator ClientIteratorType;
+
 
 class RemoteHead {
 public:
@@ -127,11 +129,14 @@ public:
     SoundSystem *target_soundsystem;
     Keyboard *target_keyboard;
     Mouse *target_mouse;
-    ObjectPool<uv_stream_t> stream_pool;
+    ObjectPool<Client> cl_pool;
     
     static const int DEFAULT_PORT = 22222;
     RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), target_mouse(0) {
     }
+    void addClient(Client*cl);
+    void delClient(Client*cl);
+    
     void track2D();
     bool startServer( int portnum );
     void heartbeat();
@@ -392,10 +397,10 @@ public:
     RemoteHead *parent_rh;
     Client( uv_tcp_t *sk, RemoteHead *rh );
     ~Client();
-    bool receiveData( const char *data, size_t datalen );
-    void onPacket( uint16_t funcid, char *argdata, size_t argdatalen );    
 };
 
+// record parser
+bool parseRecord( uv_stream_t *s, Buffer *recvbuf, const char *data, size_t datalen, void (*funcCallback)( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) );
 
 
 // send funcs

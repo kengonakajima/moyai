@@ -138,6 +138,17 @@ void RemoteHead::notifyGridDeleted( Grid *deleted ) {
     broadcastUS1UI1( PACKETTYPE_S2C_GRID_DELETE, deleted->id );
 }
 
+void RemoteHead::addClient( Client *cl ) {
+    Client *stored = cl_pool.get(cl->id);
+    if(!stored) {
+        cl->parent_rh = this;
+        cl_pool.set(cl->id,cl);
+    }
+}
+void RemoteHead::delClient( Client *cl ) {
+    cl_pool.del(cl->id);
+}
+
 // Assume all props in all layers are Prop2Ds.
 void RemoteHead::track2D() {
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
@@ -382,21 +393,71 @@ void RemoteHead::heartbeat() {
     track2D();
     uv_run( uv_default_loop(), UV_RUN_NOWAIT );
 }    
-void on_close_callback( uv_handle_t *s ) {
+static void remotehead_on_close_callback( uv_handle_t *s ) {
     print("on_close_callback");
 }
-void on_read_callback( uv_stream_t *s, ssize_t nread, const uv_buf_t *inbuf ) {
+static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
+    Client *cli = (Client*)s->data;
+    print("on_packet_callback. id:%d fid:%d len:%d", funcid, argdatalen );
+    switch(funcid) {
+    case PACKETTYPE_C2S_KEYBOARD:
+        {
+            uint32_t keycode = get_u32(argdata);
+            uint32_t action = get_u32(argdata+4);
+            uint32_t mod_shift = get_u32(argdata+8);
+            uint32_t mod_ctrl = get_u32(argdata+12);
+            uint32_t mod_alt = get_u32(argdata+16);
+            print("kbd: %d %d %d %d %d", keycode, action, mod_shift, mod_ctrl, mod_alt );            
+            Keyboard *kbd = cli->parent_rh->target_keyboard;
+            if(kbd) {
+                kbd->update(keycode, action, mod_shift, mod_ctrl, mod_alt );
+            }
+        }
+        break;
+    case PACKETTYPE_C2S_MOUSE_BUTTON:
+        {
+            uint32_t button = get_u32(argdata);
+            uint32_t action = get_u32(argdata+4);
+            uint32_t mod_shift = get_u32(argdata+8);
+            uint32_t mod_ctrl = get_u32(argdata+12);
+            uint32_t mod_alt = get_u32(argdata+16);
+            print("mou: %d %d %d %d %d", button, action, mod_shift, mod_ctrl, mod_alt );
+            Mouse *mou = cli->parent_rh->target_mouse;
+            if(mou) {
+                mou->updateButton( button, action, mod_shift, mod_ctrl, mod_alt );
+            }
+        }
+        break;
+    case PACKETTYPE_C2S_CURSOR_POS:
+        {
+            float x = get_f32(argdata);
+            float y = get_f32(argdata+4);
+            print("pos: %f %f", x,y);
+            Mouse *mou = cli->parent_rh->target_mouse;
+            if(mou) {
+                mou->updateCursorPosition(x,y);
+            }
+            
+        }
+        break;
+    default:
+        print("unhandled funcid: %d",funcid);
+        break;
+    }
+}
+
+static void remotehead_on_read_callback( uv_stream_t *s, ssize_t nread, const uv_buf_t *inbuf ) {
     Client *cl = (Client*) s->data;
     if(nread>0) {
-        bool res = cl->receiveData( inbuf->base, nread );
+        bool res = parseRecord( s, &cl->recvbuf, inbuf->base, nread, remotehead_on_packet_callback );
         if(!res) {
             print("receiveData failed");
-            uv_close( (uv_handle_t*)s, on_close_callback );
+            uv_close( (uv_handle_t*)s, remotehead_on_close_callback );
             return;
         }        
     } else if( nread <= 0 ) {
         print("on_read_callback EOF. clid:%d", cl->id );
-        uv_close( (uv_handle_t*)s, on_close_callback );        
+        uv_close( (uv_handle_t*)s, remotehead_on_close_callback );        
     }
 }
 
@@ -404,7 +465,7 @@ void moyai_libuv_alloc_buffer( uv_handle_t *handle, size_t suggested_size, uv_bu
     *outbuf = uv_buf_init( (char*) MALLOC(suggested_size), suggested_size );
 }
 
-void on_accept_callback( uv_stream_t *listener, int status ) {
+static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
     if( status != 0 ) {
         print("on_accept_callback status:%d", status);
         return;
@@ -415,9 +476,11 @@ void on_accept_callback( uv_stream_t *listener, int status ) {
     if( uv_accept( listener, (uv_stream_t*) newsock ) == 0 ) {
         Client *cl = new Client(newsock, (RemoteHead*)listener->data );
         newsock->data = cl;
+        cl->tcp = newsock;
+        cl->parent_rh->addClient(cl);
         print("on_accept_callback. ok status:%d client-id:%d", status, cl->id );
 
-        int r = uv_read_start( (uv_stream_t*) newsock, moyai_libuv_alloc_buffer, on_read_callback );
+        int r = uv_read_start( (uv_stream_t*) newsock, moyai_libuv_alloc_buffer, remotehead_on_read_callback );
         if(r) {
             print("uv_read_start: fail ret:%d",r);
         }
@@ -444,7 +507,7 @@ bool RemoteHead::startServer( int portnum ) {
         print("uv_tcp_bind failed");
         return false;
     }
-    r = uv_listen( (uv_stream_t*)&listener, 10, on_accept_callback );
+    r = uv_listen( (uv_stream_t*)&listener, 10, remotehead_on_accept_callback );
     if(r) {
         print("uv_listen failed");
         return false;
@@ -913,7 +976,6 @@ void TrackerImage::broadcastDiff( TileDeck *owner_dk, bool force ) {
 }
 ////////////////////
 TrackerCamera::TrackerCamera( RemoteHead *rh, Camera *target ) : target_camera(target), cur_buffer_index(0), parent_rh(rh) {
-    parent_rh = 0; // not used yet
 }
 TrackerCamera::~TrackerCamera() {
 }
@@ -942,51 +1004,51 @@ void TrackerCamera::broadcastDiff( bool force ) {
 /////////////////////
 
 void RemoteHead::broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen ) {
-    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
-        uv_stream_t *s = it->second;
-        sendUS1Bytes( s, usval, data, datalen );
+    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
+        Client *cl = it->second;
+        sendUS1Bytes( (uv_stream_t*)cl->tcp, usval, data, datalen );
     }
 }
 void RemoteHead::broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen ) {
-    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
-        uv_stream_t *s = it->second;
-        sendUS1UI1Bytes( s, usval, uival, data, datalen );
+    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
+        Client *cl = it->second;
+        sendUS1UI1Bytes( (uv_stream_t*)cl->tcp, usval, uival, data, datalen );
     }
 }
 void RemoteHead::broadcastUS1UI1( uint16_t usval, uint32_t uival ) {
-    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
-        uv_stream_t *s = it->second;
-        sendUS1UI1( s, usval, uival );
+    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
+        Client *cl = it->second;
+        sendUS1UI1(  (uv_stream_t*)cl->tcp, usval, uival );
     }
 }
 void RemoteHead::broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
-    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
-        uv_stream_t *s = it->second;
-        sendUS1UI2( s, usval, ui0, ui1 );
+    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
+        Client *cl = it->second;
+        sendUS1UI2(  (uv_stream_t*)cl->tcp, usval, ui0, ui1 );
     }
 }
 void RemoteHead::broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
-    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
-        uv_stream_t *s = it->second;
-        sendUS1UI3( s, usval, ui0, ui1, ui2 );
+    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
+        Client *cl = it->second;
+        sendUS1UI3( (uv_stream_t*)cl->tcp, usval, ui0, ui1, ui2 );
     }
 }
 void RemoteHead::broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters ) {
-    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
-        uv_stream_t *s = it->second;
-        sendUS1UI1Wstr( s, usval, uival, wstr, wstr_num_letters );
+    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
+        Client *cl = it->second;
+        sendUS1UI1Wstr( (uv_stream_t*)cl->tcp, usval, uival, wstr, wstr_num_letters );
     }
 }
 void RemoteHead::broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
-    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
-        uv_stream_t *s = it->second;
-        sendUS1UI1F2( s, usval, uival, f0, f1 );
+    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
+        Client *cl = it->second;
+        sendUS1UI1F2( (uv_stream_t*)cl->tcp, usval, uival, f0, f1 );
     }
 }
 void RemoteHead::broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
-    for( UvStreamIteratorType it = stream_pool.idmap.begin(); it != stream_pool.idmap.end(); ++it ) {
-        uv_stream_t *s = it->second;
-        sendUS1UI1F1( s, usval, uival, f0 );
+    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
+        Client *cl = it->second;
+        sendUS1UI1F1( (uv_stream_t*)cl->tcp, usval, uival, f0 );
     }
 }
 
@@ -1261,28 +1323,28 @@ Client::~Client() {
     
 }
 // return false when error(to close)
-bool Client::receiveData( const char *data, size_t datalen ) {
-    bool pushed = recvbuf.push( data, datalen );
-    print("receiveData: datalen:%d id:%d bufd:%d pushed:%d", datalen, id, recvbuf.used, pushed );
+bool parseRecord( uv_stream_t *s, Buffer *recvbuf, const char *data, size_t datalen, void (*funcCallback)( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) ) {
+    bool pushed = recvbuf->push( data, datalen );
+    print("parseRecord: datalen:%d bufd:%d pushed:%d", datalen, recvbuf->used, pushed );
 
     if(!pushed) {
-        print("recv buf full? close. clid:%d", id );
+        print("recv buf full? close.");
         return false;
     }
 
     // Parse RPC
-    //        fprintf(stderr, "recvbuf used:%zu\n", c->recvbuf.used );
+    //        fprintf(stderr, "recvbuf used:%zu\n", c->recvbuf->used );
     //        moynet_t *h = c->parent_moynet;
     while(true) { // process everything in one poll
-        //            print("recvbuf:%d", c->recvbuf.used );
-        if( recvbuf.used < (4+2) ) return true; // need more data from network
+        //            print("recvbuf:%d", c->recvbuf->used );
+        if( recvbuf->used < (4+2) ) return true; // need more data from network
         //              <---RECORDLEN------>
         // [RECORDLEN32][FUNCID32][..DATA..]            
-        size_t record_len = get_u32( recvbuf.buf );
-        unsigned int func_id = get_u16( recvbuf.buf + 4 );
+        size_t record_len = get_u32( recvbuf->buf );
+        unsigned int func_id = get_u16( recvbuf->buf + 4 );
 
-        if( recvbuf.used < (4+record_len) ) {
-            //   print("need. used:%d reclen:%d", recvbuf.used, record_len );
+        if( recvbuf->used < (4+record_len) ) {
+            //   print("need. used:%d reclen:%d", recvbuf->used, record_len );
             return true; // need more data from network
         }
         if( record_len < 2 ) {
@@ -1290,61 +1352,11 @@ bool Client::receiveData( const char *data, size_t datalen ) {
             return false;
         }
         //             fprintf(stderr, "dispatching func_id:%d record_len:%lu\n", func_id, record_len );
-        // dump( recvbuf.buf, record_len-4);
-        onPacket( func_id, (char*) recvbuf.buf +4+2, record_len - 2 );
-        recvbuf.shift( 4 + record_len );
-        //            fprintf(stderr, "after dispatch recv func: buffer used: %zu\n", c->recvbuf.used );
-        //            if( c->recvbuf.used > 0 ) dump( c->recvbuf.buf, c->recvbuf.used );
+        // dump( recvbuf->buf, record_len-4);
+        funcCallback( s, func_id, (char*) recvbuf->buf +4+2, record_len - 2 );
+        recvbuf->shift( 4 + record_len );
+        //            fprintf(stderr, "after dispatch recv func: buffer used: %zu\n", c->recvbuf->used );
+        //            if( c->recvbuf->used > 0 ) dump( c->recvbuf->buf, c->recvbuf->used );
     }
 }
 
-void Client::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
-    assert(parent_rh);
-    
-    print("HMPConn::onfunction. id:%d fid:%d len:%d",id, funcid, argdatalen );
-    switch(funcid) {
-    case PACKETTYPE_C2S_KEYBOARD:
-        {
-            uint32_t keycode = get_u32(argdata);
-            uint32_t action = get_u32(argdata+4);
-            uint32_t mod_shift = get_u32(argdata+8);
-            uint32_t mod_ctrl = get_u32(argdata+12);
-            uint32_t mod_alt = get_u32(argdata+16);
-            print("kbd: %d %d %d %d %d", keycode, action, mod_shift, mod_ctrl, mod_alt );            
-            Keyboard *kbd = parent_rh->target_keyboard;
-            if(kbd) {
-                kbd->update(keycode, action, mod_shift, mod_ctrl, mod_alt );
-            }
-        }
-        break;
-    case PACKETTYPE_C2S_MOUSE_BUTTON:
-        {
-            uint32_t button = get_u32(argdata);
-            uint32_t action = get_u32(argdata+4);
-            uint32_t mod_shift = get_u32(argdata+8);
-            uint32_t mod_ctrl = get_u32(argdata+12);
-            uint32_t mod_alt = get_u32(argdata+16);
-            print("mou: %d %d %d %d %d", button, action, mod_shift, mod_ctrl, mod_alt );
-            Mouse *mou = parent_rh->target_mouse;
-            if(mou) {
-                mou->updateButton( button, action, mod_shift, mod_ctrl, mod_alt );
-            }
-        }
-        break;
-    case PACKETTYPE_C2S_CURSOR_POS:
-        {
-            float x = get_f32(argdata);
-            float y = get_f32(argdata+4);
-            print("pos: %f %f", x,y);
-            Mouse *mou = parent_rh->target_mouse;
-            if(mou) {
-                mou->updateCursorPosition(x,y);
-            }
-            
-        }
-        break;
-    default:
-        print("unhandled funcid: %d",funcid);
-        break;
-    }
-}
