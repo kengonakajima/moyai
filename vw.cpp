@@ -127,8 +127,50 @@ wchar_t *allocateWCharStringFromUTF8String( const uint8_t *in_uint8ary, size_t s
 
 ///////////////////
 #if 0
-void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen ) {
-    //    print("HMPClientConn::onPacket");
+#endif
+
+
+void setupDebugStat() {
+    int retina = 1;
+#if defined(__APPLE__)
+    retina = 2;
+#endif    
+    g_debug_viewport = new Viewport();
+    g_debug_viewport->setSize(SCRW*retina,SCRH*retina);
+    g_debug_viewport->setScale2D(SCRW,SCRH);
+    g_debug_layer = new Layer();
+    g_debug_layer->setViewport(g_debug_viewport);
+    g_moyai_client->insertLayer(g_debug_layer);
+    g_debug_font = new Font();
+    wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+    g_debug_font->loadFromTTF("./assets/cinecaption227.ttf", charcodes, 12 );
+    g_debug_tb = new TextBox();
+    g_debug_tb->setFont(g_debug_font);
+    g_debug_tb->setScl(1);
+    g_debug_tb->setLoc(-SCRW/2+10,SCRH/2-15);
+    g_debug_tb->setString("not init");
+    g_debug_layer->insertProp(g_debug_tb);    
+}
+void updateDebugStat( const char *s ) {
+    g_debug_tb->setString(s);
+}
+void keyboardCallback( GLFWwindow *window, int keycode, int scancode, int action, int mods ) {
+    int mod_shift = mods & GLFW_MOD_SHIFT;
+    int mod_ctrl = mods & GLFW_MOD_CONTROL;
+    int mod_alt = mods & GLFW_MOD_ALT;
+    if(g_stream) sendUS1UI5( g_stream, PACKETTYPE_C2S_KEYBOARD, keycode, action, mod_shift, mod_ctrl, mod_alt );
+}
+void mouseButtonCallback( GLFWwindow *window, int button, int action, int mods ) {
+    int mod_shift = mods & GLFW_MOD_SHIFT;
+    int mod_ctrl = mods & GLFW_MOD_CONTROL;
+    int mod_alt = mods & GLFW_MOD_ALT;
+    if(g_stream) sendUS1UI5( g_stream, PACKETTYPE_C2S_MOUSE_BUTTON, button, action, mod_shift, mod_ctrl, mod_alt );
+}
+void cursorPosCallback( GLFWwindow *window, double x, double y ) {
+    if(g_stream) sendUS1F2( g_stream, PACKETTYPE_C2S_CURSOR_POS, x, y );
+}
+
+void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     switch(funcid) {
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT:
         {
@@ -711,7 +753,7 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
     case PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT:
         {
             uint32_t pktsize = get_u32(argdata+0);
-            assert(pktsize == sizeof(PacketColorReplacerShaderSnapshot));
+            assertmsg(pktsize == sizeof(PacketColorReplacerShaderSnapshot), "invalid packet size:%d", pktsize );
             PacketColorReplacerShaderSnapshot pkt;
             memcpy(&pkt, argdata+4, sizeof(pkt) );
             //            print("crs ss id:%d", pkt.shader_id );
@@ -911,62 +953,14 @@ void HMPClientConn::onPacket( uint16_t funcid, char *argdata, size_t argdatalen 
         print("unhandled packet type:%d", funcid );
         break;
     }
-    
-}
-#endif
-
-
-void setupDebugStat() {
-    int retina = 1;
-#if defined(__APPLE__)
-    retina = 2;
-#endif    
-    g_debug_viewport = new Viewport();
-    g_debug_viewport->setSize(SCRW*retina,SCRH*retina);
-    g_debug_viewport->setScale2D(SCRW,SCRH);
-    g_debug_layer = new Layer();
-    g_debug_layer->setViewport(g_debug_viewport);
-    g_moyai_client->insertLayer(g_debug_layer);
-    g_debug_font = new Font();
-    wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-    g_debug_font->loadFromTTF("./assets/cinecaption227.ttf", charcodes, 12 );
-    g_debug_tb = new TextBox();
-    g_debug_tb->setFont(g_debug_font);
-    g_debug_tb->setScl(1);
-    g_debug_tb->setLoc(-SCRW/2+10,SCRH/2-15);
-    g_debug_tb->setString("not init");
-    g_debug_layer->insertProp(g_debug_tb);    
-}
-void updateDebugStat( const char *s ) {
-    g_debug_tb->setString(s);
-}
-void keyboardCallback( GLFWwindow *window, int keycode, int scancode, int action, int mods ) {
-    int mod_shift = mods & GLFW_MOD_SHIFT;
-    int mod_ctrl = mods & GLFW_MOD_CONTROL;
-    int mod_alt = mods & GLFW_MOD_ALT;
-    sendUS1UI5( g_stream, PACKETTYPE_C2S_KEYBOARD, keycode, action, mod_shift, mod_ctrl, mod_alt );
-}
-void mouseButtonCallback( GLFWwindow *window, int button, int action, int mods ) {
-    int mod_shift = mods & GLFW_MOD_SHIFT;
-    int mod_ctrl = mods & GLFW_MOD_CONTROL;
-    int mod_alt = mods & GLFW_MOD_ALT;
-    sendUS1UI5( g_stream, PACKETTYPE_C2S_MOUSE_BUTTON, button, action, mod_shift, mod_ctrl, mod_alt );
-}
-void cursorPosCallback( GLFWwindow *window, double x, double y ) {
-    sendUS1F2( g_stream, PACKETTYPE_C2S_CURSOR_POS, x, y );
 }
 
-void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
-    print("on_packet. argdatalen:%d", argdatalen);
-}
 void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
-    print("on_data. nread:%d", nread);
     parseRecord( s, &g_recvbuf, buf->base, nread, on_packet_callback );
     
 }
 void on_connect( uv_connect_t *connect, int status ) {
     print("on_connect status:%d",status);
-
     
     int r = uv_read_start( (uv_stream_t*)connect->handle, moyai_libuv_alloc_buffer, on_data );
     if(r) {
@@ -1051,7 +1045,7 @@ int main( int argc, char **argv ) {
         double dt = t - last_poll_at;
 
         glfwPollEvents();
-        uv_run( uv_default_loop(), UV_RUN_NOWAIT );
+        uv_run_times(10);
         int polled = g_moyai_client->poll(dt);
         int rendered = g_moyai_client->render();
 

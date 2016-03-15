@@ -23,6 +23,11 @@ void Moyai::globalInitNetwork() {
 
 }
 
+void uv_run_times( int maxcount ) {
+    for(int i=0;i<maxcount;i++) {
+        uv_run( uv_default_loop(), UV_RUN_NOWAIT );
+    }
+}
 
 ///////////
 
@@ -391,14 +396,14 @@ void RemoteHead::scanSendAllProp2DSnapshots( uv_stream_t *outstream ) {
 
 void RemoteHead::heartbeat() {
     track2D();
-    uv_run( uv_default_loop(), UV_RUN_NOWAIT );
+    uv_run_times(100);
 }    
 static void remotehead_on_close_callback( uv_handle_t *s ) {
     print("on_close_callback");
 }
 static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     Client *cli = (Client*)s->data;
-    print("on_packet_callback. id:%d fid:%d len:%d", funcid, argdatalen );
+    //    print("on_packet_callback. id:%d fid:%d len:%d", funcid, argdatalen );
     switch(funcid) {
     case PACKETTYPE_C2S_KEYBOARD:
         {
@@ -1075,7 +1080,7 @@ void on_write_end( uv_write_t *req, int status ) {
     write_req->data = _data;        \
     uv_buf_t buf = uv_buf_init(_data,totalsize);\
     int r = uv_write( write_req, s, &buf, 1, on_write_end );\
-    if(r) { print("uv_write fail. %d",r); return false; }
+    if(r) { print("uv_write fail. %d",r); uv_close( (uv_handle_t*)s, NULL); return false; }
     
 int sendUS1( uv_stream_t *s, uint16_t usval ) {
     size_t totalsize = 4 + 2;
@@ -1086,6 +1091,7 @@ int sendUS1( uv_stream_t *s, uint16_t usval ) {
 int sendUS1Bytes( uv_stream_t *s, uint16_t usval, const char *bytes, uint16_t byteslen ) {
     size_t totalsize = 4 + 2 + (4+byteslen);
     SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, byteslen );
     memcpy( sendbuf_work+4+2+4, bytes, byteslen );
     SETUP_UV_WRITE;
     return totalsize;
@@ -1325,7 +1331,7 @@ Client::~Client() {
 // return false when error(to close)
 bool parseRecord( uv_stream_t *s, Buffer *recvbuf, const char *data, size_t datalen, void (*funcCallback)( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) ) {
     bool pushed = recvbuf->push( data, datalen );
-    print("parseRecord: datalen:%d bufd:%d pushed:%d", datalen, recvbuf->used, pushed );
+    //    print("parseRecord: datalen:%d bufd:%d pushed:%d", datalen, recvbuf->used, pushed );
 
     if(!pushed) {
         print("recv buf full? close.");
@@ -1351,8 +1357,8 @@ bool parseRecord( uv_stream_t *s, Buffer *recvbuf, const char *data, size_t data
             fprintf(stderr, "invalid packet format" );
             return false;
         }
-        //             fprintf(stderr, "dispatching func_id:%d record_len:%lu\n", func_id, record_len );
-        // dump( recvbuf->buf, record_len-4);
+        //        fprintf(stderr, "dispatching func_id:%d record_len:%lu\n", func_id, record_len );
+        //        dump( recvbuf->buf, record_len-4);
         funcCallback( s, func_id, (char*) recvbuf->buf +4+2, record_len - 2 );
         recvbuf->shift( 4 + record_len );
         //            fprintf(stderr, "after dispatch recv func: buffer used: %zu\n", c->recvbuf->used );

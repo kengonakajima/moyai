@@ -428,4 +428,6 @@ void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *out
 
 void moyai_libuv_alloc_buffer( uv_handle_t *handle, size_t suggested_size, uv_buf_t *outbuf );
 
+void uv_run_times( int maxcount );
+    
 #endif
