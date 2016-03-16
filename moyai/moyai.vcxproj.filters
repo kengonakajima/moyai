@@ -111,9 +111,6 @@
     <ClCompile Include="..\Remote.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\net.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\ConvertUTF.c">
       <Filter>Source Files</Filter>
     </ClCompile>
