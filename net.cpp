@@ -1,10 +1,11 @@
 // Moyai network : moynet
 
 #if defined(WIN32)
-#include <winsock2.h>
-typedef int ssize_t;
-#define MSG_DONTWAIT 0 // no support in windows send func
-#include <ws2tcpip.h>
+//#include <winsock2.h>
+//typedef int ssize_t;
+//#define MSG_DONTWAIT 0 // no support in windows send func
+//#include <ws2tcpip.h>
+#include <uv.h>
 #else
 #include <unistd.h>
 #include <sys/socket.h>

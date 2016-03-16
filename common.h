@@ -22,6 +22,12 @@
 #include <strings.h>
 #endif
 
+#if defined(WIN32)
+#include <stdint.h>
+#endif
+
+#include <uv.h>
+
 #include "cumino.h"
 
 #ifdef WIN32

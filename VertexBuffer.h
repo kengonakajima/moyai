@@ -1,7 +1,8 @@
 #pragma once
 
-#include "VertexFormat.h"
 #include "common.h"
+#include "VertexFormat.h"
+
 #ifdef WIN32
 #include "GL/glew.h"
 #endif

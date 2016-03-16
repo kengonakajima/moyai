@@ -41,8 +41,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-3.1.2\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)..\libev-4.22;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2013;$(ProjectDir)\..\fmodwin\api\lib;$(ProjectDir)\..\glut-3.7.6-bin;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-3.1.2\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)..\libuv-1.8.0\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2013;$(ProjectDir)\..\fmodwin\api\lib;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\libuv-1.8.0;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -61,7 +61,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies);windeps_debug.lib;ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies);windeps_debug.lib;ws2_32.lib;libuv.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries);libcmt.lib</IgnoreSpecificDefaultLibraries>

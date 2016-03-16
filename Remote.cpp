@@ -1219,19 +1219,25 @@ int sendUS1UI1Wstr( uv_stream_t *s, uint16_t usval, uint32_t uival, wchar_t *wst
     size_t bufsz = wstr_num_letters * sizeof(int32_t);
     UTF8 *outbuf = (UTF8*) MALLOC( bufsz + 1);
     assert(outbuf);
-    UTF8 *orig_outbuf = outbuf;
+    UTF8 *orig_outbuf = outbuf;    
     const UTF32 *inbuf = (UTF32*) wstr;
     ConversionResult r = ConvertUTF32toUTF8( &inbuf, inbuf+wstr_num_letters, &outbuf, outbuf+bufsz, strictConversion );
-    assertmsg(r==conversionOK, "ConvertUTF32toUTF8 failed:%d bufsz:%d", r, bufsz );
+    assertmsg(r==conversionOK, "ConvertUTF32toUTF8 failed:%d bufsz:%d", r, bufsz );    
+#else
+    assert( sizeof(wchar_t) == sizeof(int16_t) );
+    size_t bufsz = wstr_num_letters * sizeof(int16_t) * 2; // utf8 gets bigger than utf16
+    UTF8 *outbuf = (UTF8*) MALLOC( bufsz + 1);
+    assert(outbuf);
+    UTF8 *orig_outbuf = outbuf;        
+    const UTF16 *inbuf = (UTF16*) wstr;
+    ConversionResult r = ConvertUTF16toUTF8( &inbuf, inbuf+wstr_num_letters, &outbuf, outbuf+bufsz, strictConversion );
+    assertmsg(r==conversionOK, "ConvertUTF16toUTF8 failed:%d bufsz:%d", r, bufsz );    
+#endif    
     size_t outlen = outbuf - orig_outbuf;
     //    print("ConvertUTF32toUTF8 result utf8 len:%d out:'%s'", outlen, orig_outbuf );
     int ret = sendUS1UI1Bytes( s, usval, uival, (const char*) orig_outbuf, outlen );
     free(orig_outbuf);
     return ret;    
-#else
-    assertmsg( false, "not implemented" );
-    return 0;
-#endif    
 }
 
 void sendFile( uv_stream_t *s, const char *filename ) {
