@@ -309,7 +309,7 @@ See LICNSE.txt for Moyai itself.
  - Music from: Erik Satie Gymnopedie no.1
  - lodepng image loader : Copyright (c) 2005-2013 Lode Vandevenne
  - zlib :  (C) 1995-2012 Jean-loup Gailly and Mark Adler
- - libev : Copyright (c)2007,2008,2009,2010,2011,2012,2013 Marc Alexander Lehmann.
+ - libuv : Part of Node project.
  - bzip2 : copyright (C) 1996-2010 Julian R Seward
  - FMOD : FMOD NON-COMMERCIAL LICENSE
  - FreeType : Copyright 1996-2002, 2006 by David Turner, Robert Wilhelm, and Werner Lemberg 
