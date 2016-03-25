@@ -20,7 +20,6 @@ public:
         assert(bti < BUTTON_MAX );
     }
     void updateButton( unsigned int button, int action, int modshift, int modctrl, int modalt ) {
-        print("upd.");
         validateButtonIndex(button);
         buttons[button] = action;
         mod_shift = modshift;
