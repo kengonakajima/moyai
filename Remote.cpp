@@ -324,6 +324,7 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
         if(!snd)continue;
 
         if( snd->last_load_file_path[0] ) {
+            sendFile( outstream, snd->last_load_file_path );
             print("sending sound load file: %d, '%s'", snd->id, snd->last_load_file_path );
             sendUS1UI1Str( outstream, PACKETTYPE_S2C_SOUND_CREATE_FROM_FILE, snd->id, snd->last_load_file_path );
         } else if( snd->last_samples ){

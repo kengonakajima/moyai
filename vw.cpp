@@ -877,7 +877,14 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             memcpy( path, path_cstr_head, path_cstr_len );
             path[path_cstr_len] = '\0';
             print("sound_create_from_file. id:%d path:%s", snd_id, path );
-            snd = g_soundsystem->newSound( path );
+            File *file = g_filedepo->get(path);
+            if(!file) {
+                print("  can't find file in filedepo:'%s", path );
+                break;
+            }
+            char tmppath[1024];
+            file->saveInTmpDir( "/tmp", tmppath, sizeof(tmppath) );
+            snd = g_soundsystem->newSound( tmppath );
             g_sound_pool.set( snd_id, snd );                
         }
         break;
