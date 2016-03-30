@@ -7,7 +7,6 @@
 
 #include "vw.h"
 
-static const int SCRW=966, SCRH=544;
 
 ObjectPool<Layer> g_layer_pool;
 ObjectPool<Viewport> g_viewport_pool;
@@ -38,6 +37,12 @@ SoundSystem *g_soundsystem;
 
 uint64_t g_total_read;
 
+char *g_server_ip_addr = (char*)"127.0.0.1";
+int g_port = 22222;
+int g_window_width = 640;
+int g_window_height = 480;
+
+    
 ///////////////
 
 // debug funcs
@@ -138,8 +143,8 @@ void setupDebugStat() {
     retina = 2;
 #endif    
     g_debug_viewport = new Viewport();
-    g_debug_viewport->setSize(SCRW*retina,SCRH*retina);
-    g_debug_viewport->setScale2D(SCRW,SCRH);
+    g_debug_viewport->setSize(g_window_width*retina,g_window_height*retina);
+    g_debug_viewport->setScale2D(g_window_width,g_window_height);
     g_debug_layer = new Layer();
     g_debug_layer->setViewport(g_debug_viewport);
     g_moyai_client->insertLayer(g_debug_layer);
@@ -149,7 +154,7 @@ void setupDebugStat() {
     g_debug_tb = new TextBox();
     g_debug_tb->setFont(g_debug_font);
     g_debug_tb->setScl(1);
-    g_debug_tb->setLoc(-SCRW/2+10,SCRH/2-15);
+    g_debug_tb->setLoc(-g_window_width/2+10,g_window_height/2-15);
     g_debug_tb->setString("not init");
     g_debug_layer->insertProp(g_debug_tb);    
 }
@@ -973,6 +978,33 @@ void on_connect( uv_connect_t *connect, int status ) {
     g_recvbuf.ensureMemory(1024*1024*16);
 }
 
+bool parseProgramArgs( int argc, char **argv ) {
+    const char *windowsize_prefix = "--window_size=";
+    const char *port_prefix = "--port=";
+    
+    for(int i=1;i<argc;i++) {
+        if( strncmp( argv[i], windowsize_prefix, strlen(windowsize_prefix) ) == 0 ) {
+            g_window_width = atoi( argv[i] + strlen(windowsize_prefix) );
+            int x_ind = findCharIndexOf( argv[i]+strlen(windowsize_prefix), 'x' );
+            if( x_ind < 0 ) {
+                print("  invalid argument of windowsize");
+                return false;
+            }
+            g_window_height = atoi( argv[i] + strlen(windowsize_prefix) + x_ind + 1 );
+        } else if( strncmp( argv[i], port_prefix, strlen(port_prefix) ) == 0 ){
+            g_port = atoi( argv[i] + strlen(port_prefix) );
+        } else {
+            g_server_ip_addr = argv[i];
+        }
+    }
+    print("viewer config: serverip:'%s' port:%d window:%d,%d", g_server_ip_addr, g_port, g_window_width, g_window_height );
+    return true;
+}
+void printUsage() {
+    print("Usage: viewer [OPTIONS] SERVER_IPADDR" );
+    print("  Options: --window_size=800x600" );
+}
+
 int main( int argc, char **argv ) {
 
 #ifdef __APPLE__    
@@ -981,19 +1013,19 @@ int main( int argc, char **argv ) {
 #ifdef WIN32    
     setlocale( LC_ALL, "jpn");
 #endif    
-    
-    const char *host = "127.0.0.1";
-    if( argc > 1 && argv[1] ) host = argv[1];
-    int port = 22222;
-    if( argc > 2 && argv[2] ) port = atoi(argv[2]);
-    print("viewer config: host:'%s' port:%d", host, port );
+
+    bool argret = parseProgramArgs(argc, argv );
+    if(!argret) {
+        printUsage();
+        return 1;
+    }
     
     Moyai::globalInitNetwork();
 
     uv_tcp_t *client = (uv_tcp_t*)MALLOC( sizeof(uv_tcp_t) );
     uv_tcp_init( uv_default_loop(), client );
     struct sockaddr_in svaddr;
-    uv_ip4_addr( host, port, &svaddr );
+    uv_ip4_addr( g_server_ip_addr, g_port, &svaddr );
 
     uv_connect_t *connect = (uv_connect_t*)MALLOC( sizeof(uv_connect_t));
     
@@ -1013,7 +1045,7 @@ int main( int argc, char **argv ) {
     }
 
     glfwSetErrorCallback( glfw_error_cb );
-    g_window =  glfwCreateWindow( SCRW, SCRH, "headless moyai viewer", NULL, NULL );
+    g_window =  glfwCreateWindow( g_window_width, g_window_height, "headless moyai viewer", NULL, NULL );
     if(g_window == NULL ) {
         print("can't open glfw window");
         glfwTerminate();
