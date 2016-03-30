@@ -148,6 +148,7 @@ void setupDebugStat() {
     g_debug_layer = new Layer();
     g_debug_layer->setViewport(g_debug_viewport);
     g_moyai_client->insertLayer(g_debug_layer);
+    g_debug_layer->priority = Layer::PRIORITY_MAX;
     g_debug_font = new Font();
     wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
     g_debug_font->loadFromTTF("./assets/cinecaption227.ttf", charcodes, 12 );
@@ -247,12 +248,14 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
     case PACKETTYPE_S2C_LAYER_CREATE:
         {
             uint32_t id = get_u32( argdata+0 );
-            print("PACKETTYPE_S2C_LAYER_CREATE layer_id:%d", id );
+            uint32_t prio = get_u32( argdata+4 );
+            print("PACKETTYPE_S2C_LAYER_CREATE layer_id:%d prio:%d", id, prio );
 
             Layer *l = g_layer_pool.get(id);
             if(!l) {
                 l = g_layer_pool.ensure(id);
                 g_moyai_client->insertLayer(l);
+                l->priority = prio;
                 print("created a layer" );
             } else {
                 print("layer found");
@@ -882,7 +885,14 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             memcpy( path, path_cstr_head, path_cstr_len );
             path[path_cstr_len] = '\0';
             print("sound_create_from_file. id:%d path:%s", snd_id, path );
-            snd = g_soundsystem->newSound( path );
+            File *file = g_filedepo->get(path);
+            if(!file) {
+                print("  can't find file in filedepo:'%s", path );
+                break;
+            }
+            char tmppath[1024];
+            file->saveInTmpDir( "/tmp", tmppath, sizeof(tmppath) );
+            snd = g_soundsystem->newSound( tmppath );
             g_sound_pool.set( snd_id, snd );                
         }
         break;

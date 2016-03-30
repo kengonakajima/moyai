@@ -25,12 +25,14 @@ public:
     int debug_id;
     MoyaiClient *parent_client;
 
+    static const int PRIORITY_MAX = 2147483647;
 	// working area to avoid allocation in inner loops
 	SorterEntry sorter_opaque[Prop::CHILDREN_ABS_MAX];
 	SorterEntry sorter_transparent[Prop::CHILDREN_ABS_MAX];
 
+    int priority; // decided when inserting layer into moyaiclient
 
-	Layer() : Group(), camera(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL), debug_id(0) {
+	Layer() : Group(), camera(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL), debug_id(0), priority(0) {
 		to_render = true;
 	}
 	inline void setViewport( Viewport *vp ){

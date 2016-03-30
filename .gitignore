@@ -1,6 +1,7 @@
 deps.make
 *.o
 demo2d
+demosv
 min2d
 viewer
 demo3d

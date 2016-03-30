@@ -484,6 +484,13 @@ public:
         }
         return  NULL;
     }
+    int countGroups() {
+        int cnt=0;
+        for(int i=0;i<MAXGROUPS;i++) {
+            if( groups[i] ) cnt++;
+        }
+        return cnt;
+    }
     Prop *getPropInAllGroups(int id) {
         for(int i=0;i<MAXGROUPS;i++) {
             if( groups[i] ) {

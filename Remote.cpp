@@ -152,6 +152,7 @@ void RemoteHead::addClient( Client *cl ) {
 }
 void RemoteHead::delClient( Client *cl ) {
     cl_pool.del(cl->id);
+    print("delClient: id:%d",cl->id);
 }
 
 // Assume all props in all layers are Prop2Ds.
@@ -205,9 +206,9 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
         Layer *l = (Layer*) target_moyai->getGroupByIndex(i);
         if(!l)continue;
         print("sending layer_create id:%d",l->id);
-        sendUS1UI1( outstream, PACKETTYPE_S2C_LAYER_CREATE, l->id );
+        sendUS1UI2( outstream, PACKETTYPE_S2C_LAYER_CREATE, l->id, l->priority );
         if( l->viewport ) sendUS1UI2( outstream, PACKETTYPE_S2C_LAYER_VIEWPORT, l->id, l->viewport->id);
-        if( l->camera ) sendUS1UI2( outstream, PACKETTYPE_S2C_LAYER_CAMERA, l->id, l->camera->id );
+        if( l->camera ) sendUS1UI2( outstream, PACKETTYPE_S2C_LAYER_CAMERA, l->id, l->camera->id );        
     }
     
     // Image, Texture, tiledeck
@@ -324,6 +325,7 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
         if(!snd)continue;
 
         if( snd->last_load_file_path[0] ) {
+            sendFile( outstream, snd->last_load_file_path );
             print("sending sound load file: %d, '%s'", snd->id, snd->last_load_file_path );
             sendUS1UI1Str( outstream, PACKETTYPE_S2C_SOUND_CREATE_FROM_FILE, snd->id, snd->last_load_file_path );
         } else if( snd->last_samples ){
@@ -400,6 +402,8 @@ void RemoteHead::heartbeat() {
 }    
 static void remotehead_on_close_callback( uv_handle_t *s ) {
     print("on_close_callback");
+    Client *cli = (Client*)s->data;
+    cli->parent_rh->delClient(cli);
 }
 static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     Client *cli = (Client*)s->data;

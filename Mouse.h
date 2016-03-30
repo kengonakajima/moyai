@@ -8,6 +8,7 @@ public:
     Vec2 cursor_pos;
     static const int BUTTON_MAX = 8;
     int buttons[BUTTON_MAX];
+    bool toggled[BUTTON_MAX];
     int mod_shift;
     int mod_ctrl;
     int mod_alt;
@@ -20,8 +21,10 @@ public:
         assert(bti < BUTTON_MAX );
     }
     void updateButton( unsigned int button, int action, int modshift, int modctrl, int modalt ) {
-        print("upd.");
         validateButtonIndex(button);
+        if(action) {
+            if( !buttons[button] ) toggled[button] = true;
+        } 
         buttons[button] = action;
         mod_shift = modshift;
         mod_ctrl = modctrl;
@@ -30,6 +33,14 @@ public:
     int getButton( unsigned int button ) {
         validateButtonIndex(button);
         return buttons[button];
+    }
+    int getToggled( unsigned int button ) {
+        validateButtonIndex(button);
+        return toggled[button];
+    }
+    void clearToggled( unsigned int button ) {
+        validateButtonIndex(button);
+        toggled[button] = false;        
     }
     void updateCursorPosition( float x, float y ) {
         cursor_pos.x = x;

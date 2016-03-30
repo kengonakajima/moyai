@@ -21,9 +21,12 @@ public:
 	int render();
 	void capture( Image *img );
 	void insertLayer( Layer *l ) {
+        int hprio = getHighestPriority();
+        l->priority = hprio+1;
         l->parent_client = this;
 		insertGroup( l );
 	}
+    int getHighestPriority();
     void setRemoteHead( RemoteHead *rh ) { remote_head = rh; }
     virtual int poll( double dt );
 };

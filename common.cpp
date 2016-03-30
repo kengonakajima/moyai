@@ -460,6 +460,7 @@ void Image::fillBoxLeftBottom( Color c, int draw_width, int draw_height ) {
 }
 
 void Image::onTrack( TileDeck *owner_dk, RemoteHead *rh ) {
+    if( modified_pixel_num == 0 ) return;
     if(!tracker) {
         tracker = new TrackerImage(rh,this);
     }
