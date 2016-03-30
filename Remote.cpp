@@ -152,6 +152,7 @@ void RemoteHead::addClient( Client *cl ) {
 }
 void RemoteHead::delClient( Client *cl ) {
     cl_pool.del(cl->id);
+    print("delClient: id:%d",cl->id);
 }
 
 // Assume all props in all layers are Prop2Ds.
@@ -401,6 +402,8 @@ void RemoteHead::heartbeat() {
 }    
 static void remotehead_on_close_callback( uv_handle_t *s ) {
     print("on_close_callback");
+    Client *cli = (Client*)s->data;
+    cli->parent_rh->delClient(cli);
 }
 static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     Client *cli = (Client*)s->data;
