@@ -231,6 +231,7 @@ void FREE( void *ptr );
 int cuminoPrintMemStat(int thres_count);
 
 bool findChar( const char *s, char ch );
+int findCharIndexOf( const char *s, char ch );
 
 void startMeasure(const char *name);
 void endMeasure();

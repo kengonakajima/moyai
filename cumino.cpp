@@ -525,7 +525,12 @@ bool findChar( const char *s, char ch ) {
     }
     return false;
 }
-
+int findCharIndexOf( const char *s, char ch ) {
+    for(int i=0;;i++){
+        if( s[i] == ch ) return i;
+    }
+    return -1;
+}
 ////////////
 
 
