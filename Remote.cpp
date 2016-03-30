@@ -206,9 +206,9 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
         Layer *l = (Layer*) target_moyai->getGroupByIndex(i);
         if(!l)continue;
         print("sending layer_create id:%d",l->id);
-        sendUS1UI1( outstream, PACKETTYPE_S2C_LAYER_CREATE, l->id );
+        sendUS1UI2( outstream, PACKETTYPE_S2C_LAYER_CREATE, l->id, l->priority );
         if( l->viewport ) sendUS1UI2( outstream, PACKETTYPE_S2C_LAYER_VIEWPORT, l->id, l->viewport->id);
-        if( l->camera ) sendUS1UI2( outstream, PACKETTYPE_S2C_LAYER_CAMERA, l->id, l->camera->id );
+        if( l->camera ) sendUS1UI2( outstream, PACKETTYPE_S2C_LAYER_CAMERA, l->id, l->camera->id );        
     }
     
     // Image, Texture, tiledeck

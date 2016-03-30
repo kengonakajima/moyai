@@ -22,7 +22,7 @@ public:
 	void capture( Image *img );
 	void insertLayer( Layer *l ) {
         int hprio = getHighestPriority();
-        l->priority = hprio;
+        l->priority = hprio+1;
         l->parent_client = this;
 		insertGroup( l );
 	}
