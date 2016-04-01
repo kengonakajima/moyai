@@ -161,6 +161,7 @@ void RemoteHead::track2D() {
         Layer *layer = (Layer*) target_moyai->getGroupByIndex(i);
         if(!layer)continue;
         if(layer->camera) layer->camera->onTrack(this);
+        if(layer->viewport) layer->viewport->onTrack(this);
         Prop *cur = layer->prop_top;
         while(cur) {
             Prop2D *p = (Prop2D*) cur;
@@ -1010,6 +1011,34 @@ void TrackerCamera::broadcastDiff( bool force ) {
         parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_CAMERA_LOC, target_camera->id, locbuf[cur_buffer_index].x, locbuf[cur_buffer_index].y );
     }
 }
+//////////////////////
+TrackerViewport::TrackerViewport( RemoteHead *rh, Viewport *target ) : target_viewport(target), cur_buffer_index(0), parent_rh(rh) {
+}
+TrackerViewport::~TrackerViewport() {
+}
+void TrackerViewport::scanViewport() {
+    sclbuf[cur_buffer_index] = Vec2( target_viewport->scl.x, target_viewport->scl.y );
+}
+void TrackerViewport::flipCurrentBuffer() {
+    cur_buffer_index = ( cur_buffer_index == 0 ? 1 : 0 );        
+}
+bool TrackerViewport::checkDiff() {
+    Vec2 curscl, prevscl;
+    if( cur_buffer_index == 0 ) {
+        curscl = sclbuf[0];
+        prevscl = sclbuf[1];
+    } else {
+        curscl = sclbuf[1];
+        prevscl = sclbuf[0];
+    }
+    return curscl != prevscl;    
+}
+void TrackerViewport::broadcastDiff( bool force ) {
+    if( checkDiff() | force ) {
+        parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_VIEWPORT_SCALE, target_viewport->id, sclbuf[cur_buffer_index].x, sclbuf[cur_buffer_index].y );
+    }
+}
+
 /////////////////////
 
 void RemoteHead::broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen ) {

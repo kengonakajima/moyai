@@ -339,6 +339,20 @@ public:
     bool checkDiff();
     void broadcastDiff( bool force );    
 };
+class Viewport;
+class TrackerViewport {
+public:
+    Viewport *target_viewport;
+    Vec2 sclbuf[2];
+    int cur_buffer_index;
+    RemoteHead *parent_rh;
+    TrackerViewport( RemoteHead *rh, Viewport *target );
+    ~TrackerViewport();
+    void scanViewport();
+    void flipCurrentBuffer();
+    bool checkDiff();
+    void broadcastDiff( bool force );    
+};
 
 
 class Buffer {
@@ -400,5 +414,8 @@ void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *out
 void moyai_libuv_alloc_buffer( uv_handle_t *handle, size_t suggested_size, uv_buf_t *outbuf );
 
 void uv_run_times( int maxcount );
-    
+
+#define REMOTE_FIXED_SCREEN_W 1024
+#define REMOTE_FIXED_SCREEN_H 768
+
 #endif

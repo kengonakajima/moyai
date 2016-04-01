@@ -66,7 +66,7 @@ enum {
 
 // config
 
-static const int SCRW=966, SCRH=544;
+static const int SCRW=REMOTE_FIXED_SCREEN_W, SCRH=REMOTE_FIXED_SCREEN_H;
 
 class Char : public Prop2D {
 public:
@@ -416,10 +416,10 @@ void gameUpdate(void) {
         g_bgm_sound->stop();
     }
     if( g_keyboard->getKey( 'Z' ) ) {
-        g_viewport->setScale2D( SCRW/2,SCRH/2);
+        g_viewport->setScale2D( g_viewport->scl.x / 1.1f, g_viewport->scl.y / 1.1f );
     }
     if( g_keyboard->getKey( 'X' ) ) {
-        g_viewport->setScale2D( SCRW,SCRH);
+        g_viewport->setScale2D( g_viewport->scl.x * 1.1f, g_viewport->scl.y * 1.1f );        
     }
 
     if( g_mouse->getButton(0) ) {
@@ -663,7 +663,7 @@ void gameInit( bool headless_mode ) {
 #if defined(__APPLE__)
     retina = 2;
 #endif    
-    g_viewport->setSize(64,64);//SCRW*retina,SCRH*retina); // set actual framebuffer size to output
+    g_viewport->setSize(SCRW*retina,SCRH*retina); // set actual framebuffer size to output
     g_viewport->setScale2D(SCRW,SCRH); // set scale used by props that will be rendered
 
 #if 0
