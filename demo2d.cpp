@@ -574,6 +574,9 @@ void mouseButtonCallback( GLFWwindow *window, int button, int action, int mods )
 void cursorPosCallback( GLFWwindow *window, double x, double y ) {
     g_mouse->updateCursorPosition( x,y);
 }
+void onConnectCallback( RemoteHead *rh, Client *cl) {
+    print("onConnectCallback clid:%d",cl->id);
+}
 
 void gameInit( bool headless_mode ) {
     qstest();
@@ -656,6 +659,7 @@ void gameInit( bool headless_mode ) {
         g_rh->setTargetKeyboard(g_keyboard);
         g_mouse->setRemoteHead(g_rh);
         g_rh->setTargetMouse(g_mouse);
+        g_rh->setOnConnectCallback(onConnectCallback);
     }    
 
     g_viewport = new Viewport();

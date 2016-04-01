@@ -277,7 +277,7 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
     }
     for( std::unordered_map<int,Image*>::iterator it = imgmap.begin(); it != imgmap.end(); ++it ) {
         Image *img = it->second;
-        print("sending image_create id:%d", img->id );
+        //        print("sending image_create id:%d", img->id );
         sendUS1UI1( outstream, PACKETTYPE_S2C_IMAGE_CREATE, img->id );
         if( img->last_load_file_path[0] ) {
             print("sending image_load_png: '%s'", img->last_load_file_path );
@@ -296,13 +296,13 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
     }
     for( std::unordered_map<int,Texture*>::iterator it = texmap.begin(); it != texmap.end(); ++it ) {
         Texture *tex = it->second;
-        print("sending texture_create id:%d", tex->id );
+        //        print("sending texture_create id:%d", tex->id );
         sendUS1UI1( outstream, PACKETTYPE_S2C_TEXTURE_CREATE, tex->id );
         sendUS1UI2( outstream, PACKETTYPE_S2C_TEXTURE_IMAGE, tex->id, tex->image->id );
     }
     for( std::unordered_map<int,TileDeck*>::iterator it = tdmap.begin(); it != tdmap.end(); ++it ) {
         TileDeck *td = it->second;
-        print("sending tiledeck_create id:%d", td->id );
+        //        print("sending tiledeck_create id:%d", td->id );
         sendUS1UI1( outstream, PACKETTYPE_S2C_TILEDECK_CREATE, td->id );
         sendUS1UI2( outstream, PACKETTYPE_S2C_TILEDECK_TEXTURE, td->id, td->tex->id );
         //        print("sendS2RTileDeckSize: id:%d %d,%d,%d,%d", td->id, sprw, sprh, cellw, cellh );        
@@ -502,6 +502,9 @@ static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
 
         cl->parent_rh->scanSendAllPrerequisites( (uv_stream_t*) newsock );
         cl->parent_rh->scanSendAllProp2DSnapshots( (uv_stream_t*) newsock);
+        if( cl->parent_rh->on_connect_cb ) {
+            cl->parent_rh->on_connect_cb( cl->parent_rh, cl );
+        }
     }
 }
 

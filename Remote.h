@@ -102,8 +102,9 @@ public:
     Mouse *target_mouse;
     ObjectPool<Client> cl_pool;
     int window_width, window_height;
+    void (*on_connect_cb)(RemoteHead*rh,Client *cl);
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), target_mouse(0), window_width(0), window_height(0) {
+    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), target_mouse(0), window_width(0), window_height(0), on_connect_cb(0) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
@@ -111,6 +112,7 @@ public:
     void track2D();
     bool startServer( int portnum );
     void setWindowSize(int w, int h) { window_width = w; window_height = h; }
+    void setOnConnectCallback( void (*f)(RemoteHead *rh, Client *cl) ) { on_connect_cb = f; };
     void heartbeat();
     void scanSendAllPrerequisites( uv_stream_t *outstream );
     void scanSendAllProp2DSnapshots( uv_stream_t *outstream );
