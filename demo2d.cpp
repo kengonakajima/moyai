@@ -656,7 +656,6 @@ void gameInit( bool headless_mode ) {
         g_sound_system->setRemoteHead(g_rh);
         g_rh->setTargetSoundSystem(g_sound_system);
         g_rh->setTargetKeyboard(g_keyboard);
-        g_mouse->setRemoteHead(g_rh);
         g_rh->setTargetMouse(g_mouse);
         g_rh->setOnConnectCallback(onConnectCallback);
     }    

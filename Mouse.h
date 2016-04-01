@@ -12,9 +12,8 @@ public:
     int mod_shift;
     int mod_ctrl;
     int mod_alt;
-    RemoteHead *remote_head;
     
-    Mouse() : remote_head(0) {
+    Mouse() {
         memset(buttons,0,sizeof(buttons));
     }
     void validateButtonIndex( unsigned int bti ) {
@@ -49,7 +48,6 @@ public:
     Vec2 getCursorPos() {
         return cursor_pos;
     }
-    void setRemoteHead( RemoteHead *rh ) { remote_head = rh; }
 };
 
 #endif
