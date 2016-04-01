@@ -555,7 +555,9 @@ void winclose_callback( GLFWwindow *w ){
 void glfw_error_cb( int code, const char *desc ) {
     print("glfw_error_cb. code:%d desc:'%s'", code, desc );
 }
-
+void fbsizeCallback( GLFWwindow *window, int w, int h ) {
+    print("fbsizeCallback: %d,%d",w,h);
+}
 
 void keyboardCallback( GLFWwindow *window, int key, int scancode, int action, int mods ) {
     g_keyboard->update( key, action, mods & GLFW_MOD_SHIFT, mods & GLFW_MOD_CONTROL, mods & GLFW_MOD_ALT );
@@ -620,7 +622,8 @@ void gameInit( bool headless_mode ) {
     g_mouse = new Mouse();
     glfwSetMouseButtonCallback( g_window, mouseButtonCallback );
     glfwSetCursorPosCallback( g_window, cursorPosCallback );
-    
+
+    glfwSetFramebufferSizeCallback( g_window, fbsizeCallback );
     g_pad = new Pad();
 
     // shader    
@@ -654,7 +657,7 @@ void gameInit( bool headless_mode ) {
 #if defined(__APPLE__)
     retina = 2;
 #endif    
-    g_viewport->setSize(SCRW*retina,SCRH*retina); // set actual framebuffer size to output
+    g_viewport->setSize(64,64);//SCRW*retina,SCRH*retina); // set actual framebuffer size to output
     g_viewport->setScale2D(SCRW,SCRH); // set scale used by props that will be rendered
 
 #if 0

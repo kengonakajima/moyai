@@ -29,9 +29,14 @@ Buffer g_recvbuf;
 GLFWwindow *g_window;
 
 Viewport *g_debug_viewport;
+Viewport *g_mask_viewport;
 Layer *g_debug_layer;
+Layer *g_mask_layer; // aspect ratio mask
 Font *g_debug_font;
 TextBox *g_debug_tb;
+Prop2D *g_masks[2]; // top/bottom OR left/right black mask
+Image *g_mask_img;
+Texture *g_mask_tex;
 
 SoundSystem *g_soundsystem;
 
@@ -41,6 +46,14 @@ char *g_server_ip_addr = (char*)"127.0.0.1";
 int g_port = 22222;
 int g_window_width = 640;
 int g_window_height = 480;
+
+
+#if defined(__APPLE__)
+#define RETINA 2
+#else
+#define RETINA 1
+#endif    
+
 
     
 ///////////////
@@ -130,20 +143,102 @@ wchar_t *allocateWCharStringFromUTF8String( const uint8_t *in_uint8ary, size_t s
 #endif
 }
 
+// return relative scale
+Vec2 ensureAspectMask( float game_sclx, float game_scly ) {
+    assert(g_mask_layer);
+    
+    float game_aspect = game_scly / game_sclx;
+    float cli_aspect = (float)g_window_height / (float)g_window_width;
+    Vec2 outscl(1,1);
+    
+    print("ensureAspectMask: game:%f,%f:%f cli:%d,%d:%f", game_sclx, game_scly, game_aspect, g_window_width, g_window_height, cli_aspect );
 
+    if( game_aspect == cli_aspect ) {
+        print("ensureAspectMask: nothing to do");
+        return outscl;
+    }
+    if( cli_aspect > game_aspect ) {
+        // (cli_h-y)/cli_w = game_aspect
+        // cli_h-y = game_aspect*cli_w
+        // y = cli_h - game_aspect*cli_w
+        float scale_rate_w = (float)g_window_width / game_sclx;
+        print(" scale_rate_w:%f", scale_rate_w);
+        float scaled_cli_h = g_window_height / scale_rate_w;
+        print(" scaled_cli_h:%f", scaled_cli_h );
+
+        float mask_total_h = game_scly/scale_rate_w - game_scly;
+        print(" mask_total_h:%f",mask_total_h);
+        float mask_h = mask_total_h/2.0f;
+
+        print("ensureAspectMask: need top/bottom mask. total_h:%f mask_h:%f mgn:%f", mask_total_h, mask_h, mask_h/2.0f );
+
+#if 1
+        float scaled_game_h = game_scly / scale_rate_w;
+        print(" mask0: %f", scaled_game_h/2.0f - mask_h/2.0f );
+        print(" mask1: %f", scaled_game_h/-2.0f + mask_h/2.0f );        
+        g_masks[0]->setLoc( 0, scaled_game_h/2.0f - mask_h/2.0f );
+        g_masks[1]->setLoc( 0, scaled_game_h/-2.0f + mask_h/2.0f );
+        g_masks[0]->setScl( game_sclx, mask_h);
+        g_masks[1]->setScl( game_sclx, mask_h);
+        outscl.x = 1.0f;
+        outscl.y = 1.0f /scale_rate_w;
+        g_mask_viewport->setScale2D( game_sclx, game_scly/scale_rate_w);
+        print(" maskvp scl:%f,%f", game_sclx, game_scly/scale_rate_w);
+#endif
+#if 0        
+        g_masks[0]->setLoc( 0,0); //724/2 - 90/2 );
+        g_masks[1]->setLoc( 0, -724/2 + 90/2 );
+        g_masks[0]->setScl(g_window_width, 821); // 821: 
+        g_masks[1]->setScl(g_window_width, 90);
+        outscl.x = 1.0f;
+        outscl.y = 1.0f /scale_rate_w;
+        g_mask_viewport->setScale2D( game_sclx, game_scly/scale_rate_w);
+        print(" maskvp scl:%f,%f", game_sclx, game_scly/scale_rate_w);
+        
+#endif
+    } else {
+        // game: 640x480(4:3=0.75)  cli:400x200(2:1:0.5)
+        //        cli_h / (cli_w-x) = game_aspect(=0.75)
+        // cli_h/gasp = cli_w-x 
+        // x = cli_w - cli_h/gasp 
+        // x = cli_w - cli_h / game_aspect = 133.333
+        // mask_w = 133.333/2.0
+        float mask_total = g_window_width - g_window_height/game_aspect;
+        print("ensureAspectMask: need side mask. total_w:%f", mask_total );
+    }
+    return outscl;
+}
+
+             
 
 ///////////////////
-#if 0
-#endif
+
+void setupAspectRatioMask() {
+    g_mask_img = new Image();
+    g_mask_img->setSize(1,1);
+    g_mask_img->setPixelRaw(0,0, 1,1,1,255 );
+    g_mask_tex = new Texture();
+    g_mask_tex->setImage(g_mask_img);
+    g_mask_layer = new Layer();
+    g_moyai_client->insertLayer(g_mask_layer);
+    g_mask_layer->priority = g_debug_layer->priority-1; // debug at the top
+    g_mask_viewport = new Viewport();
+    g_mask_viewport->setSize(g_window_width*RETINA,g_window_height*RETINA);
+    g_mask_viewport->setScale2D(g_window_width,g_window_height);
+    g_mask_layer->setViewport(g_mask_viewport);
+    for(int i=0;i<2;i++) {
+        g_masks[i] = new Prop2D();
+        g_masks[i]->setTexture(g_mask_tex);
+        g_masks[i]->setScl(10,10);
+        g_masks[i]->setLoc(0,i*50);
+        g_mask_layer->insertProp(g_masks[i]);
+    }
+}
 
 
 void setupDebugStat() {
-    int retina = 1;
-#if defined(__APPLE__)
-    retina = 2;
-#endif    
     g_debug_viewport = new Viewport();
-    g_debug_viewport->setSize(g_window_width*retina,g_window_height*retina);
+    g_debug_viewport->setSize(g_window_width*RETINA,g_window_height*RETINA);
     g_debug_viewport->setScale2D(g_window_width,g_window_height);
     g_debug_layer = new Layer();
     g_debug_layer->setViewport(g_debug_viewport);
@@ -289,11 +384,14 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             unsigned int viewport_id = get_u32(argdata);
             float sclx = get_f32(argdata+4);
             float scly = get_f32(argdata+8);
-            print("received viewport_scale id:%d x:%f y:%f", viewport_id, sclx, scly );            
-                        
+            print("received viewport_scale id:%d scl.x:%f scl.y:%f", viewport_id, sclx, scly);
+
+            Vec2 rel_scl = ensureAspectMask(sclx,scly);
+             
             Viewport *vp = g_viewport_pool.ensure(viewport_id);
             assert(vp);
-            vp->setScale2D(sclx,scly);
+            print(" viewport_scale: %f,%f rel:%f,%f scaled:%f,%f", sclx, scly, rel_scl.x, rel_scl.y, sclx*rel_scl.x, scly*rel_scl.y);
+            vp->setScale2D(sclx*rel_scl.x, scly*rel_scl.y);
         }
         break;
 
@@ -1082,6 +1180,7 @@ int main( int argc, char **argv ) {
 
     // Client side debug status
     setupDebugStat();
+    setupAspectRatioMask();
 
     uint64_t last_total_read;
     double last_total_read_at;
