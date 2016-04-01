@@ -111,7 +111,6 @@ int main(int argc, char **argv )
         rh->setTargetMoyaiClient(moyai_client);
         ss->setRemoteHead(rh);
         rh->setTargetSoundSystem(ss);
-        g_keyboard->setRemoteHead(rh);
         rh->setTargetKeyboard(g_keyboard);
     }
 
