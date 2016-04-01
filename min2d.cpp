@@ -48,7 +48,9 @@ public:
 void kbdCallback( GLFWwindow *window, int keycode, int scancode, int action, int mods ) {
     g_keyboard->update( keycode, action, 0, 0, 0 ); // dont read mod keys
 }
-
+void onRemoteKeyboardCallback( Client *cl, int kc, int act, int modshift, int modctrl, int modalt ) {
+    g_keyboard->update(kc,act,modshift,modctrl,modalt);
+}
 //
 
 int main(int argc, char **argv )
@@ -111,7 +113,7 @@ int main(int argc, char **argv )
         rh->setTargetMoyaiClient(moyai_client);
         ss->setRemoteHead(rh);
         rh->setTargetSoundSystem(ss);
-        rh->setTargetKeyboard(g_keyboard);
+        rh->setOnKeyboardCallback(onRemoteKeyboardCallback);
     }
 
     

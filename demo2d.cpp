@@ -577,6 +577,15 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
 void onConnectCallback( RemoteHead *rh, Client *cl) {
     print("onConnectCallback clid:%d",cl->id);
 }
+void onRemoteKeyboardCallback( Client *cl, int kc, int act, int modshift, int modctrl, int modalt ) {
+    g_keyboard->update(kc,act,modshift,modctrl,modalt);
+}
+void onRemoteMouseButtonCallback( Client *cl, int btn, int act, int modshift, int modctrl, int modalt ) {
+    g_mouse->updateButton( btn, act, modshift, modctrl, modalt );
+}
+void onRemoteMouseCursorCallback( Client *cl, int x, int y ) {
+    g_mouse->updateCursorPosition(x,y);
+}
 
 void gameInit( bool headless_mode ) {
     qstest();
@@ -655,8 +664,9 @@ void gameInit( bool headless_mode ) {
         g_rh->setTargetMoyaiClient(g_moyai_client);
         g_sound_system->setRemoteHead(g_rh);
         g_rh->setTargetSoundSystem(g_sound_system);
-        g_rh->setTargetKeyboard(g_keyboard);
-        g_rh->setTargetMouse(g_mouse);
+        g_rh->setOnKeyboardCallback(onRemoteKeyboardCallback);
+        g_rh->setOnMouseButtonCallback(onRemoteMouseButtonCallback);
+        g_rh->setOnMouseCursorCallback(onRemoteMouseCursorCallback);
         g_rh->setOnConnectCallback(onConnectCallback);
     }    
 

@@ -423,9 +423,8 @@ static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char
             uint32_t mod_ctrl = get_u32(argdata+12);
             uint32_t mod_alt = get_u32(argdata+16);
             print("kbd: %d %d %d %d %d", keycode, action, mod_shift, mod_ctrl, mod_alt );            
-            Keyboard *kbd = cli->parent_rh->target_keyboard;
-            if(kbd) {
-                kbd->update(keycode, action, mod_shift, mod_ctrl, mod_alt );
+            if(cli->parent_rh->on_keyboard_cb) {
+                cli->parent_rh->on_keyboard_cb(cli,keycode,action,mod_shift,mod_ctrl,mod_alt);
             }
         }
         break;
@@ -437,9 +436,8 @@ static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char
             uint32_t mod_ctrl = get_u32(argdata+12);
             uint32_t mod_alt = get_u32(argdata+16);
             print("mou: %d %d %d %d %d", button, action, mod_shift, mod_ctrl, mod_alt );
-            Mouse *mou = cli->parent_rh->target_mouse;
-            if(mou) {
-                mou->updateButton( button, action, mod_shift, mod_ctrl, mod_alt );
+            if(cli->parent_rh->on_mouse_button_cb) {
+                cli->parent_rh->on_mouse_button_cb(cli,button,action,mod_shift,mod_ctrl,mod_alt);
             }
         }
         break;
@@ -448,9 +446,8 @@ static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char
             float x = get_f32(argdata);
             float y = get_f32(argdata+4);
             print("pos: %f %f", x,y);
-            Mouse *mou = cli->parent_rh->target_mouse;
-            if(mou) {
-                mou->updateCursorPosition(x,y);
+            if(cli->parent_rh->on_mouse_cursor_cb) {
+                cli->parent_rh->on_mouse_cursor_cb(cli,x,y);
             }
             
         }

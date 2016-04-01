@@ -98,13 +98,14 @@ public:
     uv_tcp_t listener;
     MoyaiClient *target_moyai;
     SoundSystem *target_soundsystem;
-    Keyboard *target_keyboard;
-    Mouse *target_mouse;
     ObjectPool<Client> cl_pool;
     int window_width, window_height;
     void (*on_connect_cb)(RemoteHead*rh,Client *cl);
+    void (*on_keyboard_cb)(Client *cl,int kc,int act,int modshift,int modctrl,int modalt);
+    void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
+    void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), target_mouse(0), window_width(0), window_height(0), on_connect_cb(0) {
+    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), on_connect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
@@ -112,7 +113,10 @@ public:
     void track2D();
     bool startServer( int portnum );
     void setWindowSize(int w, int h) { window_width = w; window_height = h; }
-    void setOnConnectCallback( void (*f)(RemoteHead *rh, Client *cl) ) { on_connect_cb = f; };
+    void setOnConnectCallback( void (*f)(RemoteHead *rh, Client *cl) ) { on_connect_cb = f; }
+    void setOnKeyboardCallback( void (*f)(Client*cl,int,int,int,int,int) ) { on_keyboard_cb = f; }
+    void setOnMouseButtonCallback( void (*f)(Client*cl,int,int,int,int,int) ) { on_mouse_button_cb = f; }
+    void setOnMouseCursorCallback( void (*f)(Client*cl,int,int) ) { on_mouse_cursor_cb = f; }
     void heartbeat();
     void scanSendAllPrerequisites( uv_stream_t *outstream );
     void scanSendAllProp2DSnapshots( uv_stream_t *outstream );
@@ -121,8 +125,7 @@ public:
     void notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop );
     void setTargetSoundSystem(SoundSystem*ss) { target_soundsystem = ss; }
     void setTargetMoyaiClient(MoyaiClient*mc) { target_moyai = mc; }
-    void setTargetKeyboard(Keyboard*kbd) { target_keyboard = kbd; }
-    void setTargetMouse(Mouse*mou) { target_mouse = mou; }
+
     
     void broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen );
     void broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen );    
