@@ -173,6 +173,11 @@ void RemoteHead::track2D() {
 // Send all IDs of tiledecks, layers, textures, fonts, viwports by scanning all props and grids.
 // This occurs only when new player is comming in.
 void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
+    if( window_width==0 || window_height==0) {
+        assertmsg( false, "remotehead: window size not set?");
+    }
+    sendUS1UI2( outstream, PACKETTYPE_S2C_WINDOW_SIZE, window_width, window_height );
+    
     std::unordered_map<int,Viewport*> vpmap;
     std::unordered_map<int,Camera*> cammap;
     

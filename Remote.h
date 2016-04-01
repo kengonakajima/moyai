@@ -101,15 +101,16 @@ public:
     Keyboard *target_keyboard;
     Mouse *target_mouse;
     ObjectPool<Client> cl_pool;
-    
+    int window_width, window_height;
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), target_mouse(0) {
+    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), target_mouse(0), window_width(0), window_height(0) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
     
     void track2D();
     bool startServer( int portnum );
+    void setWindowSize(int w, int h) { window_width = w; window_height = h; }
     void heartbeat();
     void scanSendAllPrerequisites( uv_stream_t *outstream );
     void scanSendAllProp2DSnapshots( uv_stream_t *outstream );
@@ -208,6 +209,8 @@ typedef enum {
     PACKETTYPE_S2C_SOUND_POSITION = 662,
     
     PACKETTYPE_S2C_FILE = 800, // send file body and path
+
+    PACKETTYPE_S2C_WINDOW_SIZE = 900, // u2
     
     PACKETTYPE_ERROR = 2000, // error code
 } PACKETTYPE;
@@ -415,7 +418,5 @@ void moyai_libuv_alloc_buffer( uv_handle_t *handle, size_t suggested_size, uv_bu
 
 void uv_run_times( int maxcount );
 
-#define REMOTE_FIXED_SCREEN_W 1024
-#define REMOTE_FIXED_SCREEN_H 768
 
 #endif

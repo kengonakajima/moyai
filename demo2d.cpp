@@ -66,7 +66,7 @@ enum {
 
 // config
 
-static const int SCRW=REMOTE_FIXED_SCREEN_W, SCRH=REMOTE_FIXED_SCREEN_H;
+static const int SCRW=960, SCRH=544;
 
 class Char : public Prop2D {
 public:
@@ -639,7 +639,7 @@ void gameInit( bool headless_mode ) {
         exit(1);
     }
 
-    g_moyai_client = new MoyaiClient(g_window);
+    g_moyai_client = new MoyaiClient(g_window, SCRW, SCRH );
     
     if( headless_mode ) {
         Moyai::globalInitNetwork();

@@ -39,8 +39,8 @@ uint64_t g_total_read;
 
 char *g_server_ip_addr = (char*)"127.0.0.1";
 int g_port = 22222;
-int g_window_width = REMOTE_FIXED_SCREEN_W;
-int g_window_height = REMOTE_FIXED_SCREEN_H;
+int g_window_width = 0;
+int g_window_height = 0;
 
 
 #if defined(__APPLE__)
@@ -971,6 +971,15 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             }
         }
         break;
+    case PACKETTYPE_S2C_WINDOW_SIZE:
+        {
+            void setupClient( int win_w, int win_h );
+            uint32_t w = get_u32(argdata+0);
+            uint32_t h = get_u32(argdata+4);
+            print("received window_size. %d,%d",w,h);
+            setupClient(w,h);
+        }
+        break;
     default:
         print("unhandled packet type:%d", funcid );
         break;
@@ -1011,6 +1020,48 @@ void printUsage() {
     print("  Options: --window_size=800x600" );
 }
 
+void setupClient( int win_w, int win_h ) {
+    if(g_moyai_client) {
+        assertmsg( false, "setupclient: can't setup client twice");
+    }
+    g_window_width = win_w;
+    g_window_height = win_h;
+    
+    g_soundsystem = new SoundSystem();
+    
+    //
+
+    if( !glfwInit() ) {
+        print("can't init glfw");
+        exit(1);        
+    }
+
+    glfwSetErrorCallback( glfw_error_cb );
+    g_window =  glfwCreateWindow( g_window_width, g_window_height, "headless moyai viewer", NULL, NULL );
+    if(g_window == NULL ) {
+        print("can't open glfw window");
+        glfwTerminate();
+        exit(1);
+    }
+    glfwMakeContextCurrent(g_window);    
+    glfwSetWindowCloseCallback( g_window, winclose_callback );
+    glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
+    glfwSwapInterval(1); // vsync
+#ifdef WIN32
+	glewInit();
+#endif
+    glClearColor(0.2,0.2,0.2,1);
+
+    glfwSetKeyCallback( g_window, keyboardCallback );
+    glfwSetMouseButtonCallback( g_window, mouseButtonCallback );
+    glfwSetCursorPosCallback( g_window, cursorPosCallback );
+    
+    g_moyai_client = new MoyaiClient( g_window, win_w, win_h );
+
+    // Client side debug status
+    setupDebugStat();    
+}
+
 int main( int argc, char **argv ) {
 
 #ifdef __APPLE__    
@@ -1041,72 +1092,47 @@ int main( int argc, char **argv ) {
         return 1;
     }
 
-    g_soundsystem = new SoundSystem();
-    
-    //
-
-    if( !glfwInit() ) {
-        print("can't init glfw");
-        exit(1);        
-    }
-
-    glfwSetErrorCallback( glfw_error_cb );
-    g_window =  glfwCreateWindow( g_window_width, g_window_height, "headless moyai viewer", NULL, NULL );
-    if(g_window == NULL ) {
-        print("can't open glfw window");
-        glfwTerminate();
-        exit(1);
-    }
-    glfwMakeContextCurrent(g_window);    
-    glfwSetWindowCloseCallback( g_window, winclose_callback );
-    glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
-    glfwSwapInterval(1); // vsync
-#ifdef WIN32
-	glewInit();
-#endif
-    glClearColor(0.2,0.2,0.2,1);
-
-    glfwSetKeyCallback( g_window, keyboardCallback );
-    glfwSetMouseButtonCallback( g_window, mouseButtonCallback );
-    glfwSetCursorPosCallback( g_window, cursorPosCallback );
-    
-    g_moyai_client = new MoyaiClient( g_window );
-
     g_filedepo = new FileDepo();
 
     print("start viewer loop");
 
-    // Client side debug status
-    setupDebugStat();
+
 
     uint64_t last_total_read;
     double last_total_read_at;
-    
-    while( !glfwWindowShouldClose(g_window) ){
+
+    bool done = false;
+    while( !done ) {
+        
         static double last_poll_at = now();
 
         double t = now();
         double dt = t - last_poll_at;
 
-        glfwPollEvents();
-        if( glfwGetKey( g_window, 'Q') ) break;        
         uv_run_times(10);
-        int polled = g_moyai_client->poll(dt);
-        int rendered = g_moyai_client->render();
+        
+        if( g_moyai_client) {
+            if( glfwWindowShouldClose(g_window) ) {
+                done = true;
+            }
+            
+            glfwPollEvents();
+            if( glfwGetKey( g_window, 'Q') ) break;        
 
-        if(t>last_total_read_at+1) {
-            float kbps = (float)((g_total_read-last_total_read)*8)/1000.0f;
-            Format fmt( "polled:%d rendered:%d %.1fKbps", polled, rendered, kbps);
-            last_total_read = g_total_read;
-            last_total_read_at = t;
-            updateDebugStat( fmt.buf );
+            int polled = g_moyai_client->poll(dt);
+            int rendered = g_moyai_client->render();
+
+            if(t>last_total_read_at+1) {
+                float kbps = (float)((g_total_read-last_total_read)*8)/1000.0f;
+                Format fmt( "polled:%d rendered:%d %.1fKbps", polled, rendered, kbps);
+                last_total_read = g_total_read;
+                last_total_read_at = t;
+                updateDebugStat( fmt.buf );
+            }
         }
-
-
         
         last_poll_at = t;
     }
-
-    glfwTerminate();    
+    if(g_moyai_client) glfwTerminate();    
     return 0;
 }

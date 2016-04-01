@@ -346,7 +346,7 @@ int main() {
     glEnable(GL_DEPTH_TEST);    
     glEnable(GL_DEPTH_BUFFER_BIT);    
 
-    g_moyai_client = new MoyaiClient(g_window);
+    g_moyai_client = new MoyaiClient(g_window, SCRW, SCRH);
     // 3d
     g_viewport3d = new Viewport();
     int retina = 1;

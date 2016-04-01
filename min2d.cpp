@@ -98,7 +98,7 @@ int main(int argc, char **argv )
 
     g_keyboard = new Keyboard();
     
-    MoyaiClient *moyai_client = new MoyaiClient(window);
+    MoyaiClient *moyai_client = new MoyaiClient(window,SCRW,SCRH);
     
     if( headless_mode ) {
         Moyai::globalInitNetwork();
