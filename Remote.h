@@ -41,7 +41,8 @@ typedef struct  {
     uint32_t uvrot; 
     PacketColor color;
     uint32_t shader_id;
-    uint32_t optbits; 
+    uint32_t optbits;
+    int32_t priority;
 } PacketProp2DSnapshot;
 
 #define PROP2D_OPTBIT_ADDITIVE_BLEND 0x00000001

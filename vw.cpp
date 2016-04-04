@@ -247,6 +247,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                     print("  colorreplacershader %d not found", pkt.shader_id);
                 }
             }
+            prop->priority = pkt.priority;
         }
 
         break;

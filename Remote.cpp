@@ -76,6 +76,7 @@ void Tracker2D::scanProp2D( Prop2D *parentprop ) {
     out->shader_id = target_prop2d->fragment_shader ? target_prop2d->fragment_shader->id : 0;
     out->optbits = 0;
     if( target_prop2d->use_additive_blend ) out->optbits |= PROP2D_OPTBIT_ADDITIVE_BLEND;
+    out->priority = target_prop2d->priority;
 }
 
 void Tracker2D::flipCurrentBuffer() {
@@ -91,7 +92,7 @@ static const int CHANGED_YFLIP = 0x20;
 static const int CHANGED_COLOR = 0x40;
 static const int CHANGED_SHADER = 0x80;
 static const int CHANGED_ADDITIVE_BLEND = 0x100;
-
+static const int CHANGED_PRIORITY = 0x200;
 
 int getPacketProp2DSnapshotDiff( PacketProp2DSnapshot *s0, PacketProp2DSnapshot *s1 ) {
     int changes = 0;
@@ -109,6 +110,7 @@ int getPacketProp2DSnapshotDiff( PacketProp2DSnapshot *s0, PacketProp2DSnapshot 
     if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
     if(s0->shader_id != s1->shader_id ) changes |= CHANGED_SHADER;
     if( (s0->optbits & PROP2D_OPTBIT_ADDITIVE_BLEND) != (s1->optbits & PROP2D_OPTBIT_ADDITIVE_BLEND) ) changes |= CHANGED_ADDITIVE_BLEND;
+    if(s0->priority != s1->priority ) changes |= CHANGED_PRIORITY;
     return changes;    
 }
 
@@ -327,6 +329,7 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
 
     // sounds
     for(int i=0;i<elementof(target_soundsystem->sounds);i++){
+        if(!target_soundsystem)break;
         Sound *snd = target_soundsystem->sounds[i];
         if(!snd)continue;
 
@@ -687,6 +690,7 @@ void TrackerTextBox::scanTextBox() {
     out->color.g = target_tb->color.g;
     out->color.b = target_tb->color.b;
     out->color.a = target_tb->color.a;
+    out->priority = target_tb->priority;
 
     size_t copy_sz = (target_tb->len_str + 1) * sizeof(wchar_t);
     assertmsg( copy_sz <= MAX_STR_LEN, "textbox string too long" );
