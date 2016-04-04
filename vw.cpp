@@ -231,6 +231,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             prop->setIndex(pkt.index);
             prop->setScl( Vec2(pkt.scl.x,pkt.scl.y) );
             prop->setLoc( Vec2(pkt.loc.x, pkt.loc.y) );
+            print("PROPLOC:%f,%f", pkt.loc.x, pkt.loc.y);
             prop->setRot( pkt.rot );
             prop->setXFlip( pkt.xflip );
             prop->setYFlip( pkt.yflip );
@@ -316,10 +317,22 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             unsigned int camera_id = get_u32(argdata);
             float x = get_f32(argdata+4);
             float y = get_f32(argdata+4+4);
-            //            print("received camera_loc. id:%d (%f,%f)", camera_id, x,y );            
+                        print("received camera_loc. id:%d (%f,%f)", camera_id, x,y );            
             Camera *cam = g_camera_pool.get(camera_id);
             assert(cam);
             cam->setLoc(x,y);
+        }
+        break;
+    case PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER:
+        {
+            unsigned int camera_id = get_u32(argdata);
+            unsigned int layer_id = get_u32(argdata+4);
+            Camera *cam = g_camera_pool.get(camera_id);
+            Layer *l = g_layer_pool.get(layer_id);
+            print("camera_dynamic_layer. cam:%d l:%d",camera_id, layer_id);
+            if(cam && l) {
+                l->setCamera(cam);
+            }
         }
         break;
 

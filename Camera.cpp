@@ -1,5 +1,7 @@
 #include "Camera.h"
 #include "Remote.h"
+#include "client.h"
+#include "Layer.h"
 
 int Camera::id_gen = 1;
 
@@ -21,4 +23,31 @@ void Camera::onTrack( RemoteHead *rh ) {
     tracker->scanCamera();
     tracker->broadcastDiff(false);
     tracker->flipCurrentBuffer();
+}
+void Camera::onTrackDynamic() {
+    if(!remote_client) return;
+    print("onTrackDynamic: clid:%d layersize:%d",remote_client->id, target_layers.size() );
+    if(!tracker) {
+        tracker = new TrackerCamera(NULL,this);
+        tracker->unicastCreate(remote_client);
+    }
+    tracker->scanCamera();
+    tracker->unicastDiff(remote_client,false);
+    tracker->flipCurrentBuffer();
+}
+void Camera::addTargetLayer(Layer *to_add) {
+    Layer *l = target_layers.get(to_add->id);
+    if(l) {
+        print("addTargetLayer:warning: layer %d already added", to_add->id );
+        return;
+    }
+    target_layers.set(to_add->id,to_add);
+}
+void Camera::delTargetLayer(Layer *to_del) {
+    Layer *l = target_layers.get(to_del->id);
+    if(!l) {
+        print("delTargetLayer:warning: layer %d not found", to_del->id );
+        return;
+    }
+    target_layers.del(to_del->id);
 }

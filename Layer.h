@@ -4,6 +4,7 @@
 #include "Light.h"
 #include "Mesh.h"
 #include "DrawBatch.h"
+#include "Pool.h"
 
 #ifdef WIN32
 #include "GL/glew.h"
@@ -32,6 +33,8 @@ public:
 
     int priority; // decided when inserting layer into moyaiclient
 
+    ObjectPool<Camera> dynamic_cameras;
+
 	Layer() : Group(), camera(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL), debug_id(0), priority(0) {
 		to_render = true;
 	}
@@ -44,7 +47,12 @@ public:
 	inline void setLight(Light *l){
 		light = l;
 	}
-
+    void addDynamicCamera( Camera *cam );
+    void delDynamicCamera( Camera *cam );
+    void onTrackDynamicCameras();
+    bool hasDynamicCamera() {
+        return dynamic_cameras.size();
+    }
 	int renderAllProps( DrawBatchList *bl );
 
 	void selectCenterInside( Vec2 minloc, Vec2 maxloc, Prop*out[], int *outlen );

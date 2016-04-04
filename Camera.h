@@ -1,8 +1,11 @@
 #pragma once
 
 #include "common.h"
+#include "Pool.h"
 
 class TrackerCamera;
+class Client;
+class Layer;
 
 class Camera {
 public:
@@ -11,8 +14,10 @@ public:
 	Vec3 loc;
 	Vec3 look_at, look_up;
     TrackerCamera *tracker;
-    
-	Camera() : tracker(0) { id = id_gen++; }
+    Client *remote_client;
+    ObjectPool<Layer> target_layers;
+	Camera() : tracker(0), remote_client(0) { id = id_gen++; }
+    Camera(Client *cl) : tracker(0), remote_client(cl) { id = id_gen++; }
 	inline void setLoc(Vec2 lc) {
 		loc.x = lc.x;
 		loc.y = lc.y;
@@ -59,5 +64,8 @@ public:
 			loc.y = top;
 		}
 	}
-    void onTrack( RemoteHead *rh );
+    void onTrack( RemoteHead *rh ); // Send changes to all clients
+    void onTrackDynamic(); // Function for dynamic_cameras. send changes to only a client.
+    void addTargetLayer(Layer *l);
+    void delTargetLayer(Layer *l);
 };

@@ -391,3 +391,29 @@ void Layer::selectCenterInside( Vec2 minloc, Vec2 maxloc, Prop*out[], int *outle
 	*outlen = cnt;
 }
 
+
+void Layer::addDynamicCamera( Camera *cam ) {
+    Camera *c = dynamic_cameras.get(cam->id);
+    if(c) {
+        print("addDynamicCamera: warning: adding camera %d again", cam->id );
+        return;
+    }
+    dynamic_cameras.set(cam->id,cam);
+    print("addDynamicCamera: added a dynamic camera. id:%d sz:%d",cam->id, dynamic_cameras.size() );
+    cam->addTargetLayer(this);
+}
+void Layer::delDynamicCamera( Camera *cam ) {
+    Camera *c = dynamic_cameras.get(cam->id);
+    if(!c) {
+        print("delDynamicCamera: warning: camera %d not found", cam->id );
+        return;
+    }
+    dynamic_cameras.del(cam->id);
+    cam->delTargetLayer(this);
+}
+void Layer::onTrackDynamicCameras() {
+    for(std::unordered_map<unsigned int,Camera*>::iterator it = dynamic_cameras.idmap.begin(); it != dynamic_cameras.idmap.end(); ++it ) {
+        Camera *cam = it->second;
+        cam->onTrackDynamic();
+    }
+}

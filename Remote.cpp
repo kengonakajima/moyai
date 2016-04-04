@@ -163,6 +163,7 @@ void RemoteHead::track2D() {
         Layer *layer = (Layer*) target_moyai->getGroupByIndex(i);
         if(!layer)continue;
         if(layer->camera) layer->camera->onTrack(this);
+        if(layer->hasDynamicCamera()) layer->onTrackDynamicCameras();
         if(layer->viewport) layer->viewport->onTrack(this);
         Prop *cur = layer->prop_top;
         while(cur) {
@@ -353,10 +354,10 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
 // Send snapshots of all props and grids
 void RemoteHead::scanSendAllProp2DSnapshots( uv_stream_t *outstream ) {
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
-        Group *grp = target_moyai->getGroupByIndex(i);
-        if(!grp)continue;
+        Layer *layer = (Layer*) target_moyai->getGroupByIndex(i);
+        if(!layer)continue;
 
-        Prop *cur = grp->prop_top;
+        Prop *cur = layer->prop_top;
         while(cur) {
             Prop2D *p = (Prop2D*) cur;
 
@@ -952,6 +953,23 @@ void TrackerCamera::broadcastDiff( bool force ) {
         parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_CAMERA_LOC, target_camera->id, locbuf[cur_buffer_index].x, locbuf[cur_buffer_index].y );
     }
 }
+void TrackerCamera::unicastDiff( Client *dest, bool force ) {
+    if( checkDiff() || force ) {
+        print("unicastDiff: clid:%d",dest->id);
+        sendUS1UI1F2( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_CAMERA_LOC, target_camera->id, locbuf[cur_buffer_index].x, locbuf[cur_buffer_index].y );
+    }
+}
+void TrackerCamera::unicastCreate( Client *dest ) {
+    print("unicastCreate. id:%d",dest->id);
+    sendUS1UI1( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_CAMERA_CREATE, target_camera->id );
+    for(std::unordered_map<unsigned int,Layer*>::iterator it = target_camera->target_layers.idmap.begin();
+        it != target_camera->target_layers.idmap.end(); ++it ) {
+        Layer *l = it->second;
+        print("  unicastCreate: camera_dynamic_layer:%d", l->id );
+        sendUS1UI2( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER, target_camera->id, l->id );
+    }
+}
+
 //////////////////////
 TrackerViewport::TrackerViewport( RemoteHead *rh, Viewport *target ) : target_viewport(target), cur_buffer_index(0), parent_rh(rh) {
 }

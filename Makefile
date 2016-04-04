@@ -13,6 +13,8 @@ MIN2DSRCS=min2d.cpp
 MIN2DOBJS=$(MIN2DSRCS:.cpp=.o)
 VIEWERSRCS=vw.cpp
 VIEWEROBJS=$(VIEWERSRCS:.cpp=.o)
+DYNCAM2DSRCS=dyncam2d.cpp
+DYNCAM2DOBJS=$(DYNCAM2DSRCS:.cpp=.o)
 
 FREETYPE=freetype-2.4.10
 FREETYPELIB=$(FREETYPE)/objs/.libs/libfreetype.a  # build product of freetype source
@@ -44,10 +46,14 @@ DEMO2D=demo2d
 DEMO3D=demo3d
 MIN2D=min2d
 VIEWER=viewer
+DYNCAM2D=dyncam2d
 
-all : $(DEMO2D) $(DEMO3D) $(MIN2D) $(VIEWER)
+all : $(DEMO2D) $(DEMO3D) $(MIN2D) $(VIEWER) $(DYNCAM2D)
 
 server : $(OUTSVLIB) $(SNAPPYLIB)
+
+$(DYNCAM2D) : $(EXTCLILIBS) $(OUTCLILIB) $(DYNCAM2DOBJS) $(BZ2LIB) $(ZLIBLIB)
+	g++ $(CFLAGS) $(CLILIBFLAGS) $(DYNCAM2DOBJS) -o $(DYNCAM2D) $(OUTCLILIB) $(EXTCLILIBS)
 
 $(MIN2D) : $(EXTCLILIBS) $(OUTCLILIB) $(MIN2DOBJS) $(BZ2LIB) $(ZLIBLIB)
 	g++ $(CFLAGS) $(CLILIBFLAGS) $(MIN2DOBJS) -o $(MIN2D) $(OUTCLILIB) $(EXTCLILIBS)
@@ -69,7 +75,8 @@ min2d.o : min2d.cpp
 	g++ -c min2d.cpp $(CFLAGS)
 vw.o : vw.cpp
 	g++ -c vw.cpp $(CFLAGS)
-
+dyncam2d.o : dyncam2d.cpp
+	g++ -c dyncam2d.cpp $(CFLAGS)
 
 $(OUTCLILIB) : $(MOYAICLIOBJS)
 	ar cr $(OUTCLILIB) $(MOYAICLIOBJS)
@@ -197,10 +204,10 @@ $(GLFWLIB):
 clean:
 	make -C $(GLFW) clean
 	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) 
-	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
+	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
 
 depend: $(GLFWLIB)
-	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAICLISRCS) $(DEMO2DSRCS) $(DEMO3DSRCS) $(MIN2DSRCS) $(VIEWERSRCS) > deps.make
+	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAICLISRCS) $(DEMO2DSRCS) $(DEMO3DSRCS) $(MIN2DSRCS) $(DYNCAM2DSRCS) $(VIEWERSRCS) > deps.make
 
 
 -include deps.make
