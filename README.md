@@ -290,7 +290,7 @@ bash$ ./dyncam2d
 
 <img src="https://raw.github.com/kengonakajima/moyai/master/dyncam2d_ss.png" width=800>
 
-dyncam2d runs always as a RemoteHead server, so you'll use <code>viewer</code> to view sprite steam.
+dyncam2d runs always as a RemoteHead server, so you'll use <code>viewer</code> to view sprite stream.
 
 Command line:
 
