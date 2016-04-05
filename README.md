@@ -231,7 +231,10 @@ Command line:
 
 <code>./viewer localhost</code>
 
-This will connect to the server and render the stream.
+This will connect to the server and render the sprite stream.
+Sprite stream is a binary data stream of sprites in Moyai game application program
+that includes all sprites' position, sprite-atlas index, scale, rotation, shader, color,
+and any necessary data for rendering.
 
 
     
@@ -338,6 +341,13 @@ List of classes defined in moyai.h :
 
 - Headless
   - <code>RemoteHead</code>
+  - <code>Client</code>
+
+
+TODO
+=====
+ - Correct serialization required for structures sent on sprite stream.
+ - Browser/mobile version of sprite stream viewer
 
 License notes
 =====
