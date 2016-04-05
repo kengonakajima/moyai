@@ -285,7 +285,7 @@ field and player characters walking on it.
 Command line:
 
 <pre>
-bash$ ./demo3d
+bash$ ./dyncam2d
 </pre>
 
 <img src="https://raw.github.com/kengonakajima/moyai/master/dyncam2d_ss.png" width=800>
