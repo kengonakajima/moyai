@@ -82,7 +82,7 @@ void delPC( PC *pc ) {
         assertmsg( false, "can't find a clid:%d in pc pool", pc->cl->id );
     }
     g_pc_cl_pool.del(pc->cl->id);
-    delete pc;
+    pc->to_clean = true;
 }
 PC *getPC(Client *cl) {
     return g_pc_cl_pool.get(cl->id);
@@ -147,6 +147,11 @@ void onConnectCallback( RemoteHead *rh, Client *cl ) {
     print("onConnectCallback: clid:%d",cl->id);
     addPC(cl);
 }
+void onDisconnectCallback( RemoteHead *rh, Client *cl ) {
+    print("onDisconnectCallback: clid:%d", cl->id);
+    PC *pc = getPC(cl);
+    delPC(pc);
+}
 
 int main(int argc, char **argv )
 {
@@ -196,6 +201,7 @@ int main(int argc, char **argv )
     rh->setTargetMoyaiClient(moyai_client);
     rh->setOnKeyboardCallback(onRemoteKeyboardCallback);
     rh->setOnConnectCallback(onConnectCallback);
+    rh->setOnDisconnectCallback(onDisconnectCallback);
     
     Viewport *viewport = new Viewport();
     int retina = 1;

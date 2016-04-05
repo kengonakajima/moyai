@@ -26,7 +26,7 @@ void Camera::onTrack( RemoteHead *rh ) {
 }
 void Camera::onTrackDynamic() {
     if(!remote_client) return;
-    print("onTrackDynamic: clid:%d layersize:%d",remote_client->id, target_layers.size() );
+    //    print("onTrackDynamic: clid:%d layersize:%d",remote_client->id, target_layers.size() );
     if(!tracker) {
         tracker = new TrackerCamera(NULL,this);
         tracker->unicastCreate(remote_client);

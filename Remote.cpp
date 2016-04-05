@@ -413,7 +413,12 @@ void RemoteHead::heartbeat() {
 static void remotehead_on_close_callback( uv_handle_t *s ) {
     print("on_close_callback");
     Client *cli = (Client*)s->data;
-    cli->parent_rh->delClient(cli);
+    cli->parent_rh->delClient(cli); // Call this before on_disconnect_cb to make it possible to delete prop in callback and it causes write to network
+    if( cli->parent_rh->on_disconnect_cb ) {
+        cli->parent_rh->on_disconnect_cb( cli->parent_rh, cli );
+    }
+
+    delete cli;
 }
 static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     Client *cli = (Client*)s->data;
@@ -955,7 +960,6 @@ void TrackerCamera::broadcastDiff( bool force ) {
 }
 void TrackerCamera::unicastDiff( Client *dest, bool force ) {
     if( checkDiff() || force ) {
-        print("unicastDiff: clid:%d",dest->id);
         sendUS1UI1F2( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_CAMERA_LOC, target_camera->id, locbuf[cur_buffer_index].x, locbuf[cur_buffer_index].y );
     }
 }
@@ -1324,8 +1328,9 @@ Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : id(idgen++), tcp(sk), parent_rh
     
 }
 Client::~Client() {
-    
+    print("~Client called for %d", id );
 }
+
 // return false when error(to close)
 bool parseRecord( uv_stream_t *s, Buffer *recvbuf, const char *data, size_t datalen, void (*funcCallback)( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) ) {
     bool pushed = recvbuf->push( data, datalen );

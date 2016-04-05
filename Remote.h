@@ -102,6 +102,7 @@ public:
     ObjectPool<Client> cl_pool;
     int window_width, window_height;
     void (*on_connect_cb)(RemoteHead*rh,Client *cl);
+    void (*on_disconnect_cb)(RemoteHead*rh, Client *cl);
     void (*on_keyboard_cb)(Client *cl,int kc,int act,int modshift,int modctrl,int modalt);
     void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
     void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
@@ -115,6 +116,7 @@ public:
     bool startServer( int portnum );
     void setWindowSize(int w, int h) { window_width = w; window_height = h; }
     void setOnConnectCallback( void (*f)(RemoteHead *rh, Client *cl) ) { on_connect_cb = f; }
+    void setOnDisconnectCallback( void (*f)(RemoteHead *rh, Client *cl ) ) { on_disconnect_cb = f; }
     void setOnKeyboardCallback( void (*f)(Client*cl,int,int,int,int,int) ) { on_keyboard_cb = f; }
     void setOnMouseButtonCallback( void (*f)(Client*cl,int,int,int,int,int) ) { on_mouse_button_cb = f; }
     void setOnMouseCursorCallback( void (*f)(Client*cl,int,int) ) { on_mouse_cursor_cb = f; }
