@@ -7,7 +7,7 @@ Moai SDK: https://github.com/moai/moai-dev
 # Features
  - Rendering
   - 2D sprite + 3D mesh
-  - OpenGL 2.0 (ES2), [GLFW3 http://www.glfw.org/]
+  - OpenGL 2.0 (ES1), [GLFW3 http://www.glfw.org/]
  - Image
   - PNG read/write from file (lodepng)
   - dynamic texture
@@ -20,7 +20,7 @@ Moai SDK: https://github.com/moai/moai-dev
   - Transfer all geometry data every frame via TCP, to enable remote rendering.
 
 # Compatibility
- - OSX 10.8/10.9
+ - OSX 10.10/10.11
  - Windows7 (VS2012)
  - working on iOS
  
@@ -246,6 +246,7 @@ $ cd moyai
 $ make
 $ ./demo2d
 $ ./demo3d
+$ ./dyncam2d
 </pre>
 
 Windows 7/8/8.1 VisualStudio 2012/2013 :
@@ -263,6 +264,8 @@ An example screenshot of a program "demo2d" :
 Screenshot of "demo3d" : 
 <img src="https://raw.github.com/kengonakajima/moyai/master/screen_shot_3d.png" width=800>
 
+Screenshot of "dyncam2d" :
+<img src="https://raw.github.com/kengonakajima/moyai/master/dyncam2d_ss.png" width=800>
 
 Classes
 =====
