@@ -25,7 +25,7 @@ Moai SDK: https://github.com/moai/moai-dev
  - working on iOS
  
 # Performance target
-10K~20K sprites at 60FPS with -O0 on UNIX, -O1 on VC++
+10K~20K sprites at 60FPS with -O0 on OSX, -O1 on VC++
 
 
 # Example
@@ -238,7 +238,7 @@ This will connect to the server and render the stream.
 Build
 =====
 
-MacOS X 10.8,10.9,10.10: After installing Xcode and command line tools, just do:
+MacOS X 10.8,10.9,10.10,10.11: After installing Xcode and command line tools, just do:
  
 <pre>
 $ git clone https://github.com/kengonakajima/moyai
@@ -257,15 +257,50 @@ Windows 7/8/8.1 VisualStudio 2012/2013 :
 4. Run(Debug) the program 
 </pre>
 
-An example screenshot of a program "demo2d" :
+Demo programs
+=====
+demo2d, demo3d, dyncam2d are demo programs.
+demo2d.cpp for <code>demo2d</code>, demo3d.cpp for <code>demo3d</code>, dyncam2d.cpp for <code>dyncam2d</code> .
+
+<code>demo2d</code> demonstrates basic 2D features.
 
 <img src="https://raw.github.com/kengonakajima/moyai/master/screen_shot_2d.png" width=800>
 
-Screenshot of "demo3d" : 
+By adding "--headless" option, it runs as a RemoteHead server, so you can view a sprite stream by <code>viewer</code>.
+
+Command line:
+
+<pre>
+bash$ ./demo2d --headless
+bash$ ./viewer
+</pre>
+
+<code>demo3d</code> demonstrates basic 3D features, but it is too early to use.
+
 <img src="https://raw.github.com/kengonakajima/moyai/master/screen_shot_3d.png" width=800>
 
-Screenshot of "dyncam2d" :
+<code>dyncam2d</code> demonstrates how to use 2D dynamic cameras by implementing simple top view
+field and player characters walking on it.
+
+Command line:
+
+<pre>
+bash$ ./demo3d
+</pre>
+
 <img src="https://raw.github.com/kengonakajima/moyai/master/dyncam2d_ss.png" width=800>
+
+dyncam2d runs always as a RemoteHead server, so you'll use <code>viewer</code> to view sprite steam.
+
+Command line:
+
+<pre>
+bash$ ./dyncam2d   # field shows up, but no players in screen
+bash$ ./viewer &   # First player character shows up
+bash$ ./viewer &   # Second player character shows up
+bash$ ./viewer &   # and so on..
+</pre>
+
 
 Classes
 =====
