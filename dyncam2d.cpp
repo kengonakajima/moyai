@@ -1,4 +1,15 @@
-﻿#include <stdio.h>
+﻿/*
+
+  dyncam2d : Demo program to show Layer's dynamic camaras working with RemoteHead.
+
+  1. Start game with remote head server, without player characters
+  2. Start viewer and log in to the server
+  3. Then a player character appears in the game field (multiple players can log in)
+  4. Camera on field and character layer are belonging to each player character (see class PC)
+  
+  
+ */
+#include <stdio.h>
 #include <assert.h>
 #include <math.h>
 #include <locale.h>
