@@ -244,6 +244,7 @@ Build
 MacOS X 10.8,10.9,10.10,10.11: After installing Xcode and command line tools, just do:
  
 <pre>
+$ brew install libuv # for uv.h, if necessary.
 $ git clone https://github.com/kengonakajima/moyai
 $ cd moyai
 $ make
