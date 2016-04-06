@@ -162,9 +162,10 @@ void RemoteHead::track2D() {
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
         Layer *layer = (Layer*) target_moyai->getGroupByIndex(i);
         if(!layer)continue;
-        if(layer->camera) layer->camera->onTrack(this);
-        if(layer->hasDynamicCamera()) layer->onTrackDynamicCameras();
-        if(layer->viewport) layer->viewport->onTrack(this);
+        if(layer->hasDynamicCamera()) {
+            layer->onTrackDynamicCameras();
+        } else if(layer->camera) layer->camera->onTrack(this);
+         if(layer->viewport) layer->viewport->onTrack(this);
         Prop *cur = layer->prop_top;
         while(cur) {
             Prop2D *p = (Prop2D*) cur;

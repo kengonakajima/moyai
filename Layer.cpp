@@ -398,6 +398,7 @@ void Layer::addDynamicCamera( Camera *cam ) {
         print("addDynamicCamera: warning: adding camera %d again", cam->id );
         return;
     }
+    assertmsg( cam->remote_client, "addDynamicCamera: dynamic camera must have remote_client. Pass Client* pointer to Camera(). " );
     dynamic_cameras.set(cam->id,cam);
     print("addDynamicCamera: added a dynamic camera. id:%d sz:%d",cam->id, dynamic_cameras.size() );
     cam->addTargetLayer(this);

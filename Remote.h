@@ -107,7 +107,7 @@ public:
     void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
     void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), on_connect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
+    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
