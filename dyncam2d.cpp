@@ -30,7 +30,7 @@ Keyboard *g_local_keyboard;
 
 // config
 
-static const int SCRW=966, SCRH=544;
+static const int SCRW=640, SCRH=480;
 
 
 
@@ -132,7 +132,7 @@ void onRemoteKeyboardCallback( Client *cl, int kc, int act, int modshift, int mo
 //
 
 void setupBG() {
-    int w = 10, h = 6;
+    int w = 8, h = 6;
     for(int y=-h;y<h;y++) {
         for(int x=-w;x<w;x++) {
             Prop2D *bgprop = new Prop2D();
