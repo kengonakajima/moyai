@@ -1050,7 +1050,7 @@ void setupClient( int win_w, int win_h ) {
     }
 
     glfwSetErrorCallback( glfw_error_cb );
-    g_window =  glfwCreateWindow( g_window_width, g_window_height, "headless moyai viewer", NULL, NULL );
+    g_window =  glfwCreateWindow( g_window_width, g_window_height, "Moyai sprite stream viewer", NULL, NULL );
     if(g_window == NULL ) {
         print("can't open glfw window");
         glfwTerminate();
