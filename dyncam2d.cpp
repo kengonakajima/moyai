@@ -182,7 +182,7 @@ int main(int argc, char **argv )
 
     GLFWwindow *window;
     glfwSetErrorCallback( glfw_error_cb );
-    window =  glfwCreateWindow( SCRW, SCRH, "demo2d", NULL, NULL );
+    window =  glfwCreateWindow( SCRW, SCRH, "dyncam2d", NULL, NULL );
     if(window == NULL ) {
         print("can't open glfw window");
         glfwTerminate();
