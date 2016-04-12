@@ -133,6 +133,10 @@ void Tracker2D::broadcastDiff( bool force ) {
             parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_PROP2D_LOC,
                                           pktbuf[cur_buffer_index].prop_id,
                                           pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
+        } else if( diff == CHANGED_SCL && (!force) ) {
+            parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_PROP2D_SCALE,
+                                          pktbuf[cur_buffer_index].prop_id,
+                                          pktbuf[cur_buffer_index].scl.x, pktbuf[cur_buffer_index].scl.y );
         } else {
             prt("SS%d ",diff);            
             parent_rh->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&pktbuf[cur_buffer_index], sizeof(PacketProp2DSnapshot) );

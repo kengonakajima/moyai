@@ -261,6 +261,18 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             }
         }
         break;
+    case PACKETTYPE_S2C_PROP2D_SCALE:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                float sx = get_f32(argdata+4);
+                float sy = get_f32(argdata+8);
+                prop->setScl(sx,sy);
+            }
+        }
+        break;
+        
     case PACKETTYPE_S2C_LAYER_CREATE:
         {
             uint32_t id = get_u32( argdata+0 );
