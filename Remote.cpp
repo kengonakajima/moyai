@@ -91,7 +91,7 @@ static const int CHANGED_XFLIP = 0x10;
 static const int CHANGED_YFLIP = 0x20;
 static const int CHANGED_COLOR = 0x40;
 static const int CHANGED_SHADER = 0x80;
-static const int CHANGED_ADDITIVE_BLEND = 0x100;
+static const int CHANGED_OPTBITS = 0x100;
 static const int CHANGED_PRIORITY = 0x200;
 
 int getPacketProp2DSnapshotDiff( PacketProp2DSnapshot *s0, PacketProp2DSnapshot *s1 ) {
@@ -109,7 +109,7 @@ int getPacketProp2DSnapshotDiff( PacketProp2DSnapshot *s0, PacketProp2DSnapshot 
     if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
     if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
     if(s0->shader_id != s1->shader_id ) changes |= CHANGED_SHADER;
-    if( (s0->optbits & PROP2D_OPTBIT_ADDITIVE_BLEND) != (s1->optbits & PROP2D_OPTBIT_ADDITIVE_BLEND) ) changes |= CHANGED_ADDITIVE_BLEND;
+    if(s0->optbits != s1->optbits ) changes |= CHANGED_OPTBITS;
     if(s0->priority != s1->priority ) changes |= CHANGED_PRIORITY;
     return changes;    
 }
@@ -147,6 +147,18 @@ void Tracker2D::broadcastDiff( bool force ) {
                                              (const char*)&pktbuf[cur_buffer_index].color, sizeof(PacketColor));
         } else if( diff == CHANGED_INDEX && (!force) ) {
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_INDEX, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].index );
+        } else if( diff == CHANGED_XFLIP && (!force) ) {
+            prt("XFL ");
+            parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_XFLIP, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].xflip );
+        } else if( diff == CHANGED_YFLIP && (!force) ) {
+            prt("YFL ");
+            parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_YFLIP, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].yflip );            
+        } else if( diff == CHANGED_OPTBITS && (!force) ) {
+            prt("OPT ");
+            parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_OPTBITS, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].optbits );
+        } else if( diff == CHANGED_PRIORITY && (!force) ) {
+            prt("PRI ");
+            parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_PRIORITY, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].priority );
         } else {
             prt("SS%d ",diff);            
             parent_rh->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&pktbuf[cur_buffer_index], sizeof(PacketProp2DSnapshot) );

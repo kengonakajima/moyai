@@ -305,6 +305,51 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             }
         }
         break;
+    case PACKETTYPE_S2C_PROP2D_XFLIP:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                uint32_t xfl = get_u32(argdata+4);
+                prop->setXFlip(xfl);
+                prt("XFL ");
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_YFLIP:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                uint32_t yfl = get_u32(argdata+4);
+                prop->setYFlip(yfl);
+                prt("YFL ");
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_OPTBITS:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                uint32_t bits = get_u32(argdata+4);
+                prop->use_additive_blend = bits & PROP2D_OPTBIT_ADDITIVE_BLEND;
+                prt("OPT %d", bits );
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_PRIORITY:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                uint32_t prio = get_u32(argdata+4);
+                prop->priority = prio;
+                prt("PRIO %d", prio);
+            }
+        }
+        break;
+        
     case PACKETTYPE_S2C_LAYER_CREATE:
         {
             uint32_t id = get_u32( argdata+0 );
