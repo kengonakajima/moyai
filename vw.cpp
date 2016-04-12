@@ -292,11 +292,19 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             if(prop) {
                 float r = get_f32(argdata+4);
                 prop->setRot(r);
-                prt("R%f ",r);
             }            
         }
         break;
-        
+    case PACKETTYPE_S2C_PROP2D_INDEX:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                int index = get_u32(argdata+4);
+                prop->setIndex(index);
+            }
+        }
+        break;
     case PACKETTYPE_S2C_LAYER_CREATE:
         {
             uint32_t id = get_u32( argdata+0 );
