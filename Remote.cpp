@@ -137,6 +137,10 @@ void Tracker2D::broadcastDiff( bool force ) {
             parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_PROP2D_SCALE,
                                           pktbuf[cur_buffer_index].prop_id,
                                           pktbuf[cur_buffer_index].scl.x, pktbuf[cur_buffer_index].scl.y );
+        } else if( diff == CHANGED_ROT && (!force) ) {
+            parent_rh->broadcastUS1UI1F1( PACKETTYPE_S2C_PROP2D_SCALE,
+                                          pktbuf[cur_buffer_index].prop_id,
+                                          pktbuf[cur_buffer_index].rot );
         } else if( diff == CHANGED_COLOR && (!force) ) {
             parent_rh->broadcastUS1UI1Bytes( PACKETTYPE_S2C_PROP2D_COLOR,
                                              pktbuf[cur_buffer_index].prop_id,
