@@ -272,6 +272,19 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             }
         }
         break;
+    case PACKETTYPE_S2C_PROP2D_COLOR:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                uint32_t pktsz = get_u32(argdata+4);
+                assert(pktsz==sizeof(PacketColor));
+                PacketColor col;
+                memcpy( &col, argdata+8, sizeof(col) );
+                prop->setColor( Color(col.r,col.g,col.b,col.a) );
+            }            
+        }
+        break;
         
     case PACKETTYPE_S2C_LAYER_CREATE:
         {
