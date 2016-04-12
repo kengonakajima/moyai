@@ -115,7 +115,7 @@ int getPacketProp2DSnapshotDiff( PacketProp2DSnapshot *s0, PacketProp2DSnapshot 
 }
 
 // send packet if necessary
-bool Tracker2D::checkDiff() {
+int Tracker2D::checkDiff() {
     PacketProp2DSnapshot *curpkt, *prevpkt;
     if(cur_buffer_index==0) {
         curpkt = & pktbuf[0];
@@ -127,8 +127,16 @@ bool Tracker2D::checkDiff() {
     return getPacketProp2DSnapshotDiff( curpkt, prevpkt );
 }
 void Tracker2D::broadcastDiff( bool force ) {
-    if( checkDiff() || force ) {
-        parent_rh->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&pktbuf[cur_buffer_index], sizeof(PacketProp2DSnapshot) );
+    int diff = checkDiff();
+    if( diff || force ) {
+        if( diff == CHANGED_LOC && (!force) ) {
+            parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_PROP2D_LOC,
+                                          pktbuf[cur_buffer_index].prop_id,
+                                          pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
+        } else {
+            prt("SS%d ",diff);            
+            parent_rh->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&pktbuf[cur_buffer_index], sizeof(PacketProp2DSnapshot) );
+        }        
     }
 }
 
@@ -201,7 +209,6 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
         Viewport *vp = it->second;
         print("sending viewport_create id:%d sz:%d,%d scl:%f,%f", vp->id, vp->screen_width, vp->screen_height, vp->scl.x, vp->scl.y );
         sendUS1UI1( outstream, PACKETTYPE_S2C_VIEWPORT_CREATE, vp->id );
-        sendUS1UI1F2( outstream, PACKETTYPE_S2C_VIEWPORT_SIZE, vp->id, vp->screen_width, vp->screen_height );
         sendUS1UI1F2( outstream, PACKETTYPE_S2C_VIEWPORT_SCALE, vp->id, vp->scl.x, vp->scl.y );
     }
     for( std::unordered_map<int,Camera*>::iterator it = cammap.begin(); it != cammap.end(); ++it ) {

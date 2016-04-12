@@ -171,7 +171,7 @@ typedef enum {
     PACKETTYPE_S2C_LAYER_VIEWPORT = 421,
     PACKETTYPE_S2C_LAYER_CAMERA = 422,
     PACKETTYPE_S2C_VIEWPORT_CREATE = 430,
-    PACKETTYPE_S2C_VIEWPORT_SIZE = 431,
+    //    PACKETTYPE_S2C_VIEWPORT_SIZE = 431,  not used now
     PACKETTYPE_S2C_VIEWPORT_SCALE = 432,    
     PACKETTYPE_S2C_CAMERA_CREATE = 440,
     PACKETTYPE_S2C_CAMERA_LOC = 441,
@@ -238,7 +238,7 @@ public:
     ~Tracker2D();
     void scanProp2D( Prop2D *parentprop );
     void flipCurrentBuffer();
-    bool checkDiff();
+    int checkDiff();
     void broadcastDiff( bool force );
 };
 typedef enum {

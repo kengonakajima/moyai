@@ -249,7 +249,17 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             }
             prop->priority = pkt.priority;
         }
-
+        break;
+    case PACKETTYPE_S2C_PROP2D_LOC:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                float x = get_f32(argdata+4);
+                float y = get_f32(argdata+8);
+                prop->setLoc(x,y);
+            }
+        }
         break;
     case PACKETTYPE_S2C_LAYER_CREATE:
         {
@@ -278,18 +288,6 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
         }
         break;
 
-    case PACKETTYPE_S2C_VIEWPORT_SIZE:
-        {
-            unsigned int viewport_id = get_u32(argdata);
-            unsigned int w = get_u32(argdata+4);
-            unsigned int h = get_u32(argdata+8);
-            
-            print("received viewport_size id:%d w:%d h:%d", viewport_id, w,h );
-            Viewport *vp = g_viewport_pool.ensure(viewport_id);
-            assert(vp);
-            vp->setSize(w,h);
-        }
-        break;
     case PACKETTYPE_S2C_VIEWPORT_SCALE:
         {
             unsigned int viewport_id = get_u32(argdata);
