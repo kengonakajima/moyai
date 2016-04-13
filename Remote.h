@@ -422,7 +422,7 @@ int sendUS1StrBytes( uv_stream_t *out, uint16_t usval, const char *cstr, const c
 int sendUS1UI1Wstr( uv_stream_t *out, uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
 int sendUS1F2( uv_stream_t *out, uint16_t usval, float f0, float f1 );
 void sendFile( uv_stream_t *outstream, const char *filename );
-
+void sendPing( uv_stream_t *s );
 
 // parse helpers
 void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize );

@@ -458,6 +458,14 @@ static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char
     Client *cli = (Client*)s->data;
     //    print("on_packet_callback. id:%d fid:%d len:%d", funcid, argdatalen );
     switch(funcid) {
+    case PACKETTYPE_PING:
+        {
+            uint32_t sec = get_u32(argdata+0);
+            uint32_t usec = get_u32(argdata+4);
+            print("PING: %u %u", sec, usec );
+            sendUS1UI2( s, PACKETTYPE_PING, sec, usec );
+        }
+        break;
     case PACKETTYPE_C2S_KEYBOARD:
         {
             uint32_t keycode = get_u32(argdata);
@@ -490,8 +498,7 @@ static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char
             float y = get_f32(argdata+4);
             if(cli->parent_rh->on_mouse_cursor_cb) {
                 cli->parent_rh->on_mouse_cursor_cb(cli,x,y);
-            }
-            
+            }            
         }
         break;
     default:
@@ -1281,6 +1288,13 @@ void sendFile( uv_stream_t *s, const char *filename ) {
     assert(r>0);
     print("sendFile: path:%s len:%d data:%x %x %x %x sendres:%d", filename, sz, buf[0], buf[1], buf[2], buf[3], r );
     FREE(buf);
+}
+void sendPing( uv_stream_t *s ) {
+    double t = now();
+    uint32_t sec = (uint32_t)t;
+    uint32_t usec = (t - sec)*1000000;
+    print("sendPing: %u %u", sec, usec );
+    sendUS1UI2( s, PACKETTYPE_PING, sec, usec );    
 }
 
 ////////////////////

@@ -42,6 +42,8 @@ int g_port = 22222;
 int g_window_width = 0;
 int g_window_height = 0;
 
+double g_last_ping_at=0;
+double g_last_ping_rtt=0;
 
 #if defined(__APPLE__)
 #define RETINA 2
@@ -185,6 +187,17 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
 
 void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     switch(funcid) {
+    case PACKETTYPE_PING:
+        {
+            uint32_t sec = get_u32(argdata+0);
+            uint32_t usec = get_u32(argdata+4);
+            
+            double t = (double)(sec) + (double)(usec)/1000000.0f;
+            double dt = now() - t;
+            g_last_ping_rtt = dt;
+            //            prt("PINGrecv: %u %u dt:%f", sec, usec, dt );
+        }
+        break;
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT:
         {
             uint32_t pktsize = get_u32(argdata+0);
@@ -1198,14 +1211,13 @@ int main( int argc, char **argv ) {
 
 
 
-    uint64_t last_total_read;
-    double last_total_read_at;
-
+    uint64_t last_total_read=0;
+    double last_total_read_at=0;
+    
     bool done = false;
     while( !done ) {
         
         static double last_poll_at = now();
-
         double t = now();
         double dt = t - last_poll_at;
 
@@ -1224,10 +1236,14 @@ int main( int argc, char **argv ) {
 
             if(t>last_total_read_at+1) {
                 float kbps = (float)((g_total_read-last_total_read)*8)/1000.0f;
-                Format fmt( "polled:%d rendered:%d %.1fKbps", polled, rendered, kbps);
+                Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms", polled, rendered, kbps, g_last_ping_rtt*1000);
                 last_total_read = g_total_read;
                 last_total_read_at = t;
                 updateDebugStat( fmt.buf );
+            }
+            if(t>g_last_ping_at+1) {
+                g_last_ping_at = t;
+                sendPing( g_stream );                
             }
         }
         
