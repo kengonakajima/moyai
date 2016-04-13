@@ -462,7 +462,6 @@ static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char
         {
             uint32_t sec = get_u32(argdata+0);
             uint32_t usec = get_u32(argdata+4);
-            print("PING: %u %u", sec, usec );
             sendUS1UI2( s, PACKETTYPE_PING, sec, usec );
         }
         break;
@@ -1293,7 +1292,6 @@ void sendPing( uv_stream_t *s ) {
     double t = now();
     uint32_t sec = (uint32_t)t;
     uint32_t usec = (t - sec)*1000000;
-    print("sendPing: %u %u", sec, usec );
     sendUS1UI2( s, PACKETTYPE_PING, sec, usec );    
 }
 
