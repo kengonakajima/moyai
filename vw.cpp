@@ -41,7 +41,7 @@ char *g_server_ip_addr = (char*)"127.0.0.1";
 int g_port = 22222;
 int g_window_width = 0;
 int g_window_height = 0;
-
+int g_timestamp_count = 0;
 double g_last_ping_at=0;
 double g_last_ping_rtt=0;
 
@@ -196,6 +196,11 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             double dt = now() - t;
             g_last_ping_rtt = dt;
             //            prt("PINGrecv: %u %u dt:%f", sec, usec, dt );
+        }
+        break;
+    case PACKETTYPE_TIMESTAMP:
+        {
+            g_timestamp_count++;
         }
         break;
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT:
@@ -1213,6 +1218,8 @@ int main( int argc, char **argv ) {
 
     uint64_t last_total_read=0;
     double last_total_read_at=0;
+
+    float kbps = 0;
     
     bool done = false;
     while( !done ) {
@@ -1221,7 +1228,7 @@ int main( int argc, char **argv ) {
         double t = now();
         double dt = t - last_poll_at;
 
-        uv_run_times(10);
+        uv_run_times(100);
         
         if( g_moyai_client) {
             if( glfwWindowShouldClose(g_window) ) {
@@ -1235,12 +1242,12 @@ int main( int argc, char **argv ) {
             int rendered = g_moyai_client->render();
 
             if(t>last_total_read_at+1) {
-                float kbps = (float)((g_total_read-last_total_read)*8)/1000.0f;
-                Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms", polled, rendered, kbps, g_last_ping_rtt*1000);
+                kbps = (float)((g_total_read-last_total_read)*8)/1000.0f;
                 last_total_read = g_total_read;
                 last_total_read_at = t;
-                updateDebugStat( fmt.buf );
             }
+            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d", polled, rendered, kbps, g_last_ping_rtt*1000,g_timestamp_count);
+            updateDebugStat( fmt.buf );
             if(t>g_last_ping_at+1) {
                 g_last_ping_at = t;
                 sendPing( g_stream );                

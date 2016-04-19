@@ -193,6 +193,7 @@ void RemoteHead::delClient( Client *cl ) {
 
 // Assume all props in all layers are Prop2Ds.
 void RemoteHead::track2D() {
+    broadcastTimestamp();
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
         Layer *layer = (Layer*) target_moyai->getGroupByIndex(i);
         if(!layer)continue;
@@ -439,7 +440,6 @@ void RemoteHead::scanSendAllProp2DSnapshots( uv_stream_t *outstream ) {
         }
     }    
 }
-
 void RemoteHead::heartbeat() {
     track2D();
     uv_run_times(100);
@@ -451,7 +451,7 @@ static void remotehead_on_close_callback( uv_handle_t *s ) {
     if( cli->parent_rh->on_disconnect_cb ) {
         cli->parent_rh->on_disconnect_cb( cli->parent_rh, cli );
     }
-
+    cli->onDelete();
     delete cli;
 }
 static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
@@ -1043,7 +1043,12 @@ void TrackerViewport::broadcastDiff( bool force ) {
 }
 
 /////////////////////
-
+void RemoteHead::broadcastTimestamp() {
+    double t = now();
+    uint32_t sec = (uint32_t)t;
+    uint32_t usec = (t - sec)*1000000;    
+    broadcastUS1UI2( PACKETTYPE_TIMESTAMP, sec, usec );
+}
 void RemoteHead::broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen ) {
     for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
         Client *cl = it->second;
@@ -1100,8 +1105,8 @@ void on_write_end( uv_write_t *req, int status ) {
     if(status==-1) {
         print("on_write_end: status:%d",status);
     }
-    free(req->data);
-    free(req);
+    FREE(req->data);
+    FREE(req);
 }
 
 #define SET_RECORD_LEN_AND_US1 \
@@ -1117,11 +1122,18 @@ void on_write_end( uv_write_t *req, int status ) {
     uv_buf_t buf = uv_buf_init(_data,totalsize);\
     int r = uv_write( write_req, s, &buf, 1, on_write_end );\
     if(r) { print("uv_write fail. %d",r); uv_close( (uv_handle_t*)s, NULL); return false; }
-    
+
+#define SAVE_STREAM \
+    {\
+    Client *cl = (Client*) s->data; \
+    if(cl&&cl->enable_save_stream) cl->saveStream(sendbuf_work,totalsize); \
+    }
+
 int sendUS1( uv_stream_t *s, uint16_t usval ) {
     size_t totalsize = 4 + 2;
     SET_RECORD_LEN_AND_US1;
     SETUP_UV_WRITE;
+    SAVE_STREAM;
     return totalsize;    
 }
 int sendUS1Bytes( uv_stream_t *s, uint16_t usval, const char *bytes, uint16_t byteslen ) {
@@ -1130,6 +1142,7 @@ int sendUS1Bytes( uv_stream_t *s, uint16_t usval, const char *bytes, uint16_t by
     set_u32( sendbuf_work+4+2, byteslen );
     memcpy( sendbuf_work+4+2+4, bytes, byteslen );
     SETUP_UV_WRITE;
+    SAVE_STREAM;    
     return totalsize;
 }
 int sendUS1UI1Bytes( uv_stream_t *s, uint16_t usval, uint32_t uival, const char *bytes, uint32_t byteslen ) {
@@ -1139,6 +1152,7 @@ int sendUS1UI1Bytes( uv_stream_t *s, uint16_t usval, uint32_t uival, const char 
     set_u32( sendbuf_work+4+2+4, byteslen );
     memcpy( sendbuf_work+4+2+4+4, bytes, byteslen );
     SETUP_UV_WRITE;
+    SAVE_STREAM;    
     return totalsize;
 }
 int sendUS1UI1( uv_stream_t *s, uint16_t usval, uint32_t uival ) {
@@ -1146,6 +1160,7 @@ int sendUS1UI1( uv_stream_t *s, uint16_t usval, uint32_t uival ) {
     SET_RECORD_LEN_AND_US1;
     set_u32( sendbuf_work+4+2, uival );
     SETUP_UV_WRITE;
+    SAVE_STREAM;    
     return totalsize;
 }
 int sendUS1UI2( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
@@ -1154,6 +1169,7 @@ int sendUS1UI2( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
     set_u32( sendbuf_work+4+2, ui0 );
     set_u32( sendbuf_work+4+2+4, ui1 );
     SETUP_UV_WRITE;
+    SAVE_STREAM;    
     return totalsize;
 }
 int sendUS1UI3( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
@@ -1163,6 +1179,7 @@ int sendUS1UI3( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint
     set_u32( sendbuf_work+4+2+4, ui1 );
     set_u32( sendbuf_work+4+2+4+4, ui2 );    
     SETUP_UV_WRITE;
+    SAVE_STREAM;    
     return totalsize;
 }
 int sendUS1UI5( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 ) {
@@ -1174,6 +1191,7 @@ int sendUS1UI5( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint
     set_u32( sendbuf_work+4+2+4+4+4, ui3 );
     set_u32( sendbuf_work+4+2+4+4+4+4, ui4 );        
     SETUP_UV_WRITE;
+    SAVE_STREAM;    
     return totalsize;
 }
 int sendUS1UI1F1( uv_stream_t *s, uint16_t usval, uint32_t uival, float f0 ) {
@@ -1182,6 +1200,7 @@ int sendUS1UI1F1( uv_stream_t *s, uint16_t usval, uint32_t uival, float f0 ) {
     set_u32( sendbuf_work+4+2, uival );
     memcpy( sendbuf_work+4+2+4, &f0, 4 );
     SETUP_UV_WRITE;
+    SAVE_STREAM;    
     return totalsize;    
 }
 int sendUS1UI1F2( uv_stream_t *s, uint16_t usval, uint32_t uival, float f0, float f1 ) {
@@ -1191,6 +1210,7 @@ int sendUS1UI1F2( uv_stream_t *s, uint16_t usval, uint32_t uival, float f0, floa
     memcpy( sendbuf_work+4+2+4, &f0, 4 );
     memcpy( sendbuf_work+4+2+4+4, &f1, 4 );
     SETUP_UV_WRITE;
+    SAVE_STREAM;    
     return totalsize;    
 }
 int sendUS1F2( uv_stream_t *s, uint16_t usval, float f0, float f1 ) {
@@ -1199,6 +1219,7 @@ int sendUS1F2( uv_stream_t *s, uint16_t usval, float f0, float f1 ) {
     memcpy( sendbuf_work+4+2, &f0, 4 );
     memcpy( sendbuf_work+4+2+4, &f1, 4 );
     SETUP_UV_WRITE;
+    SAVE_STREAM;    
     return totalsize;
 }
 int sendUS1UI1Str( uv_stream_t *s, uint16_t usval, uint32_t uival, const char *cstr ) {
@@ -1210,6 +1231,7 @@ int sendUS1UI1Str( uv_stream_t *s, uint16_t usval, uint32_t uival, const char *c
     set_u8( sendbuf_work+4+2+4, (unsigned char) cstrlen );
     memcpy( sendbuf_work+4+2+4+1, cstr, cstrlen );
     SETUP_UV_WRITE;
+    SAVE_STREAM;    
     return totalsize;
 }
 int sendUS1UI2Str( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr ) {
@@ -1222,6 +1244,7 @@ int sendUS1UI2Str( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1, c
     set_u8( sendbuf_work+4+2+4+4, (unsigned char) cstrlen );
     memcpy( sendbuf_work+4+2+4+4+1, cstr, cstrlen );
     SETUP_UV_WRITE;
+    SAVE_STREAM;    
     return totalsize;
 }
 // [record-len:16][usval:16][cstr-len:8][cstr-body][data-len:32][data-body]
@@ -1235,6 +1258,7 @@ int sendUS1StrBytes( uv_stream_t *s, uint16_t usval, const char *cstr, const cha
     set_u32( sendbuf_work+4+2+1+cstrlen, datalen );
     memcpy( sendbuf_work+4+2+1+cstrlen+4, data, datalen );
     SETUP_UV_WRITE;
+    SAVE_STREAM;    
     //    print("send_packet_str_bytes: cstrlen:%d datalen:%d totallen:%d", cstrlen, datalen, totalsize );
     return totalsize;
 }
@@ -1272,7 +1296,7 @@ int sendUS1UI1Wstr( uv_stream_t *s, uint16_t usval, uint32_t uival, wchar_t *wst
     size_t outlen = outbuf - orig_outbuf;
     //    print("ConvertUTF32toUTF8 result utf8 len:%d out:'%s'", outlen, orig_outbuf );
     int ret = sendUS1UI1Bytes( s, usval, uival, (const char*) orig_outbuf, outlen );
-    free(orig_outbuf);
+    FREE(orig_outbuf);
     return ret;    
 }
 
@@ -1299,15 +1323,18 @@ void sendPing( uv_stream_t *s ) {
 Buffer::Buffer() : buf(0), size(0), used(0) {
 }
 void Buffer::ensureMemory( size_t sz ) {
-    buf = (char*) MALLOC(sz);
-    assert(buf);
-    size = sz;
-    used = 0;    
+    if(!buf) {
+        buf = (char*) MALLOC(sz);
+        assert(buf);
+        size = sz;
+        used = 0;
+    }
 }
 
 Buffer::~Buffer() {
-    assert(buf);
-    free(buf);
+    if(buf) {
+        FREE(buf);
+    }
     size = used = 0;
 }
 
@@ -1369,9 +1396,9 @@ bool Buffer::shift( size_t toshift ) {
 
 //////////////////
 int Client::idgen = 1;
-Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : id(idgen++), tcp(sk), parent_rh(rh) {
-    recvbuf.ensureMemory(1024*1024*1);
-    
+Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : id(idgen++), tcp(sk), parent_rh(rh), enable_save_stream(false) {
+    recvbuf.ensureMemory(8*1024); // Only receiving keyboard and mouse input events!
+    initialized_at = now();
 }
 Client::~Client() {
     print("~Client called for %d", id );
@@ -1415,3 +1442,28 @@ bool parseRecord( uv_stream_t *s, Buffer *recvbuf, const char *data, size_t data
     }
 }
 
+void Client::saveStream( const char *data, size_t datalen ) {
+    const size_t BUFFER_MAX = 128*1024;
+    saved_stream.ensureMemory(BUFFER_MAX);
+    size_t room = saved_stream.getRoom();
+    if( room < datalen ) {
+        flushStreamToFile();
+        saved_stream.used = 0;
+    }
+    saved_stream.push(data,datalen);
+}
+void Client::flushStreamToFile() {
+    uint32_t sec = (uint32_t)initialized_at;
+    uint32_t usec = (uint32_t)(( initialized_at - sec ) * 1000000);
+    Format outpath( "/tmp/moyaistream_%u_%u_%u", id, sec, usec );
+    print("flushing recorded stream to %s size:%d", outpath.buf, saved_stream.used );
+    // flush to file
+    bool wret = appendFile( outpath.buf, saved_stream.buf, saved_stream.used );
+    if(!wret) {
+        print("saveStream: can't append data to '%s', discarding stream", outpath.buf );
+    }
+}
+void Client::onDelete() {
+    flushStreamToFile();
+    saved_stream.used = 0;
+}

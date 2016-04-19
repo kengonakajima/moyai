@@ -138,13 +138,16 @@ public:
     void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
     void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
     void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );    
-    
+
+    void broadcastTimestamp();
 };
 
 
 typedef enum {
     // generic
-    PACKETTYPE_PING = 1,    
+    PACKETTYPE_PING = 1,
+    PACKETTYPE_TIMESTAMP = 2,
+    
     // client to server 
     PACKETTYPE_C2S_KEYBOARD = 100,
     PACKETTYPE_C2S_MOUSE_BUTTON = 102,
@@ -398,8 +401,14 @@ public:
     Buffer recvbuf;
     uv_tcp_t *tcp;
     RemoteHead *parent_rh;
+    Buffer saved_stream;
+    double initialized_at;
+    bool enable_save_stream;
     Client( uv_tcp_t *sk, RemoteHead *rh );
     ~Client();
+    void saveStream( const char *data, size_t datalen );
+    void flushStreamToFile();
+    void onDelete();
 };
 
 // record parser

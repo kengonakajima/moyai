@@ -576,6 +576,7 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
 }
 void onConnectCallback( RemoteHead *rh, Client *cl) {
     print("onConnectCallback clid:%d",cl->id);
+    cl->enable_save_stream = true;
 }
 void onRemoteKeyboardCallback( Client *cl, int kc, int act, int modshift, int modctrl, int modalt ) {
     g_keyboard->update(kc,act,modshift,modctrl,modalt);
