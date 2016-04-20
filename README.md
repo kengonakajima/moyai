@@ -18,6 +18,7 @@ Moai SDK: https://github.com/moai/moai-dev
   - FreeType2 based, reads TTF files, multi-byte chars
  - Headless mode
   - Transfer all geometry data every frame via TCP, to enable remote rendering.
+  - Recording all sprite stream and save it in file, replaying the file.
 
 # Compatibility
  - OSX 10.10/10.11
@@ -305,6 +306,16 @@ bash$ ./viewer &   # Second player character shows up
 bash$ ./viewer &   # and so on..
 </pre>
 
+Using replay server
+=====
+When you use headless sprite stream, the sprite stream is saved at "/tmp/moyaistream_1_1461123550_487924" in OSX.
+You can see the saved sprite stream by using replay server.
+A command "replayer" reads a sprite stream file and listen to a TCP port and send the stream to the viewer client.
+
+<pre>
+bash$ ./replayer /tmp/moyaistream_1_1461123550_487924 --once
+bash$ ./viewer localhost
+</pre>
 
 Classes
 =====
