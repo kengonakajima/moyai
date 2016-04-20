@@ -21,7 +21,6 @@ class Layer : public Group {
 public:
 	Camera *camera;
 	Viewport *viewport;
-	GLuint last_tex_gl_id;
 	Light *light;
     int debug_id;
     MoyaiClient *parent_client;
@@ -35,7 +34,7 @@ public:
 
     ObjectPool<Camera> dynamic_cameras;
 
-	Layer() : Group(), camera(NULL), viewport(NULL), last_tex_gl_id(0), light(NULL), debug_id(0), priority(0) {
+	Layer() : Group(), camera(NULL), viewport(NULL), light(NULL), debug_id(0), priority(0) {
 		to_render = true;
 	}
 	inline void setViewport( Viewport *vp ){

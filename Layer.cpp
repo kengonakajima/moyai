@@ -14,10 +14,7 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec
 
 	if( deck ) {
 		glEnable(GL_TEXTURE_2D);
-		if( deck->tex->tex != last_tex_gl_id ) {
-			glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
-			last_tex_gl_id = deck->tex->tex;
-		}
+        glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
 	} else {
 		glDisable(GL_TEXTURE_2D);            
 	}
@@ -197,7 +194,6 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 		// ‚à‚Æ‚à‚Æƒ‰ƒCƒgİ’è‚Í‚±‚ÌˆÊ’u‚É‚ ‚Á‚½‚ª drawmesh‚ÉˆÚ“®‚µ‚½
 
 		int cnt=0;
-		last_tex_gl_id = 0;
 
 		Prop *cur = prop_top;
 		while(cur){
