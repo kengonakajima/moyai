@@ -156,7 +156,6 @@ void setupBG() {
 
 void onConnectCallback( RemoteHead *rh, Client *cl ) {
     print("onConnectCallback: clid:%d",cl->id);
-    cl->enable_save_stream = true;
     addPC(cl);
 }
 void onDisconnectCallback( RemoteHead *rh, Client *cl ) {

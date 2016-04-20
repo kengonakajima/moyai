@@ -1,4 +1,3 @@
-
 MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Remote.cpp Keyboard.cpp
 UTF8SRC=ConvertUTF.c
 UTF8OBJ=ConvertUTF.o
@@ -15,6 +14,8 @@ VIEWERSRCS=vw.cpp
 VIEWEROBJS=$(VIEWERSRCS:.cpp=.o)
 DYNCAM2DSRCS=dyncam2d.cpp
 DYNCAM2DOBJS=$(DYNCAM2DSRCS:.cpp=.o)
+REPLAYERSRCS=rep.cpp
+REPLAYEROBJS=$(REPLAYERSRCS:.cpp=.o)
 
 FREETYPE=freetype-2.4.10
 FREETYPELIB=$(FREETYPE)/objs/.libs/libfreetype.a  # build product of freetype source
@@ -47,10 +48,14 @@ DEMO3D=demo3d
 MIN2D=min2d
 VIEWER=viewer
 DYNCAM2D=dyncam2d
+REPLAYER=replayer
 
-all : $(DEMO2D) $(DEMO3D) $(MIN2D) $(VIEWER) $(DYNCAM2D)
+all : $(DEMO2D) $(DEMO3D) $(MIN2D) $(VIEWER) $(DYNCAM2D) $(REPLAYER)
 
 server : $(OUTSVLIB) $(SNAPPYLIB)
+
+$(REPLAYER) : $(EXTCLILIBS) $(OUTCLILIB) $(REPLAYEROBJS) $(BZ2LIB) $(ZLIBLIB)
+	g++ $(CFLAGS) $(CLILIBFLAGS) $(REPLAYEROBJS) -o $(REPLAYER) $(OUTCLILIB) $(EXTCLILIBS)
 
 $(DYNCAM2D) : $(EXTCLILIBS) $(OUTCLILIB) $(DYNCAM2DOBJS) $(BZ2LIB) $(ZLIBLIB)
 	g++ $(CFLAGS) $(CLILIBFLAGS) $(DYNCAM2DOBJS) -o $(DYNCAM2D) $(OUTCLILIB) $(EXTCLILIBS)
@@ -77,6 +82,8 @@ vw.o : vw.cpp
 	g++ -c vw.cpp $(CFLAGS)
 dyncam2d.o : dyncam2d.cpp
 	g++ -c dyncam2d.cpp $(CFLAGS)
+rep.o : rep.cpp
+	g++ -c rep.cpp $(CFLAGS)
 
 $(OUTCLILIB) : $(MOYAICLIOBJS)
 	ar cr $(OUTCLILIB) $(MOYAICLIOBJS)
@@ -204,10 +211,10 @@ $(GLFWLIB):
 clean:
 	make -C $(GLFW) clean
 	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) 
-	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
+	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(REPLAYER) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
 
 depend: $(GLFWLIB)
-	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAICLISRCS) $(DEMO2DSRCS) $(DEMO3DSRCS) $(MIN2DSRCS) $(DYNCAM2DSRCS) $(VIEWERSRCS) > deps.make
+	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAICLISRCS) $(DEMO2DSRCS) $(DEMO3DSRCS) $(MIN2DSRCS) $(DYNCAM2DSRCS) $(REPLAYERSRCS) $(VIEWERSRCS) > deps.make
 
 
 -include deps.make

@@ -212,6 +212,7 @@ void RemoteHead::track2D() {
 // Send all IDs of tiledecks, layers, textures, fonts, viwports by scanning all props and grids.
 // This occurs only when new player is comming in.
 void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
+    assert(outstream->data);
     if( window_width==0 || window_height==0) {
         assertmsg( false, "remotehead: window size not set?");
     }
@@ -534,8 +535,10 @@ static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
     uv_tcp_t *newsock = (uv_tcp_t*) MALLOC( sizeof(uv_tcp_t) );
     uv_tcp_init( uv_default_loop(), newsock );
     if( uv_accept( listener, (uv_stream_t*) newsock ) == 0 ) {
-        Client *cl = new Client(newsock, (RemoteHead*)listener->data );
+        RemoteHead *rh = (RemoteHead*)listener->data;
+        Client *cl = new Client(newsock, rh );        
         newsock->data = cl;
+        cl->save_stream = rh->enable_save_stream;
         cl->tcp = newsock;
         cl->parent_rh->addClient(cl);
         print("on_accept_callback. ok status:%d client-id:%d", status, cl->id );
@@ -1126,9 +1129,17 @@ void on_write_end( uv_write_t *req, int status ) {
 #define SAVE_STREAM \
     {\
     Client *cl = (Client*) s->data; \
-    if(cl&&cl->enable_save_stream) cl->saveStream(sendbuf_work,totalsize); \
+    if(cl&&cl->save_stream) cl->saveStream(sendbuf_work,totalsize); \
     }
 
+int sendUS1RawArgs( uv_stream_t *s, uint16_t usval, const char *data, uint32_t datalen ) {
+    size_t totalsize = 4 + 2 + datalen;
+    SET_RECORD_LEN_AND_US1;
+    memcpy( sendbuf_work+4+2,data, datalen);
+    SETUP_UV_WRITE;
+    SAVE_STREAM;
+    return totalsize;
+}
 int sendUS1( uv_stream_t *s, uint16_t usval ) {
     size_t totalsize = 4 + 2;
     SET_RECORD_LEN_AND_US1;
@@ -1396,7 +1407,7 @@ bool Buffer::shift( size_t toshift ) {
 
 //////////////////
 int Client::idgen = 1;
-Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : id(idgen++), tcp(sk), parent_rh(rh), enable_save_stream(false) {
+Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : id(idgen++), tcp(sk), parent_rh(rh), save_stream(false) {
     recvbuf.ensureMemory(8*1024); // Only receiving keyboard and mouse input events!
     initialized_at = now();
 }
@@ -1451,6 +1462,7 @@ void Client::saveStream( const char *data, size_t datalen ) {
         saved_stream.used = 0;
     }
     saved_stream.push(data,datalen);
+    print("saveStream: used:%d", saved_stream.used);
 }
 void Client::flushStreamToFile() {
     uint32_t sec = (uint32_t)initialized_at;

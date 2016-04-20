@@ -101,13 +101,15 @@ public:
     SoundSystem *target_soundsystem;
     ObjectPool<Client> cl_pool;
     int window_width, window_height;
+    bool enable_save_stream;
+    
     void (*on_connect_cb)(RemoteHead*rh,Client *cl);
     void (*on_disconnect_cb)(RemoteHead*rh, Client *cl);
     void (*on_keyboard_cb)(Client *cl,int kc,int act,int modshift,int modctrl,int modalt);
     void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
     void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
+    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_save_stream(true), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
@@ -403,7 +405,7 @@ public:
     RemoteHead *parent_rh;
     Buffer saved_stream;
     double initialized_at;
-    bool enable_save_stream;
+    bool save_stream;
     Client( uv_tcp_t *sk, RemoteHead *rh );
     ~Client();
     void saveStream( const char *data, size_t datalen );
@@ -417,6 +419,7 @@ bool parseRecord( uv_stream_t *s, Buffer *recvbuf, const char *data, size_t data
 
 // send funcs
 int sendUS1( uv_stream_t *out, uint16_t usval );
+int sendUS1RawArgs( uv_stream_t *s, uint16_t usval, const char *data, uint32_t datalen );
 int sendUS1Bytes( uv_stream_t *out, uint16_t usval, const char *buf, uint16_t datalen );
 int sendUS1UI1Bytes( uv_stream_t *out, uint16_t usval, uint32_t uival, const char *buf, uint32_t datalen );
 int sendUS1UI1( uv_stream_t *out, uint16_t usval, uint32_t ui0 );

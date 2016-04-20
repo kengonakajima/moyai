@@ -186,6 +186,7 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
 }
 
 void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
+    //    print("on_packet_callback funcid:%d argdatalen:%d",funcid, argdatalen);
     switch(funcid) {
     case PACKETTYPE_PING:
         {
