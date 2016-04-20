@@ -17,7 +17,7 @@ public:
         memset(buttons,0,sizeof(buttons));
     }
     void validateButtonIndex( unsigned int bti ) {
-        assert(bti < BUTTON_MAX );
+        assert( (int)bti < BUTTON_MAX );
     }
     void updateButton( unsigned int button, int action, int modshift, int modctrl, int modalt ) {
         validateButtonIndex(button);
