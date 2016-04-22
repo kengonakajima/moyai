@@ -191,7 +191,7 @@ int main(int argc, char **argv )
     glfwMakeContextCurrent(window);    
     glfwSetWindowCloseCallback( window, winclose_callback );
     glfwSetInputMode( window, GLFW_STICKY_KEYS, GL_TRUE );
-    glfwSwapInterval(1); // vsync
+    glfwSwapInterval(0); // set 1 to use vsync. Use 0 for fast screen capturing.
     glfwSetKeyCallback( window, localKeyboardCallback );
 #ifdef WIN32
 	glewInit();
@@ -287,6 +287,16 @@ int main(int argc, char **argv )
             print("Q pressed");
             exit(0);
             break;
+        }
+        if( g_local_keyboard->getKey('C')) {
+            print("C pressed, capture!");
+            Image *img = new Image();
+            img->setSize(SCRW,SCRH);
+            double st = now();
+            moyai_client->capture(img);
+            double et = now();
+            print("capture time:%f", et-st);
+            delete img;
         }
         
 

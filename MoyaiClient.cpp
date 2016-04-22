@@ -34,17 +34,14 @@ int MoyaiClient::render(){
 }
 
 void MoyaiClient::capture( Image *img ) {
-	float *buf = (float*)MALLOC( img->width * img->height * 3 * sizeof(float) );
-	glReadPixels( 0, 0, img->width, img->height, GL_RGB, GL_FLOAT, buf );
-	for(int y=0;y<img->height;y++){
-		for(int x=0;x<img->width;x++){
-			int ind = (x + y * img->width)*3;
-			float r = buf[ind+0], g = buf[ind+1], b = buf[ind+2];
-			Color c( r,g,b,1);
-			img->setPixel(x,img->height-1-y,c);
-		}
-	}    
-	FREE(buf);
+    unsigned char *buf = (unsigned char*)MALLOC( img->width * img->height * 4 );
+	glReadPixels( 0, 0, img->width, img->height, GL_RGBA, GL_UNSIGNED_BYTE, buf );
+	for(int y=0;y<img->height;y++){ // captured data is upside down!
+        unsigned char *src = buf + (img->height-1-y) * img->width * 4;
+        unsigned char *dst = img->buffer + y * img->width * 4;
+        memcpy( dst, src, img->width*4);
+    }
+    FREE(buf);
 }
 
 int MoyaiClient::poll( double dt ) {

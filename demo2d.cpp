@@ -7,6 +7,12 @@
 #include <strings.h>
 #endif
 
+#if defined(__APPLE__)
+#define RETINA 2
+#else
+#define RETINA 1
+#endif
+
 #include "client.h"
 
 MoyaiClient *g_moyai_client;
@@ -388,9 +394,14 @@ void gameUpdate(void) {
         capt_count = 1;
         startMeasure("capt");
         Image *img = new Image();
-        img->setSize( SCRW, SCRH );
+        img->setSize( SCRW*RETINA, SCRH*RETINA );
+        double st = now();
         g_moyai_client->capture(img);
+        double et = now();
         bool ret = img->writePNG("_captured.png");
+        double et2 = now();
+        print("screen capture time:%f,%f", et-st,et2-et);
+        
 #if !(TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE)
         assert(ret);
 #endif        
@@ -628,7 +639,7 @@ void gameInit( bool headless_mode ) {
     glfwMakeContextCurrent(g_window);    
     glfwSetWindowCloseCallback( g_window, winclose_callback );
     //    glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
-    glfwSwapInterval(1); // vsync
+    glfwSwapInterval(0); // set 1 to use vsync. Use 0 for fast screen capturing.
 #ifdef WIN32
 	glewInit();
 #endif
@@ -671,11 +682,7 @@ void gameInit( bool headless_mode ) {
     }    
 
     g_viewport = new Viewport();
-    int retina = 1;
-#if defined(__APPLE__)
-    retina = 2;
-#endif    
-    g_viewport->setSize(SCRW*retina,SCRH*retina); // set actual framebuffer size to output
+    g_viewport->setSize(SCRW*RETINA,SCRH*RETINA); // set actual framebuffer size to output
     g_viewport->setScale2D(SCRW,SCRH); // set scale used by props that will be rendered
 
 #if 0
