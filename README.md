@@ -215,6 +215,10 @@ rh->startServer(22222);
 moyai_client->setRemoteHead(rh);
 rh->setTargetMoyaiClient(moyai_client);
 
+rh->enableSpriteStream(); // If you want to use sprite stream
+g_rh->enableVideoStream(SCRW*RETINA,SCRH*RETINA,3); // If you want to use video stream with 4 times less resolution
+
+        
 sound_system->setRemoteHead(rh); // If you want to transfer sounds
 rh->setTargetSoundSystem(sound_system);
 
@@ -237,6 +241,21 @@ Sprite stream is a binary data stream of sprites in Moyai game application progr
 that includes all sprites' position, sprite-atlas index, scale, rotation, shader, color,
 and any necessary data for rendering.
 
+
+Video Streaming
+=====
+You can try video streaming by adding <code>--videostream</code> to demo2d program.
+By adding this option, you will get both sprite stream and video stream at the same time,
+so you can omit sprite stream by adding <code>--skip-spritestream</code> option to demo2d.
+
+Please see these command line examples:
+<code>
+<pre>
+bash$ ./demo2d --headless    # This only sends sprite stream
+bash$ ./demo2d --headless --videostream # This sends both sprite stream and video stream
+bash$ ./demo2d --headless --videostream --skip-spritestream   # This sends only video stream
+</pre>
+</code>
 
     
 Build
