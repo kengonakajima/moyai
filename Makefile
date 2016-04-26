@@ -40,7 +40,8 @@ SNAPPYLIB=libsnappy.a
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(GLFWLIB) 
 CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib -L/usr/local/lib -luv -ljpeg
-CFLAGS=-O0 -std=c++0x -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include
+CFLAGS=-O0 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include
+CFLAGS0X=-std=c++0x $(CFLAGS)
 
 
 DEMO2D=demo2d
@@ -55,35 +56,35 @@ all : $(DEMO2D) $(DEMO3D) $(MIN2D) $(VIEWER) $(DYNCAM2D) $(REPLAYER)
 server : $(OUTSVLIB) $(SNAPPYLIB)
 
 $(REPLAYER) : $(EXTCLILIBS) $(OUTCLILIB) $(REPLAYEROBJS) $(BZ2LIB) $(ZLIBLIB)
-	g++ $(CFLAGS) $(CLILIBFLAGS) $(REPLAYEROBJS) -o $(REPLAYER) $(OUTCLILIB) $(EXTCLILIBS)
+	g++ $(CFLAGS0X) $(CLILIBFLAGS) $(REPLAYEROBJS) -o $(REPLAYER) $(OUTCLILIB) $(EXTCLILIBS)
 
 $(DYNCAM2D) : $(EXTCLILIBS) $(OUTCLILIB) $(DYNCAM2DOBJS) $(BZ2LIB) $(ZLIBLIB)
-	g++ $(CFLAGS) $(CLILIBFLAGS) $(DYNCAM2DOBJS) -o $(DYNCAM2D) $(OUTCLILIB) $(EXTCLILIBS)
+	g++ $(CFLAGS0X) $(CLILIBFLAGS) $(DYNCAM2DOBJS) -o $(DYNCAM2D) $(OUTCLILIB) $(EXTCLILIBS)
 
 $(MIN2D) : $(EXTCLILIBS) $(OUTCLILIB) $(MIN2DOBJS) $(BZ2LIB) $(ZLIBLIB)
-	g++ $(CFLAGS) $(CLILIBFLAGS) $(MIN2DOBJS) -o $(MIN2D) $(OUTCLILIB) $(EXTCLILIBS)
+	g++ $(CFLAGS0X) $(CLILIBFLAGS) $(MIN2DOBJS) -o $(MIN2D) $(OUTCLILIB) $(EXTCLILIBS)
 
 $(DEMO2D) : $(EXTCLILIBS) $(OUTCLILIB) $(DEMO2DOBJS) $(BZ2LIB) $(ZLIBLIB) 
-	g++ $(CFLAGS) $(CLILIBFLAGS) $(DEMO2DOBJS) -o $(DEMO2D) $(OUTCLILIB) $(EXTCLILIBS)
+	g++ $(CFLAGS0X) $(CLILIBFLAGS) $(DEMO2DOBJS) -o $(DEMO2D) $(OUTCLILIB) $(EXTCLILIBS)
 
 $(DEMO3D) : $(EXTCLILIBS) $(OUTCLILIB) $(DEMO3DOBJS) $(BZ2LIB) $(ZLIBLIB) 
-	g++ $(CFLAGS) $(CLILIBFLAGS) $(DEMO3DOBJS) -o $(DEMO3D) $(OUTCLILIB) $(EXTCLILIBS)
+	g++ $(CFLAGS0X) $(CLILIBFLAGS) $(DEMO3DOBJS) -o $(DEMO3D) $(OUTCLILIB) $(EXTCLILIBS)
 
 $(VIEWER) : $(EXTCLILIBS) $(OUTCLILIB) $(VIEWEROBJS) $(BZ2LIB) $(ZLIBLIB)
-	g++ $(CFLAGS) $(CLILIBFLAGS) $(VIEWEROBJS) -o $(VIEWER) $(OUTCLILIB) $(EXTCLILIBS)
+	g++ $(CFLAGS0X) $(CLILIBFLAGS) $(VIEWEROBJS) -o $(VIEWER) $(OUTCLILIB) $(EXTCLILIBS)
 
 demo2d.o : demo2d.cpp 
-	g++ -c demo2d.cpp $(CFLAGS)
+	g++ -c demo2d.cpp $(CFLAGS0X)
 demo3d.o : demo3d.cpp 
-	g++ -c demo3d.cpp $(CFLAGS)
+	g++ -c demo3d.cpp $(CFLAGS0X)
 min2d.o : min2d.cpp
-	g++ -c min2d.cpp $(CFLAGS)
+	g++ -c min2d.cpp $(CFLAGS0X)
 vw.o : vw.cpp
-	g++ -c vw.cpp $(CFLAGS)
+	g++ -c vw.cpp $(CFLAGS0X)
 dyncam2d.o : dyncam2d.cpp
-	g++ -c dyncam2d.cpp $(CFLAGS)
+	g++ -c dyncam2d.cpp $(CFLAGS0X)
 rep.o : rep.cpp
-	g++ -c rep.cpp $(CFLAGS)
+	g++ -c rep.cpp $(CFLAGS0X)
 
 $(OUTCLILIB) : $(MOYAICLIOBJS)
 	ar cr $(OUTCLILIB) $(MOYAICLIOBJS)
@@ -102,68 +103,68 @@ $(SNAPPYLIB) : $(SNAPPYOBJS)
 	ranlib $(SNAPPYLIB)
 
 common.o : common.cpp
-	g++ -c common.cpp $(CFLAGS)
+	g++ -c common.cpp $(CFLAGS0X)
 
 cumino.o : cumino.cpp
-	g++ -c cumino.cpp $(CFLAGS)
+	g++ -c cumino.cpp $(CFLAGS0X)
 Prop2D.o : Prop2D.cpp
-	g++ -c $(CFLAGS) Prop2D.cpp  -o Prop2D.o
+	g++ -c $(CFLAGS0X) Prop2D.cpp  -o Prop2D.o
 Prop3D.o : Prop3D.cpp
-	g++ -c $(CFLAGS) Prop3D.cpp  -o Prop3D.o
+	g++ -c $(CFLAGS0X) Prop3D.cpp  -o Prop3D.o
 ColorReplacerShader.o : ColorReplacerShader.cpp
-	g++ -c $(CFLAGS) ColorReplacerShader.cpp -o ColorReplacerShader.o
+	g++ -c $(CFLAGS0X) ColorReplacerShader.cpp -o ColorReplacerShader.o
 Font.o : Font.cpp
-	g++ -c $(CFLAGS) Font.cpp -o Font.o
+	g++ -c $(CFLAGS0X) Font.cpp -o Font.o
 FragmentShader.o : FragmentShader.cpp
-	g++ -c $(CFLAGS) FragmentShader.cpp -o FragmentShader.o
+	g++ -c $(CFLAGS0X) FragmentShader.cpp -o FragmentShader.o
 IndexBuffer.o : IndexBuffer.cpp
-	g++ -c $(CFLAGS) IndexBuffer.cpp -o IndexBuffer.o
+	g++ -c $(CFLAGS0X) IndexBuffer.cpp -o IndexBuffer.o
 Layer.o : Layer.cpp
-	g++ -c $(CFLAGS) Layer.cpp -o Layer.o
+	g++ -c $(CFLAGS0X) Layer.cpp -o Layer.o
 MoyaiClient.o : MoyaiClient.cpp
-	g++ -c $(CFLAGS) MoyaiClient.cpp -o MoyaiClient.o
+	g++ -c $(CFLAGS0X) MoyaiClient.cpp -o MoyaiClient.o
 TextBox.o : TextBox.cpp
-	g++ -c $(CFLAGS) TextBox.cpp -o TextBox.o
+	g++ -c $(CFLAGS0X) TextBox.cpp -o TextBox.o
 Texture.o : Texture.cpp
-	g++ -c $(CFLAGS) Texture.cpp -o Texture.o
+	g++ -c $(CFLAGS0X) Texture.cpp -o Texture.o
 VertexBuffer.o : VertexBuffer.cpp
-	g++ -c $(CFLAGS) VertexBuffer.cpp -o VertexBuffer.o
+	g++ -c $(CFLAGS0X) VertexBuffer.cpp -o VertexBuffer.o
 Viewport.o : Viewport.cpp
-	g++ -c $(CFLAGS) Viewport.cpp -o Viewport.o
+	g++ -c $(CFLAGS0X) Viewport.cpp -o Viewport.o
 Prim.o : Prim.cpp
-	g++ -c $(CFLAGS) Prim.cpp -o Prim.o
+	g++ -c $(CFLAGS0X) Prim.cpp -o Prim.o
 DrawBatch.o : DrawBatch.cpp
-	g++ -c $(CFLAGS) DrawBatch.cpp -o DrawBatch.o
+	g++ -c $(CFLAGS0X) DrawBatch.cpp -o DrawBatch.o
 Camera.o : Camera.cpp
-	g++ -c $(CFLAGS) Camera.cpp -o Camera.o
+	g++ -c $(CFLAGS0X) Camera.cpp -o Camera.o
 CharGrid.o : CharGrid.cpp
-	g++ -c $(CFLAGS) CharGrid.cpp -o CharGrid.o
+	g++ -c $(CFLAGS0X) CharGrid.cpp -o CharGrid.o
 Grid.o : Grid.cpp
-	g++ -c $(CFLAGS) Grid.cpp -o Grid.o
+	g++ -c $(CFLAGS0X) Grid.cpp -o Grid.o
 Mesh.o : Mesh.cpp
-	g++ -c $(CFLAGS) Mesh.cpp -o Mesh.o
+	g++ -c $(CFLAGS0X) Mesh.cpp -o Mesh.o
 Pad.o : Pad.cpp
-	g++ -c $(CFLAGS) Pad.cpp -o Pad.o
+	g++ -c $(CFLAGS0X) Pad.cpp -o Pad.o
 PerformanceCounter.o : PerformanceCounter.cpp
-	g++ -c $(CFLAGS) PerformanceCounter.cpp -o PerformanceCounter.o
+	g++ -c $(CFLAGS0X) PerformanceCounter.cpp -o PerformanceCounter.o
 PrimDrawer.o : PrimDrawer.cpp
-	g++ -c $(CFLAGS) PrimDrawer.cpp -o PrimDrawer.o
+	g++ -c $(CFLAGS0X) PrimDrawer.cpp -o PrimDrawer.o
 Sound.o : Sound.cpp
-	g++ -c $(CFLAGS) Sound.cpp -o Sound.o
+	g++ -c $(CFLAGS0X) Sound.cpp -o Sound.o
 SoundSystem.o : SoundSystem.cpp
-	g++ -c $(CFLAGS) SoundSystem.cpp -o SoundSystem.o
+	g++ -c $(CFLAGS0X) SoundSystem.cpp -o SoundSystem.o
 VertexFormat.o : VertexFormat.cpp
-	g++ -c $(CFLAGS) VertexFormat.cpp -o VertexFormat.o
+	g++ -c $(CFLAGS0X) VertexFormat.cpp -o VertexFormat.o
 TileDeck.o : TileDeck.cpp
-	g++ -c $(CFLAGS) TileDeck.cpp -o TileDeck.o
+	g++ -c $(CFLAGS0X) TileDeck.cpp -o TileDeck.o
 Remote.o : Remote.cpp
-	g++ -c $(CFLAGS) Remote.cpp -o Remote.o
+	g++ -c $(CFLAGS0X) Remote.cpp -o Remote.o
 ConvertUTF.o : ConvertUTF.c
-	g++ -c $(CFLAGS) ConvertUTF.c -o ConvertUTF.o
+	g++ -c $(CFLAGS0X) ConvertUTF.c -o ConvertUTF.o
 Keyboard.o : Keyboard.cpp
-	g++ -c $(CFLAGS) Keyboard.cpp -o Keyboard.o
+	g++ -c $(CFLAGS0X) Keyboard.cpp -o Keyboard.o
 JPEGCoder.o : JPEGCoder.cpp
-	g++ -c $(CFLAGS) JPEGCoder.cpp -o JPEGCoder.o
+	g++ -c $(CFLAGS0X) JPEGCoder.cpp -o JPEGCoder.o
 
 # freetype-gl
 texture-atlas.o :

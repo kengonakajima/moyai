@@ -217,7 +217,6 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
     if( window_width==0 || window_height==0) {
         assertmsg( false, "remotehead: window size not set?");
     }
-    sendUS1UI2( outstream, PACKETTYPE_S2C_WINDOW_SIZE, window_width, window_height );
     
     std::unordered_map<int,Viewport*> vpmap;
     std::unordered_map<int,Camera*> cammap;
@@ -552,6 +551,8 @@ static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
         if(r) {
             print("uv_read_start: fail ret:%d",r);
         }
+
+        sendUS1UI2( (uv_stream_t*)newsock, PACKETTYPE_S2C_WINDOW_SIZE, cl->parent_rh->window_width, cl->parent_rh->window_height );
 
         if(rh->enable_spritestream) {
             cl->parent_rh->scanSendAllPrerequisites( (uv_stream_t*) newsock );

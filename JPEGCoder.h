@@ -15,6 +15,7 @@ public:
     unsigned char *compressed;
     size_t compressed_size;
     int orig_w, orig_h;
+    int jpeg_quality;
     
     // for libjpeg use
     JSAMPARRAY sampary;

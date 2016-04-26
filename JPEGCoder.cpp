@@ -9,6 +9,7 @@ JPEGCoder::JPEGCoder( int w, int h, int pixel_skip ) {
     orig_w = w;
     orig_h = h;
     capture_pixel_skip = pixel_skip;
+    jpeg_quality = 70;
     
     capture_img = new Image();
     capture_img->setSize(w,h);    
@@ -61,7 +62,7 @@ size_t JPEGCoder::encode() {
     cinfo.input_components = 3;
     cinfo.in_color_space = JCS_RGB;
     jpeg_set_defaults( &cinfo);
-    jpeg_set_quality( &cinfo, 50, true );
+    jpeg_set_quality( &cinfo, jpeg_quality, true );
     jpeg_start_compress( &cinfo, true );
     jpeg_write_scanlines( &cinfo, sampary, step_h );
     jpeg_finish_compress( &cinfo );

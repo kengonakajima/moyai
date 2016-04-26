@@ -597,7 +597,7 @@ void onRemoteMouseButtonCallback( Client *cl, int btn, int act, int modshift, in
 void onRemoteMouseCursorCallback( Client *cl, int x, int y ) {
     g_mouse->updateCursorPosition(x,y);
 }
-void gameInit( bool headless_mode, bool enable_videostream ) {
+void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videostream ) {
     qstest();
     optest();
     comptest();
@@ -670,7 +670,7 @@ void gameInit( bool headless_mode, bool enable_videostream ) {
             print("headless server: can't start server. port:%d", HEADLESS_SERVER_PORT );
             exit(1);
         }
-        g_rh->enableSpriteStream();
+        if( enable_spritestream ) g_rh->enableSpriteStream();
         if( enable_videostream ) g_rh->enableVideoStream(SCRW*RETINA,SCRH*RETINA,3);
         
         g_moyai_client->setRemoteHead(g_rh);
@@ -1001,14 +1001,15 @@ void gameFinish() {
 #if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
 int main(int argc, char **argv )
 {
-    bool headless_mode=false, enable_videostream=false;
+    bool headless_mode=false, enable_videostream=false, enable_spritestream=true;
     for(int i=0;;i++) {
         if(!argv[i])break;
         if(strcmp(argv[i], "--headless") == 0 ) headless_mode = true;
         if(strcmp(argv[i], "--videostream") == 0 ) enable_videostream = true;
+        if(strcmp(argv[i], "--skip-spritestream") == 0 ) enable_spritestream = false;
     }
         
-    gameInit(headless_mode, enable_videostream);
+    gameInit(headless_mode, enable_spritestream, enable_videostream);
     while( !glfwWindowShouldClose(g_window) && (!g_game_done) ){
         gameUpdate();       
         gameRender();
