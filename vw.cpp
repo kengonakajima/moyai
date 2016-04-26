@@ -5,6 +5,7 @@
 #include "client.h"
 #include "ConvertUTF.h"
 
+#include "JPEGCoder.h"
 #include "vw.h"
 
 
@@ -28,7 +29,8 @@ uv_stream_t *g_stream;
 Buffer g_recvbuf;
 GLFWwindow *g_window;
 
-Viewport *g_debug_viewport;
+Viewport *g_local_viewport;
+Layer *g_video_layer; // for videostream
 Layer *g_debug_layer;
 Font *g_debug_font;
 TextBox *g_debug_tb;
@@ -51,6 +53,10 @@ double g_last_ping_rtt=0;
 #define RETINA 1
 #endif    
 
+JPEGCoder *g_jc;
+
+Prop2D *g_video_prop;
+Texture *g_video_tex;
 
     
 ///////////////
@@ -64,6 +70,37 @@ Prop2D *findProp2DByTexture( uint32_t tex_id ) {
         }
     }
     return NULL;
+}
+
+///////////////
+
+void setupVideoViewer( int imgw, int imgh ) {
+    if(!g_video_layer) {
+        g_video_layer = new Layer();
+        g_video_layer->priority = 0;
+        g_video_layer->setViewport(g_local_viewport);
+        g_moyai_client->insertLayer(g_video_layer);
+    }
+    print("setupVideoViewer: img:%d,%d",imgw,imgh);
+    if(!g_video_tex) {
+        g_video_tex = new Texture();
+        g_video_tex->setImage(g_jc->capture_img);
+    }
+    if(!g_video_prop) {
+        g_video_prop = new Prop2D();
+        g_video_prop->setTexture(g_video_tex);
+        g_video_prop->setLoc(0,0);
+        g_video_prop->setScl(imgw*RETINA,imgh*RETINA);
+        g_video_layer->insertProp(g_video_prop);
+    }
+}
+void updateVideoViewer() {
+    g_video_tex->setImage(g_jc->capture_img);
+#if 0
+    g_jc->capture_img->writePNG("decoded.png");
+#endif    
+    //    g_video_prop->setTexture(g_hogetex);
+    g_video_prop->setTexture(g_video_tex);
 }
 
 ///////////////
@@ -149,11 +186,8 @@ wchar_t *allocateWCharStringFromUTF8String( const uint8_t *in_uint8ary, size_t s
 
 
 void setupDebugStat() {
-    g_debug_viewport = new Viewport();
-    g_debug_viewport->setSize(g_window_width*RETINA,g_window_height*RETINA);
-    g_debug_viewport->setScale2D(g_window_width,g_window_height);
     g_debug_layer = new Layer();
-    g_debug_layer->setViewport(g_debug_viewport);
+    g_debug_layer->setViewport(g_local_viewport);
     g_moyai_client->insertLayer(g_debug_layer);
     g_debug_layer->priority = Layer::PRIORITY_MAX;
     g_debug_font = new Font();
@@ -1099,6 +1133,32 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             setupClient(w,h);
         }
         break;
+    case PACKETTYPE_S2C_JPEG_DECODER_CREATE:
+        {
+            uint32_t pixel_skip = get_u32(argdata+0);
+            uint32_t orig_w = get_u32(argdata+4);
+            uint32_t orig_h = get_u32(argdata+8);
+            print("received jpeg_dec_creat: skip:%d %d,%d", pixel_skip, orig_w, orig_h );
+            int imgw = orig_w/(pixel_skip+1), imgh = orig_h/(pixel_skip+1);
+            g_jc = new JPEGCoder(imgw, imgh, 0);
+            setupVideoViewer(imgw,imgh);
+        }
+        break;
+    case PACKETTYPE_S2C_CAPTURED_FRAME:
+        {
+            assert(g_jc);
+            uint32_t compressed_size = get_u32(argdata+0);
+            g_jc->setCompressedData( (const unsigned char*)(argdata+4), compressed_size );
+            double t0 = now();
+            g_jc->decode();
+            double t1 = now();
+            print("capt_frame: time:%f size:%d",t1-t0, compressed_size);
+#if 0
+            writeFile( "received.jpg", (const char*)g_jc->compressed, g_jc->compressed_size );
+#endif            
+            updateVideoViewer();
+        }
+        break;
     default:
         print("unhandled packet type:%d", funcid );
         break;
@@ -1177,6 +1237,10 @@ void setupClient( int win_w, int win_h ) {
     
     g_moyai_client = new MoyaiClient( g_window, win_w, win_h );
 
+    g_local_viewport = new Viewport();
+    g_local_viewport->setSize(g_window_width*RETINA,g_window_height*RETINA);
+    g_local_viewport->setScale2D(g_window_width,g_window_height);
+    
     // Client side debug status
     setupDebugStat();    
 }
@@ -1237,7 +1301,13 @@ int main( int argc, char **argv ) {
             }
             
             glfwPollEvents();
-            if( glfwGetKey( g_window, 'Q') ) break;        
+            if( glfwGetKey( g_window, 'Q') ) break;
+            if( glfwGetKey( g_window, 'M' ) ) {
+                Vec2 s = g_video_prop->scl;
+                s+= Vec2(1,1);
+                g_video_prop->setScl(s);
+                print("Scl:%f,%f",s.x,s.y);
+            }
 
             int polled = g_moyai_client->poll(dt);
             int rendered = g_moyai_client->render();

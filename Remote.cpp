@@ -1,6 +1,7 @@
 #include "common.h"
 #include "client.h"
 #include "Remote.h"
+#include "JPEGCoder.h"
 
 #include "ConvertUTF.h"
 
@@ -442,7 +443,11 @@ void RemoteHead::scanSendAllProp2DSnapshots( uv_stream_t *outstream ) {
     }    
 }
 void RemoteHead::heartbeat() {
-    track2D();
+    if(enable_spritestream) track2D();
+    if(enable_videostream) broadcastCapturedScreen();
+    if( (!enable_videostream) && (!enable_spritestream) ) {
+        print("RemoteHead::heartbeat: no streaming enabled, please call enableSpriteStream or enableVideoStream. ");
+    }
     uv_run_times(100);
 }    
 static void remotehead_on_close_callback( uv_handle_t *s ) {
@@ -548,8 +553,15 @@ static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
             print("uv_read_start: fail ret:%d",r);
         }
 
-        cl->parent_rh->scanSendAllPrerequisites( (uv_stream_t*) newsock );
-        cl->parent_rh->scanSendAllProp2DSnapshots( (uv_stream_t*) newsock);
+        if(rh->enable_spritestream) {
+            cl->parent_rh->scanSendAllPrerequisites( (uv_stream_t*) newsock );
+            cl->parent_rh->scanSendAllProp2DSnapshots( (uv_stream_t*) newsock);
+        }
+        if(rh->enable_videostream) {
+            JPEGCoder *jc = cl->parent_rh->jc;
+            assert(jc);
+            sendUS1UI3( (uv_stream_t*)newsock, PACKETTYPE_S2C_JPEG_DECODER_CREATE, jc->capture_pixel_skip, jc->orig_w, jc->orig_h );
+        }
         if( cl->parent_rh->on_connect_cb ) {
             cl->parent_rh->on_connect_cb( cl->parent_rh, cl );
         }
@@ -1046,6 +1058,29 @@ void TrackerViewport::broadcastDiff( bool force ) {
 }
 
 /////////////////////
+
+void RemoteHead::enableVideoStream( int w, int h, int pixel_skip ) {
+    enable_videostream = true;
+    assertmsg(!jc, "can't call enableVideoStream again");    
+    jc = new JPEGCoder(w,h,pixel_skip);
+}
+
+// Note: don't support dynamic cameras
+void RemoteHead::broadcastCapturedScreen() {
+    assert(jc);
+    Image *img = jc->getImage();
+    double t0 = now();
+    target_moyai->capture(img);
+    double t1 = now();
+    size_t sz = jc->encode();
+    double t2 = now();
+    print("broadcastCapturedScreen time:%f,%f size:%d", t1-t0,t2-t1,sz );
+#if 0
+    writeFile("encoded.jpg", (char*)jc->compressed, jc->compressed_size);
+#endif    
+    broadcastUS1Bytes( PACKETTYPE_S2C_CAPTURED_FRAME, (const char*)jc->compressed, jc->compressed_size );
+}
+
 void RemoteHead::broadcastTimestamp() {
     double t = now();
     uint32_t sec = (uint32_t)t;
@@ -1462,7 +1497,7 @@ void Client::saveStream( const char *data, size_t datalen ) {
         saved_stream.used = 0;
     }
     saved_stream.push(data,datalen);
-    print("saveStream: used:%d", saved_stream.used);
+    //    print("saveStream: used:%d", saved_stream.used);
 }
 void Client::flushStreamToFile() {
     uint32_t sec = (uint32_t)initialized_at;
@@ -1479,3 +1514,4 @@ void Client::onDelete() {
     flushStreamToFile();
     saved_stream.used = 0;
 }
+

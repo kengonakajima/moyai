@@ -1,4 +1,4 @@
-MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Remote.cpp Keyboard.cpp
+MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Remote.cpp Keyboard.cpp JPEGCoder.cpp
 UTF8SRC=ConvertUTF.c
 UTF8OBJ=ConvertUTF.o
 MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o) $(UTF8OBJ)
@@ -39,7 +39,7 @@ SNAPPYLIB=libsnappy.a
 
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(GLFWLIB) 
-CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib -L/usr/local/lib -luv
+CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib -L/usr/local/lib -luv -ljpeg
 CFLAGS=-O0 -std=c++0x -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include
 
 
@@ -162,6 +162,8 @@ ConvertUTF.o : ConvertUTF.c
 	g++ -c $(CFLAGS) ConvertUTF.c -o ConvertUTF.o
 Keyboard.o : Keyboard.cpp
 	g++ -c $(CFLAGS) Keyboard.cpp -o Keyboard.o
+JPEGCoder.o : JPEGCoder.cpp
+	g++ -c $(CFLAGS) JPEGCoder.cpp -o JPEGCoder.o
 
 # freetype-gl
 texture-atlas.o :

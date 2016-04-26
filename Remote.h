@@ -89,6 +89,7 @@ class SoundSystem;
 class Keyboard;
 class Mouse;
 class Client;
+class JPEGCoder;
 
 typedef std::unordered_map<unsigned int,Client*>::iterator ClientIteratorType;
 
@@ -102,6 +103,13 @@ public:
     ObjectPool<Client> cl_pool;
     int window_width, window_height;
     bool enable_save_stream;
+    bool enable_spritestream;
+    bool enable_videostream;
+    JPEGCoder *jc;
+
+    
+    void enableSpriteStream() { enable_spritestream = true; };
+    void enableVideoStream( int w, int h, int pixel_skip );
     
     void (*on_connect_cb)(RemoteHead*rh,Client *cl);
     void (*on_disconnect_cb)(RemoteHead*rh, Client *cl);
@@ -109,12 +117,13 @@ public:
     void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
     void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_save_stream(true), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
+    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_save_stream(true), enable_spritestream(0), enable_videostream(0), jc(NULL), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
     
     void track2D();
+    void broadcastCapturedScreen();
     bool startServer( int portnum );
     void setWindowSize(int w, int h) { window_width = w; window_height = h; }
     void setOnConnectCallback( void (*f)(RemoteHead *rh, Client *cl) ) { on_connect_cb = f; }
@@ -223,10 +232,15 @@ typedef enum {
     PACKETTYPE_S2C_SOUND_PLAY = 660,
     PACKETTYPE_S2C_SOUND_STOP = 661,    
     PACKETTYPE_S2C_SOUND_POSITION = 662,
+
+    PACKETTYPE_S2C_JPEG_DECODER_CREATE = 700,
+    PACKETTYPE_S2C_CAPTURED_FRAME = 701,
     
     PACKETTYPE_S2C_FILE = 800, // send file body and path
 
     PACKETTYPE_S2C_WINDOW_SIZE = 900, // u2
+
+
     
     PACKETTYPE_ERROR = 2000, // error code
 } PACKETTYPE;
@@ -444,6 +458,7 @@ void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *out
 void moyai_libuv_alloc_buffer( uv_handle_t *handle, size_t suggested_size, uv_buf_t *outbuf );
 
 void uv_run_times( int maxcount );
+
 
 
 #endif

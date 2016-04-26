@@ -34,6 +34,7 @@ int MoyaiClient::render(){
 }
 
 void MoyaiClient::capture( Image *img ) {
+    glReadBuffer(GL_FRONT);
     unsigned char *buf = (unsigned char*)MALLOC( img->width * img->height * 4 );
 	glReadPixels( 0, 0, img->width, img->height, GL_RGBA, GL_UNSIGNED_BYTE, buf );
 	for(int y=0;y<img->height;y++){ // captured data is upside down!
