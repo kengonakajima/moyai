@@ -1,5 +1,7 @@
+#include "common.h"
 #include "Sound.h"
 #include "SoundSystem.h"
+#include "Remote.h"
 
 Sound::Sound( SoundSystem *s) : sound(0), parent(s), ch(0), default_volume(1), external_id(0), last_samples(0), last_samples_num(0), last_play_volume(0) {
     last_load_file_path[0] = '\0';
@@ -20,7 +22,7 @@ void Sound::play(float vol){
 	FMOD_Channel_SetVolume(ch, default_volume * vol );
 
     last_play_volume = default_volume * vol;    
-    parent->notifySoundPlay(id, last_play_volume );
+    if(parent->remote_head) parent->remote_head->notifySoundPlay( this, last_play_volume );
 }
 
 void Sound::playDistance(float mindist, float maxdist, float dist, float relvol) {
@@ -40,7 +42,7 @@ void Sound::stop() {
     //    print("Sound::stop! %p debugid:%d ch:%p",this, this->debug_id ,this->ch);
 	FMOD_Channel_Stop( this->ch );
     this->ch = NULL;
-    this->parent->notifySoundStop(id);
+    if(this->parent->remote_head) this->parent->remote_head->notifySoundStop(this);
 }
 void Sound::pause( bool to_pause ) {
     FMOD_Channel_SetPaused( this->ch, to_pause );

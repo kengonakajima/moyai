@@ -35,6 +35,4 @@ public:
     Sound *getById( int id );
 
     void setRemoteHead(RemoteHead*rh) { remote_head = rh; };
-    void notifySoundPlay( int id, float vol );
-    void notifySoundStop( int id );
 };

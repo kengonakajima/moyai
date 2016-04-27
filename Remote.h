@@ -90,6 +90,7 @@ class Keyboard;
 class Mouse;
 class Client;
 class JPEGCoder;
+class Sound;
 
 typedef std::unordered_map<unsigned int,Client*>::iterator ClientIteratorType;
 
@@ -139,6 +140,8 @@ public:
     void notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop );
     void setTargetSoundSystem(SoundSystem*ss) { target_soundsystem = ss; }
     void setTargetMoyaiClient(MoyaiClient*mc) { target_moyai = mc; }
+    void notifySoundPlay( Sound *snd, float vol );
+    void notifySoundStop( Sound *snd );
 
     
     void broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen );

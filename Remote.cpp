@@ -594,6 +594,15 @@ bool RemoteHead::startServer( int portnum ) {
     return true;
 }
 
+void RemoteHead::notifySoundPlay( Sound *snd, float vol ) {
+    broadcastUS1UI1F1( PACKETTYPE_S2C_SOUND_PLAY, snd->id, vol );
+}
+void RemoteHead::notifySoundStop( Sound *snd ) {
+    broadcastUS1UI1( PACKETTYPE_S2C_SOUND_STOP, snd->id );
+}
+
+
+
 ////////////////
 
 TrackerGrid::TrackerGrid( RemoteHead *rh, Grid *target ) : target_grid(target), cur_buffer_index(0), parent_rh(rh) {

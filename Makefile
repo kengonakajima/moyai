@@ -1,4 +1,4 @@
-MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Remote.cpp Keyboard.cpp JPEGCoder.cpp
+MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Remote.cpp Keyboard.cpp JPEGCoder.cpp WavePlayer.cpp
 UTF8SRC=ConvertUTF.c
 UTF8OBJ=ConvertUTF.o
 MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o) $(UTF8OBJ)
@@ -165,6 +165,8 @@ Keyboard.o : Keyboard.cpp
 	g++ -c $(CFLAGS0X) Keyboard.cpp -o Keyboard.o
 JPEGCoder.o : JPEGCoder.cpp
 	g++ -c $(CFLAGS0X) JPEGCoder.cpp -o JPEGCoder.o
+WavePlayer.o : WavePlayer.cpp
+	g++ -c $(CFLAGS0X) WavePlayer.cpp -o WavePlayer.o
 
 # freetype-gl
 texture-atlas.o :
