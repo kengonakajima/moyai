@@ -4,7 +4,8 @@
 #include "SoundSystem.h"
 #include "Sound.h"
 
-SoundSystem::SoundSystem()  : id_gen(1), sys(0), remote_head(0) {
+SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0) {
+#ifdef USE_FMOD    
 	FMOD_RESULT r;
 	r = FMOD_System_Create(&sys);
 	FMOD_ERRCHECK(r);
@@ -18,14 +19,15 @@ SoundSystem::SoundSystem()  : id_gen(1), sys(0), remote_head(0) {
 	}
 	r = FMOD_System_Init( sys, 32, FMOD_INIT_NORMAL, NULL );
 	FMOD_ERRCHECK(r);
-
+#endif
     for(int i=0;i<elementof(sounds);i++) sounds[i] = NULL;
 }
 
 Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_currently_ignored ) {
     const char *cpath = platformCStringPath(path);
-    FMOD_RESULT r;
 	Sound *out = new Sound(this);
+#ifdef USE_FMOD    
+    FMOD_RESULT r;    
 	FMOD_SOUND *s;
 	r = FMOD_System_CreateSound(sys, cpath, FMOD_SOFTWARE, 0, &s );
     if( r != FMOD_OK ) {
@@ -33,7 +35,9 @@ Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_curre
     }
 	FMOD_ERRCHECK(r);
 	FMOD_Sound_SetMode( s, FMOD_LOOP_OFF );
-	out->sound = s;
+#endif
+    
+	out->sound = s;    
 	out->default_volume = vol;
     out->id = id_gen;
     strncpy( out->last_load_file_path, path, sizeof(out->last_load_file_path) );
@@ -46,8 +50,9 @@ Sound *SoundSystem::newSound( const char *path ){
 	return newSound( path, 1.0, false );
 }
 Sound *SoundSystem::newSoundFromMemory( float *samples, int samples_num ) {
-    FMOD_RESULT r;
     Sound *out = new Sound(this);
+#ifdef USE_FMOD    
+    FMOD_RESULT r;
     FMOD_SOUND *s;
     FMOD_CREATESOUNDEXINFO exinfo;
 
@@ -61,6 +66,8 @@ Sound *SoundSystem::newSoundFromMemory( float *samples, int samples_num ) {
     r = FMOD_System_CreateSound( sys, (const char*) samples, FMOD_SOFTWARE | FMOD_OPENMEMORY | FMOD_OPENRAW, &exinfo, &s );
     FMOD_ERRCHECK(r);
     FMOD_Sound_SetMode( s, FMOD_LOOP_OFF );
+#endif
+    
     out->sound = s;
     out->default_volume = 1;
     out->id = id_gen;
