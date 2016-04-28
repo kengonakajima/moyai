@@ -36,9 +36,10 @@ FTGLLIB=libftgl.a
 OUTCLILIB=libmoyaicl.a
 OUTSVLIB=libmoyaisv.a
 SNAPPYLIB=libsnappy.a
+UNTZLIB=untz/libuntz.a
 
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB)
-EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(GLFWLIB) 
+EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(GLFWLIB) $(UNTZLIB)
 CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib -L/usr/local/lib -luv -ljpeg
 CFLAGS=-O0 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -DUSE_FMOD
 CFLAGS0X=-std=c++0x $(CFLAGS)
@@ -101,6 +102,8 @@ $(FTGLLIB) : $(FTGLOBJS)
 $(SNAPPYLIB) : $(SNAPPYOBJS)
 	ar cr $(SNAPPYLIB) $(SNAPPYOBJS)
 	ranlib $(SNAPPYLIB)
+
+
 
 common.o : common.cpp
 	g++ -c common.cpp $(CFLAGS0X)
@@ -212,13 +215,16 @@ $(LIBPNGLIB):
 $(GLFWLIB):
 	cd $(GLFW); cmake .; make
 
+$(UNTZLIB):
+	make -C untz
 
 clean:
 	make -C $(GLFW) clean
+	make -C untz clean
 	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) 
 	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(REPLAYER) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
 
-depend: $(GLFWLIB)
+depend: $(GLFWLIB) $(UNTZLIB)
 	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAICLISRCS) $(DEMO2DSRCS) $(DEMO3DSRCS) $(MIN2DSRCS) $(DYNCAM2DSRCS) $(REPLAYERSRCS) $(VIEWERSRCS) > deps.make
 
 
