@@ -396,5 +396,4 @@ See LICNSE.txt for Moyai itself.
  - GLFW Copyright (c) 2002-2006 Marcus Geelnard, 2006-2010 Camilla Berglund <elmindreda@elmindreda.org>
  - SOIL image loader : 2007 Jonathan Dummer
  - lz4 : 2013 Yann Collet 
- 
-
+ - UNTZ : Copyright 2010-2011 Zipline games, CPAL license
