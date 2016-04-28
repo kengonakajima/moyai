@@ -1,10 +1,17 @@
 #include <stdio.h>
+#include <pthread.h>
 
 #include "../cumino.h"
 #include "UntzSound.h"
 
+uint64_t getThreadId() {
+    uint64_t tid;
+    pthread_threadid_np(NULL,&tid);
+    return tid;
+}
+
 UInt32 stream_callback(float* buffers, UInt32 numChannels, UInt32 length, void* userdata) {
-    fprintf(stderr,"cb %f len:%d\n",now(), length );
+    fprintf(stderr,"[scb:%lld] cb %f len:%d\n", getThreadId(), now(), length );
     static int counter = 0;
     for(int i=0;i<length;i++) {
         buffers[i] = cos( (float)(counter) / 20.0f ) * cos( (float)(counter+1000) / 30000.0f );
@@ -28,7 +35,9 @@ void showVol(float v) {
     fprintf(stderr, "%s",s);
 }
 void output_callback( UInt32 numChannels, float *interleavedSamples, UInt32 numSamples ) {
-    fprintf(stderr,"output_callback nc:%d ns:%d dat:%f\n", numChannels, numSamples, interleavedSamples[0] );
+    fprintf(stderr,"[outcb:%lld] output_callback nc:%d ns:%d dat:%f\n",
+            getThreadId(),
+            numChannels, numSamples, interleavedSamples[0] );
     showVol(interleavedSamples[0]);
 }
 
@@ -50,7 +59,7 @@ int main(int argc, char **argv ) {
 
     while(true) {
         usleep(10*1000);
-        fprintf(stderr,".");
+        fprintf(stderr,"[main:%lld] ", getThreadId() );
     }
     return 0;
 }
