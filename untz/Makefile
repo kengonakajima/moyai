@@ -8,7 +8,7 @@ LIBOBJS=AudioMixer.o BufferedAudioSource.o BufferedAudioSourceThread.o UntzSound
 OBJS=$(LIBOBJS) main.o
 CFLAGS=-I./include -I./src -I/usr/local/include -Isrc/native/ios -DMACOSX
 
-all: synth
+all: libuntz.a synth 
 
 AudioMixer.o : src/AudioMixer.cpp
 	g++ -c $(CFLAGS) src/AudioMixer.cpp 
@@ -31,7 +31,11 @@ UntzSystem.o : src/native/ios/UntzSystem.cpp
 main.o : main.cpp
 	g++ -c $(CFLAGS) main.cpp
 
-synth: $(OBJS)
-	g++ -o synth $(OBJS) -framework Cocoa -framework AudioToolbox /usr/local/lib/libogg.a /usr/local/lib/libvorbis.a /usr/local/lib/libvorbisfile.a
+libuntz.a : $(LIBOBJS)
+	ar cr libuntz.a $(LIBOBJS)
+	ranlib libuntz.a
 
-#CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib -L/usr/local/lib -luv -ljpeg
+synth: main.o $(LIBOBJS)
+	g++ -o synth main.o libuntz.a -framework Cocoa -framework AudioToolbox /usr/local/lib/libogg.a /usr/local/lib/libvorbis.a /usr/local/lib/libvorbisfile.a
+
+
