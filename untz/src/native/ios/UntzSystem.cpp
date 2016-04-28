@@ -109,7 +109,9 @@ static OSStatus playbackCallback(void *userData,
     // Grab audio from our mixer.
     float *out_bufs = (float*)&sysData->mOutputBuffer[0];
     sysData->mMixer.process(0, NULL, 2, out_bufs, framesPerBuffer);
-
+    
+    if( sysData->outputCallback ) sysData->outputCallback( 2, out_bufs, framesPerBuffer );
+    
 	float volume = sysData->mMixer.getVolume();
 	
     // Clip nicely.
@@ -393,7 +395,9 @@ void System::resume()
 	msInstance->mpData->setActive(true);
 }
 
-
+void System::setOutputCallback( void (*cb)(UInt32 numChannels, float *interleavedSamples, UInt32 numSamples ) ) {
+    msInstance->mpData->outputCallback = cb;
+}
 
 #pragma mark Helper functions
 
@@ -403,4 +407,6 @@ void checkStatus(OSStatus status)
     fprintf(stderr, "audioio status: %d\n", (int)status);
 #endif
 }
+
+
 

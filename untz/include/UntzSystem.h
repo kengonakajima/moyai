@@ -49,6 +49,9 @@ namespace UNTZ
 		void resume();
 
 		SystemData* getData() const { return mpData; }
+
+        static void setOutputCallback( void (*outputCallback)(UInt32 numChannels, float *interleavedSamples, UInt32 numSamples ) );
+        
 	private:
         System(UInt32 sampleRate, UInt32 numFrames, UInt32 options);
 		~System();

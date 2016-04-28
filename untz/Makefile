@@ -6,7 +6,7 @@
 
 LIBOBJS=AudioMixer.o BufferedAudioSource.o BufferedAudioSourceThread.o UntzSound.o OggAudioSource.o UserAudioSource.o MemoryAudioSource.o ExtAudioFileAudioSource.o UntzSystem.o 
 OBJS=$(LIBOBJS) main.o
-CFLAGS=-I./include -I./src -I/usr/local/include -Isrc/native/ios -DMACOSX
+CFLAGS=-I./include -I./src -I/usr/local/include -Isrc/native/ios -DMACOSX -g
 
 all: libuntz.a synth 
 

@@ -20,7 +20,7 @@ namespace UNTZ
 	class SystemData
 	{
 	public:
-		SystemData() : mError(0), mIsActive(true) {};
+		SystemData() : mError(0), mIsActive(true), outputCallback(0) {};
 
 		virtual UInt32 getNumFrames() = 0;
 		virtual UInt32 getNumOutputChannels() = 0;
@@ -54,6 +54,8 @@ namespace UNTZ
 
 		AudioMixer mMixer;
 
+        void (*outputCallback)(UInt32 numChannels, float *interleavedSamples, UInt32 numFrames );
+        
 	protected:
 		bool mError;
 		bool mIsActive;
