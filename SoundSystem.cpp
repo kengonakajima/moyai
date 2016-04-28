@@ -20,6 +20,9 @@ SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0) {
 	r = FMOD_System_Init( sys, 32, FMOD_INIT_NORMAL, NULL );
 	FMOD_ERRCHECK(r);
 #endif
+#ifdef USE_UNTZ
+    UNTZ::System::initialize( 44100, 8192, 0 );
+#endif    
     for(int i=0;i<elementof(sounds);i++) sounds[i] = NULL;
 }
 
@@ -36,7 +39,9 @@ Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_curre
 	FMOD_ERRCHECK(r);
 	FMOD_Sound_SetMode( s, FMOD_LOOP_OFF );
 #endif
-    
+#ifdef USE_UNTZ
+    UNTZ::Sound *s = UNTZ::Sound::create( cpath, true );
+#endif    
 	out->sound = s;    
 	out->default_volume = vol;
     out->id = id_gen;
@@ -67,7 +72,16 @@ Sound *SoundSystem::newSoundFromMemory( float *samples, int samples_num ) {
     FMOD_ERRCHECK(r);
     FMOD_Sound_SetMode( s, FMOD_LOOP_OFF );
 #endif
-    
+#ifdef USE_UNTZ
+    UNTZ::SoundInfo info;
+    memset(&info,0,sizeof(info));
+    info.mBitsPerSample = 32;
+    info.mSampleRate = 44100;
+    info.mChannels = 1;
+    info.mTotalFrames = samples_num / 1; // 1 for num of channels
+	info.mLength = (double)samples_num / 1.0f / 44100.0f; // 1 for num of channels
+    UNTZ::Sound *s = UNTZ::Sound::create( info, samples, true ); // ownsdata: copy samples to mem
+#endif    
     out->sound = s;
     out->default_volume = 1;
     out->id = id_gen;

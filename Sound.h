@@ -3,6 +3,9 @@
 #ifdef USE_FMOD
 #include "fmod/api/inc/fmod.h"
 #endif 
+#ifdef USE_UNTZ
+#include "untz/include/UntzSound.h"
+#endif
 
 class SoundSystem;
 
@@ -14,6 +17,10 @@ public:
 	FMOD_SOUND *sound;
 	FMOD_CHANNEL *ch;
 #endif
+#ifdef USE_UNTZ
+    UNTZ::Sound *sound;
+    void *ch;
+#endif    
     
 	float default_volume;
     int external_id; // for app use

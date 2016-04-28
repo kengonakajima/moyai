@@ -21,7 +21,11 @@ void Sound::play(float vol){
 	}
 	FMOD_ERRCHECK(r);
 	FMOD_Channel_SetVolume(ch, default_volume * vol );
-#endif 
+#endif
+#ifdef USE_UNTZ
+    sound->play();
+    sound->setVolume(vol);
+#endif    
     last_play_volume = default_volume * vol;    
     if(parent->remote_head) parent->remote_head->notifySoundPlay( this, last_play_volume );
 }
@@ -43,8 +47,11 @@ void Sound::stop() {
     //    print("Sound::stop! %p debugid:%d ch:%p",this, this->debug_id ,this->ch);
 #ifdef USE_FMOD    
 	FMOD_Channel_Stop( this->ch );
-#endif 
-    this->ch = NULL;
+    this->ch = NULL;    
+#endif
+#ifdef USE_UNTZ
+    sound->stop();
+#endif    
     if(this->parent->remote_head) this->parent->remote_head->notifySoundStop(this);
 }
 
@@ -56,18 +63,27 @@ bool Sound::isPlaying() {
 	r = FMOD_Channel_IsPlaying( this->ch, &val );
 	if( r != FMOD_OK ) return false;
 	return val;
+#endif
+#ifdef USE_UNTZ
+    return sound->isPlaying();
 #endif    
 }
 void Sound::setVolume( float v ) {
 #if USE_FMOD    
 	FMOD_Channel_SetVolume(this->ch, v );
-#endif    
+#endif
+#if USE_UNTZ
+    sound->setVolume(v);
+#endif
 }
 float Sound::getVolume() {
 #ifdef USE_FMOD    
     float v;
     FMOD_Channel_GetVolume(this->ch,&v);
     return v;
+#endif
+#ifdef USE_UNTZ
+    return sound->getVolume();
 #endif    
 }
 void Sound::setLoop( bool flag ) {
@@ -77,6 +93,9 @@ void Sound::setLoop( bool flag ) {
 	} else {
 		FMOD_Sound_SetMode( sound, FMOD_LOOP_OFF );    
 	}
+#endif
+#ifdef USE_UNTZ
+    sound->setLooping(flag);
 #endif    
 }
 void Sound::updateLastSamples( float *samples, int samples_num ) {
@@ -99,6 +118,9 @@ float Sound::getTimePositionSec() {
         return -1;
     }
     return (float)(pos_ms) / 1000.0f;
+#endif
+#ifdef USE_UNTZ
+    return (float) sound->getPosition();
 #endif    
 }
 void Sound::setTimePositionSec( float sec ) {
@@ -109,6 +131,9 @@ void Sound::setTimePositionSec( float sec ) {
     if( r != FMOD_OK ) {
         print("FMOD_Channel_SetPosition: failed. ret:%d", r );
     }
-#endif    
+#endif
+#ifdef USE_UNTZ
+    sound->setPosition(sec);
+#endif   
 }
 

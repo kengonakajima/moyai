@@ -24,6 +24,9 @@ public:
 #ifdef USE_FMOD    
 	FMOD_SYSTEM *sys;
 #endif
+#ifdef USE_UNTZ
+    void *sys; // not used
+#endif    
     
 	SoundSystem();
 
