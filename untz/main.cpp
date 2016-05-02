@@ -10,13 +10,20 @@ uint64_t getThreadId() {
     return tid;
 }
 
+// [ch1:length][ch2:length]
 UInt32 stream_callback(float* buffers, UInt32 numChannels, UInt32 length, void* userdata) {
-    fprintf(stderr,"[scb:%lld] cb %f len:%d\n", getThreadId(), now(), length );
+    static int totl=0;
+    static double first_at=now();
+    totl+=length;
+    fprintf(stderr,"[scb:%lld] cb %f len:%d tot:%d per_sec:%f\n", getThreadId(), now(), length, totl, (double)totl/(now()-first_at) );
     static int counter = 0;
     for(int i=0;i<length;i++) {
-        buffers[i] = cos( (float)(counter) / 20.0f ) * cos( (float)(counter+1000) / 30000.0f );
-        counter++;
+        buffers[i] = cos( (float)(counter+i) / 20.0f ) * cos( (float)(counter+1000) / 40000.0f );
     }
+    for(int i=0;i<length;i++) {
+        buffers[length+i] = cos( (float)(counter+i) / 20.0f ) * cos( (float)(counter+1000) / 40000.0f );        
+    }
+    counter+=length;
     return length;
 }
 void showVol(float v) {
@@ -49,12 +56,12 @@ int main(int argc, char **argv ) {
     
     // sound from file
     //    UNTZ::Sound *snd = UNTZ::Sound::create( "../assets/blobloblll.wav", true );
-    UNTZ::Sound *snd = UNTZ::Sound::create( "../assets/gymno1_1min.wav", true );    
+    UNTZ::Sound *snd = UNTZ::Sound::create( "../assets/gymno1short.wav", true );    
     printf("sound created:%p",snd);
     snd->play();
 
     // sound from callback
-    UNTZ::Sound *cbsnd = UNTZ::Sound::create(44100,1,stream_callback,NULL);
+    UNTZ::Sound *cbsnd = UNTZ::Sound::create(44100,2,stream_callback,NULL);
     cbsnd->play();
 
 
