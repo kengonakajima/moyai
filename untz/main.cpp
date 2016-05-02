@@ -48,7 +48,8 @@ int main(int argc, char **argv ) {
     UNTZ::System::setOutputCallback(output_callback);
     
     // sound from file
-    UNTZ::Sound *snd = UNTZ::Sound::create( "../assets/blobloblll.wav", true );
+    //    UNTZ::Sound *snd = UNTZ::Sound::create( "../assets/blobloblll.wav", true );
+    UNTZ::Sound *snd = UNTZ::Sound::create( "../assets/gymno1_1min.wav", true );    
     printf("sound created:%p",snd);
     snd->play();
 
