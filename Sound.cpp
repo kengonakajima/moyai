@@ -56,8 +56,8 @@ void Sound::stop() {
 }
 
 bool Sound::isPlaying() {
-	if(!this->ch)return false;
 #ifdef USE_FMOD    
+	if(!this->ch)return false;
 	FMOD_BOOL val;
 	FMOD_RESULT r;
 	r = FMOD_Channel_IsPlaying( this->ch, &val );
