@@ -1,7 +1,6 @@
 #ifndef _REMOTE_H_
 #define _REMOTE_H_
 
-
 #include "Pool.h"
 
 // basic buffering
@@ -91,6 +90,7 @@ class Mouse;
 class Client;
 class JPEGCoder;
 class Sound;
+class Buffer;
 
 typedef std::unordered_map<unsigned int,Client*>::iterator ClientIteratorType;
 
@@ -107,7 +107,7 @@ public:
     bool enable_spritestream;
     bool enable_videostream;
     JPEGCoder *jc;
-
+    Buffer *audio_buffer;
     
     void enableSpriteStream() { enable_spritestream = true; };
     void enableVideoStream( int w, int h, int pixel_skip );
@@ -118,7 +118,7 @@ public:
     void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
     void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_save_stream(true), enable_spritestream(0), enable_videostream(0), jc(NULL), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
+    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_save_stream(true), enable_spritestream(0), enable_videostream(0), jc(NULL), audio_buffer(0), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
@@ -142,7 +142,7 @@ public:
     void setTargetMoyaiClient(MoyaiClient*mc) { target_moyai = mc; }
     void notifySoundPlay( Sound *snd, float vol );
     void notifySoundStop( Sound *snd );
-
+    void appendAudioSamples( uint32_t numChannels, float *interleavedSamples, uint32_t numSamples );
     
     void broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen );
     void broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen );    
@@ -238,6 +238,7 @@ typedef enum {
 
     PACKETTYPE_S2C_JPEG_DECODER_CREATE = 700,
     PACKETTYPE_S2C_CAPTURED_FRAME = 701,
+    PACKETTYPE_S2C_CAPTURED_AUDIO = 710,
     
     PACKETTYPE_S2C_FILE = 800, // send file body and path
 

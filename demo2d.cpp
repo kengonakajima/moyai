@@ -389,10 +389,7 @@ void gameUpdate(void) {
         Blocks::create();
     }
 
-    static int capt_count =0;
-    if( capt_count == 0 && total_frame > 100 ) {
-        capt_count = 1;
-        startMeasure("capt");
+    if( g_keyboard->getKey('C') ) {
         Image *img = new Image();
         img->setSize( SCRW*RETINA, SCRH*RETINA );
         double st = now();
@@ -405,9 +402,8 @@ void gameUpdate(void) {
 #if !(TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE)
         assert(ret);
 #endif        
-        print("captured in _captured.png cnt:%d", capt_count );
+        print("captured in _captured.png");
         delete img;
-        endMeasure();
     }
 
     // replace white to random color
@@ -417,6 +413,10 @@ void gameUpdate(void) {
         print("Q pressed");
         g_game_done = true;
         return;
+    }
+    if( g_keyboard->getKey('M' )) {
+        g_bgm_sound->play(1);
+        g_bgm_sound->setVolume(1);
     }
     if( g_keyboard->getKey( 'K' ) ) {
         float bgmpos = g_bgm_sound->getTimePositionSec();
@@ -466,7 +466,8 @@ void gameUpdate(void) {
 #endif
 
     if( g_bgm_sound->isPlaying() == false ) {
-        g_bgm_sound->play();
+        print("play bgm");
+        //        g_bgm_sound->play();
     }
 
     int cnt;
@@ -602,7 +603,7 @@ void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videost
     optest();
     comptest();
 
-    print("gameInit: headless_mode:%d", headless_mode );
+    print("gameInit: headless_mode:%d spritestream:%d videostream:%d", headless_mode, enable_spritestream, enable_videostream );
 
 #ifdef __APPLE__    
     setlocale( LC_ALL, "ja_JP");
@@ -615,7 +616,7 @@ void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videost
     g_explosion_sound = g_sound_system->newSound("./assets/blobloblll.wav" );
     g_explosion_sound->play();
     g_bgm_sound = g_sound_system->newBGM( "./assets/gymno1_1min.wav" );
-
+    g_bgm_sound->play();
     {
         float samples[44100/4];
         for(int i=0;i<elementof(samples);i++) samples[i] = cos( (float)(i) / 20.0f );

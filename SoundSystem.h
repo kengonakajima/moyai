@@ -25,7 +25,7 @@ public:
 	FMOD_SYSTEM *sys;
 #endif
 #ifdef USE_UNTZ
-    void *sys; // not used
+    void *sys; // not used    
 #endif    
     
 	SoundSystem();
@@ -42,5 +42,5 @@ public:
     void append( Sound*s );
     Sound *getById( int id );
 
-    void setRemoteHead(RemoteHead*rh) { remote_head = rh; };
+    void setRemoteHead(RemoteHead*rh);
 };

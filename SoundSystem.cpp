@@ -3,6 +3,7 @@
 
 #include "SoundSystem.h"
 #include "Sound.h"
+#include "Remote.h"
 
 SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0) {
 #ifdef USE_FMOD    
@@ -109,4 +110,25 @@ Sound *SoundSystem::getById( int id ) {
     }
     return NULL;
 }
+
+#ifdef USE_UNTZ
+// TODO: Currently UNTZ output callback doesn't support user data pointer
+RemoteHead *g_audiocallback_rh = NULL;
+void untz_output_callback( UInt32 numChannels, float *interleavedSamples, UInt32 numSamples ) {
+    //    print("audioout: %d %d %f", numChannels, numSamples, interleavedSamples[0] );
+    assert(g_audiocallback_rh);
+    // numChannels is always 2, so dont send it.
+    g_audiocallback_rh->appendAudioSamples(numChannels, interleavedSamples, numSamples );
+} 
+
+#endif
+
+
+void SoundSystem::setRemoteHead(RemoteHead*rh) {
+    remote_head = rh;
+#ifdef USE_UNTZ    
+    g_audiocallback_rh = rh;
+    UNTZ::System::setOutputCallback(untz_output_callback);
+#endif    
+};   
 

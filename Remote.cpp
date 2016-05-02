@@ -3,6 +3,12 @@
 #include "Remote.h"
 #include "JPEGCoder.h"
 
+
+#ifdef USE_UNTZ
+#include "threading/Threading.h" // To implement lock around send buffer inside libuv
+RCriticalSection g_lock;
+#endif
+
 #include "ConvertUTF.h"
 
 
@@ -447,6 +453,21 @@ void RemoteHead::heartbeat() {
     if( (!enable_videostream) && (!enable_spritestream) ) {
         print("RemoteHead::heartbeat: no streaming enabled, please call enableSpriteStream or enableVideoStream. ");
     }
+#ifdef USE_UNTZ    
+    if(audio_buffer){
+        RScopedLock _l(&g_lock);
+        const int send_unit_bytes = 8*1024; 
+        if( audio_buffer->used >= send_unit_bytes ) {
+            print("heartbeat: audio used:%d",audio_buffer->used );
+            broadcastUS1UI1Bytes( PACKETTYPE_S2C_CAPTURED_AUDIO,
+                                  send_unit_bytes/sizeof(float),
+                                  audio_buffer->buf,
+                                  send_unit_bytes );
+            audio_buffer->shift(send_unit_bytes);
+        }
+    }
+#endif
+    
     uv_run_times(100);
 }    
 static void remotehead_on_close_callback( uv_handle_t *s ) {
@@ -595,13 +616,23 @@ bool RemoteHead::startServer( int portnum ) {
 }
 
 void RemoteHead::notifySoundPlay( Sound *snd, float vol ) {
-    broadcastUS1UI1F1( PACKETTYPE_S2C_SOUND_PLAY, snd->id, vol );
+    if(enable_spritestream) broadcastUS1UI1F1( PACKETTYPE_S2C_SOUND_PLAY, snd->id, vol );
 }
 void RemoteHead::notifySoundStop( Sound *snd ) {
-    broadcastUS1UI1( PACKETTYPE_S2C_SOUND_STOP, snd->id );
+    if(enable_spritestream) broadcastUS1UI1( PACKETTYPE_S2C_SOUND_STOP, snd->id );
 }
 
-
+void RemoteHead::appendAudioSamples( uint32_t numChannels, float *interleavedSamples, uint32_t numSamples ) {
+#ifdef USE_UNTZ
+    if(audio_buffer) {
+        RScopedLock _l(&g_lock);
+        bool ret = audio_buffer->push( (const char*)interleavedSamples, numSamples * sizeof(float) );
+        print("appendAudioSamples pushed %d bytes. ret:%d used:%d", numSamples*sizeof(float), ret, audio_buffer->used );
+    }
+#else
+    print("appendAudioSamples is't implemented");
+#endif
+}
 
 ////////////////
 
@@ -1073,6 +1104,9 @@ void RemoteHead::enableVideoStream( int w, int h, int pixel_skip ) {
     enable_videostream = true;
     assertmsg(!jc, "can't call enableVideoStream again");    
     jc = new JPEGCoder(w,h,pixel_skip);
+    audio_buffer = new Buffer();
+    audio_buffer->ensureMemory(44100*2*5*sizeof(float));
+    print("enableVideoStream done");
 }
 
 // Note: don't support dynamic cameras
@@ -1330,6 +1364,7 @@ void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *out
 
 // convert wchar_t to 
 int sendUS1UI1Wstr( uv_stream_t *s, uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters ) {
+    // lock is correctly handled by  sendUS1UI1Bytes later in this func
 #if defined(__APPLE__) || defined(__linux__)
     assert( sizeof(wchar_t) == sizeof(int32_t) );
     size_t bufsz = wstr_num_letters * sizeof(int32_t);

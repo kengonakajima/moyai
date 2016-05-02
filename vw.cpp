@@ -8,6 +8,10 @@
 #include "JPEGCoder.h"
 #include "vw.h"
 
+#ifdef USE_UNTZ
+#include "threading/Threading.h"
+UNTZ::Sound *g_audio_stream;
+#endif
 
 ObjectPool<Layer> g_layer_pool;
 ObjectPool<Viewport> g_viewport_pool;
@@ -178,9 +182,48 @@ wchar_t *allocateWCharStringFromUTF8String( const uint8_t *in_uint8ary, size_t s
 }
 
 
+///////////////////
+#ifdef USE_UNTZ
+RCriticalSection g_audio_lock;
+Buffer *g_audio_buffer;
 
-             
+void appendAudioSample( float *interleavedSamples, uint32_t num_samples) {
+    RScopedLock l(&g_audio_lock);
+    if(!g_audio_buffer) {
+        g_audio_buffer = new Buffer();
+        g_audio_buffer->ensureMemory( 44100 * 2 /*ch*/ * 5 /*sec*/ * sizeof(float) );
+    }
+    size_t append_sz = num_samples * sizeof(float);
+    size_t room = g_audio_buffer->getRoom();
+    if( room < append_sz ) {
+        print("appendAudioSample: buffer has no room, force shift");
+        g_audio_buffer->shift(append_sz);
+    } 
+    bool result = g_audio_buffer->push( (const char*) interleavedSamples, append_sz );
+    assert(result);
+    print("appendAudioSample. room:%d", room);
+}
 
+UInt32 stream_callback(float* buffers, UInt32 numChannels, UInt32 length, void* userdata) {
+    if(!g_audio_buffer) return 0;
+
+    {
+        RScopedLock _l(&g_audio_lock);
+        size_t num_samples_to_copy = length;
+        size_t num_samples_in_buffer = g_audio_buffer->used / sizeof(float);
+        if( num_samples_in_buffer < num_samples_to_copy ) {
+            num_samples_to_copy = num_samples_in_buffer;
+            print("stream_callback buffer used:%d cb_length:%d cb_ch:%d to_copy_smp:%d", g_audio_buffer->used, length, numChannels, num_samples_to_copy  );
+            for(int i=0;i<num_samples_to_copy;i++) {
+                buffers[i] = ((float*)(g_audio_buffer->buf))[i];
+            }
+            g_audio_buffer->shift(num_samples_to_copy*sizeof(float));
+        }
+        return num_samples_to_copy;
+    }
+}
+
+#endif    
 ///////////////////
 
 
@@ -1159,6 +1202,19 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             updateVideoViewer();
         }
         break;
+    case PACKETTYPE_S2C_CAPTURED_AUDIO:
+        {
+            uint32_t num_samples = get_u32(argdata+0);
+            uint32_t samples_bytes = get_u32(argdata+4);
+            float *interleavedSamples = (float*)(argdata+8);
+            print("audio! ns:%d sb:%d", num_samples, samples_bytes );
+#ifdef USE_UNTZ
+            appendAudioSample(interleavedSamples, num_samples);
+#else            
+            print("CAPTURED_AUDIO: only implemented with UNTZ");
+#endif            
+        }
+        break;
     default:
         print("unhandled packet type:%d", funcid );
         break;
@@ -1207,6 +1263,11 @@ void setupClient( int win_w, int win_h ) {
     g_window_height = win_h;
     
     g_soundsystem = new SoundSystem();
+
+#ifdef USE_UNTZ
+    g_audio_stream = UNTZ::Sound::create(44100,2,stream_callback, NULL );
+    g_audio_stream->play();
+#endif
     
     //
 
@@ -1245,6 +1306,7 @@ void setupClient( int win_w, int win_h ) {
     setupDebugStat();    
 }
 
+    
 int main( int argc, char **argv ) {
 
 #ifdef __APPLE__    
