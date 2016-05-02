@@ -205,18 +205,25 @@ void appendAudioSample( float *interleavedSamples, uint32_t num_samples) {
 }
 
 UInt32 stream_callback(float* buffers, UInt32 numChannels, UInt32 length, void* userdata) {
-    if(!g_audio_buffer) return 0;
-
+    if(!g_audio_buffer) {
+        for(int i=0;i<length;i++) buffers[i]=0.0f;
+        return length;
+    }
     {
         RScopedLock _l(&g_audio_lock);
         size_t num_samples_to_copy = length;
         size_t num_samples_in_buffer = g_audio_buffer->used / sizeof(float);
         if( num_samples_in_buffer < num_samples_to_copy ) {
             num_samples_to_copy = num_samples_in_buffer;
-            print("stream_callback buffer used:%d cb_length:%d cb_ch:%d to_copy_smp:%d", g_audio_buffer->used, length, numChannels, num_samples_to_copy  );
+        }
+        print("num_samples_to_copy:%d",num_samples_to_copy);
+        if( num_samples_to_copy > 0 ) {
+            print("stream_callback buffer used:%d cb_length:%d cb_ch:%d to_copy_smp:%d",
+                  g_audio_buffer->used, length, numChannels, num_samples_to_copy  );
             for(int i=0;i<num_samples_to_copy;i++) {
                 buffers[i] = ((float*)(g_audio_buffer->buf))[i];
             }
+            print( "Sv:%f", ((float*)(g_audio_buffer->buf))[0] );
             g_audio_buffer->shift(num_samples_to_copy*sizeof(float));
         }
         return num_samples_to_copy;

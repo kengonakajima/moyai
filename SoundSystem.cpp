@@ -132,3 +132,11 @@ void SoundSystem::setRemoteHead(RemoteHead*rh) {
 #endif    
 };   
 
+
+void SoundSystem::setVolume(float v ) {
+#ifdef USE_UNTZ
+    UNTZ::System::get()->setVolume(v);
+#else
+    assertmsg(false, "not implemented");
+#endif    
+}

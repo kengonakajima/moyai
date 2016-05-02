@@ -95,7 +95,7 @@ int main(int argc, char **argv )
     glClearColor(0.2,0.2,0.2,1);
 
     SoundSystem *ss = new SoundSystem();
-    Sound *bgm = ss->newSound( "assets/gymno1_1min.wav" );
+    Sound *bgm = ss->newSound( "assets/gymno1short.wav" );
     bgm->play();
 
     g_keyboard = new Keyboard();

@@ -418,6 +418,9 @@ void gameUpdate(void) {
         g_bgm_sound->play(1);
         g_bgm_sound->setVolume(1);
     }
+    if( g_keyboard->getKey('V') ) {
+        g_sound_system->setVolume(0);
+    }
     if( g_keyboard->getKey( 'K' ) ) {
         float bgmpos = g_bgm_sound->getTimePositionSec();
         print("bgm position: %f", bgmpos );
@@ -466,8 +469,7 @@ void gameUpdate(void) {
 #endif
 
     if( g_bgm_sound->isPlaying() == false ) {
-        print("play bgm");
-        //        g_bgm_sound->play();
+        g_bgm_sound->play();
     }
 
     int cnt;
@@ -615,7 +617,7 @@ void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videost
     g_sound_system = new SoundSystem();
     g_explosion_sound = g_sound_system->newSound("./assets/blobloblll.wav" );
     g_explosion_sound->play();
-    g_bgm_sound = g_sound_system->newBGM( "./assets/gymno1_1min.wav" );
+    g_bgm_sound = g_sound_system->newBGM( "./assets/gymno1short.wav" );
     g_bgm_sound->play();
     {
         float samples[44100/4];

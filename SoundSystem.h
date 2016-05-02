@@ -43,4 +43,5 @@ public:
     Sound *getById( int id );
 
     void setRemoteHead(RemoteHead*rh);
+    void setVolume(float v);
 };
