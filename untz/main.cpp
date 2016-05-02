@@ -17,11 +17,14 @@ UInt32 stream_callback(float* buffers, UInt32 numChannels, UInt32 length, void* 
     totl+=length;
     fprintf(stderr,"[scb:%lld] cb %f len:%d tot:%d per_sec:%f\n", getThreadId(), now(), length, totl, (double)totl/(now()-first_at) );
     static int counter = 0;
+    int modsec = (unsigned int)(now())%2;
+    float l = 1, r=1;
+    if(modsec) l=0; else r=0;
     for(int i=0;i<length;i++) {
-        buffers[i] = cos( (float)(counter+i) / 20.0f ) * cos( (float)(counter+1000) / 40000.0f );
+        buffers[i] = cos( (float)(counter+i) / 20.0f ) * cos( (float)(counter+1000) / 40000.0f ) * l;
     }
     for(int i=0;i<length;i++) {
-        buffers[length+i] = cos( (float)(counter+i) / 20.0f ) * cos( (float)(counter+1000) / 40000.0f );        
+        buffers[length+i] = cos( (float)(counter+i) / 40.0f ) * cos( (float)(counter+1000) / 33000.0f ) * r;        
     }
     counter+=length;
     return length;
@@ -39,13 +42,14 @@ void showVol(float v) {
         }
     }
     s[maxn]='\0';
-    fprintf(stderr, "%s",s);
+    fprintf(stderr, "%s|",s);
 }
 void output_callback( UInt32 numChannels, float *interleavedSamples, UInt32 numSamples ) {
     fprintf(stderr,"[outcb:%lld] output_callback nc:%d ns:%d dat:%f\n",
             getThreadId(),
             numChannels, numSamples, interleavedSamples[0] );
     showVol(interleavedSamples[0]);
+    showVol(interleavedSamples[numSamples]);
 }
 
 int main(int argc, char **argv ) {
