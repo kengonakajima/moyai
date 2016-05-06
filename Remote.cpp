@@ -454,16 +454,21 @@ void RemoteHead::heartbeat() {
         print("RemoteHead::heartbeat: no streaming enabled, please call enableSpriteStream or enableVideoStream. ");
     }
 #ifdef USE_UNTZ    
-    if(audio_buffer){
+    if(audio_buf_ary){
         RScopedLock _l(&g_lock);
-        const int send_unit_bytes = 8*1024; 
-        if( audio_buffer->used >= send_unit_bytes ) {
-            print("heartbeat: audio used:%d",audio_buffer->used );
-            broadcastUS1UI1Bytes( PACKETTYPE_S2C_CAPTURED_AUDIO,
-                                  send_unit_bytes/sizeof(float),
-                                  audio_buffer->buf,
-                                  send_unit_bytes );
-            audio_buffer->shift(send_unit_bytes);
+        for(;;) {
+            size_t used = audio_buf_ary->getUsedNum();
+            if(used==0)break;
+            Buffer *b = audio_buf_ary->getTop();
+            assert(b);
+            print("heartbeat: audio used:%d next buf len:%d",audio_buf_ary->getUsedNum(), b->used );
+            assert(b->used % (sizeof(float)*2) == 0 ); // L+R of float sample
+            broadcastUS1UI1Bytes( PACKETTYPE_S2C_CAPTURED_AUDIO, b->used/sizeof(float)/2, b->buf, b->used );
+
+            static int total_audio_samples_sent_bytes = 0;
+            total_audio_samples_sent_bytes += b->used;
+            print("sent audio: %f %d", now(), total_audio_samples_sent_bytes );
+            audio_buf_ary->shift();
         }
     }
 #endif
@@ -622,13 +627,16 @@ void RemoteHead::notifySoundStop( Sound *snd ) {
     if(enable_spritestream) broadcastUS1UI1( PACKETTYPE_S2C_SOUND_STOP, snd->id );
 }
 
+// [numframes of float values for ch1][numframes of float values for ch2]
 void RemoteHead::appendAudioSamples( uint32_t numChannels, float *interleavedSamples, uint32_t numSamples ) {
 #ifdef USE_UNTZ
-    if(audio_buffer) {
-        RScopedLock _l(&g_lock);
-        bool ret = audio_buffer->push( (const char*)interleavedSamples, numSamples * sizeof(float) );
-        print("appendAudioSamples pushed %d bytes. ret:%d used:%d", numSamples*sizeof(float), ret, audio_buffer->used );
-    }
+    if(!audio_buf_ary)return;
+
+    RScopedLock _l(&g_lock);
+    print("pushing samples. numSamples:%d numChannels:%d", numSamples, numChannels );
+    bool ret = audio_buf_ary->push( (const char*)interleavedSamples, numSamples * numChannels * sizeof(float) );
+    if(!ret) print("appendAudioSamples: audio_buffer full?");
+    //        print("appendAudioSamples pushed %d bytes. ret:%d used:%d", numSamples*sizeof(float), ret, audio_buffer->used );
 #else
     print("appendAudioSamples is't implemented");
 #endif
@@ -1104,8 +1112,7 @@ void RemoteHead::enableVideoStream( int w, int h, int pixel_skip ) {
     enable_videostream = true;
     assertmsg(!jc, "can't call enableVideoStream again");    
     jc = new JPEGCoder(w,h,pixel_skip);
-    audio_buffer = new Buffer();
-    audio_buffer->ensureMemory(44100*2*5*sizeof(float));
+    audio_buf_ary = new BufferArray(256);
     print("enableVideoStream done");
 }
 
@@ -1118,7 +1125,10 @@ void RemoteHead::broadcastCapturedScreen() {
     double t1 = now();
     size_t sz = jc->encode();
     double t2 = now();
-    print("broadcastCapturedScreen time:%f,%f size:%d", t1-t0,t2-t1,sz );
+    if((t1-t0)>0.04) print("slow screen capture. %f", t1-t0);
+    if((t2-t1)>0.02) print("slow encode. %f sz:%d",t2-t1, sz);
+    
+    //print("broadcastCapturedScreen time:%f,%f size:%d", t1-t0,t2-t1,sz );
 #if 0
     writeFile("encoded.jpg", (char*)jc->compressed, jc->compressed_size);
 #endif    
@@ -1482,6 +1492,44 @@ bool Buffer::shift( size_t toshift ) {
     memmove( buf, buf + toshift, used - toshift );
     used -= toshift;
     return true;
+}
+
+//////////////////
+BufferArray::BufferArray( int maxnum ) {
+    buffers = (Buffer**) MALLOC( maxnum * sizeof(Buffer*) );
+    assert(buffers);
+    buffer_num = maxnum;
+    buffer_used = 0;
+    for(int i=0;i<maxnum;i++) buffers[i] = NULL;
+}
+BufferArray::~BufferArray() {
+    for(int i=0;i<buffer_num;i++) {
+        delete buffers[i];
+        FREE(buffers[i]);
+    }
+}
+bool BufferArray::push(const char *data, size_t len) {
+    if(buffer_used == buffer_num)return false;
+    Buffer *b = new Buffer();
+    b->ensureMemory(len);
+    b->push(data,len);
+    buffers[buffer_used] = b;
+    buffer_used++;
+    return true;
+}
+Buffer *BufferArray::getTop() {
+    if(buffer_used==0)return NULL;
+    return buffers[0];    
+}
+void BufferArray::shift() {
+    if(buffer_used==0)return;
+    Buffer *top = buffers[0];
+    for(int i=0;i<buffer_used-1;i++) {
+        buffers[i] = buffers[i+1];
+    }
+    buffers[buffer_used]=NULL;
+    buffer_used--;
+    delete top;
 }
 
 

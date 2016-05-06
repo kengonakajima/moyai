@@ -90,7 +90,7 @@ class Mouse;
 class Client;
 class JPEGCoder;
 class Sound;
-class Buffer;
+class BufferArray;
 
 typedef std::unordered_map<unsigned int,Client*>::iterator ClientIteratorType;
 
@@ -107,7 +107,7 @@ public:
     bool enable_spritestream;
     bool enable_videostream;
     JPEGCoder *jc;
-    Buffer *audio_buffer;
+    BufferArray *audio_buf_ary;
     
     void enableSpriteStream() { enable_spritestream = true; };
     void enableVideoStream( int w, int h, int pixel_skip );
@@ -118,7 +118,7 @@ public:
     void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
     void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_save_stream(true), enable_spritestream(0), enable_videostream(0), jc(NULL), audio_buffer(0), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
+    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_save_stream(true), enable_spritestream(0), enable_videostream(0), jc(NULL), audio_buf_ary(0), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
@@ -412,6 +412,19 @@ public:
     bool pushU16( unsigned short val );
     bool pushU8( unsigned char val );
             
+};
+
+class BufferArray {
+public:
+    Buffer **buffers;
+    size_t buffer_num;
+    size_t buffer_used;
+    BufferArray( int maxnum );
+    ~BufferArray();
+    bool push(const char *data, size_t len);
+    Buffer *getTop();
+    void shift();
+    size_t getUsedNum() { return buffer_used; }
 };
 
 class Client {

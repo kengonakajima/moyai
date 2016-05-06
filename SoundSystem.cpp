@@ -114,6 +114,7 @@ Sound *SoundSystem::getById( int id ) {
 #ifdef USE_UNTZ
 // TODO: Currently UNTZ output callback doesn't support user data pointer
 RemoteHead *g_audiocallback_rh = NULL;
+// [numsamples of float values for ch1][numsamples of float values for ch2]
 void untz_output_callback( UInt32 numChannels, float *interleavedSamples, UInt32 numSamples ) {
     //    print("audioout: %d %d %f", numChannels, numSamples, interleavedSamples[0] );
     assert(g_audiocallback_rh);

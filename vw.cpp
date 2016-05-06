@@ -184,50 +184,49 @@ wchar_t *allocateWCharStringFromUTF8String( const uint8_t *in_uint8ary, size_t s
 
 ///////////////////
 #ifdef USE_UNTZ
-RCriticalSection g_audio_lock;
-Buffer *g_audio_buffer;
 
-void appendAudioSample( float *interleavedSamples, uint32_t num_samples) {
+RCriticalSection g_audio_lock;
+BufferArray *g_audio_buf_ary;
+
+// interleavedSamples: [ch1 num_samples][ch2 num_samples] ch1:left ch2:right
+void appendAudioSampleStereo( float *interleavedSamples, uint32_t num_samples) {
     RScopedLock l(&g_audio_lock);
-    if(!g_audio_buffer) {
-        g_audio_buffer = new Buffer();
-        g_audio_buffer->ensureMemory( 44100 * 2 /*ch*/ * 5 /*sec*/ * sizeof(float) );
+    if(!g_audio_buf_ary) {
+        g_audio_buf_ary = new BufferArray(256);
     }
-    size_t append_sz = num_samples * sizeof(float);
-    size_t room = g_audio_buffer->getRoom();
-    if( room < append_sz ) {
-        print("appendAudioSample: buffer has no room, force shift");
-        g_audio_buffer->shift(append_sz);
-    } 
-    bool result = g_audio_buffer->push( (const char*) interleavedSamples, append_sz );
-    assert(result);
-    print("appendAudioSample. room:%d", room);
+    g_audio_buf_ary->push( (const char*)interleavedSamples, num_samples * 2 * sizeof(float));
+    print("appendAudioSampleStereo. pushed. used:%d", g_audio_buf_ary->getUsedNum() );
 }
 
 UInt32 stream_callback(float* buffers, UInt32 numChannels, UInt32 length, void* userdata) {
-    if(!g_audio_buffer) {
+    if(!g_audio_buf_ary) {
         for(int i=0;i<length;i++) buffers[i]=0.0f;
         return length;
     }
+#if 1
+    assert(numChannels==2);
     {
         RScopedLock _l(&g_audio_lock);
-        size_t num_samples_to_copy = length;
-        size_t num_samples_in_buffer = g_audio_buffer->used / sizeof(float);
-        if( num_samples_in_buffer < num_samples_to_copy ) {
-            num_samples_to_copy = num_samples_in_buffer;
+        int used = g_audio_buf_ary->getUsedNum();
+        if(used==0)return 0;
+        Buffer *topbuf = g_audio_buf_ary->getTop();
+        
+        
+        size_t to_copy_samples = length;
+        size_t samples_in_buf = topbuf->used / sizeof(float) / 2; // samples per channel
+        assert(samples_in_buf>0);
+        
+        if( to_copy_samples > samples_in_buf ) to_copy_samples = samples_in_buf;
+
+        print("stream_callback. used:%d toplen:%d cblen:%d to_copy_smpl:%d", used, topbuf->used, length, to_copy_samples );
+        
+        for(int i=0;i<to_copy_samples*numChannels;i++) {
+            buffers[i] = ((float*)(topbuf->buf))[i];
         }
-        print("num_samples_to_copy:%d",num_samples_to_copy);
-        if( num_samples_to_copy > 0 ) {
-            print("stream_callback buffer used:%d cb_length:%d cb_ch:%d to_copy_smp:%d",
-                  g_audio_buffer->used, length, numChannels, num_samples_to_copy  );
-            for(int i=0;i<num_samples_to_copy;i++) {
-                buffers[i] = ((float*)(g_audio_buffer->buf))[i];
-            }
-            print( "Sv:%f", ((float*)(g_audio_buffer->buf))[0] );
-            g_audio_buffer->shift(num_samples_to_copy*sizeof(float));
-        }
-        return num_samples_to_copy;
+        g_audio_buf_ary->shift();
+        return to_copy_samples;
     }
+#endif    
 }
 
 #endif    
@@ -1202,7 +1201,8 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             double t0 = now();
             g_jc->decode();
             double t1 = now();
-            print("capt_frame: time:%f size:%d",t1-t0, compressed_size);
+            if((t1-t0)>0.02) print("slow decode:%f",t1-t0);
+            //            print("capt_frame: time:%f size:%d",t1-t0, compressed_size);
 #if 0
             writeFile( "received.jpg", (const char*)g_jc->compressed, g_jc->compressed_size );
 #endif            
@@ -1215,8 +1215,10 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             uint32_t samples_bytes = get_u32(argdata+4);
             float *interleavedSamples = (float*)(argdata+8);
             print("audio! ns:%d sb:%d", num_samples, samples_bytes );
+            assert( num_samples * sizeof(float) * 2 == samples_bytes );
+            
 #ifdef USE_UNTZ
-            appendAudioSample(interleavedSamples, num_samples);
+            appendAudioSampleStereo(interleavedSamples, num_samples*2);
 #else            
             print("CAPTURED_AUDIO: only implemented with UNTZ");
 #endif            
