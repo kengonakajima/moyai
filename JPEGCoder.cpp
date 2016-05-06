@@ -68,8 +68,11 @@ size_t JPEGCoder::encode() {
     jpeg_finish_compress( &cinfo );
     compressed_size = outsize;
     double t2 = now();
+
+    if((t2-t1)>0.02) print("slow jpeg compress");
+    if((t1-t0)>0.02) print("slow pixel copy");
     
-    print("jpeg: time: %f, %f img:%d,%d", t1-t0, t2-t1, step_w, step_h);
+    //    print("jpeg: time: %f, %f img:%d,%d", t1-t0, t2-t1, step_w, step_h);
     return outsize;
 }
 
