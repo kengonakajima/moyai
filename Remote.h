@@ -1,7 +1,6 @@
 #ifndef _REMOTE_H_
 #define _REMOTE_H_
 
-
 #include "Pool.h"
 
 // basic buffering
@@ -41,7 +40,8 @@ typedef struct  {
     uint32_t uvrot; 
     PacketColor color;
     uint32_t shader_id;
-    uint32_t optbits; 
+    uint32_t optbits;
+    int32_t priority;
 } PacketProp2DSnapshot;
 
 #define PROP2D_OPTBIT_ADDITIVE_BLEND 0x00000001
@@ -88,6 +88,9 @@ class SoundSystem;
 class Keyboard;
 class Mouse;
 class Client;
+class JPEGCoder;
+class Sound;
+class BufferArray;
 
 typedef std::unordered_map<unsigned int,Client*>::iterator ClientIteratorType;
 
@@ -98,18 +101,37 @@ public:
     uv_tcp_t listener;
     MoyaiClient *target_moyai;
     SoundSystem *target_soundsystem;
-    Keyboard *target_keyboard;
-    Mouse *target_mouse;
     ObjectPool<Client> cl_pool;
+    int window_width, window_height;
+    bool enable_save_stream;
+    bool enable_spritestream;
+    bool enable_videostream;
+    JPEGCoder *jc;
+    BufferArray *audio_buf_ary;
     
+    void enableSpriteStream() { enable_spritestream = true; };
+    void enableVideoStream( int w, int h, int pixel_skip );
+    
+    void (*on_connect_cb)(RemoteHead*rh,Client *cl);
+    void (*on_disconnect_cb)(RemoteHead*rh, Client *cl);
+    void (*on_keyboard_cb)(Client *cl,int kc,int act,int modshift,int modctrl,int modalt);
+    void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
+    void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), target_mouse(0) {
+    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_save_stream(true), enable_spritestream(0), enable_videostream(0), jc(NULL), audio_buf_ary(0), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
     
     void track2D();
+    void broadcastCapturedScreen();
     bool startServer( int portnum );
+    void setWindowSize(int w, int h) { window_width = w; window_height = h; }
+    void setOnConnectCallback( void (*f)(RemoteHead *rh, Client *cl) ) { on_connect_cb = f; }
+    void setOnDisconnectCallback( void (*f)(RemoteHead *rh, Client *cl ) ) { on_disconnect_cb = f; }
+    void setOnKeyboardCallback( void (*f)(Client*cl,int,int,int,int,int) ) { on_keyboard_cb = f; }
+    void setOnMouseButtonCallback( void (*f)(Client*cl,int,int,int,int,int) ) { on_mouse_button_cb = f; }
+    void setOnMouseCursorCallback( void (*f)(Client*cl,int,int) ) { on_mouse_cursor_cb = f; }
     void heartbeat();
     void scanSendAllPrerequisites( uv_stream_t *outstream );
     void scanSendAllProp2DSnapshots( uv_stream_t *outstream );
@@ -118,8 +140,9 @@ public:
     void notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop );
     void setTargetSoundSystem(SoundSystem*ss) { target_soundsystem = ss; }
     void setTargetMoyaiClient(MoyaiClient*mc) { target_moyai = mc; }
-    void setTargetKeyboard(Keyboard*kbd) { target_keyboard = kbd; }
-    void setTargetMouse(Mouse*mou) { target_mouse = mou; }
+    void notifySoundPlay( Sound *snd, float vol );
+    void notifySoundStop( Sound *snd );
+    void appendAudioSamples( uint32_t numChannels, float *interleavedSamples, uint32_t numSamples );
     
     void broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen );
     void broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen );    
@@ -129,62 +152,68 @@ public:
     void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
     void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
     void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );    
-    
+
+    void broadcastTimestamp();
 };
 
 
 typedef enum {
     // generic
-    PACKETTYPE_PING = 1,    
+    PACKETTYPE_PING = 1,
+    PACKETTYPE_TIMESTAMP = 2,
+    
     // client to server 
-    PACKETTYPE_C2S_KEYBOARD = 200,
-    PACKETTYPE_C2S_MOUSE_BUTTON = 202,
-    PACKETTYPE_C2S_CURSOR_POS = 203,
-    PACKETTYPE_C2S_TOUCH_BEGIN = 204,
-    PACKETTYPE_C2S_TOUCH_MOVE = 205,
-    PACKETTYPE_C2S_TOUCH_END = 206,
-    PACKETTYPE_C2S_TOUCH_CANCEL = 207,
+    PACKETTYPE_C2S_KEYBOARD = 100,
+    PACKETTYPE_C2S_MOUSE_BUTTON = 102,
+    PACKETTYPE_C2S_CURSOR_POS = 103,
+    PACKETTYPE_C2S_TOUCH_BEGIN = 104,
+    PACKETTYPE_C2S_TOUCH_MOVE = 105,
+    PACKETTYPE_C2S_TOUCH_END = 106,
+    PACKETTYPE_C2S_TOUCH_CANCEL = 107,
 
     // server to client
-    PACKETTYPE_S2C_PROP2D_SNAPSHOT = 400, 
-    PACKETTYPE_S2C_PROP2D_LOC = 401,
-    PACKETTYPE_S2C_PROP2D_GRID = 402,
-    PACKETTYPE_S2C_PROP2D_INDEX = 403,
-    PACKETTYPE_S2C_PROP2D_SCALE = 404,
-    PACKETTYPE_S2C_PROP2D_ROT = 405,
-    PACKETTYPE_S2C_PROP2D_XFLIP = 406,
-    PACKETTYPE_S2C_PROP2D_YFLIP = 407,
-    PACKETTYPE_S2C_PROP2D_COLOR = 408,
-    PACKETTYPE_S2C_PROP2D_DELETE = 410,
-    PACKETTYPE_S2C_PROP2D_CLEAR_CHILD = 412,
+    PACKETTYPE_S2C_PROP2D_SNAPSHOT = 200, 
+    PACKETTYPE_S2C_PROP2D_LOC = 201,
+    PACKETTYPE_S2C_PROP2D_GRID = 202,
+    PACKETTYPE_S2C_PROP2D_INDEX = 203,
+    PACKETTYPE_S2C_PROP2D_SCALE = 204,
+    PACKETTYPE_S2C_PROP2D_ROT = 205,
+    PACKETTYPE_S2C_PROP2D_XFLIP = 206,
+    PACKETTYPE_S2C_PROP2D_YFLIP = 207,
+    PACKETTYPE_S2C_PROP2D_COLOR = 208,
+    PACKETTYPE_S2C_PROP2D_OPTBITS = 209,
+    PACKETTYPE_S2C_PROP2D_PRIORITY = 210,
+    PACKETTYPE_S2C_PROP2D_DELETE = 230,
+    PACKETTYPE_S2C_PROP2D_CLEAR_CHILD = 240,
     
-    PACKETTYPE_S2C_LAYER_CREATE = 420,
-    PACKETTYPE_S2C_LAYER_VIEWPORT = 421,
-    PACKETTYPE_S2C_LAYER_CAMERA = 422,
-    PACKETTYPE_S2C_VIEWPORT_CREATE = 430,
-    PACKETTYPE_S2C_VIEWPORT_SIZE = 431,
-    PACKETTYPE_S2C_VIEWPORT_SCALE = 432,    
-    PACKETTYPE_S2C_CAMERA_CREATE = 440,
-    PACKETTYPE_S2C_CAMERA_LOC = 441,
+    PACKETTYPE_S2C_LAYER_CREATE = 300,
+    PACKETTYPE_S2C_LAYER_VIEWPORT = 301,
+    PACKETTYPE_S2C_LAYER_CAMERA = 302,
+    PACKETTYPE_S2C_VIEWPORT_CREATE = 330,
+    //    PACKETTYPE_S2C_VIEWPORT_SIZE = 331,  not used now
+    PACKETTYPE_S2C_VIEWPORT_SCALE = 332,    
+    PACKETTYPE_S2C_CAMERA_CREATE = 340,
+    PACKETTYPE_S2C_CAMERA_LOC = 341,
+    PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER = 342, // cam id, layer id: camera belongs to the layer's dynamic_cameras
     
-    PACKETTYPE_S2C_TEXTURE_CREATE = 450,
-    PACKETTYPE_S2C_TEXTURE_IMAGE = 451,
-    PACKETTYPE_S2C_IMAGE_CREATE = 460,
-    PACKETTYPE_S2C_IMAGE_LOAD_PNG = 461,
-    PACKETTYPE_S2C_IMAGE_ENSURE_SIZE = 464,
-    PACKETTYPE_S2C_IMAGE_RAW = 465,
+    PACKETTYPE_S2C_TEXTURE_CREATE = 400,
+    PACKETTYPE_S2C_TEXTURE_IMAGE = 401,
+    PACKETTYPE_S2C_IMAGE_CREATE = 420,
+    PACKETTYPE_S2C_IMAGE_LOAD_PNG = 421,
+    PACKETTYPE_S2C_IMAGE_ENSURE_SIZE = 424,
+    PACKETTYPE_S2C_IMAGE_RAW = 425,
     
-    PACKETTYPE_S2C_TILEDECK_CREATE = 470,
-    PACKETTYPE_S2C_TILEDECK_TEXTURE = 471,
-    PACKETTYPE_S2C_TILEDECK_SIZE = 472,
-    PACKETTYPE_S2C_GRID_CREATE = 480, // with its size (id,w,h)
-    PACKETTYPE_S2C_GRID_DECK = 481, // with gid,tdid
-    PACKETTYPE_S2C_GRID_PROP2D = 482, // with gid,propid    
-    PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT = 484, // index table, array of int32_t
-    PACKETTYPE_S2C_GRID_TABLE_FLIP_SNAPSHOT = 485, // xfl|yfl|uvrot bitfield in array of uint8_t
-    PACKETTYPE_S2C_GRID_TABLE_TEXOFS_SNAPSHOT = 486, //  array of Vec2
-    PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT = 487, // color table, array of PacketColor: 4 * float32    
-    PACKETTYPE_S2C_GRID_DELETE = 490,
+    PACKETTYPE_S2C_TILEDECK_CREATE = 440,
+    PACKETTYPE_S2C_TILEDECK_TEXTURE = 441,
+    PACKETTYPE_S2C_TILEDECK_SIZE = 442,
+    PACKETTYPE_S2C_GRID_CREATE = 460, // with its size (id,w,h)
+    PACKETTYPE_S2C_GRID_DECK = 461, // with gid,tdid
+    PACKETTYPE_S2C_GRID_PROP2D = 462, // with gid,propid    
+    PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT = 464, // index table, array of int32_t
+    PACKETTYPE_S2C_GRID_TABLE_FLIP_SNAPSHOT = 465, // xfl|yfl|uvrot bitfield in array of uint8_t
+    PACKETTYPE_S2C_GRID_TABLE_TEXOFS_SNAPSHOT = 466, //  array of Vec2
+    PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT = 467, // color table, array of PacketColor: 4 * float32    
+    PACKETTYPE_S2C_GRID_DELETE = 470,
 
     PACKETTYPE_S2C_TEXTBOX_CREATE = 500, // tb_id, uint32_t
     PACKETTYPE_S2C_TEXTBOX_FONT = 501,    // tb_id, font_id
@@ -206,8 +235,16 @@ typedef enum {
     PACKETTYPE_S2C_SOUND_PLAY = 660,
     PACKETTYPE_S2C_SOUND_STOP = 661,    
     PACKETTYPE_S2C_SOUND_POSITION = 662,
+
+    PACKETTYPE_S2C_JPEG_DECODER_CREATE = 700,
+    PACKETTYPE_S2C_CAPTURED_FRAME = 701,
+    PACKETTYPE_S2C_CAPTURED_AUDIO = 710,
     
     PACKETTYPE_S2C_FILE = 800, // send file body and path
+
+    PACKETTYPE_S2C_WINDOW_SIZE = 900, // u2
+
+
     
     PACKETTYPE_ERROR = 2000, // error code
 } PACKETTYPE;
@@ -226,7 +263,7 @@ public:
     ~Tracker2D();
     void scanProp2D( Prop2D *parentprop );
     void flipCurrentBuffer();
-    bool checkDiff();
+    int checkDiff();
     void broadcastDiff( bool force );
 };
 typedef enum {
@@ -326,6 +363,8 @@ public:
 
 };
 class Camera;
+class Layer;
+
 class TrackerCamera {
 public:
     Camera *target_camera;
@@ -335,6 +374,22 @@ public:
     TrackerCamera( RemoteHead *rh, Camera *target );
     ~TrackerCamera();
     void scanCamera();
+    void flipCurrentBuffer();
+    bool checkDiff();
+    void broadcastDiff( bool force );
+    void unicastDiff( Client *dest, bool force );
+    void unicastCreate( Client *dest );
+};
+class Viewport;
+class TrackerViewport {
+public:
+    Viewport *target_viewport;
+    Vec2 sclbuf[2];
+    int cur_buffer_index;
+    RemoteHead *parent_rh;
+    TrackerViewport( RemoteHead *rh, Viewport *target );
+    ~TrackerViewport();
+    void scanViewport();
     void flipCurrentBuffer();
     bool checkDiff();
     void broadcastDiff( bool force );    
@@ -359,6 +414,19 @@ public:
             
 };
 
+class BufferArray {
+public:
+    Buffer **buffers;
+    size_t buffer_num;
+    size_t buffer_used;
+    BufferArray( int maxnum );
+    ~BufferArray();
+    bool push(const char *data, size_t len);
+    Buffer *getTop();
+    void shift();
+    size_t getUsedNum() { return buffer_used; }
+};
+
 class Client {
 public:
     static int idgen;
@@ -366,8 +434,14 @@ public:
     Buffer recvbuf;
     uv_tcp_t *tcp;
     RemoteHead *parent_rh;
+    Buffer saved_stream;
+    double initialized_at;
+    bool save_stream;
     Client( uv_tcp_t *sk, RemoteHead *rh );
     ~Client();
+    void saveStream( const char *data, size_t datalen );
+    void flushStreamToFile();
+    void onDelete();
 };
 
 // record parser
@@ -376,6 +450,7 @@ bool parseRecord( uv_stream_t *s, Buffer *recvbuf, const char *data, size_t data
 
 // send funcs
 int sendUS1( uv_stream_t *out, uint16_t usval );
+int sendUS1RawArgs( uv_stream_t *s, uint16_t usval, const char *data, uint32_t datalen );
 int sendUS1Bytes( uv_stream_t *out, uint16_t usval, const char *buf, uint16_t datalen );
 int sendUS1UI1Bytes( uv_stream_t *out, uint16_t usval, uint32_t uival, const char *buf, uint32_t datalen );
 int sendUS1UI1( uv_stream_t *out, uint16_t usval, uint32_t ui0 );
@@ -390,7 +465,7 @@ int sendUS1StrBytes( uv_stream_t *out, uint16_t usval, const char *cstr, const c
 int sendUS1UI1Wstr( uv_stream_t *out, uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
 int sendUS1F2( uv_stream_t *out, uint16_t usval, float f0, float f1 );
 void sendFile( uv_stream_t *outstream, const char *filename );
-
+void sendPing( uv_stream_t *s );
 
 // parse helpers
 void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize );
@@ -400,5 +475,7 @@ void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *out
 void moyai_libuv_alloc_buffer( uv_handle_t *handle, size_t suggested_size, uv_buf_t *outbuf );
 
 void uv_run_times( int maxcount );
-    
+
+
+
 #endif

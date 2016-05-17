@@ -5,9 +5,13 @@
 #include "client.h"
 #include "ConvertUTF.h"
 
+#include "JPEGCoder.h"
 #include "vw.h"
 
-static const int SCRW=966, SCRH=544;
+#ifdef USE_UNTZ
+#include "threading/Threading.h"
+UNTZ::Sound *g_audio_stream;
+#endif
 
 ObjectPool<Layer> g_layer_pool;
 ObjectPool<Viewport> g_viewport_pool;
@@ -29,7 +33,8 @@ uv_stream_t *g_stream;
 Buffer g_recvbuf;
 GLFWwindow *g_window;
 
-Viewport *g_debug_viewport;
+Viewport *g_local_viewport;
+Layer *g_video_layer; // for videostream
 Layer *g_debug_layer;
 Font *g_debug_font;
 TextBox *g_debug_tb;
@@ -38,6 +43,26 @@ SoundSystem *g_soundsystem;
 
 uint64_t g_total_read;
 
+char *g_server_ip_addr = (char*)"127.0.0.1";
+int g_port = 22222;
+int g_window_width = 0;
+int g_window_height = 0;
+int g_timestamp_count = 0;
+double g_last_ping_at=0;
+double g_last_ping_rtt=0;
+
+#if defined(__APPLE__)
+#define RETINA 2
+#else
+#define RETINA 1
+#endif    
+
+JPEGCoder *g_jc;
+
+Prop2D *g_video_prop;
+Texture *g_video_tex;
+
+    
 ///////////////
 
 // debug funcs
@@ -49,6 +74,37 @@ Prop2D *findProp2DByTexture( uint32_t tex_id ) {
         }
     }
     return NULL;
+}
+
+///////////////
+
+void setupVideoViewer( int imgw, int imgh ) {
+    if(!g_video_layer) {
+        g_video_layer = new Layer();
+        g_video_layer->priority = 0;
+        g_video_layer->setViewport(g_local_viewport);
+        g_moyai_client->insertLayer(g_video_layer);
+    }
+    print("setupVideoViewer: img:%d,%d",imgw,imgh);
+    if(!g_video_tex) {
+        g_video_tex = new Texture();
+        g_video_tex->setImage(g_jc->capture_img);
+    }
+    if(!g_video_prop) {
+        g_video_prop = new Prop2D();
+        g_video_prop->setTexture(g_video_tex);
+        g_video_prop->setLoc(0,0);
+        g_video_prop->setScl(imgw*RETINA,imgh*RETINA);
+        g_video_layer->insertProp(g_video_prop);
+    }
+}
+void updateVideoViewer() {
+    g_video_tex->setImage(g_jc->capture_img);
+#if 0
+    g_jc->capture_img->writePNG("decoded.png");
+#endif    
+    //    g_video_prop->setTexture(g_hogetex);
+    g_video_prop->setTexture(g_video_tex);
 }
 
 ///////////////
@@ -126,30 +182,70 @@ wchar_t *allocateWCharStringFromUTF8String( const uint8_t *in_uint8ary, size_t s
 }
 
 
-
 ///////////////////
-#if 0
-#endif
+#ifdef USE_UNTZ
+
+RCriticalSection g_audio_lock;
+BufferArray *g_audio_buf_ary;
+
+// interleavedSamples: [ch1 num_samples][ch2 num_samples] ch1:left ch2:right
+void appendAudioSampleStereo( float *interleavedSamples, uint32_t num_samples) {
+    RScopedLock l(&g_audio_lock);
+    if(!g_audio_buf_ary) {
+        g_audio_buf_ary = new BufferArray(256);
+    }
+    g_audio_buf_ary->push( (const char*)interleavedSamples, num_samples * 2 * sizeof(float));
+    print("appendAudioSampleStereo. pushed. used:%d", g_audio_buf_ary->getUsedNum() );
+}
+
+UInt32 stream_callback(float* buffers, UInt32 numChannels, UInt32 length, void* userdata) {
+    if(!g_audio_buf_ary) {
+        for(int i=0;i<length;i++) buffers[i]=0.0f;
+        return length;
+    }
+#if 1
+    assert(numChannels==2);
+    {
+        RScopedLock _l(&g_audio_lock);
+        int used = g_audio_buf_ary->getUsedNum();
+        if(used==0)return 0;
+        Buffer *topbuf = g_audio_buf_ary->getTop();
+        
+        
+        size_t to_copy_samples = length;
+        size_t samples_in_buf = topbuf->used / sizeof(float) / 2; // samples per channel
+        assert(samples_in_buf>0);
+        
+        if( to_copy_samples > samples_in_buf ) to_copy_samples = samples_in_buf;
+
+        print("stream_callback. used:%d toplen:%d cblen:%d to_copy_smpl:%d", used, topbuf->used, length, to_copy_samples );
+        
+        for(int i=0;i<to_copy_samples*numChannels;i++) {
+            buffers[i] = ((float*)(topbuf->buf))[i];
+        }
+        g_audio_buf_ary->shift();
+        return to_copy_samples;
+    }
+#endif    
+}
+
+#endif    
+///////////////////
+
 
 
 void setupDebugStat() {
-    int retina = 1;
-#if defined(__APPLE__)
-    retina = 2;
-#endif    
-    g_debug_viewport = new Viewport();
-    g_debug_viewport->setSize(SCRW*retina,SCRH*retina);
-    g_debug_viewport->setScale2D(SCRW,SCRH);
     g_debug_layer = new Layer();
-    g_debug_layer->setViewport(g_debug_viewport);
+    g_debug_layer->setViewport(g_local_viewport);
     g_moyai_client->insertLayer(g_debug_layer);
+    g_debug_layer->priority = Layer::PRIORITY_MAX;
     g_debug_font = new Font();
     wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
     g_debug_font->loadFromTTF("./assets/cinecaption227.ttf", charcodes, 12 );
     g_debug_tb = new TextBox();
     g_debug_tb->setFont(g_debug_font);
     g_debug_tb->setScl(1);
-    g_debug_tb->setLoc(-SCRW/2+10,SCRH/2-15);
+    g_debug_tb->setLoc(-g_window_width/2+10,g_window_height/2-15);
     g_debug_tb->setString("not init");
     g_debug_layer->insertProp(g_debug_tb);    
 }
@@ -173,7 +269,24 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
 }
 
 void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
+    //    print("on_packet_callback funcid:%d argdatalen:%d",funcid, argdatalen);
     switch(funcid) {
+    case PACKETTYPE_PING:
+        {
+            uint32_t sec = get_u32(argdata+0);
+            uint32_t usec = get_u32(argdata+4);
+            
+            double t = (double)(sec) + (double)(usec)/1000000.0f;
+            double dt = now() - t;
+            g_last_ping_rtt = dt;
+            //            prt("PINGrecv: %u %u dt:%f", sec, usec, dt );
+        }
+        break;
+    case PACKETTYPE_TIMESTAMP:
+        {
+            g_timestamp_count++;
+        }
+        break;
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT:
         {
             uint32_t pktsize = get_u32(argdata+0);
@@ -236,18 +349,120 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                     print("  colorreplacershader %d not found", pkt.shader_id);
                 }
             }
+            prop->priority = pkt.priority;
         }
-
         break;
+    case PACKETTYPE_S2C_PROP2D_LOC:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                float x = get_f32(argdata+4);
+                float y = get_f32(argdata+8);
+                prop->setLoc(x,y);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_SCALE:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                float sx = get_f32(argdata+4);
+                float sy = get_f32(argdata+8);
+                prop->setScl(sx,sy);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_COLOR:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                uint32_t pktsz = get_u32(argdata+4);
+                assert(pktsz==sizeof(PacketColor));
+                PacketColor col;
+                memcpy( &col, argdata+8, sizeof(col) );
+                prop->setColor( Color(col.r,col.g,col.b,col.a) );
+            }            
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_ROT:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                float r = get_f32(argdata+4);
+                prop->setRot(r);
+            }            
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_INDEX:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                int index = get_u32(argdata+4);
+                prop->setIndex(index);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_XFLIP:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                uint32_t xfl = get_u32(argdata+4);
+                prop->setXFlip(xfl);
+                prt("XFL ");
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_YFLIP:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                uint32_t yfl = get_u32(argdata+4);
+                prop->setYFlip(yfl);
+                prt("YFL ");
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_OPTBITS:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                uint32_t bits = get_u32(argdata+4);
+                prop->use_additive_blend = bits & PROP2D_OPTBIT_ADDITIVE_BLEND;
+                prt("OPT %d", bits );
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_PRIORITY:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                uint32_t prio = get_u32(argdata+4);
+                prop->priority = prio;
+                prt("PRIO %d", prio);
+            }
+        }
+        break;
+        
     case PACKETTYPE_S2C_LAYER_CREATE:
         {
             uint32_t id = get_u32( argdata+0 );
-            print("PACKETTYPE_S2C_LAYER_CREATE layer_id:%d", id );
+            uint32_t prio = get_u32( argdata+4 );
+            print("PACKETTYPE_S2C_LAYER_CREATE layer_id:%d prio:%d", id, prio );
 
             Layer *l = g_layer_pool.get(id);
             if(!l) {
                 l = g_layer_pool.ensure(id);
                 g_moyai_client->insertLayer(l);
+                l->priority = prio;
                 print("created a layer" );
             } else {
                 print("layer found");
@@ -264,25 +479,13 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
         }
         break;
 
-    case PACKETTYPE_S2C_VIEWPORT_SIZE:
-        {
-            unsigned int viewport_id = get_u32(argdata);
-            unsigned int w = get_u32(argdata+4);
-            unsigned int h = get_u32(argdata+8);
-            
-            print("received viewport_size id:%d w:%d h:%d", viewport_id, w,h );
-            Viewport *vp = g_viewport_pool.ensure(viewport_id);
-            assert(vp);
-            vp->setSize(w,h);
-        }
-        break;
     case PACKETTYPE_S2C_VIEWPORT_SCALE:
         {
             unsigned int viewport_id = get_u32(argdata);
             float sclx = get_f32(argdata+4);
             float scly = get_f32(argdata+8);
-            print("received viewport_scale id:%d x:%f y:%f", viewport_id, sclx, scly );            
-                        
+            print("received viewport_scale id:%d scl.x:%f scl.y:%f", viewport_id, sclx, scly);
+
             Viewport *vp = g_viewport_pool.ensure(viewport_id);
             assert(vp);
             vp->setScale2D(sclx,scly);
@@ -302,10 +505,22 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             unsigned int camera_id = get_u32(argdata);
             float x = get_f32(argdata+4);
             float y = get_f32(argdata+4+4);
-            //            print("received camera_loc. id:%d (%f,%f)", camera_id, x,y );            
+            //                        print("received camera_loc. id:%d (%f,%f)", camera_id, x,y );            
             Camera *cam = g_camera_pool.get(camera_id);
             assert(cam);
             cam->setLoc(x,y);
+        }
+        break;
+    case PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER:
+        {
+            unsigned int camera_id = get_u32(argdata);
+            unsigned int layer_id = get_u32(argdata+4);
+            Camera *cam = g_camera_pool.get(camera_id);
+            Layer *l = g_layer_pool.get(layer_id);
+            print("camera_dynamic_layer. cam:%d l:%d",camera_id, layer_id);
+            if(cam && l) {
+                l->setCamera(cam);
+            }
         }
         break;
 
@@ -877,7 +1092,14 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             memcpy( path, path_cstr_head, path_cstr_len );
             path[path_cstr_len] = '\0';
             print("sound_create_from_file. id:%d path:%s", snd_id, path );
-            snd = g_soundsystem->newSound( path );
+            File *file = g_filedepo->get(path);
+            if(!file) {
+                print("  can't find file in filedepo:'%s", path );
+                break;
+            }
+            char tmppath[1024];
+            file->saveInTmpDir( "/tmp", tmppath, sizeof(tmppath) );
+            snd = g_soundsystem->newSound( tmppath );
             g_sound_pool.set( snd_id, snd );                
         }
         break;
@@ -951,6 +1173,57 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             }
         }
         break;
+    case PACKETTYPE_S2C_WINDOW_SIZE:
+        {
+            void setupClient( int win_w, int win_h );
+            uint32_t w = get_u32(argdata+0);
+            uint32_t h = get_u32(argdata+4);
+            print("received window_size. %d,%d",w,h);
+            setupClient(w,h);
+        }
+        break;
+    case PACKETTYPE_S2C_JPEG_DECODER_CREATE:
+        {
+            uint32_t pixel_skip = get_u32(argdata+0);
+            uint32_t orig_w = get_u32(argdata+4);
+            uint32_t orig_h = get_u32(argdata+8);
+            print("received jpeg_dec_creat: skip:%d %d,%d", pixel_skip, orig_w, orig_h );
+            int imgw = orig_w/(pixel_skip+1), imgh = orig_h/(pixel_skip+1);
+            g_jc = new JPEGCoder(imgw, imgh, 0);
+            setupVideoViewer(imgw,imgh);
+        }
+        break;
+    case PACKETTYPE_S2C_CAPTURED_FRAME:
+        {
+            assert(g_jc);
+            uint32_t compressed_size = get_u32(argdata+0);
+            g_jc->setCompressedData( (const unsigned char*)(argdata+4), compressed_size );
+            double t0 = now();
+            g_jc->decode();
+            double t1 = now();
+            if((t1-t0)>0.02) print("slow decode:%f",t1-t0);
+            //            print("capt_frame: time:%f size:%d",t1-t0, compressed_size);
+#if 0
+            writeFile( "received.jpg", (const char*)g_jc->compressed, g_jc->compressed_size );
+#endif            
+            updateVideoViewer();
+        }
+        break;
+    case PACKETTYPE_S2C_CAPTURED_AUDIO:
+        {
+            uint32_t num_samples = get_u32(argdata+0);
+            uint32_t samples_bytes = get_u32(argdata+4);
+            float *interleavedSamples = (float*)(argdata+8);
+            print("audio! ns:%d sb:%d", num_samples, samples_bytes );
+            assert( num_samples * sizeof(float) * 2 == samples_bytes );
+            
+#ifdef USE_UNTZ
+            appendAudioSampleStereo(interleavedSamples, num_samples*2);
+#else            
+            print("CAPTURED_AUDIO: only implemented with UNTZ");
+#endif            
+        }
+        break;
     default:
         print("unhandled packet type:%d", funcid );
         break;
@@ -973,37 +1246,37 @@ void on_connect( uv_connect_t *connect, int status ) {
     g_recvbuf.ensureMemory(1024*1024*16);
 }
 
-int main( int argc, char **argv ) {
-
-#ifdef __APPLE__    
-    setlocale( LC_ALL, "ja_JP");
-#endif
-#ifdef WIN32    
-    setlocale( LC_ALL, "jpn");
-#endif    
+bool parseProgramArgs( int argc, char **argv ) {
+    const char *port_prefix = "--port=";
     
-    const char *host = "127.0.0.1";
-    if( argc > 1 && argv[1] ) host = argv[1];
-    int port = 22222;
-    if( argc > 2 && argv[2] ) port = atoi(argv[2]);
-    print("viewer config: host:'%s' port:%d", host, port );
-    
-    Moyai::globalInitNetwork();
-
-    uv_tcp_t *client = (uv_tcp_t*)MALLOC( sizeof(uv_tcp_t) );
-    uv_tcp_init( uv_default_loop(), client );
-    struct sockaddr_in svaddr;
-    uv_ip4_addr( host, port, &svaddr );
-
-    uv_connect_t *connect = (uv_connect_t*)MALLOC( sizeof(uv_connect_t));
-    
-    int r = uv_tcp_connect( connect, client, (struct sockaddr*) &svaddr, on_connect );
-    if(r) {
-        print("uv_tcp_connect failed");
-        return 1;
+    for(int i=1;i<argc;i++) {
+        if( strncmp( argv[i], port_prefix, strlen(port_prefix) ) == 0 ){
+            g_port = atoi( argv[i] + strlen(port_prefix) );
+        } else {
+            g_server_ip_addr = argv[i];
+        }
     }
+    print("viewer config: serverip:'%s' port:%d window:%d,%d", g_server_ip_addr, g_port, g_window_width, g_window_height );
+    return true;
+}
+void printUsage() {
+    print("Usage: viewer [OPTIONS] SERVER_IPADDR" );
+    print("  Options: --window_size=800x600" );
+}
 
+void setupClient( int win_w, int win_h ) {
+    if(g_moyai_client) {
+        assertmsg( false, "setupclient: can't setup client twice");
+    }
+    g_window_width = win_w;
+    g_window_height = win_h;
+    
     g_soundsystem = new SoundSystem();
+
+#ifdef USE_UNTZ
+    g_audio_stream = UNTZ::Sound::create(44100,2,stream_callback, NULL );
+    g_audio_stream->play();
+#endif
     
     //
 
@@ -1013,7 +1286,7 @@ int main( int argc, char **argv ) {
     }
 
     glfwSetErrorCallback( glfw_error_cb );
-    g_window =  glfwCreateWindow( SCRW, SCRH, "headless moyai viewer", NULL, NULL );
+    g_window =  glfwCreateWindow( g_window_width, g_window_height, "Moyai sprite stream viewer", NULL, NULL );
     if(g_window == NULL ) {
         print("can't open glfw window");
         glfwTerminate();
@@ -1032,42 +1305,99 @@ int main( int argc, char **argv ) {
     glfwSetMouseButtonCallback( g_window, mouseButtonCallback );
     glfwSetCursorPosCallback( g_window, cursorPosCallback );
     
-    g_moyai_client = new MoyaiClient( g_window );
+    g_moyai_client = new MoyaiClient( g_window, win_w, win_h );
+
+    g_local_viewport = new Viewport();
+    g_local_viewport->setSize(g_window_width*RETINA,g_window_height*RETINA);
+    g_local_viewport->setScale2D(g_window_width,g_window_height);
+    
+    // Client side debug status
+    setupDebugStat();    
+}
+
+    
+int main( int argc, char **argv ) {
+
+#ifdef __APPLE__    
+    setlocale( LC_ALL, "ja_JP");
+#endif
+#ifdef WIN32    
+    setlocale( LC_ALL, "jpn");
+#endif    
+
+    bool argret = parseProgramArgs(argc, argv );
+    if(!argret) {
+        printUsage();
+        return 1;
+    }
+    
+    Moyai::globalInitNetwork();
+
+    uv_tcp_t *client = (uv_tcp_t*)MALLOC( sizeof(uv_tcp_t) );
+    uv_tcp_init( uv_default_loop(), client );
+    struct sockaddr_in svaddr;
+    uv_ip4_addr( g_server_ip_addr, g_port, &svaddr );
+
+    uv_connect_t *connect = (uv_connect_t*)MALLOC( sizeof(uv_connect_t));
+    
+    int r = uv_tcp_connect( connect, client, (struct sockaddr*) &svaddr, on_connect );
+    if(r) {
+        print("uv_tcp_connect failed");
+        return 1;
+    }
 
     g_filedepo = new FileDepo();
 
     print("start viewer loop");
 
-    // Client side debug status
-    setupDebugStat();
 
-    uint64_t last_total_read;
-    double last_total_read_at;
+
+    uint64_t last_total_read=0;
+    double last_total_read_at=0;
+
+    float kbps = 0;
     
-    while( !glfwWindowShouldClose(g_window) ){
+    bool done = false;
+    while( !done ) {
+        
         static double last_poll_at = now();
-
         double t = now();
         double dt = t - last_poll_at;
 
-        glfwPollEvents();
-        uv_run_times(10);
-        int polled = g_moyai_client->poll(dt);
-        int rendered = g_moyai_client->render();
+        uv_run_times(100);
+        
+        if( g_moyai_client) {
+            if( glfwWindowShouldClose(g_window) ) {
+                done = true;
+            }
+            
+            glfwPollEvents();
+            if( glfwGetKey( g_window, 'Q') ) break;
+            if( glfwGetKey( g_window, 'M' ) ) {
+                Vec2 s = g_video_prop->scl;
+                s+= Vec2(1,1);
+                g_video_prop->setScl(s);
+                print("Scl:%f,%f",s.x,s.y);
+            }
 
-        if(t>last_total_read_at+1) {
-            float kbps = (float)((g_total_read-last_total_read)*8)/1000.0f;
-            Format fmt( "polled:%d rendered:%d %.1fKbps", polled, rendered, kbps);
-            last_total_read = g_total_read;
-            last_total_read_at = t;
+            int polled = g_moyai_client->poll(dt);
+            int rendered = g_moyai_client->render();
+
+            if(t>last_total_read_at+1) {
+                kbps = (float)((g_total_read-last_total_read)*8)/1000.0f;
+                last_total_read = g_total_read;
+                last_total_read_at = t;
+            }
+            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d", polled, rendered, kbps, g_last_ping_rtt*1000,g_timestamp_count);
             updateDebugStat( fmt.buf );
+            if(t>g_last_ping_at+1) {
+                g_last_ping_at = t;
+                sendPing( g_stream );                
+            }
         }
-
-        if( glfwGetKey( g_window, 'Q') ) break;
         
         last_poll_at = t;
     }
-
-    glfwTerminate();    
+    if(g_moyai_client) glfwTerminate();    
     return 0;
 }

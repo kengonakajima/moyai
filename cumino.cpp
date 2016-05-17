@@ -317,6 +317,16 @@ bool writeFileOffset( const char *path, const char *data, size_t sz, size_t offs
 bool writeFile( const char *path, const char *data, size_t sz, bool to_sync ){
     return writeFileOffset( path, data, sz, 0, to_sync );
 }
+bool appendFile( const char *path, const char *data, size_t sz ) {
+    FILE *fp = fopen(path, "a+b");
+    if(!fp) {
+        print("appendFile: can't open file '%s' err:'%s'", path, strerror(errno) );
+        return false;
+    }
+    if( fwrite( data, 1, sz,fp ) != sz ) return false;
+    fclose(fp);
+    return true;
+}
 
 bool readFileOffset( const char *path, char *data, size_t *sz, size_t offset ){
     size_t toread = *sz;
@@ -525,7 +535,12 @@ bool findChar( const char *s, char ch ) {
     }
     return false;
 }
-
+int findCharIndexOf( const char *s, char ch ) {
+    for(int i=0;;i++){
+        if( s[i] == ch ) return i;
+    }
+    return -1;
+}
 ////////////
 
 

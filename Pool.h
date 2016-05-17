@@ -40,6 +40,9 @@ public:
         }
         return ptr;
     }
+    int size() {
+        return idmap.size();
+    }
 };
 
 #endif

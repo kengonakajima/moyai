@@ -211,6 +211,7 @@ inline int sign(float f){
 
 bool writeFile( const char *path, const char *data, size_t sz, bool to_sync = false );
 bool writeFileOffset( const char *path, const char *data, size_t sz, size_t offset, bool to_sync );
+bool appendFile( const char *path, const char *data, size_t sz );
 bool readFile( const char *path, char *data, size_t *sz );
 bool readFileOffset( const char *path, char *data, size_t *sz, size_t offset );
 int getModifiedTime( const char *path, time_t *out );
@@ -231,6 +232,7 @@ void FREE( void *ptr );
 int cuminoPrintMemStat(int thres_count);
 
 bool findChar( const char *s, char ch );
+int findCharIndexOf( const char *s, char ch );
 
 void startMeasure(const char *name);
 void endMeasure();

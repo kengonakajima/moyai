@@ -7,7 +7,7 @@ Moai SDK: https://github.com/moai/moai-dev
 # Features
  - Rendering
   - 2D sprite + 3D mesh
-  - OpenGL 2.0 (ES2), [GLFW3 http://www.glfw.org/]
+  - OpenGL 2.0 (ES1), [GLFW3 http://www.glfw.org/]
  - Image
   - PNG read/write from file (lodepng)
   - dynamic texture
@@ -18,14 +18,15 @@ Moai SDK: https://github.com/moai/moai-dev
   - FreeType2 based, reads TTF files, multi-byte chars
  - Headless mode
   - Transfer all geometry data every frame via TCP, to enable remote rendering.
+  - Recording all sprite stream and save it in file, replaying the file.
 
 # Compatibility
- - OSX 10.8/10.9
+ - OSX 10.10/10.11
  - Windows7 (VS2012)
  - working on iOS
  
 # Performance target
-10K~20K sprites at 60FPS with -O0 on UNIX, -O1 on VC++
+10K~20K sprites at 60FPS with -O0 on OSX, -O1 on VC++
 
 
 # Example
@@ -214,6 +215,10 @@ rh->startServer(22222);
 moyai_client->setRemoteHead(rh);
 rh->setTargetMoyaiClient(moyai_client);
 
+rh->enableSpriteStream(); // If you want to use sprite stream
+g_rh->enableVideoStream(SCRW*RETINA,SCRH*RETINA,3); // If you want to use video stream with 4 times less resolution
+
+        
 sound_system->setRemoteHead(rh); // If you want to transfer sounds
 rh->setTargetSoundSystem(sound_system);
 
@@ -231,21 +236,41 @@ Command line:
 
 <code>./viewer localhost</code>
 
-This will connect to the server and render the stream.
+This will connect to the server and render the sprite stream.
+Sprite stream is a binary data stream of sprites in Moyai game application program
+that includes all sprites' position, sprite-atlas index, scale, rotation, shader, color,
+and any necessary data for rendering.
 
+
+Video Streaming
+=====
+You can try video streaming by adding <code>--videostream</code> to demo2d program.
+By adding this option, you will get both sprite stream and video stream at the same time,
+so you can omit sprite stream by adding <code>--skip-spritestream</code> option to demo2d.
+
+Please see these command line examples:
+<code>
+<pre>
+bash$ ./demo2d --headless    # This only sends sprite stream
+bash$ ./demo2d --headless --videostream # This sends both sprite stream and video stream
+bash$ ./demo2d --headless --videostream --skip-spritestream   # This sends only video stream
+</pre>
+</code>
 
     
 Build
 =====
 
-MacOS X 10.8,10.9,10.10: After installing Xcode and command line tools, just do:
+MacOS X 10.8,10.9,10.10,10.11: After installing Xcode and command line tools, just do:
  
 <pre>
+$ brew install libuv # for uv.h, if necessary.
 $ git clone https://github.com/kengonakajima/moyai
 $ cd moyai
 $ make
 $ ./demo2d
 $ ./demo3d
+$ ./dyncam2d
 </pre>
 
 Windows 7/8/8.1 VisualStudio 2012/2013 :
@@ -256,13 +281,60 @@ Windows 7/8/8.1 VisualStudio 2012/2013 :
 4. Run(Debug) the program 
 </pre>
 
-An example screenshot of a program "demo2d" :
+Demo programs
+=====
+demo2d, demo3d, dyncam2d are demo programs.
+demo2d.cpp for <code>demo2d</code>, demo3d.cpp for <code>demo3d</code>, dyncam2d.cpp for <code>dyncam2d</code> .
+
+<code>demo2d</code> demonstrates basic 2D features.
 
 <img src="https://raw.github.com/kengonakajima/moyai/master/screen_shot_2d.png" width=800>
 
-Screenshot of "demo3d" : 
+By adding "--headless" option, it runs as a RemoteHead server, so you can view a sprite stream by <code>viewer</code>.
+
+Command line:
+
+<pre>
+bash$ ./demo2d --headless
+bash$ ./viewer
+</pre>
+
+<code>demo3d</code> demonstrates basic 3D features, but it is too early to use.
+
 <img src="https://raw.github.com/kengonakajima/moyai/master/screen_shot_3d.png" width=800>
 
+<code>dyncam2d</code> demonstrates how to use 2D dynamic cameras by implementing simple top view
+field and player characters walking on it.
+
+Command line:
+
+<pre>
+bash$ ./dyncam2d
+</pre>
+
+<img src="https://raw.github.com/kengonakajima/moyai/master/dyncam2d_ss.png" width=800>
+
+dyncam2d runs always as a RemoteHead server, so you'll use <code>viewer</code> to view sprite stream.
+
+Command line:
+
+<pre>
+bash$ ./dyncam2d   # field shows up, but no players in screen
+bash$ ./viewer &   # First player character shows up
+bash$ ./viewer &   # Second player character shows up
+bash$ ./viewer &   # and so on..
+</pre>
+
+Using replay server
+=====
+When you use headless sprite stream, the sprite stream is saved at "/tmp/moyaistream_1_1461123550_487924" in OSX.
+You can see the saved sprite stream by using replay server.
+A command "replayer" reads a sprite stream file and listen to a TCP port and send the stream to the viewer client.
+
+<pre>
+bash$ ./replayer /tmp/moyaistream_1_1461123550_487924 --once
+bash$ ./viewer localhost
+</pre>
 
 Classes
 =====
@@ -300,6 +372,13 @@ List of classes defined in moyai.h :
 
 - Headless
   - <code>RemoteHead</code>
+  - <code>Client</code>
+
+
+TODO
+=====
+ - Correct serialization required for structures sent on sprite stream.
+ - Browser/mobile version of sprite stream viewer
 
 License notes
 =====
@@ -317,5 +396,4 @@ See LICNSE.txt for Moyai itself.
  - GLFW Copyright (c) 2002-2006 Marcus Geelnard, 2006-2010 Camilla Berglund <elmindreda@elmindreda.org>
  - SOIL image loader : 2007 Jonathan Dummer
  - lz4 : 2013 Yann Collet 
- 
-
+ - UNTZ : Copyright 2010-2011 Zipline games, CPAL license

@@ -14,10 +14,7 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec
 
 	if( deck ) {
 		glEnable(GL_TEXTURE_2D);
-		if( deck->tex->tex != last_tex_gl_id ) {
-			glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
-			last_tex_gl_id = deck->tex->tex;
-		}
+        glBindTexture( GL_TEXTURE_2D, deck->tex->tex );
 	} else {
 		glDisable(GL_TEXTURE_2D);            
 	}
@@ -197,7 +194,6 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 		// ‚à‚Æ‚à‚Æƒ‰ƒCƒgÝ’è‚Í‚±‚ÌˆÊ’u‚É‚ ‚Á‚½‚ª drawmesh‚ÉˆÚ“®‚µ‚½
 
 		int cnt=0;
-		last_tex_gl_id = 0;
 
 		Prop *cur = prop_top;
 		while(cur){
@@ -391,3 +387,30 @@ void Layer::selectCenterInside( Vec2 minloc, Vec2 maxloc, Prop*out[], int *outle
 	*outlen = cnt;
 }
 
+
+void Layer::addDynamicCamera( Camera *cam ) {
+    Camera *c = dynamic_cameras.get(cam->id);
+    if(c) {
+        print("addDynamicCamera: warning: adding camera %d again", cam->id );
+        return;
+    }
+    assertmsg( cam->remote_client, "addDynamicCamera: dynamic camera must have remote_client. Pass Client* pointer to Camera(). " );
+    dynamic_cameras.set(cam->id,cam);
+    print("addDynamicCamera: added a dynamic camera. id:%d sz:%d",cam->id, dynamic_cameras.size() );
+    cam->addTargetLayer(this);
+}
+void Layer::delDynamicCamera( Camera *cam ) {
+    Camera *c = dynamic_cameras.get(cam->id);
+    if(!c) {
+        print("delDynamicCamera: warning: camera %d not found", cam->id );
+        return;
+    }
+    dynamic_cameras.del(cam->id);
+    cam->delTargetLayer(this);
+}
+void Layer::onTrackDynamicCameras() {
+    for(std::unordered_map<unsigned int,Camera*>::iterator it = dynamic_cameras.idmap.begin(); it != dynamic_cameras.idmap.end(); ++it ) {
+        Camera *cam = it->second;
+        cam->onTrackDynamic();
+    }
+}

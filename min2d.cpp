@@ -48,7 +48,9 @@ public:
 void kbdCallback( GLFWwindow *window, int keycode, int scancode, int action, int mods ) {
     g_keyboard->update( keycode, action, 0, 0, 0 ); // dont read mod keys
 }
-
+void onRemoteKeyboardCallback( Client *cl, int kc, int act, int modshift, int modctrl, int modalt ) {
+    g_keyboard->update(kc,act,modshift,modctrl,modalt);
+}
 //
 
 int main(int argc, char **argv )
@@ -76,7 +78,7 @@ int main(int argc, char **argv )
 
     GLFWwindow *window;
     glfwSetErrorCallback( glfw_error_cb );
-    window =  glfwCreateWindow( SCRW, SCRH, "demo2d", NULL, NULL );
+    window =  glfwCreateWindow( SCRW, SCRH, "min2d", NULL, NULL );
     if(window == NULL ) {
         print("can't open glfw window");
         glfwTerminate();
@@ -93,12 +95,12 @@ int main(int argc, char **argv )
     glClearColor(0.2,0.2,0.2,1);
 
     SoundSystem *ss = new SoundSystem();
-    Sound *bgm = ss->newSound( "assets/gymno1_1min.wav" );
+    Sound *bgm = ss->newSound( "assets/gymno1short.wav" );
     bgm->play();
 
     g_keyboard = new Keyboard();
     
-    MoyaiClient *moyai_client = new MoyaiClient(window);
+    MoyaiClient *moyai_client = new MoyaiClient(window,SCRW,SCRH);
     
     if( headless_mode ) {
         Moyai::globalInitNetwork();
@@ -111,8 +113,7 @@ int main(int argc, char **argv )
         rh->setTargetMoyaiClient(moyai_client);
         ss->setRemoteHead(rh);
         rh->setTargetSoundSystem(ss);
-        g_keyboard->setRemoteHead(rh);
-        rh->setTargetKeyboard(g_keyboard);
+        rh->setOnKeyboardCallback(onRemoteKeyboardCallback);
     }
 
     

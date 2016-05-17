@@ -7,6 +7,12 @@
 #include <strings.h>
 #endif
 
+#if defined(__APPLE__)
+#define RETINA 2
+#else
+#define RETINA 1
+#endif
+
 #include "client.h"
 
 MoyaiClient *g_moyai_client;
@@ -66,7 +72,7 @@ enum {
 
 // config
 
-static const int SCRW=966, SCRH=544;
+static const int SCRW=960, SCRH=544;
 
 class Char : public Prop2D {
 public:
@@ -383,20 +389,21 @@ void gameUpdate(void) {
         Blocks::create();
     }
 
-    static int capt_count =0;
-    if( capt_count == 0 && total_frame > 100 ) {
-        capt_count = 1;
-        startMeasure("capt");
+    if( g_keyboard->getKey('C') ) {
         Image *img = new Image();
-        img->setSize( SCRW, SCRH );
+        img->setSize( SCRW*RETINA, SCRH*RETINA );
+        double st = now();
         g_moyai_client->capture(img);
+        double et = now();
         bool ret = img->writePNG("_captured.png");
+        double et2 = now();
+        print("screen capture time:%f,%f", et-st,et2-et);
+        
 #if !(TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE)
         assert(ret);
 #endif        
-        print("captured in _captured.png cnt:%d", capt_count );
+        print("captured in _captured.png");
         delete img;
-        endMeasure();
     }
 
     // replace white to random color
@@ -407,6 +414,13 @@ void gameUpdate(void) {
         g_game_done = true;
         return;
     }
+    if( g_keyboard->getKey('M' )) {
+        g_bgm_sound->play(1);
+        g_bgm_sound->setVolume(1);
+    }
+    if( g_keyboard->getKey('V') ) {
+        g_sound_system->setVolume(0);
+    }
     if( g_keyboard->getKey( 'K' ) ) {
         float bgmpos = g_bgm_sound->getTimePositionSec();
         print("bgm position: %f", bgmpos );
@@ -414,6 +428,12 @@ void gameUpdate(void) {
     }
     if( g_keyboard->getKey( 'L' ) ) {
         g_bgm_sound->stop();
+    }
+    if( g_keyboard->getKey( 'Z' ) ) {
+        g_viewport->setScale2D( g_viewport->scl.x / 1.1f, g_viewport->scl.y / 1.1f );
+    }
+    if( g_keyboard->getKey( 'X' ) ) {
+        g_viewport->setScale2D( g_viewport->scl.x * 1.1f, g_viewport->scl.y * 1.1f );        
     }
 
     if( g_mouse->getButton(0) ) {
@@ -555,7 +575,9 @@ void winclose_callback( GLFWwindow *w ){
 void glfw_error_cb( int code, const char *desc ) {
     print("glfw_error_cb. code:%d desc:'%s'", code, desc );
 }
-
+void fbsizeCallback( GLFWwindow *window, int w, int h ) {
+    print("fbsizeCallback: %d,%d",w,h);
+}
 
 void keyboardCallback( GLFWwindow *window, int key, int scancode, int action, int mods ) {
     g_keyboard->update( key, action, mods & GLFW_MOD_SHIFT, mods & GLFW_MOD_CONTROL, mods & GLFW_MOD_ALT );
@@ -566,13 +588,24 @@ void mouseButtonCallback( GLFWwindow *window, int button, int action, int mods )
 void cursorPosCallback( GLFWwindow *window, double x, double y ) {
     g_mouse->updateCursorPosition( x,y);
 }
-
-void gameInit( bool headless_mode ) {
+void onConnectCallback( RemoteHead *rh, Client *cl) {
+    print("onConnectCallback clid:%d",cl->id);
+}
+void onRemoteKeyboardCallback( Client *cl, int kc, int act, int modshift, int modctrl, int modalt ) {
+    g_keyboard->update(kc,act,modshift,modctrl,modalt);
+}
+void onRemoteMouseButtonCallback( Client *cl, int btn, int act, int modshift, int modctrl, int modalt ) {
+    g_mouse->updateButton( btn, act, modshift, modctrl, modalt );
+}
+void onRemoteMouseCursorCallback( Client *cl, int x, int y ) {
+    g_mouse->updateCursorPosition(x,y);
+}
+void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videostream ) {
     qstest();
     optest();
     comptest();
 
-    print("gameInit: headless_mode:%d", headless_mode );
+    print("gameInit: headless_mode:%d spritestream:%d videostream:%d", headless_mode, enable_spritestream, enable_videostream );
 
 #ifdef __APPLE__    
     setlocale( LC_ALL, "ja_JP");
@@ -584,8 +617,8 @@ void gameInit( bool headless_mode ) {
     g_sound_system = new SoundSystem();
     g_explosion_sound = g_sound_system->newSound("./assets/blobloblll.wav" );
     g_explosion_sound->play();
-    g_bgm_sound = g_sound_system->newBGM( "./assets/gymno1_1min.wav" );
-
+    g_bgm_sound = g_sound_system->newBGM( "./assets/gymno1short.wav" );
+    g_bgm_sound->play();
     {
         float samples[44100/4];
         for(int i=0;i<elementof(samples);i++) samples[i] = cos( (float)(i) / 20.0f );
@@ -608,7 +641,7 @@ void gameInit( bool headless_mode ) {
     glfwMakeContextCurrent(g_window);    
     glfwSetWindowCloseCallback( g_window, winclose_callback );
     //    glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
-    glfwSwapInterval(1); // vsync
+    glfwSwapInterval(0); // set 1 to use vsync. Use 0 for fast screen capturing.
 #ifdef WIN32
 	glewInit();
 #endif
@@ -620,7 +653,8 @@ void gameInit( bool headless_mode ) {
     g_mouse = new Mouse();
     glfwSetMouseButtonCallback( g_window, mouseButtonCallback );
     glfwSetCursorPosCallback( g_window, cursorPosCallback );
-    
+
+    glfwSetFramebufferSizeCallback( g_window, fbsizeCallback );
     g_pad = new Pad();
 
     // shader    
@@ -630,7 +664,7 @@ void gameInit( bool headless_mode ) {
         exit(1);
     }
 
-    g_moyai_client = new MoyaiClient(g_window);
+    g_moyai_client = new MoyaiClient(g_window, SCRW, SCRH );
     
     if( headless_mode ) {
         Moyai::globalInitNetwork();
@@ -639,22 +673,21 @@ void gameInit( bool headless_mode ) {
             print("headless server: can't start server. port:%d", HEADLESS_SERVER_PORT );
             exit(1);
         }
+        if( enable_spritestream ) g_rh->enableSpriteStream();
+        if( enable_videostream ) g_rh->enableVideoStream(SCRW*RETINA,SCRH*RETINA,3);
+        
         g_moyai_client->setRemoteHead(g_rh);
         g_rh->setTargetMoyaiClient(g_moyai_client);
         g_sound_system->setRemoteHead(g_rh);
         g_rh->setTargetSoundSystem(g_sound_system);
-        g_keyboard->setRemoteHead(g_rh);
-        g_rh->setTargetKeyboard(g_keyboard);
-        g_mouse->setRemoteHead(g_rh);
-        g_rh->setTargetMouse(g_mouse);
+        g_rh->setOnKeyboardCallback(onRemoteKeyboardCallback);
+        g_rh->setOnMouseButtonCallback(onRemoteMouseButtonCallback);
+        g_rh->setOnMouseCursorCallback(onRemoteMouseCursorCallback);
+        g_rh->setOnConnectCallback(onConnectCallback);
     }    
 
     g_viewport = new Viewport();
-    int retina = 1;
-#if defined(__APPLE__)
-    retina = 2;
-#endif    
-    g_viewport->setSize(SCRW*retina,SCRH*retina); // set actual framebuffer size to output
+    g_viewport->setSize(SCRW*RETINA,SCRH*RETINA); // set actual framebuffer size to output
     g_viewport->setScale2D(SCRW,SCRH); // set scale used by props that will be rendered
 
 #if 0
@@ -971,13 +1004,15 @@ void gameFinish() {
 #if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
 int main(int argc, char **argv )
 {
-    bool headless_mode=false;
+    bool headless_mode=false, enable_videostream=false, enable_spritestream=true;
     for(int i=0;;i++) {
         if(!argv[i])break;
         if(strcmp(argv[i], "--headless") == 0 ) headless_mode = true;
+        if(strcmp(argv[i], "--videostream") == 0 ) enable_videostream = true;
+        if(strcmp(argv[i], "--skip-spritestream") == 0 ) enable_spritestream = false;
     }
         
-    gameInit(headless_mode);
+    gameInit(headless_mode, enable_spritestream, enable_videostream);
     while( !glfwWindowShouldClose(g_window) && (!g_game_done) ){
         gameUpdate();       
         gameRender();

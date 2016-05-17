@@ -1,16 +1,27 @@
 #pragma once
 
+#ifdef USE_FMOD
 #include "fmod/api/inc/fmod.h"
+#endif 
+#ifdef USE_UNTZ
+#include "untz/include/UntzSound.h"
+#endif
 
 class SoundSystem;
 
 class Sound {
 public:
     int id;
-	FMOD_SOUND *sound;
 	SoundSystem *parent;
+#ifdef USE_FMOD    
+	FMOD_SOUND *sound;
 	FMOD_CHANNEL *ch;
-
+#endif
+#ifdef USE_UNTZ
+    UNTZ::Sound *sound;
+    void *ch;
+#endif    
+    
 	float default_volume;
     int external_id; // for app use
 
@@ -25,7 +36,6 @@ public:
 	void play(float vol);
 	void playDistance(float mindist, float maxdist, float dist, float relvol );
 	void stop();
-    void pause( bool to_pause );
 	bool isPlaying();
     void setVolume(float v);
     float getVolume();

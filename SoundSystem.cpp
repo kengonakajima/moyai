@@ -3,8 +3,10 @@
 
 #include "SoundSystem.h"
 #include "Sound.h"
+#include "Remote.h"
 
-SoundSystem::SoundSystem()  : id_gen(1), sys(0), remote_head(0) {
+SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0) {
+#ifdef USE_FMOD    
 	FMOD_RESULT r;
 	r = FMOD_System_Create(&sys);
 	FMOD_ERRCHECK(r);
@@ -18,14 +20,18 @@ SoundSystem::SoundSystem()  : id_gen(1), sys(0), remote_head(0) {
 	}
 	r = FMOD_System_Init( sys, 32, FMOD_INIT_NORMAL, NULL );
 	FMOD_ERRCHECK(r);
-
+#endif
+#ifdef USE_UNTZ
+    UNTZ::System::initialize( 44100, 8192, 0 );
+#endif    
     for(int i=0;i<elementof(sounds);i++) sounds[i] = NULL;
 }
 
 Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_currently_ignored ) {
     const char *cpath = platformCStringPath(path);
-    FMOD_RESULT r;
 	Sound *out = new Sound(this);
+#ifdef USE_FMOD    
+    FMOD_RESULT r;    
 	FMOD_SOUND *s;
 	r = FMOD_System_CreateSound(sys, cpath, FMOD_SOFTWARE, 0, &s );
     if( r != FMOD_OK ) {
@@ -33,7 +39,11 @@ Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_curre
     }
 	FMOD_ERRCHECK(r);
 	FMOD_Sound_SetMode( s, FMOD_LOOP_OFF );
-	out->sound = s;
+#endif
+#ifdef USE_UNTZ
+    UNTZ::Sound *s = UNTZ::Sound::create( cpath, true );
+#endif    
+	out->sound = s;    
 	out->default_volume = vol;
     out->id = id_gen;
     strncpy( out->last_load_file_path, path, sizeof(out->last_load_file_path) );
@@ -46,8 +56,9 @@ Sound *SoundSystem::newSound( const char *path ){
 	return newSound( path, 1.0, false );
 }
 Sound *SoundSystem::newSoundFromMemory( float *samples, int samples_num ) {
-    FMOD_RESULT r;
     Sound *out = new Sound(this);
+#ifdef USE_FMOD    
+    FMOD_RESULT r;
     FMOD_SOUND *s;
     FMOD_CREATESOUNDEXINFO exinfo;
 
@@ -61,6 +72,17 @@ Sound *SoundSystem::newSoundFromMemory( float *samples, int samples_num ) {
     r = FMOD_System_CreateSound( sys, (const char*) samples, FMOD_SOFTWARE | FMOD_OPENMEMORY | FMOD_OPENRAW, &exinfo, &s );
     FMOD_ERRCHECK(r);
     FMOD_Sound_SetMode( s, FMOD_LOOP_OFF );
+#endif
+#ifdef USE_UNTZ
+    UNTZ::SoundInfo info;
+    memset(&info,0,sizeof(info));
+    info.mBitsPerSample = 32;
+    info.mSampleRate = 44100;
+    info.mChannels = 1;
+    info.mTotalFrames = samples_num / 1; // 1 for num of channels
+	info.mLength = (double)samples_num / 1.0f / 44100.0f; // 1 for num of channels
+    UNTZ::Sound *s = UNTZ::Sound::create( info, samples, true ); // ownsdata: copy samples to mem
+#endif    
     out->sound = s;
     out->default_volume = 1;
     out->id = id_gen;
@@ -89,13 +111,33 @@ Sound *SoundSystem::getById( int id ) {
     return NULL;
 }
 
-void SoundSystem::notifySoundPlay( int id, float vol ) {
-    if(!remote_head)return;
+#ifdef USE_UNTZ
+// TODO: Currently UNTZ output callback doesn't support user data pointer
+RemoteHead *g_audiocallback_rh = NULL;
+// [numsamples of float values for ch1][numsamples of float values for ch2]
+void untz_output_callback( UInt32 numChannels, float *interleavedSamples, UInt32 numSamples ) {
+    //    print("audioout: %d %d %f", numChannels, numSamples, interleavedSamples[0] );
+    assert(g_audiocallback_rh);
+    // numChannels is always 2, so dont send it.
+    g_audiocallback_rh->appendAudioSamples(numChannels, interleavedSamples, numSamples );
+} 
 
-    remote_head->broadcastUS1UI1F1( PACKETTYPE_S2C_SOUND_PLAY, id, vol );
-}
-void SoundSystem::notifySoundStop( int id ) {
-    if(!remote_head)return;
-    remote_head->broadcastUS1UI1( PACKETTYPE_S2C_SOUND_STOP, id );
-}
+#endif
 
+
+void SoundSystem::setRemoteHead(RemoteHead*rh) {
+    remote_head = rh;
+#ifdef USE_UNTZ    
+    g_audiocallback_rh = rh;
+    UNTZ::System::setOutputCallback(untz_output_callback);
+#endif    
+};   
+
+
+void SoundSystem::setVolume(float v ) {
+#ifdef USE_UNTZ
+    UNTZ::System::get()->setVolume(v);
+#else
+    assertmsg(false, "not implemented");
+#endif    
+}
