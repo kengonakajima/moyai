@@ -75,7 +75,6 @@ public:
     void updateMesh();
     virtual void onTrack( RemoteHead *rh, Prop2D *parentprop );
     virtual void onColorChanged() {
-        print("onColorChanged tb");
         clearMesh();
         updateMesh();
     }
