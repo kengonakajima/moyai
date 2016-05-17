@@ -48,6 +48,9 @@ bool Prop2D::propPoll(double dt) {
 		double elt = accum_time - seek_color_started_at;
 		if( elt > seek_color_time ){
 			color = seek_color_target;
+            if(seek_color_time!=0){
+                onColorChanged();
+            }
 			seek_color_time = 0;
 		} else {
 			double rate = elt / seek_color_time;
@@ -55,6 +58,7 @@ bool Prop2D::propPoll(double dt) {
 				seek_color_orig.g + ( seek_color_target.g - seek_color_orig.g ) * rate,
 				seek_color_orig.b + ( seek_color_target.b - seek_color_orig.b ) * rate,
 				seek_color_orig.a + ( seek_color_target.a - seek_color_orig.a ) * rate );
+            onColorChanged();
 		}
 	}
 

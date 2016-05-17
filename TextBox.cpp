@@ -20,6 +20,7 @@ void TextBox::render(Camera *cam, DrawBatchList *bl ) {
 }
 
 void TextBox::updateMesh() {
+    if(!str)return;
     if(!mesh) {
         mesh = new Mesh();
         VertexBuffer *vb = new VertexBuffer();

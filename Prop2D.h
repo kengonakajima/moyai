@@ -198,6 +198,7 @@ public:
 	bool clearChild( Prop2D *p );
 	inline void setColor( Color c ){
 		color = c;
+        onColorChanged();
 	}
 	inline Color getColor() { return color; }
 	inline void setColor(float r, float g, float b, float a ){
@@ -227,7 +228,7 @@ public:
 	inline void setYFlip( bool flg){ yflip = flg; }
 
 	virtual void onIndexChanged(int previndex ){}
-
+    virtual void onColorChanged(){}
 	inline void setFragmentShader( FragmentShader *fs ){
 		fragment_shader = fs;
 	}
