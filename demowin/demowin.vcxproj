@@ -61,10 +61,10 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies);windeps_debug.lib;ws2_32.lib;libuv.lib</AdditionalDependencies>
+      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies);windeps_debug.lib;ws2_32.lib;libuv.lib;iphlpapi.lib;psapi.lib;userenv.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries);libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries);libcmtd.lib;libcmt.lib</IgnoreSpecificDefaultLibraries>
       <ShowProgress>LinkVerboseLib</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
@@ -84,9 +84,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies);windeps_release.lib;libuv.lib</AdditionalDependencies>
+      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies);windeps_release.lib;libuv.lib;ws2_32.lib;iphlpapi.lib;psapi.lib;userenv.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\</AdditionalLibraryDirectories>
-      <IgnoreSpecificDefaultLibraries>msvcrt.lib;msvcrtd.lib;libuv.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>msvcrt.lib;msvcrtd.lib;libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>

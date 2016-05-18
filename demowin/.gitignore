@@ -1,6 +1,5 @@
 Debug/**/*
-ReleaseD3D/*
-ReleaseOGL/*
+Release/**/*
 *.sdf
 *.suo
 *.opensdf

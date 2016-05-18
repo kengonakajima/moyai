@@ -114,6 +114,9 @@
     <ClCompile Include="..\ConvertUTF.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\JPEGCoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\ColorReplacerShader.h">

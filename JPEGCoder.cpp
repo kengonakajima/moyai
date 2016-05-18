@@ -1,9 +1,10 @@
 
 
-#include "JPEGCoder.h"
 
-#include "cumino.h"
+//#include "cumino.h"
 #include "common.h"
+
+#include "JPEGCoder.h"
 
 JPEGCoder::JPEGCoder( int w, int h, int pixel_skip ) {
     orig_w = w;
