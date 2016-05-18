@@ -1503,7 +1503,7 @@ BufferArray::BufferArray( int maxnum ) {
     for(int i=0;i<maxnum;i++) buffers[i] = NULL;
 }
 BufferArray::~BufferArray() {
-    for(int i=0;i<buffer_num;i++) {
+    for(unsigned int i=0;i<buffer_num;i++) {
         delete buffers[i];
         FREE(buffers[i]);
     }
@@ -1524,7 +1524,7 @@ Buffer *BufferArray::getTop() {
 void BufferArray::shift() {
     if(buffer_used==0)return;
     Buffer *top = buffers[0];
-    for(int i=0;i<buffer_used-1;i++) {
+    for(unsigned int i=0;i<buffer_used-1;i++) {
         buffers[i] = buffers[i+1];
     }
     buffers[buffer_used]=NULL;

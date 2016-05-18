@@ -60,9 +60,6 @@
 #include "Keyboard.h"
 #include "Mouse.h"
 
-#if defined(_MSC_VER)
-	#include "Dependencies.h"
-#endif
 
 
 

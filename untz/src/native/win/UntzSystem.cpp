@@ -163,3 +163,7 @@ void System::resume()
 {
 	msInstance->mpData->setActive(true);
 }
+
+void System::setOutputCallback( void (*cb)(UInt32 numChannels, float *interleavedSamples, UInt32 numSamples ) ) {
+    msInstance->mpData->outputCallback = cb;
+}
