@@ -36,7 +36,7 @@ int RtInOut( void* outputBuffer, void* inputBuffer, unsigned int framesPerBuffer
 	float volume = mixer->getVolume();
     // TODO: doing an extra read/write here is painful...
     float *outB = (float*)outputBuffer;
-    for(UInt32 k = 0; k < samples; ++k)
+	for (UInt32 k = 0; k < samples; ++k)
     {
         float val = *outB * volume;
         val = val > 1.0 ? 1.0 : val;
@@ -89,7 +89,7 @@ System::System(UInt32 sampleRate, UInt32 numFrames, UInt32 options)
 		wsd->audioIO.openStream( &outParams, NULL, RTAUDIO_FLOAT32, sampleRate, &numFrames, &RtInOut, (void *)&mpData->mMixer, &streamOptions );
 		wsd->audioIO.startStream();
 	}
-	catch(RtError& error)
+	catch(RtAudioError& error)
 	{
 		wsd->setError(true);
 		printf("!!!AudioIO Error: %s\n", error.getMessage().c_str());

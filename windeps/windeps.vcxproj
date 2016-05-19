@@ -40,10 +40,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\libvorbis-1.3.5\include;$(ProjectDir)\..\libogg-1.3.2\include;$(ProjectDir)\..\rtaudio-4.0.8\include;$(ProjectDir)\..\rtaudio-4.0.8</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\libvorbis-1.3.5\include;$(ProjectDir)\..\libogg-1.3.2\include;$(ProjectDir)\..\rtaudio-4.0.12\include;$(ProjectDir)\..\rtaudio-4.0.12</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\libvorbis-1.3.5\include;$(ProjectDir)\..\libogg-1.3.2\include;$(ProjectDir)\..\rtaudio-4.0.8;$(ProjectDir)\..\rtaudio-4.0.8\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\libvorbis-1.3.5\include;$(ProjectDir)\..\libogg-1.3.2\include;$(ProjectDir)\..\rtaudio-4.1.2;$(ProjectDir)\..\rtaudio-4.1.2\include</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -139,11 +139,7 @@
     <ClCompile Include="..\jpeg-8d\jquant2.c" />
     <ClCompile Include="..\jpeg-8d\jutils.c" />
     <ClCompile Include="..\lodepng.cpp" />
-    <ClCompile Include="..\rtaudio-4.0.8\include\asio.cpp" />
-    <ClCompile Include="..\rtaudio-4.0.8\include\asiodrivers.cpp" />
-    <ClCompile Include="..\rtaudio-4.0.8\include\asiolist.cpp" />
-    <ClCompile Include="..\rtaudio-4.0.8\include\iasiothiscallresolver.cpp" />
-    <ClCompile Include="..\rtaudio-4.0.8\RtAudio.cpp" />
+    <ClCompile Include="..\rtaudio-4.1.2\RtAudio.cpp" />
     <ClCompile Include="..\snappy\snappy-c.cc" />
     <ClCompile Include="..\snappy\snappy-sinksource.cc" />
     <ClCompile Include="..\snappy\snappy-stubs-internal.cc" />

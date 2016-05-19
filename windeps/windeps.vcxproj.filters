@@ -276,19 +276,7 @@
     <ClCompile Include="..\untz\src\native\win\DShowAudioSource.cpp">
       <Filter>Source Files\UNTZ</Filter>
     </ClCompile>
-    <ClCompile Include="..\rtaudio-4.0.8\RtAudio.cpp">
-      <Filter>Source Files\rtaudio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\rtaudio-4.0.8\include\iasiothiscallresolver.cpp">
-      <Filter>Source Files\UNTZ</Filter>
-    </ClCompile>
-    <ClCompile Include="..\rtaudio-4.0.8\include\asio.cpp">
-      <Filter>Source Files\rtaudio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\rtaudio-4.0.8\include\asiodrivers.cpp">
-      <Filter>Source Files\rtaudio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\rtaudio-4.0.8\include\asiolist.cpp">
+    <ClCompile Include="..\rtaudio-4.1.2\RtAudio.cpp">
       <Filter>Source Files\rtaudio</Filter>
     </ClCompile>
   </ItemGroup>
