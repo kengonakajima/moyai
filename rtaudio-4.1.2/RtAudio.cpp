@@ -6488,10 +6488,6 @@ void RtApiDs :: callbackEvent()
     // Copy our buffer into the DS buffer
     CopyMemory( buffer1, buffer, bufferSize1 );
     if ( buffer2 != NULL ) CopyMemory( buffer2, buffer+bufferSize1, bufferSize2 );
-	char poo[100];
-	sprintf(poo, "buffer0:%x\n", buffer[0]);
-	OutputDebugStringA(poo);
-	printf(poo);
 
     // Update our buffer offset and unlock sound buffer
     dsBuffer->Unlock( buffer1, bufferSize1, buffer2, bufferSize2 );
