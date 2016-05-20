@@ -25,11 +25,10 @@ public:
 	float *buf;
 	int array_len, total_num_float, unit_num_float;
 	GLuint gl_name;
-
 	VertexBuffer() : fmt(NULL), buf(NULL), array_len(0), total_num_float(0), unit_num_float(0), gl_name(0) {}
 	~VertexBuffer() {
 		if(gl_name>0) {
-			glDeleteBuffers(1,&gl_name);
+            unbless();
 		}
 		assert(buf);
 		FREE(buf);

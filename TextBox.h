@@ -68,6 +68,7 @@ public:
     int getStringLength() { return len_str; }
     void clearMesh() {
         if(mesh) {
+            mesh->deleteBuffers();
             delete mesh;
             mesh = NULL;
         }

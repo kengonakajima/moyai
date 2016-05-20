@@ -6,7 +6,7 @@
 IndexBuffer::~IndexBuffer() {
 	assert(buf);
 	FREE(buf);
-	glDeleteBuffers(1,&gl_name);
+    unbless();
 }
 
 void IndexBuffer::reserve( int len ) {

@@ -49,8 +49,8 @@ public:
     DrawBatch( Viewport *vp, VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew = 1 );
     DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx, Vec2 translate, Vec2 scale, float r, Mesh *m );
     ~DrawBatch() {
-        delete vb;
-        delete ib;
+        if(vb)delete vb;
+        if(ib)delete ib;
     };
     bool shouldContinue( Viewport *vp, VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew = 1);
     void draw();
