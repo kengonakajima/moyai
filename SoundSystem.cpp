@@ -25,7 +25,7 @@ SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0) {
 	FMOD_ERRCHECK(r);
 #endif
 #ifdef USE_UNTZ
-	UNTZ::System::initialize( 44100, 1024, 0 );
+	UNTZ::System::initialize( 44100, 512, 0 );
 #endif
 #ifdef USE_OPENAL
     if(alutInit(0,NULL)==AL_FALSE) {
