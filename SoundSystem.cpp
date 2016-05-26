@@ -40,7 +40,7 @@ SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0) {
 
 Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_currently_ignored ) {
     const char *cpath = platformCStringPath(path);
-	Sound *out = new Sound(this);
+	
 #ifdef USE_FMOD    
     FMOD_RESULT r;    
 	FMOD_SOUND *s;
@@ -56,7 +56,12 @@ Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_curre
 #endif
 #ifdef USE_OPENAL
     ALSound *s = ALSound::create( cpath );
-#endif    
+#endif
+    if(!s) {
+        print("newSound failed for '%s'", path );
+        return 0;
+    }
+    Sound *out = new Sound(this);
 	out->sound = s;    
 	out->default_volume = vol;
     out->id = id_gen;

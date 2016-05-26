@@ -65,7 +65,7 @@ public:
         ALSound *out = new ALSound();
         out->buffer = alutCreateBufferFromFile(cpath);
         if(out->buffer==0) {
-            fprintf(stderr, "alutCreateBufferFromFile error: %s file:%s\n", alutGetErrorString(alutGetError()), cpath );
+            print( "alutCreateBufferFromFile error: %s file:%s\n", alutGetErrorString(alutGetError()), cpath );
             return 0;
         }
         alGenSources(1,&out->source);
@@ -76,7 +76,7 @@ public:
         ALSound *out = new ALSound();
         alGenBuffers( 1, &out->buffer );
         if(out->buffer==0) {
-            fprintf(stderr, "alGenBuffers failed\n");
+            print( "alGenBuffers failed\n");
             return 0;
         }
         assertmsg( info.mChannels == 1, "ALSound::create(): creating a sound from memory supports only monoral data\n");
