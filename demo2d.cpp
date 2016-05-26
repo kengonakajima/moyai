@@ -435,6 +435,11 @@ void gameUpdate(void) {
     if( g_keyboard->getKey( 'X' ) ) {
         g_viewport->setScale2D( g_viewport->scl.x * 1.1f, g_viewport->scl.y * 1.1f );        
     }
+    if( g_keyboard->getKey( 'P' ) ) {
+        float t = g_bgm_sound->getTimePositionSec();
+        print("getPosition: %f", t);
+        g_bgm_sound->setTimePositionSec(2.0f);
+    } 
 
     if( g_mouse->getButton(0) ) {
         Vec2 cp = g_mouse->getCursorPos();

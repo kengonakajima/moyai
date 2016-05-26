@@ -128,3 +128,4 @@ libmoyaisv.a
 libsnappy.a
 glfw-3.1.2/src/libglfw3.a
 demo2d.dSYM
+libalut.a

@@ -24,10 +24,9 @@ public:
 #ifdef USE_FMOD    
 	FMOD_SYSTEM *sys;
 #endif
-#ifdef USE_UNTZ
+#if defined(USE_UNTZ) || defined(USE_OPENAL)
     void *sys; // not used    
 #endif    
-    
 	SoundSystem();
 
 	Sound * newSE( const char *path ) { return newSE(path,1.0f); }

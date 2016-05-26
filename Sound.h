@@ -6,6 +6,9 @@
 #ifdef USE_UNTZ
 #include "untz/include/UntzSound.h"
 #endif
+#ifdef USE_OPENAL
+class ALSound;
+#endif
 
 class SoundSystem;
 
@@ -21,7 +24,10 @@ public:
     UNTZ::Sound *sound;
     void *ch;
 #endif    
-    
+#ifdef USE_OPENAL
+    ALSound *sound;
+    void *ch;
+#endif    
 	float default_volume;
     int external_id; // for app use
 

@@ -4,6 +4,9 @@
 #include "SoundSystem.h"
 #include "Sound.h"
 #include "Remote.h"
+#ifdef USE_OPENAL
+#include "ALSound.h"
+#endif
 
 SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0) {
 #ifdef USE_FMOD    
@@ -23,6 +26,14 @@ SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0) {
 #endif
 #ifdef USE_UNTZ
 	UNTZ::System::initialize( 44100, 1024, 0 );
+#endif
+#ifdef USE_OPENAL
+    if(alutInit(0,NULL)==AL_FALSE) {
+        print("alutInit failed! error:%s", alutGetErrorString(alutGetError()));
+        assert(false);
+    } else {
+        print("alutInit success!");
+    }
 #endif    
     for(int i=0;i<elementof(sounds);i++) sounds[i] = NULL;
 }
@@ -42,6 +53,9 @@ Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_curre
 #endif
 #ifdef USE_UNTZ
     UNTZ::Sound *s = UNTZ::Sound::create( cpath, true );
+#endif
+#ifdef USE_OPENAL
+    ALSound *s = ALSound::create( cpath );
 #endif    
 	out->sound = s;    
 	out->default_volume = vol;
@@ -82,6 +96,13 @@ Sound *SoundSystem::newSoundFromMemory( float *samples, int samples_num ) {
     info.mTotalFrames = samples_num / 1; // 1 for num of channels
 	info.mLength = (double)samples_num / 1.0f / 44100.0f; // 1 for num of channels
     UNTZ::Sound *s = UNTZ::Sound::create( info, samples, true ); // ownsdata: copy samples to mem
+#endif
+#ifdef USE_OPENAL
+    ALSoundInfo info;
+    info.mSampleRate = 44100;
+    info.mChannels = 1;
+    info.mTotalFrames = samples_num / 1;
+    ALSound *s = ALSound::create( info, samples );
 #endif    
     out->sound = s;
     out->default_volume = 1;
@@ -130,13 +151,15 @@ void SoundSystem::setRemoteHead(RemoteHead*rh) {
 #ifdef USE_UNTZ    
     g_audiocallback_rh = rh;
     UNTZ::System::setOutputCallback(untz_output_callback);
+#else
+    assertmsg(false, "setRemoteHead can only be used with UNTZ");
 #endif    
 };   
 
 
 void SoundSystem::setVolume(float v ) {
-#ifdef USE_UNTZ
-    UNTZ::System::get()->setVolume(v);
+#if defined(USE_UNTZ)
+    UNTZ::System::get()->setVolume(v);    
 #else
     assertmsg(false, "not implemented");
 #endif    

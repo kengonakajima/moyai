@@ -31,6 +31,7 @@ GLFWLIB=$(GLFW)/src/libglfw3.a
 
 FTGLOBJS=vertex-attribute.o vertex-buffer.o vector.o texture-atlas.o texture-font.o
 SNAPPYOBJS=snappy/snappy-sinksource.o snappy/snappy-c.o snappy/snappy.o
+ALUTOBJS=alutInit.o alutError.o alutBufferData.o alutCodec.o alutBufferData.o alutBufferData.o alutInputStream.o alutLoader.o alutOutputStream.o alutUtil.o
 
 FTGLLIB=libftgl.a
 OUTCLILIB=libmoyaicl.a
@@ -38,13 +39,15 @@ OUTSVLIB=libmoyaisv.a
 SNAPPYLIB=libsnappy.a
 UNTZLIB=untz/libuntz.a
 UNTZDEPENDLIB=-framework AudioToolbox /usr/local/lib/libvorbis.a /usr/local/lib/libvorbisfile.a /usr/local/lib/libogg.a
+ALUTLIB=libalut.a
 
-EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB)
+EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB) $(ALUTLIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(GLFWLIB) $(UNTZLIB)
-CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib -L/usr/local/lib -luv -ljpeg $(UNTZDEPENDLIB)
-CFLAGS=-O0 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -DUSE_UNTZ -Iuntz/src -Iuntz/include #-DUSE_FMOD
+CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib -L/usr/local/lib -luv -ljpeg $(UNTZDEPENDLIB) -framework OpenAL
+CFLAGS=-O0 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -DUSE_OPENAL -Iuntz/src -Iuntz/include -I./freealut/include 
 CFLAGS0X=-std=c++0x $(CFLAGS)
 
+ALUTCFLAGS=-DHAVE_STDINT_H -I./freealut/include -DHAVE_STAT -DHAVE_USLEEP -DHAVE_UNISTD_H
 
 DEMO2D=demo2d
 DEMO3D=demo3d
@@ -57,13 +60,13 @@ all : $(DEMO2D) $(DEMO3D) $(MIN2D) $(VIEWER) $(DYNCAM2D) $(REPLAYER)
 
 server : $(OUTSVLIB) $(SNAPPYLIB)
 
-$(REPLAYER) : $(EXTCLILIBS) $(OUTCLILIB) $(REPLAYEROBJS) $(BZ2LIB) $(ZLIBLIB)
+$(REPLAYER) : $(EXTCLILIBS) $(OUTCLILIB) $(REPLAYEROBJS) $(BZ2LIB) $(ZLIBLIB) 
 	g++ $(CFLAGS0X) $(CLILIBFLAGS) $(REPLAYEROBJS) -o $(REPLAYER) $(OUTCLILIB) $(EXTCLILIBS)
 
 $(DYNCAM2D) : $(EXTCLILIBS) $(OUTCLILIB) $(DYNCAM2DOBJS) $(BZ2LIB) $(ZLIBLIB)
 	g++ $(CFLAGS0X) $(CLILIBFLAGS) $(DYNCAM2DOBJS) -o $(DYNCAM2D) $(OUTCLILIB) $(EXTCLILIBS)
 
-$(MIN2D) : $(EXTCLILIBS) $(OUTCLILIB) $(MIN2DOBJS) $(BZ2LIB) $(ZLIBLIB)
+$(MIN2D) : $(EXTCLILIBS) $(OUTCLILIB) $(MIN2DOBJS) $(BZ2LIB) $(ZLIBLIB) $(ALUTLIB)
 	g++ $(CFLAGS0X) $(CLILIBFLAGS) $(MIN2DOBJS) -o $(MIN2D) $(OUTCLILIB) $(EXTCLILIBS)
 
 $(DEMO2D) : $(EXTCLILIBS) $(OUTCLILIB) $(DEMO2DOBJS) $(BZ2LIB) $(ZLIBLIB) 
@@ -104,7 +107,9 @@ $(SNAPPYLIB) : $(SNAPPYOBJS)
 	ar cr $(SNAPPYLIB) $(SNAPPYOBJS)
 	ranlib $(SNAPPYLIB)
 
-
+$(ALUTLIB) : $(ALUTOBJS)
+	ar cr $(ALUTLIB) $(ALUTOBJS)
+	ranlib $(ALUTLIB)
 
 common.o : common.cpp
 	g++ -c common.cpp $(CFLAGS0X)
@@ -190,6 +195,23 @@ snappy-c.o:
 	g++ -c snappy/snappy-c.cc $(CFLAGS)
 snappy.o:
 	g++ -c snappy/snappy.cc $(CFLAGS)
+
+alutInit.o:
+	gcc -c freealut/src/alutInit.c $(ALUTCFLAGS)
+alutError.o:
+	gcc -c freealut/src/alutError.c $(ALUTCFLAGS)
+alutCodec.o:
+	gcc -c freealut/src/alutCodec.c $(ALUTCFLAGS)
+alutBufferData.o:
+	gcc -c freealut/src/alutBufferData.c $(ALUTCFLAGS)
+alutInputStream.o:
+	gcc -c freealut/src/alutInputStream.c $(ALUTCFLAGS)
+alutLoader.o:
+	gcc -c freealut/src/alutLoader.c $(ALUTCFLAGS)
+alutOutputStream.o:
+	gcc -c freealut/src/alutOutputStream.c $(ALUTCFLAGS)
+alutUtil.o:
+	gcc -c freealut/src/alutUtil.c $(ALUTCFLAGS)
 
 $(FREETYPELIB):
 	rm -rf $(FREETYPE)

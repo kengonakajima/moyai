@@ -3,6 +3,10 @@
 #include "SoundSystem.h"
 #include "Remote.h"
 
+#ifdef USE_OPENAL
+#include "ALSound.h" // Thin wrapper of OpenAL
+#endif
+
 Sound::Sound( SoundSystem *s) : parent(s), sound(0), ch(0), default_volume(1), external_id(0), last_samples(0), last_samples_num(0), last_play_volume(0) {
     last_load_file_path[0] = '\0';
 }
@@ -23,6 +27,10 @@ void Sound::play(float vol){
 	FMOD_Channel_SetVolume(ch, default_volume * vol );
 #endif
 #ifdef USE_UNTZ
+    sound->play();
+    sound->setVolume(vol);
+#endif
+#ifdef USE_OPENAL
     sound->play();
     sound->setVolume(vol);
 #endif    
@@ -51,7 +59,10 @@ void Sound::stop() {
 #endif
 #ifdef USE_UNTZ
     sound->stop();
-#endif    
+#endif
+#ifdef USE_OPENAL
+    sound->stop();
+#endif        
     if(this->parent->remote_head) this->parent->remote_head->notifySoundStop(this);
 }
 
@@ -66,15 +77,21 @@ bool Sound::isPlaying() {
 #endif
 #ifdef USE_UNTZ
     return sound->isPlaying();
+#endif
+#ifdef USE_OPENAL
+    return sound->isPlaying();
 #endif    
 }
 void Sound::setVolume( float v ) {
-#if USE_FMOD    
+#ifdef USE_FMOD    
 	FMOD_Channel_SetVolume(this->ch, v );
 #endif
-#if USE_UNTZ
+#ifdef USE_UNTZ
     sound->setVolume(v);
 #endif
+#ifdef USE_OPENAL
+    sound->setVolume(v);
+#endif    
 }
 float Sound::getVolume() {
 #ifdef USE_FMOD    
@@ -83,6 +100,9 @@ float Sound::getVolume() {
     return v;
 #endif
 #ifdef USE_UNTZ
+    return sound->getVolume();
+#endif
+#ifdef USE_OPENAL
     return sound->getVolume();
 #endif    
 }
@@ -95,6 +115,9 @@ void Sound::setLoop( bool flag ) {
 	}
 #endif
 #ifdef USE_UNTZ
+    sound->setLooping(flag);
+#endif
+#ifdef USE_OPENAL
     sound->setLooping(flag);
 #endif    
 }
@@ -109,8 +132,8 @@ void Sound::updateLastSamples( float *samples, int samples_num ) {
 
 // returns -1 if not playing
 float Sound::getTimePositionSec() {
-    if(!this->ch) return -1;
 #ifdef USE_FMOD    
+    if(!this->ch) return -1;
     unsigned int pos_ms;
     FMOD_RESULT r = FMOD_Channel_GetPosition( this->ch, &pos_ms, FMOD_TIMEUNIT_MS );
     if( r != FMOD_OK ) {
@@ -121,11 +144,14 @@ float Sound::getTimePositionSec() {
 #endif
 #ifdef USE_UNTZ
     return (float) sound->getPosition();
+#endif
+#ifdef USE_OPENAL
+    return (float) sound->getPosition();
 #endif    
 }
 void Sound::setTimePositionSec( float sec ) {
-    if(!this->ch) return;
 #ifdef USE_FMOD    
+    if(!this->ch) return;
     unsigned int pos_ms = (unsigned int)(sec * 1000);
     FMOD_RESULT r = FMOD_Channel_SetPosition( this->ch, pos_ms, FMOD_TIMEUNIT_MS );
     if( r != FMOD_OK ) {
@@ -134,6 +160,9 @@ void Sound::setTimePositionSec( float sec ) {
 #endif
 #ifdef USE_UNTZ
     sound->setPosition(sec);
-#endif   
+#endif
+#ifdef USE_OPENAL
+    sound->setPosition(sec);
+#endif    
 }
 
