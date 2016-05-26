@@ -1,8 +1,14 @@
 #ifndef _ALSOUND_H_
 #define _ALSOUND_H_
 
+#ifdef WIN32
+#include "al.h"
+#include "alc.h"
+#else
 #include "OpenAL/al.h"
 #include "OpenAL/alc.h"
+#endif
+
 #include "AL/alut.h"
 
 class ALSoundInfo {
@@ -78,7 +84,7 @@ public:
         ALsizei bytesize = sizeof(int16_t) * info.mTotalFrames * info.mChannels;
         
         int16_t *i16outbuf = (int16_t*)MALLOC(info.mTotalFrames * sizeof(int16_t) );
-        for(int i=0;i<info.mTotalFrames;i++) {
+        for(unsigned int i=0;i<info.mTotalFrames;i++) {
             i16outbuf[i] = limit_float_conv_int16( samples[i] ); // from UNTZ code
         }
 

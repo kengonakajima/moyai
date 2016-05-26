@@ -40,7 +40,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\libvorbis-1.3.5\include;$(ProjectDir)\..\libogg-1.3.2\include;$(ProjectDir)\..\rtaudio-4.1.2\include;$(ProjectDir)\..\rtaudio-4.1.2</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\libvorbis-1.3.5\include;$(ProjectDir)\..\libogg-1.3.2\include;$(ProjectDir)\..\rtaudio-4.1.2\include;$(ProjectDir)\..\rtaudio-4.1.2;$(ProjectDir)\..\freealut\include;$(ProjectDir)\..\openal-1.1\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\libvorbis-1.3.5\include;$(ProjectDir)\..\libogg-1.3.2\include;$(ProjectDir)\..\rtaudio-4.1.2;$(ProjectDir)\..\rtaudio-4.1.2\include</IncludePath>
@@ -51,7 +51,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;USE_UNTZ;__WINDOWS_DS__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;USE_OPENAL;HAVE_STDINT_H;ALUT_BUILD_LIBRARY;HAVE_WINDOWS_H;HAVE_SLEEP;HAVE__STAT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -87,6 +87,16 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\freealut\src\alutBufferData.c" />
+    <ClCompile Include="..\freealut\src\alutCodec.c" />
+    <ClCompile Include="..\freealut\src\alutError.c" />
+    <ClCompile Include="..\freealut\src\alutInit.c" />
+    <ClCompile Include="..\freealut\src\alutInputStream.c" />
+    <ClCompile Include="..\freealut\src\alutLoader.c" />
+    <ClCompile Include="..\freealut\src\alutOutputStream.c" />
+    <ClCompile Include="..\freealut\src\alutUtil.c" />
+    <ClCompile Include="..\freealut\src\alutVersion.c" />
+    <ClCompile Include="..\freealut\src\alutWaveform.c" />
     <ClCompile Include="..\freetype-gl\texture-atlas.c" />
     <ClCompile Include="..\freetype-gl\texture-font.c" />
     <ClCompile Include="..\freetype-gl\vector.c" />
@@ -139,7 +149,6 @@
     <ClCompile Include="..\jpeg-8d\jquant2.c" />
     <ClCompile Include="..\jpeg-8d\jutils.c" />
     <ClCompile Include="..\lodepng.cpp" />
-    <ClCompile Include="..\rtaudio-4.1.2\RtAudio.cpp" />
     <ClCompile Include="..\snappy\snappy-c.cc" />
     <ClCompile Include="..\snappy\snappy-sinksource.cc" />
     <ClCompile Include="..\snappy\snappy-stubs-internal.cc" />
@@ -148,15 +157,6 @@
     <ClCompile Include="..\soil\src\image_helper.c" />
     <ClCompile Include="..\soil\src\SOIL.c" />
     <ClCompile Include="..\soil\src\stb_image_aug.c" />
-    <ClCompile Include="..\untz\src\AudioMixer.cpp" />
-    <ClCompile Include="..\untz\src\BufferedAudioSource.cpp" />
-    <ClCompile Include="..\untz\src\BufferedAudioSourceThread.cpp" />
-    <ClCompile Include="..\untz\src\MemoryAudioSource.cpp" />
-    <ClCompile Include="..\untz\src\native\win\DShowAudioSource.cpp" />
-    <ClCompile Include="..\untz\src\native\win\UntzSystem.cpp" />
-    <ClCompile Include="..\untz\src\OggAudioSource.cpp" />
-    <ClCompile Include="..\untz\src\UntzSound.cpp" />
-    <ClCompile Include="..\untz\src\UserAudioSource.cpp" />
     <ClCompile Include="..\zlib-1.2.7\adler32.c" />
     <ClCompile Include="..\zlib-1.2.7\compress.c" />
     <ClCompile Include="..\zlib-1.2.7\crc32.c" />
@@ -166,6 +166,9 @@
     <ClCompile Include="..\zlib-1.2.7\inftrees.c" />
     <ClCompile Include="..\zlib-1.2.7\trees.c" />
     <ClCompile Include="..\zlib-1.2.7\zutil.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\freealut\src\alutInternal.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

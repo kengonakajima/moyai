@@ -152,7 +152,7 @@ void SoundSystem::setRemoteHead(RemoteHead*rh) {
     g_audiocallback_rh = rh;
     UNTZ::System::setOutputCallback(untz_output_callback);
 #else
-    assertmsg(false, "setRemoteHead can only be used with UNTZ");
+    print("Warning: setRemoteHead works only with UNTZ");
 #endif    
 };   
 

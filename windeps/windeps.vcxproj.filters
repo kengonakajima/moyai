@@ -31,11 +31,8 @@
     <Filter Include="Source Files\libjpeg">
       <UniqueIdentifier>{d3698ae8-f68f-4550-aaef-ad2e4cc5108e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\UNTZ">
-      <UniqueIdentifier>{2ed7830e-46a0-434f-afcc-5ce3eac925f5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\rtaudio">
-      <UniqueIdentifier>{be96bc04-a081-4ded-be45-a078868dc2e3}</UniqueIdentifier>
+    <Filter Include="Source Files\freealut">
+      <UniqueIdentifier>{df9c7f5a-a8f0-4ed3-b565-8d795d780152}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -249,35 +246,40 @@
     <ClCompile Include="..\jpeg-8d\jutils.c">
       <Filter>Source Files\libjpeg</Filter>
     </ClCompile>
-    <ClCompile Include="..\untz\src\UntzSound.cpp">
-      <Filter>Source Files\UNTZ</Filter>
+    <ClCompile Include="..\freealut\src\alutBufferData.c">
+      <Filter>Source Files\freealut</Filter>
     </ClCompile>
-    <ClCompile Include="..\untz\src\AudioMixer.cpp">
-      <Filter>Source Files\UNTZ</Filter>
+    <ClCompile Include="..\freealut\src\alutCodec.c">
+      <Filter>Source Files\freealut</Filter>
     </ClCompile>
-    <ClCompile Include="..\untz\src\BufferedAudioSourceThread.cpp">
-      <Filter>Source Files\UNTZ</Filter>
+    <ClCompile Include="..\freealut\src\alutError.c">
+      <Filter>Source Files\freealut</Filter>
     </ClCompile>
-    <ClCompile Include="..\untz\src\BufferedAudioSource.cpp">
-      <Filter>Source Files\UNTZ</Filter>
+    <ClCompile Include="..\freealut\src\alutInit.c">
+      <Filter>Source Files\freealut</Filter>
     </ClCompile>
-    <ClCompile Include="..\untz\src\MemoryAudioSource.cpp">
-      <Filter>Source Files\UNTZ</Filter>
+    <ClCompile Include="..\freealut\src\alutInputStream.c">
+      <Filter>Source Files\freealut</Filter>
     </ClCompile>
-    <ClCompile Include="..\untz\src\OggAudioSource.cpp">
-      <Filter>Source Files\UNTZ</Filter>
+    <ClCompile Include="..\freealut\src\alutLoader.c">
+      <Filter>Source Files\freealut</Filter>
     </ClCompile>
-    <ClCompile Include="..\untz\src\UserAudioSource.cpp">
-      <Filter>Source Files\UNTZ</Filter>
+    <ClCompile Include="..\freealut\src\alutOutputStream.c">
+      <Filter>Source Files\freealut</Filter>
     </ClCompile>
-    <ClCompile Include="..\untz\src\native\win\UntzSystem.cpp">
-      <Filter>Source Files\UNTZ</Filter>
+    <ClCompile Include="..\freealut\src\alutUtil.c">
+      <Filter>Source Files\freealut</Filter>
     </ClCompile>
-    <ClCompile Include="..\untz\src\native\win\DShowAudioSource.cpp">
-      <Filter>Source Files\UNTZ</Filter>
+    <ClCompile Include="..\freealut\src\alutVersion.c">
+      <Filter>Source Files\freealut</Filter>
     </ClCompile>
-    <ClCompile Include="..\rtaudio-4.1.2\RtAudio.cpp">
-      <Filter>Source Files\rtaudio</Filter>
+    <ClCompile Include="..\freealut\src\alutWaveform.c">
+      <Filter>Source Files\freealut</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\freealut\src\alutInternal.h">
+      <Filter>Source Files\freealut</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
