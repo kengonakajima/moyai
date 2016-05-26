@@ -44,7 +44,7 @@ public:
         alSourcePlay(source);
     }
     void stop() {
-        print("stop not implemented");
+        alSourceStop(source);
     }
     void setVolume( float v) {
         volume = v;
