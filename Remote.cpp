@@ -167,7 +167,7 @@ void Tracker2D::broadcastDiff( bool force ) {
             prt("PRI ");
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_PRIORITY, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].priority );
         } else {
-            prt("SS%d ",diff);            
+            //            prt("SS%d ",diff);            
             parent_rh->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&pktbuf[cur_buffer_index], sizeof(PacketProp2DSnapshot) );
         }        
     }
@@ -917,14 +917,12 @@ void TrackerPrimDrawer::scanPrimDrawer() {
     // ensure buffer
     if( pktmax[cur_buffer_index] < target_pd->prim_num ) {
         if( pktbuf[cur_buffer_index] ) {
-            print("free buf:%d", cur_buffer_index );
             FREE( pktbuf[cur_buffer_index] );
         }
         
         size_t sz = target_pd->prim_num * sizeof(PacketPrim);
         pktbuf[cur_buffer_index] = (PacketPrim*) MALLOC(sz);
         pktmax[cur_buffer_index] = target_pd->prim_num;
-        print( "scanPrimDrawer: malloc buf:%d pktmax:%d sz:%d", cur_buffer_index, pktmax[cur_buffer_index], sz);
     }
     // 
     // scan
