@@ -44,7 +44,7 @@ ALUTLIB=libalut.a
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB) $(ALUTLIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(GLFWLIB) $(UNTZLIB)
 CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib -L/usr/local/lib -luv -ljpeg $(UNTZDEPENDLIB) -framework OpenAL
-CFLAGS=-O0 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -DUSE_OPENAL -Iuntz/src -Iuntz/include -I./freealut/include 
+CFLAGS=-O0 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -Iuntz/src -Iuntz/include -I./freealut/include 
 CFLAGS0X=-std=c++0x $(CFLAGS)
 
 ALUTCFLAGS=-DHAVE_STDINT_H -I./freealut/include -DHAVE_STAT -DHAVE_USLEEP -DHAVE_UNISTD_H
@@ -243,7 +243,7 @@ $(UNTZLIB):
 clean:
 	make -C $(GLFW) clean
 	make -C untz clean
-	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) 
+	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) $(ALUTLIB)
 	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(REPLAYER) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
 
 depend: $(GLFWLIB) $(UNTZLIB)
