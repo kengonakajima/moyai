@@ -6,6 +6,7 @@
 #ifdef WIN32
 #include "GL/glew.h"
 #define USE_OPENAL 1
+#define ALUT_BUILD_LIBRARY
 #endif
 
 #if defined(__APPLE__)

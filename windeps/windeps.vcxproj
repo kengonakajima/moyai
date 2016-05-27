@@ -51,7 +51,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;USE_OPENAL;HAVE_STDINT_H;ALUT_BUILD_LIBRARY;HAVE_WINDOWS_H;HAVE_SLEEP;HAVE__STAT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;HAVE_STDINT_H;ALUT_BUILD_LIBRARY;HAVE_WINDOWS_H;HAVE_SLEEP;HAVE__STAT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -70,7 +70,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;USE_OPENAL;HAVE_STDINT_H;ALUT_BUILD_LIBRARY;HAVE_WINDOWS_H;HAVE_SLEEP;HAVE__STAT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;HAVE_STDINT_H;ALUT_BUILD_LIBRARY;HAVE_WINDOWS_H;HAVE_SLEEP;HAVE__STAT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
