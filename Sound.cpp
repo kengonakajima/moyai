@@ -1,4 +1,5 @@
 #include "common.h"
+#include "client.h"
 #include "Sound.h"
 #include "SoundSystem.h"
 #include "Remote.h"
