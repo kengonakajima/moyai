@@ -70,6 +70,7 @@ public:
     DrawBatch *batches[MAXBATCH];
     DrawBatchList();
     void clear();
+    void dump();
     DrawBatch *getCurrentBatch();
     DrawBatch *startNextBatch( Viewport *vp, VFTYPE vft, GLuint tex, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew = 1 );
     DrawBatch *startNextMeshBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh );

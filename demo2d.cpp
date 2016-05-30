@@ -439,7 +439,10 @@ void gameUpdate(void) {
         float t = g_bgm_sound->getTimePositionSec();
         print("getPosition: %f", t);
         g_bgm_sound->setTimePositionSec(2.0f);
-    } 
+    }
+    if( g_keyboard->getKey( 'Y' ) ) {
+        g_moyai_client->batch_list.dump();
+    }
 
     if( g_mouse->getButton(0) ) {
         Vec2 cp = g_mouse->getCursorPos();
@@ -483,7 +486,7 @@ void gameUpdate(void) {
     if(last_print_at == 0){
         last_print_at = t;
     } else if( last_print_at < t-1 ){
-        fprintf(stderr,"FPS:%d prop:%d render:%d\n", frame_counter, cnt, g_last_render_cnt  );
+        fprintf(stderr,"FPS:%d prop:%d render:%d drawbatch:%d\n", frame_counter, cnt, g_last_render_cnt, g_moyai_client->batch_list.used  );
         frame_counter = 0;
         last_print_at = t;
     }

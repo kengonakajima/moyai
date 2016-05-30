@@ -12,7 +12,7 @@ DrawBatch::DrawBatch( Viewport *vp, VFTYPE vft, GLuint tx, GLuint primtype, Frag
     ib = new IndexBuffer();
     ib->reserve(MAXINDEX);
 }
-DrawBatch::DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx, Vec2 tr, Vec2 scl, float r, Mesh *m ) : vf_type(VFTYPE_INVAL), tex(tx), prim_type(0), f_shader(fs), blend_type(bt), vb(NULL), ib(NULL), vert_used(0), index_used(0), mesh(m), translate(tr), scale(scl), radrot(r), viewport(vp) {
+DrawBatch::DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx, Vec2 tr, Vec2 scl, float r, Mesh *m ) : vf_type(VFTYPE_INVAL), tex(tx), prim_type(0), f_shader(fs), blend_type(bt), line_width(0), vb(NULL), ib(NULL), vert_used(0), index_used(0), mesh(m), translate(tr), scale(scl), radrot(r), viewport(vp) {
 }
 bool DrawBatch::shouldContinue( Viewport *vp, VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew  ) {
     //    print("shouldcont:vf:%d:%d tex:%d:%d prim:%d:%d fs:%p:%p", vft,vf_type,texid,tex,primtype,prim_type,f_shader,fs);
@@ -317,6 +317,13 @@ void DrawBatchList::clear() {
         batches[i] = NULL;
     }
     used=0;
+}
+void DrawBatchList::dump() {
+    for(int i=0;i<used;i++) {
+        DrawBatch *b = batches[i];
+        print("[%d] VF:%d Tex:%d prim:%d blt:%d lw:%d vp:%p sh:%p",
+              i, b->vf_type, b->tex, b->prim_type, b->blend_type, b->line_width, b->viewport, b->f_shader );
+    }
 }
 DrawBatch *DrawBatchList::getCurrentBatch() {
     if(used==0) return NULL;
