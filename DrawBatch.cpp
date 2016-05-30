@@ -323,14 +323,14 @@ DrawBatch *DrawBatchList::getCurrentBatch() {
     return batches[used-1];
 }
 DrawBatch *DrawBatchList::startNextBatch( Viewport *vp, VFTYPE vft, GLuint tex, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew ) {
-    assertmsg( used<MAXBATCH, "max draw batch. need tune" );
+    assertmsg( used<MAXBATCH, "max draw batch (vftype). need tune" );
     DrawBatch *b = new DrawBatch( vp, vft, tex, primtype, fs, bt, linew );
     batches[used] = b;
     used++;
     return b;
 }
 DrawBatch *DrawBatchList::startNextMeshBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh ) {
-    assertmsg( used<MAXBATCH, "max draw batch. need tune" );
+    assertmsg( used<MAXBATCH, "max draw batch (withshader). need tune" );
     DrawBatch *b = new DrawBatch( vp, fs, bt, tex, tr, scl, radrot, mesh );
     batches[used] = b;
     used++;
