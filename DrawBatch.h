@@ -65,7 +65,7 @@ public:
 
 class DrawBatchList {
 public:
-    static const int MAXBATCH = 1024;
+    static const int MAXBATCH = 2048;
     int used;
     DrawBatch *batches[MAXBATCH];
     DrawBatchList();

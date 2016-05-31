@@ -238,10 +238,12 @@ void Prop2D::render(Camera *cam, DrawBatchList *bl ) {
                 print("no tex? (grid)");
                 continue;
             }
-            //            print("ggg:%p %p %f,%f", grid->mesh, draw_deck, loc.x, loc.y );
-            //drawMesh( grid->mesh, draw_deck->tex->tex, Vec2(camx,camy) );
+            if( grid->mesh == NULL || grid->mesh->hasIndexesToRender() == false ) {
+                continue;
+            }
             FragmentShader *fs = fragment_shader;
             if( grid->fragment_shader ) fs = grid->fragment_shader;
+            //            print("appendMesh, tex:%d vn:%d rn:%d", draw_deck->tex->tex, grid->mesh->vb->array_len, grid->mesh->ib->render_len );
             bl->appendMesh( getViewport(), fs, getBlendType(), draw_deck->tex->tex, loc - Vec2(camx,camy), scl, rot, grid->mesh );
 		}
 	}

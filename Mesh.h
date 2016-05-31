@@ -23,5 +23,5 @@ public:
         if(vb) delete vb;
         if(ib) delete ib;
     }
-
+    bool hasIndexesToRender() { return ib->render_len > 0; }
 };

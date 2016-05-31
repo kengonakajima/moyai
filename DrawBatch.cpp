@@ -187,7 +187,7 @@ bool DrawBatchList::appendSprite1( Viewport *vp, FragmentShader *fs, BLENDTYPE b
     bool to_continue = false;
     if( b && b->shouldContinue( vp, VFTYPE_COORD_COLOR_UV, tex, GL_TRIANGLES, fs, bt ) && b->hasVertexRoom(4) ) {
         to_continue = true;
-    } 
+    }
     if( !to_continue ) {
         b = startNextBatch( vp, VFTYPE_COORD_COLOR_UV, tex, GL_TRIANGLES, fs, bt );
         if(!b) {
@@ -298,7 +298,6 @@ bool DrawBatchList::appendRect( Viewport *vp, Vec2 p0, Vec2 p1, Color c, Vec2 tr
     return true;
 }
 bool DrawBatchList::appendMesh( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh ) {
-    //    print("appendmesh: tr:%f,%f scl:%f,%f rot:%f", tr.x,tr.y,scl.x,scl.y,radrot);
     DrawBatch *b = startNextMeshBatch( vp, fs, bt, tex, tr,scl,radrot,mesh );
     if(!b) {
         print("appendMesh: can't start mesh batch!" );
@@ -321,8 +320,11 @@ void DrawBatchList::clear() {
 void DrawBatchList::dump() {
     for(int i=0;i<used;i++) {
         DrawBatch *b = batches[i];
-        print("[%d] VF:%d Tex:%d prim:%d blt:%d lw:%d vp:%p sh:%p",
-              i, b->vf_type, b->tex, b->prim_type, b->blend_type, b->line_width, b->viewport, b->f_shader );
+        print("[%d] VF:%d Tex:%3d prim:%d blt:%d lw:%d vn:%d in:%d vp:%p sh:%p lc:%.1f,%.1f scl:%.1f,%.1f",
+              i, b->vf_type, b->tex, b->prim_type, b->blend_type, b->line_width,
+              b->vert_used, b->index_used,
+              b->viewport, b->f_shader,
+              b->translate.x, b->translate.y, b->scale.x, b->scale.y );
     }
 }
 DrawBatch *DrawBatchList::getCurrentBatch() {
