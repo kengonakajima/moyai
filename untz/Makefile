@@ -39,5 +39,5 @@ synth: main.o $(LIBOBJS)
 	g++ -o synth main.o libuntz.a -framework Cocoa -framework AudioToolbox /usr/local/lib/libogg.a /usr/local/lib/libvorbis.a /usr/local/lib/libvorbisfile.a
 
 clean:
-	rm *.o synth libuntz.a
+	rm -f *.o synth libuntz.a
 
