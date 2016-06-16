@@ -35,6 +35,7 @@ void IndexBuffer::set( IndexBufferType *in, int l ) {
 }
 
 void IndexBuffer::bless(){
+#if !defined(__linux__)    
 	if( gl_name == 0 ){
 		glGenBuffers(1, &gl_name);
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, gl_name );
@@ -42,12 +43,15 @@ void IndexBuffer::bless(){
 		glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(IndexBufferType) * array_len, buf, GL_STATIC_DRAW );
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	}
+#endif    
 }
 void IndexBuffer::unbless() {
+#if !defined(__linux__)    
     if( gl_name != 0 ) {
         glDeleteBuffers(1,&gl_name);
         gl_name = 0;
     }
+#endif    
 }
 
 void IndexBuffer::dump() {

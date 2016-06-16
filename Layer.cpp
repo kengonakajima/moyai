@@ -25,9 +25,10 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec
 	assert( mesh->ib->gl_name > 0 );
     
 	int vert_sz = mesh->vb->fmt->getNumFloat() * sizeof(float);
+#if !defined(__linux__)
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mesh->ib->gl_name );
 	glBindBuffer( GL_ARRAY_BUFFER, mesh->vb->gl_name );
-
+#endif
 
 	if( dbg != 0  ){
 		print("draw mesh! dbg:%d deck:%p mesh:%p vbname:%d ibname:%d coordofs:%d colofs:%d texofs:%d normofs:%d vert_sz:%d varray_len:%d iarray_len:%d loc:%f %f %f",
@@ -119,8 +120,10 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec
 		glLineWidth(mesh->line_width);
 	}
 	glDrawElements( mesh->prim_type, mesh->ib->array_len, INDEX_BUFFER_GL_TYPE, 0);
+#if !defined(__linux__)    
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
+#endif    
 
 }
 

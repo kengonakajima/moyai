@@ -4,7 +4,7 @@
 
 int FragmentShader::idgen = 1;
 
-#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)
+#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE || defined(__linux__))
 
 static bool shaderCompile(GLuint shader, const char *src){
 	GLsizei len = strlen(src), size;
@@ -59,7 +59,7 @@ static bool link( GLuint prog ){
 
 bool FragmentShader::load( const char *src) {
 
-#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)    
+#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE || defined(__linux__) )
 	GLuint shader = glCreateShader( GL_FRAGMENT_SHADER );
 	if(!shaderCompile( shader, src)){
 		glDeleteShader(shader);

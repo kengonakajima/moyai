@@ -16,16 +16,17 @@ class Sound {
 public:
     int id;
 	SoundSystem *parent;
-#ifdef USE_FMOD    
+#if defined(USE_FMOD)
 	FMOD_SOUND *sound;
 	FMOD_CHANNEL *ch;
-#endif
-#ifdef USE_UNTZ
+#elif defined(USE_UNTZ)
     UNTZ::Sound *sound;
     void *ch;
-#endif    
-#ifdef USE_OPENAL
+#elif defined(USE_OPENAL)
     ALSound *sound;
+    void *ch;
+#else
+    void *sound;
     void *ch;
 #endif    
 	float default_volume;

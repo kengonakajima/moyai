@@ -26,7 +26,9 @@
 #endif
 #endif
 
-
+#if defined(__linux__)
+#include "GLemu.h"
+#endif
 
 // GFX API specific includes
 #include "Viewport.h"

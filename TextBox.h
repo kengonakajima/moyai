@@ -2,7 +2,10 @@
 
 #include "Prop2D.h"
 #include "Font.h"
+
+#if !defined(__linux__)
 #include "freetype-gl/vertex-buffer.h"
+#endif
 
 class TextBox : public Prop2D {
 public:

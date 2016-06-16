@@ -15,7 +15,11 @@ public:
 	Font( ){
         id = idgen++;
 		font = NULL;
+#if !defined(__linux__)        
 		atlas = texture_atlas_new( 1024, 1024, 1 );
+#else
+        atlas = NULL;
+#endif        
         last_load_file_path[0] = '\0';
         memset( charcode_table, 0, sizeof(charcode_table) );
         charcode_table_used_num = 0;

@@ -8,12 +8,14 @@ bool Font::loadFromTTF(const char *path, const wchar_t *codes, int pixelsz ) {
     if(codes == NULL ) codes = charcode_table;
     
 	pixel_size = pixelsz;
+#if !defined(__linux__)
     const char *cpath = platformCStringPath(path);
 	font = texture_font_new( atlas, cpath, pixelsz );
 	if(!font){
 		return false;
 	}
 	texture_font_load_glyphs( font, codes);
+#endif
     // for headless
     strncpy( last_load_file_path, path, sizeof(last_load_file_path) );
     if(codes) setCharCodes(codes);

@@ -76,7 +76,7 @@ void DrawBatch::draw() {
     }
 
     if( f_shader) {
-#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
+#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE || defined(__linux__) )
         glUseProgram(f_shader->program);
 #endif        
         f_shader->updateUniforms();
@@ -109,8 +109,10 @@ void DrawBatch::draw() {
     ib_use->bless();
 
     int vert_sz = vb_use->fmt->getNumFloat() * sizeof(float);
+#if !defined(__linux__)    
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib_use->gl_name );
     glBindBuffer( GL_ARRAY_BUFFER, vb_use->gl_name );
+#endif    
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_COLOR_ARRAY );
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
@@ -168,10 +170,12 @@ void DrawBatch::draw() {
     }
 
     // clean
+#if !defined(__linux__)    
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
     glBindBuffer( GL_ARRAY_BUFFER, 0 );
-        
-#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)
+#endif
+    
+#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE || defined(__linux__))
     if(f_shader) glUseProgram(0);
 #endif    
 }

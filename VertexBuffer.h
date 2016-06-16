@@ -18,6 +18,9 @@
 #   error "Unknown Apple platform"
 #endif
 #endif
+#ifdef __linux__
+#include <GLemu.h>
+#endif
 
 class VertexBuffer {
 public:

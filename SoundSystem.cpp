@@ -39,8 +39,10 @@ SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0) {
 }
 
 Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_currently_ignored ) {
+#if !defined(__linux__)    
     const char *cpath = platformCStringPath(path);
-	
+#endif
+    
 #ifdef USE_FMOD    
     FMOD_RESULT r;    
 	FMOD_SOUND *s;
@@ -57,6 +59,9 @@ Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_curre
 #ifdef USE_OPENAL
     ALSound *s = ALSound::create( cpath );
 #endif
+#ifdef __linux__
+    void *s = this; // TODO: implement virtual sound
+#endif    
     if(!s) {
         print("newSound failed for '%s'", path );
         return 0;
@@ -108,7 +113,10 @@ Sound *SoundSystem::newSoundFromMemory( float *samples, int samples_num ) {
     info.mChannels = 1;
     info.mTotalFrames = samples_num / 1;
     ALSound *s = ALSound::create( info, samples );
-#endif    
+#endif
+#ifdef __linux__
+    void *s = this; // TODO: implement virtual sound
+#endif        
     out->sound = s;
     out->default_volume = 1;
     out->id = id_gen;

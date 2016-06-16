@@ -64,7 +64,7 @@ public:
 };
 
 inline void Prop3D::cleanRenderOptions() {
-#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)
+#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE || defined(__linux__) )
 	if( fragment_shader ) glUseProgram( 0 );
 #endif    
 	glDepthMask(true);
@@ -85,7 +85,7 @@ inline void Prop3D::performRenderOptions() {
 		glDisable(GL_CULL_FACE);
 	}
 	if( fragment_shader ){
-#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)
+#if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE || defined(__linux__) )
 		glUseProgram( fragment_shader->program );
 #endif        
 		fragment_shader->updateUniforms();

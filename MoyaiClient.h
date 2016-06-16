@@ -5,9 +5,12 @@
 #include "DrawBatch.h"
 
 #if TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE
-#include "GLFWiosemu.h"
-#else
-#include "GLFW/glfw3.h"
+#include "GLFWemu.h"
+#endif
+
+#ifdef __linux__
+#include "GLFWemu.h"
+#include "GLemu.h"
 #endif
 
 class MoyaiClient : public Moyai {

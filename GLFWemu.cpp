@@ -1,5 +1,5 @@
 
-#include "GLFWiosemu.h"
+#include "GLFWemu.h"
 
 
 void glfwSwapBuffers( GLFWwindow *w ) {
@@ -39,6 +39,14 @@ int glfwGetKey(GLFWwindow* window, int key) {
     return false;
 }
 void glfwPollEvents() {
+}
+GLFWkeyfun glfwSetKeyCallback(GLFWwindow* window, GLFWkeyfun cbfun) {
+}
+GLFWmousebuttonfun glfwSetMouseButtonCallback(GLFWwindow* window, GLFWmousebuttonfun cbfun) {
+}
+GLFWcursorposfun glfwSetCursorPosCallback(GLFWwindow* window, GLFWcursorposfun cbfun) {
+}
+GLFWframebuffersizefun glfwSetFramebufferSizeCallback(GLFWwindow* window, GLFWframebuffersizefun cbfun) {
 }
 
 

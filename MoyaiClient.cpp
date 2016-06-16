@@ -3,6 +3,9 @@
 #include "MoyaiClient.h"
 
 int MoyaiClient::render(){
+#if defined(__linux__)
+    return 0;
+#else    
     batch_list.clear();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -31,9 +34,11 @@ int MoyaiClient::render(){
 	glfwSwapBuffers(window);
 	glFlush();
 	return render_n;
+#endif    
 }
 
 void MoyaiClient::capture( Image *img ) {
+#if !defined(__linux__)    
     glReadBuffer(GL_FRONT);
     unsigned char *buf = (unsigned char*)MALLOC( img->width * img->height * 4 );
 	glReadPixels( 0, 0, img->width, img->height, GL_RGBA, GL_UNSIGNED_BYTE, buf );
@@ -43,6 +48,7 @@ void MoyaiClient::capture( Image *img ) {
         memcpy( dst, src, img->width*4);
     }
     FREE(buf);
+#endif    
 }
 
 int MoyaiClient::poll( double dt ) {

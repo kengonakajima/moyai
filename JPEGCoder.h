@@ -3,7 +3,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef __linux__
+#include "jpeg-8d/jpeglib.h"
+#else
 #include <jpeglib.h>
+#endif
 
 class Image;
 

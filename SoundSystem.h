@@ -24,7 +24,7 @@ public:
 #ifdef USE_FMOD    
 	FMOD_SYSTEM *sys;
 #endif
-#if defined(USE_UNTZ) || defined(USE_OPENAL)
+#if defined(USE_UNTZ) || defined(USE_OPENAL) || defined(__linux__)
     void *sys; // not used    
 #endif    
 	SoundSystem();

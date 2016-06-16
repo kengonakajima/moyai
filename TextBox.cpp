@@ -20,6 +20,7 @@ void TextBox::render(Camera *cam, DrawBatchList *bl ) {
 }
 
 void TextBox::updateMesh() {
+#if !defined(__linux__)    
     if(!str)return;
     if(mesh) {
         mesh->deleteBuffers();
@@ -104,6 +105,7 @@ void TextBox::updateMesh() {
     }
     max_rt_cache.y = (line_num+1)*font->pixel_size;
     ib->setRenderLen(ii);
+#endif    
 }
 
 void TextBox::onTrack( RemoteHead *rh, Prop2D *parentprop ) {

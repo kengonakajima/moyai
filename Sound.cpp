@@ -75,13 +75,14 @@ bool Sound::isPlaying() {
 	r = FMOD_Channel_IsPlaying( this->ch, &val );
 	if( r != FMOD_OK ) return false;
 	return val;
-#endif
-#ifdef USE_UNTZ
+#elif defined(USE_UNTZ)
     return sound->isPlaying();
-#endif
-#ifdef USE_OPENAL
+#elif defined(USE_OPENAL)
     return sound->isPlaying();
-#endif    
+#else
+    return false; // TODO: implement linux virtual sound
+#endif
+
 }
 void Sound::setVolume( float v ) {
 #ifdef USE_FMOD    
@@ -99,13 +100,14 @@ float Sound::getVolume() {
     float v;
     FMOD_Channel_GetVolume(this->ch,&v);
     return v;
-#endif
-#ifdef USE_UNTZ
+#elif defined(USE_UNTZ)
     return sound->getVolume();
-#endif
-#ifdef USE_OPENAL
+#elif defined(USE_OPENAL)
     return sound->getVolume();
-#endif    
+#else
+    return 1; // TODO: implement linux virtual sound
+#endif
+    
 }
 void Sound::setLoop( bool flag ) {
 #ifdef USE_FMOD    
@@ -142,12 +144,12 @@ float Sound::getTimePositionSec() {
         return -1;
     }
     return (float)(pos_ms) / 1000.0f;
-#endif
-#ifdef USE_UNTZ
+#elif defined(USE_UNTZ)
     return (float) sound->getPosition();
-#endif
-#ifdef USE_OPENAL
+#elif defined(USE_OPENAL)
     return (float) sound->getPosition();
+#else
+    return 0; // TODO: implement linux virtual sound
 #endif    
 }
 void Sound::setTimePositionSec( float sec ) {

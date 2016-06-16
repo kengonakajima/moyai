@@ -1,5 +1,3 @@
-#include <GLFW/glfw3.h>
-
 #include <stdio.h>
 #include <assert.h>
 #include <strings.h>

@@ -114,6 +114,7 @@ void VertexBuffer::setNormalBulk( Vec3 *v, int num ) {
 }
 
 void VertexBuffer::bless(){
+#if !defined(__linux__)        
 	assert(fmt);
 	if( gl_name == 0 ){
 		glGenBuffers(1, &gl_name);
@@ -121,12 +122,15 @@ void VertexBuffer::bless(){
 		glBufferData( GL_ARRAY_BUFFER, total_num_float * sizeof(float), buf, GL_STATIC_DRAW );
 		glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	}
+#endif        
 }
 void VertexBuffer::unbless() {
+#if !defined(__linux__)            
     if( gl_name != 0 ) {        
         glDeleteBuffers(1, &gl_name);
         gl_name = 0;
     }
+#endif    
 }
 
 Vec3 VertexBuffer::calcCenterOfCoords() {
