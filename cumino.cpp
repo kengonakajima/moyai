@@ -299,7 +299,7 @@ bool writeFileOffset( const char *path, const char *data, size_t sz, size_t offs
         return false;
     }
     rc = write( fd, data, sz );
-    if(rc != sz ) {
+    if(rc != (int)sz ) {
         print("writeFileOffset: write failed for file '%s' err:'%s'", path, strerror(errno) );
         close(fd);
         return false;
@@ -562,7 +562,7 @@ void endMeasure() {
 
 int memCompressSnappy( char *out, int outlen, char *in, int inlen ) {
     size_t maxsz = snappy_max_compressed_length(inlen);
-    assertmsg( outlen >= maxsz, "snappy requires buffer size:%d given:%d", maxsz, outlen );
+    assertmsg( (size_t)outlen >= maxsz, "snappy requires buffer size:%d given:%d", maxsz, outlen );
     size_t osz = outlen;
     snappy_status ret = snappy_compress( in, inlen, out, &osz);
     if(ret == SNAPPY_OK ) return (int)osz; else assertmsg(false,"snappy_compress failed. outlen:%d inlen:%d ret:%d", outlen, inlen,ret );
@@ -597,7 +597,7 @@ int atoilen( const char *s, int l ) {
 unsigned int strtoullen( const char *s, int l ) {
     char buf[64];
     int copylen = l;
-    if( copylen >= sizeof(buf) ) copylen = sizeof(buf)-1;
+    if( copylen >= (int)sizeof(buf) ) copylen = sizeof(buf)-1;
     strncpy( buf, s, copylen );
     buf[copylen] = '\0';
     return strtoul( buf, NULL, 10 );
@@ -605,7 +605,7 @@ unsigned int strtoullen( const char *s, int l ) {
 unsigned long long strtoulllen( const char *s, int l ) {
     char buf[64];
     int copylen = l;
-    if( copylen >= sizeof(buf) ) copylen = sizeof(buf)-1;
+    if( copylen >= (int)sizeof(buf) ) copylen = sizeof(buf)-1;
     strncpy( buf, s, copylen );
     buf[copylen] = '\0';
 #if defined(WIN32)
@@ -633,7 +633,7 @@ int countChar(const char *s, int ch){
 }
 
 void sleepMilliSec( int ms ) {
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__linux__)
         // glfwSleep(to_sleep); not present in 3.0
     if(ms>0) usleep( ms * 1000 );
 #endif
