@@ -240,6 +240,9 @@ $(GLFWLIB):
 $(UNTZLIB):
 	make -C untz
 
+linux:
+	make -f Makefile.linux
+
 clean:
 	make -C $(GLFW) clean
 	make -C untz clean
