@@ -1,6 +1,7 @@
 # moyai
 
-An experimental simple 2D/3D game engine for native C++ and OpenGL, strongly inspired by MoaiSDK API structure.
+An experimental simple 2D game engine for native C++ and OpenGL with cloud gaming support,
+strongly inspired by MoaiSDK API structure.
 
 Moai SDK: https://github.com/moai/moai-dev
 
@@ -16,7 +17,7 @@ Moai SDK: https://github.com/moai/moai-dev
   - FMOD based ( http://fmod.com/ )
  - Font
   - FreeType2 based, reads TTF files, multi-byte chars
- - Headless mode
+ - Headless mode for cloud gaming
   - Transfer all geometry data every frame via TCP, to enable remote rendering.
   - Recording all sprite stream and save it in file, replaying the file.
 
@@ -24,9 +25,10 @@ Moai SDK: https://github.com/moai/moai-dev
  - OSX 10.10/10.11
  - Windows7 (VS2012)
  - working on iOS
+ - Linux (For cloud gaming server)
  
 # Performance target
-10K~20K sprites at 60FPS with -O0 on OSX, -O1 on VC++
+10K~20K sprites at 60FPS with -O0 on OSX/Linux, -O1 on VC++
 
 
 # Example
