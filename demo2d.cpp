@@ -347,16 +347,12 @@ void gameUpdate(void) {
     static double last_print_at = 0;
     static int frame_counter = 0;
     static int total_frame = 0;
-    static double last_poll_at = now();
 
+    static double last_t=now();
     double t = now();
-    double dt = t - last_poll_at;
-    double ideal_frame_time = 1.0f / 60.0f;
-    if(dt < ideal_frame_time ) {
-        double to_sleep_sec = ideal_frame_time - dt;
-        int to_sleep_msec = (int) (to_sleep_sec*1000);
-        if( to_sleep_msec > 0 ) sleepMilliSec(to_sleep_msec);
-    }
+    double dt = t - last_t;
+    last_t = t;
+    double loop_start_at = t;
     
     frame_counter ++;
     total_frame ++;    
@@ -493,9 +489,15 @@ void gameUpdate(void) {
 
     if(g_rh) g_rh->heartbeat();
     
-    last_poll_at = now();
+    double loop_end_at = now();
+    double loop_time = loop_end_at - loop_start_at;
+    double ideal_frame_time = 1.0f / 60.0f;
+    if(loop_time < ideal_frame_time ) {
+        double to_sleep_sec = ideal_frame_time - loop_time;
+        int to_sleep_msec = (int) (to_sleep_sec*1000);
+        if( to_sleep_msec > 0 ) sleepMilliSec(to_sleep_msec);
+    }
 }
-
 
 void qstest(){
     SorterEntry tosort[5];
@@ -649,7 +651,7 @@ void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videost
     glfwMakeContextCurrent(g_window);    
     glfwSetWindowCloseCallback( g_window, winclose_callback );
     //    glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
-    glfwSwapInterval(0); // set 1 to use vsync. Use 0 for fast screen capturing.
+    glfwSwapInterval(0); // set 1 to use vsync. Use 0 for fast screen capturing and headless
 #ifdef WIN32
 	glewInit();
 #endif

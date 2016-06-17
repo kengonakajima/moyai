@@ -39,13 +39,13 @@ GLFWwindow *g_window;
 void updateGame() {
     static double last_print_at = 0;
     static int frame_counter = 0;
-    static double last_poll_at = now();
 
     frame_counter ++;
-    
+
+    static double last_t=now();
     double t = now();
-    double dt = t - last_poll_at;
-    last_poll_at = t;
+    double dt = t - last_t;
+    last_t = t;
     
     g_moyai_client->poll(dt);
 
@@ -91,8 +91,6 @@ void updateGame() {
     //    print("propx:%f r:%f", g_prop_0->loc.x, g_prop_0->rot3d.z );
     
     g_moyai_client->render();
-    
-
 }
 
 void setupCube() {
@@ -338,7 +336,7 @@ int main() {
     glfwMakeContextCurrent(g_window);
     glfwSetWindowCloseCallback( g_window, winclose_callback );
     glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
-    glfwSwapInterval(1); // vsync
+    glfwSwapInterval(1); // 1 for use vsync
 
     glClearColor(0,0,0,1);
     

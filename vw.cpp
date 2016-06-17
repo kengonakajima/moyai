@@ -1295,7 +1295,7 @@ void setupClient( int win_w, int win_h ) {
     glfwMakeContextCurrent(g_window);    
     glfwSetWindowCloseCallback( g_window, winclose_callback );
     glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
-    glfwSwapInterval(1); // vsync
+    glfwSwapInterval(1); // 1 for use vsync
 #ifdef WIN32
 	glewInit();
 #endif
