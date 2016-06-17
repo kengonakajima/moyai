@@ -45,6 +45,7 @@ void updateGame() {
     
     double t = now();
     double dt = t - last_poll_at;
+    last_poll_at = t;
     
     g_moyai_client->poll(dt);
 
@@ -91,7 +92,7 @@ void updateGame() {
     
     g_moyai_client->render();
     
-    last_poll_at = t;
+
 }
 
 void setupCube() {

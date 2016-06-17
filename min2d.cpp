@@ -291,7 +291,6 @@ int main(int argc, char **argv )
             int to_sleep_msec = (int) (to_sleep_sec*1000);
             if( to_sleep_msec > 0 ) sleepMilliSec(to_sleep_msec);
         }
-        last_poll_at = t;
         
         frame_counter ++;
         loop_counter++;
@@ -404,6 +403,7 @@ int main(int argc, char **argv )
         }
         
         glfwPollEvents();
+        last_poll_at = now();        
     }
     glfwTerminate();
 
