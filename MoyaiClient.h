@@ -13,6 +13,10 @@
 #include "GLemu.h"
 #endif
 
+#if defined(__APPLE__) || defined(WIN32)
+#include "GLFW/glfw3.h"                                                                                 
+#endif
+
 class MoyaiClient : public Moyai {
 public:
     GLFWwindow *window;
