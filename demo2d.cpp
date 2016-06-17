@@ -493,7 +493,7 @@ void gameUpdate(void) {
 
     if(g_rh) g_rh->heartbeat();
     
-    last_poll_at = t;
+    last_poll_at = now();
 }
 
 
