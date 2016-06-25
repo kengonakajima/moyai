@@ -255,7 +255,7 @@ int main(int argc, char **argv )
     }
     TextBox *movtb = new TextBox();
     movtb->setFont(font);
-    movtb->setString("ABCabc\n01234ほげ");
+    movtb->setString("ABCabc\n01234あいうえお");
     movtb->setScl(3);
     movtb->setLoc(0,-150);
     l->insertProp(movtb);
