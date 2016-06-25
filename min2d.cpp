@@ -240,7 +240,7 @@ int main(int argc, char **argv )
 #endif    
     
     // text
-    wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ほげ";
+    wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえお";
     
     Font *font = new Font();
     font->loadFromTTF("./assets/cinecaption227.ttf", charcodes, 24 );

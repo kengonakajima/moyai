@@ -865,7 +865,7 @@ void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videost
 
     TextBox *t3 = new TextBox();
     t3->setFont(font);
-    t3->setString( L"ABC012ほげ。\nふがふがふがの(wchar_t)。" );
+    t3->setString( L"ABC012あいうえお\nあいうえお(wchar_t)。" );
     t3->setLoc(-100,-50);
     t3->setScl(1);
     g_main_layer->insertProp(t3);
@@ -873,7 +873,7 @@ void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videost
 
     TextBox *t4 = new TextBox();
     t4->setFont(font);
-    t4->setString( "ABC012ほげ。\nふがふがふがの(mb-utf8)。" );
+    t4->setString( "ABC012あいうえお\nあいうえお(mb-utf8)。" );
     t4->setLoc(-100,-90);
     t4->setScl(0.75f);
     g_main_layer->insertProp(t4);
