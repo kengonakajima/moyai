@@ -60,6 +60,7 @@ public:
     void pushVertices( int vnum, Color *colors, Vec3 *coords, int inum, int *inds);    
     void pushVertices( int vnum, Color *colors, Vec3 *coords, Vec2 *uvs, int inum, int *inds);
     static VertexFormat *getVertexFormat(VFTYPE t);
+    void dump();
 };
 
 

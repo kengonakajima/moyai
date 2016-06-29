@@ -114,7 +114,7 @@ void VertexBuffer::setNormalBulk( Vec3 *v, int num ) {
 }
 
 void VertexBuffer::bless(){
-#if !defined(__linux__)        
+#if !defined(__linux__)
 	assert(fmt);
 	if( gl_name == 0 ){
 		glGenBuffers(1, &gl_name);
@@ -125,7 +125,7 @@ void VertexBuffer::bless(){
 #endif        
 }
 void VertexBuffer::unbless() {
-#if !defined(__linux__)            
+#if !defined(__linux__)
     if( gl_name != 0 ) {        
         glDeleteBuffers(1, &gl_name);
         gl_name = 0;
@@ -142,14 +142,16 @@ Vec3 VertexBuffer::calcCenterOfCoords() {
 	return c;
 }
 
-void VertexBuffer::dump() {
-	print("vb: len:%d nfloat:%d unitfloat:%d glname:%d", array_len, total_num_float, unit_num_float, gl_name );
+void VertexBuffer::dump(int lim) {
+	print("vb[%p]: len:%d nfloat:%d unitfloat:%d glname:%d", this,array_len, total_num_float, unit_num_float, gl_name );
 	if(fmt) fmt->dump(); else print("vb:nofmt");
 	if(buf) {
-		for(int i=0;i<array_len;i++){
+		for(int i=0;i<array_len&&i<lim;i++){
+            prt("[%d]:",i);
 			for(int j=0;j<unit_num_float;j++){
-				print("[%d][%d]=%.10f", i, j, buf[i*unit_num_float+j]);
+				prt("%.10f ", buf[i*unit_num_float+j]);
 			}
+            print("");
 		}
 	}
 }

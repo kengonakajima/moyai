@@ -107,17 +107,24 @@ void DrawBatch::draw() {
     // normal 2D sprites
     vb_use->bless();
     ib_use->bless();
-
+#if 0
+    if( prim_type == GL_LINES ) {
+        print("GL_LINES. vbdump:");
+        vb_use->dump(2);
+    }
+#endif    
+    
     int vert_sz = vb_use->fmt->getNumFloat() * sizeof(float);
 #if !defined(__linux__)    
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib_use->gl_name );
-    glBindBuffer( GL_ARRAY_BUFFER, vb_use->gl_name );
+    glBindBuffer( GL_ARRAY_BUFFER, vb_use->gl_name );    
 #endif    
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_COLOR_ARRAY );
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
     glDisableClientState( GL_NORMAL_ARRAY );
 
+    
     // 以下prop3dからのコピペ、動いたら共通化する
     if( vb_use->fmt->coord_offset >= 0 ){
         glEnableClientState( GL_VERTEX_ARRAY );        
@@ -180,6 +187,12 @@ void DrawBatch::draw() {
 #endif    
 }
 
+void DrawBatch::dump() {
+    print("DrawBatch vft:%d tex:%d prim_type:%d shader:%p blend_type:%d line_w:%d vert_used:%d index_used:%d tr:%f,%f scl:%f,%f rot:%f",
+          vf_type, tex, prim_type, f_shader, blend_type, line_width, vert_used, index_used, translate.x, translate.y, scale.x, scale.y, radrot );
+    vb->dump(vert_used);
+    ib->dump(index_used);        
+}
 
 //////////////////////
 
@@ -246,7 +259,6 @@ bool DrawBatchList::appendSprite1( Viewport *vp, FragmentShader *fs, BLENDTYPE b
     return true;
 }
 bool DrawBatchList::appendLine( Viewport *vp, Vec2 p0, Vec2 p1, Color col, Vec2 trans, Vec2 scl, float radrot, int linew ) {
-    //    print("appendLine %f,%f", p0.x, p0.y );
     DrawBatch *b = getCurrentBatch();
     bool to_continue = false;
     if( b && b->shouldContinue( vp, VFTYPE_COORD_COLOR, 0, GL_LINES, NULL, BLENDTYPE_SRC_ALPHA, linew ) && b->hasVertexRoom(2) ) {

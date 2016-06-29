@@ -54,10 +54,10 @@ void IndexBuffer::unbless() {
 #endif    
 }
 
-void IndexBuffer::dump() {
+void IndexBuffer::dump(int lim) {
 	print("ib: len:%d glname:%d", array_len, gl_name );
 	if(buf){
-		for(int i=0;i<array_len;i++) {
+		for(int i=0;i<array_len && i<lim;i++) {
 			print("[%d]=%d",i, buf[i] );
 		}
 	} else {

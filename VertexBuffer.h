@@ -53,5 +53,5 @@ public:
 	void bless();
     void unbless();
 	Vec3 calcCenterOfCoords();
-	void dump();
+	void dump(int lim);
 };

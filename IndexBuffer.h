@@ -25,5 +25,5 @@ public:
     void setRenderLen(int l); 
 	void bless();
     void unbless();
-	void dump();
+	void dump(int lim);
 };
