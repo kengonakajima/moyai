@@ -14,7 +14,7 @@ Keyboard *g_keyboard;
 
 // config
 
-static const int SCRW=966, SCRH=544;
+static const int SCRW=768, SCRH=512;
 
 
 
