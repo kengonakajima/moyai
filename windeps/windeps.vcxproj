@@ -153,10 +153,6 @@
     <ClCompile Include="..\snappy\snappy-sinksource.cc" />
     <ClCompile Include="..\snappy\snappy-stubs-internal.cc" />
     <ClCompile Include="..\snappy\snappy.cc" />
-    <ClCompile Include="..\soil\src\image_DXT.c" />
-    <ClCompile Include="..\soil\src\image_helper.c" />
-    <ClCompile Include="..\soil\src\SOIL.c" />
-    <ClCompile Include="..\soil\src\stb_image_aug.c" />
     <ClCompile Include="..\zlib-1.2.7\adler32.c" />
     <ClCompile Include="..\zlib-1.2.7\compress.c" />
     <ClCompile Include="..\zlib-1.2.7\crc32.c" />

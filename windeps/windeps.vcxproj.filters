@@ -22,9 +22,6 @@
     <Filter Include="Source Files\snappy">
       <UniqueIdentifier>{539f9bfa-a7f8-49b5-a8aa-55037d0f79b0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\soil">
-      <UniqueIdentifier>{3b016d45-aea0-4249-bd20-d64bdd4cd844}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\zlib">
       <UniqueIdentifier>{ea9e94cd-803e-4203-848d-2a8b1af655a8}</UniqueIdentifier>
     </Filter>
@@ -68,18 +65,6 @@
     </ClCompile>
     <ClCompile Include="..\snappy\snappy.cc">
       <Filter>Source Files\snappy</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\image_DXT.c">
-      <Filter>Source Files\soil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\image_helper.c">
-      <Filter>Source Files\soil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\SOIL.c">
-      <Filter>Source Files\soil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\soil\src\stb_image_aug.c">
-      <Filter>Source Files\soil</Filter>
     </ClCompile>
     <ClCompile Include="..\zlib-1.2.7\adler32.c">
       <Filter>Source Files\zlib</Filter>
