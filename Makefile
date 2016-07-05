@@ -26,7 +26,7 @@ BZ2LIB=$(BZ2)/libbz2.a # build product of bz2 source
 ZLIB=zlib-1.2.7
 ZLIBLIB=$(ZLIB)/libz.a
 
-GLFW=glfw-3.1.2
+GLFW=glfw-3.2
 GLFWLIB=$(GLFW)/src/libglfw3.a
 
 FTGLOBJS=vertex-attribute.o vertex-buffer.o vector.o texture-atlas.o texture-font.o
