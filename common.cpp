@@ -81,6 +81,7 @@ int Group::pollAllProps(double dt ){
         if(!to_keep) cur->to_clean = true;
         if( cur->to_clean ){
             if( to_clean_cnt < elementof(to_clean) ){
+                if( cur->debug_id ) print("Debug: cleaning prop id:%d cnt:%d",cur->id, to_clean_cnt );
                 to_clean[ to_clean_cnt ] = cur;
                 to_clean_cnt ++;
             }
