@@ -10,7 +10,6 @@ void TextBox::render(Camera *cam, DrawBatchList *bl ) {
 
     //    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );    
 
-    updateMesh();
     Vec2 camloc;
     if(cam) {
         camloc.x = cam->loc.x;
