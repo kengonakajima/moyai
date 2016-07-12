@@ -13,6 +13,11 @@ public:
 	}
 
 	void setImage( Image *img );
+    void setGLTexture( GLuint gl_tex_name, int w, int h ) {
+        image = new Image();
+        image->setSize(w,h); // empty, for getSize()
+        tex = gl_tex_name;
+    }
 	bool load( const char *path, bool multiply_color_by_alpha = true );
 	void setLinearMagFilter();
 	void setLinearMinFilter();    
