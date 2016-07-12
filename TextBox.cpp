@@ -72,15 +72,14 @@ void TextBox::updateMesh() {
         float x0  = ( cur_lb.x + glyph->offset_x);
         float y0  = ( cur_lb.y + glyph->offset_y) + y_margin;
         float x1  = ( x0 + glyph->width);
-        float y1  = ( y0 - glyph->height) + y_margin;
-        //            print("[%d] %d: %f %f %f %f  :  %d %d", id, i, x0,y0,x1,y1, glyph->width, glyph->height);
+        float y1  = ( y0 - glyph->height);
 
         float s0 = glyph->s0;
         float t0 = glyph->t0;
         float s1 = glyph->s1;
         float t1 = glyph->t1;
         float depth = 10;
-            
+
         vb->setCoord(vi+0, Vec3(x0,y0,depth) ); vb->setUV(vi+0, Vec2(s0,t0) ); vb->setColor(vi+0,color);
         vb->setCoord(vi+1, Vec3(x0,y1,depth) ); vb->setUV(vi+1, Vec2(s0,t1) ); vb->setColor(vi+1,color);
         vb->setCoord(vi+2, Vec3(x1,y1,depth) ); vb->setUV(vi+2, Vec2(s1,t1) ); vb->setColor(vi+2,color);
