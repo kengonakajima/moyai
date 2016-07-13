@@ -1,6 +1,6 @@
 # moyai
 
-An experimental simple 2D game engine for native C++ and OpenGL with cloud gaming support,
+An experimental simple 2D game library for native C++ and OpenGL with cloud gaming support,
 strongly inspired by MoaiSDK API structure.
 
 Moai SDK: https://github.com/moai/moai-dev
