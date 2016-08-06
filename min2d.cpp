@@ -105,9 +105,12 @@ int main(int argc, char **argv )
     if( headless_mode ) {
         Moyai::globalInitNetwork();
         RemoteHead *rh = new RemoteHead();
-        if( rh->startServer(22222) == false ) {
+        int port = 22222;
+        if( rh->startServer(port) == false ) {
             print("headless server: can't start server. port:%d", 22222 );
             exit(1);
+        } else {
+            print("Start headless server port:%d",port);
         }
         rh->enableSpriteStream();
         moyai_client->setRemoteHead(rh);
