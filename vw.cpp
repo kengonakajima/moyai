@@ -664,7 +664,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             uint32_t prop_id = get_u32(argdata);
             Prop2D *prop = g_prop2d_pool.get(prop_id);
             if(prop) {
-                prt("D[%d]", prop_id);
+                //                prt("D[%d]", prop_id);
                 prop->to_clean = true;
                 g_prop2d_pool.del(prop_id);
             }
