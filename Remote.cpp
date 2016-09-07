@@ -112,9 +112,9 @@ int getPacketProp2DSnapshotDiff( PacketProp2DSnapshot *s0, PacketProp2DSnapshot 
     if(s0->xflip != s1->xflip ) changes |= CHANGED_XFLIP;
     if(s0->yflip != s1->yflip ) changes |= CHANGED_YFLIP;
     if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
-    if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;    
-    if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
-    if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
+    if(s0->color.g != s1->color.g ) changes |= CHANGED_COLOR;    
+    if(s0->color.b != s1->color.b ) changes |= CHANGED_COLOR;
+    if(s0->color.a != s1->color.a ) changes |= CHANGED_COLOR;
     if(s0->shader_id != s1->shader_id ) changes |= CHANGED_SHADER;
     if(s0->optbits != s1->optbits ) changes |= CHANGED_OPTBITS;
     if(s0->priority != s1->priority ) changes |= CHANGED_PRIORITY;
