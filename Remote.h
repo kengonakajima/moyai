@@ -244,7 +244,7 @@ typedef enum {
 
     PACKETTYPE_S2C_WINDOW_SIZE = 900, // u2
 
-
+    PACKETTYPE_MAX = 1000,
     
     PACKETTYPE_ERROR = 2000, // error code
 } PACKETTYPE;
