@@ -95,68 +95,6 @@ class BufferArray;
 typedef std::unordered_map<unsigned int,Client*>::iterator ClientIteratorType;
 
 
-class RemoteHead {
-public:
-    int tcp_port;
-    uv_tcp_t listener;
-    MoyaiClient *target_moyai;
-    SoundSystem *target_soundsystem;
-    ObjectPool<Client> cl_pool;
-    int window_width, window_height;
-    bool enable_save_stream;
-    bool enable_spritestream;
-    bool enable_videostream;
-    JPEGCoder *jc;
-    BufferArray *audio_buf_ary;
-    
-    void enableSpriteStream() { enable_spritestream = true; };
-    void enableVideoStream( int w, int h, int pixel_skip );
-    
-    void (*on_connect_cb)(RemoteHead*rh,Client *cl);
-    void (*on_disconnect_cb)(RemoteHead*rh, Client *cl);
-    void (*on_keyboard_cb)(Client *cl,int kc,int act,int modshift,int modctrl,int modalt);
-    void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
-    void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
-    static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_save_stream(true), enable_spritestream(0), enable_videostream(0), jc(NULL), audio_buf_ary(0), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
-    }
-    void addClient(Client*cl);
-    void delClient(Client*cl);
-    
-    void track2D();
-    void broadcastCapturedScreen();
-    bool startServer( int portnum );
-    void setWindowSize(int w, int h) { window_width = w; window_height = h; }
-    void setOnConnectCallback( void (*f)(RemoteHead *rh, Client *cl) ) { on_connect_cb = f; }
-    void setOnDisconnectCallback( void (*f)(RemoteHead *rh, Client *cl ) ) { on_disconnect_cb = f; }
-    void setOnKeyboardCallback( void (*f)(Client*cl,int,int,int,int,int) ) { on_keyboard_cb = f; }
-    void setOnMouseButtonCallback( void (*f)(Client*cl,int,int,int,int,int) ) { on_mouse_button_cb = f; }
-    void setOnMouseCursorCallback( void (*f)(Client*cl,int,int) ) { on_mouse_cursor_cb = f; }
-    void heartbeat();
-    void scanSendAllPrerequisites( uv_stream_t *outstream );
-    void scanSendAllProp2DSnapshots( uv_stream_t *outstream );
-    void notifyProp2DDeleted( Prop2D *prop_deleted );
-    void notifyGridDeleted( Grid *grid_deleted );
-    void notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop );
-    void setTargetSoundSystem(SoundSystem*ss) { target_soundsystem = ss; }
-    void setTargetMoyaiClient(MoyaiClient*mc) { target_moyai = mc; }
-    void notifySoundPlay( Sound *snd, float vol );
-    void notifySoundStop( Sound *snd );
-    void appendAudioSamples( uint32_t numChannels, float *interleavedSamples, uint32_t numSamples );
-    
-    void broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen );
-    void broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen );    
-    void broadcastUS1UI1( uint16_t usval, uint32_t uival );
-    void broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );
-    void broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
-    void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
-    void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
-    void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );    
-
-    void broadcastTimestamp();
-};
-
-
 typedef enum {
     // generic
     PACKETTYPE_PING = 1,
@@ -248,6 +186,71 @@ typedef enum {
     
     PACKETTYPE_ERROR = 2000, // error code
 } PACKETTYPE;
+
+
+class RemoteHead {
+public:
+    int tcp_port;
+    uv_tcp_t listener;
+    MoyaiClient *target_moyai;
+    SoundSystem *target_soundsystem;
+    ObjectPool<Client> cl_pool;
+    int window_width, window_height;
+    bool enable_save_stream;
+    bool enable_spritestream;
+    bool enable_videostream;
+    JPEGCoder *jc;
+    BufferArray *audio_buf_ary;
+    
+    void enableSpriteStream() { enable_spritestream = true; };
+    void enableVideoStream( int w, int h, int pixel_skip );
+    
+    void (*on_connect_cb)(RemoteHead*rh,Client *cl);
+    void (*on_disconnect_cb)(RemoteHead*rh, Client *cl);
+    void (*on_keyboard_cb)(Client *cl,int kc,int act,int modshift,int modctrl,int modalt);
+    void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
+    void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
+    static const int DEFAULT_PORT = 22222;
+    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_save_stream(true), enable_spritestream(0), enable_videostream(0), jc(NULL), audio_buf_ary(0), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
+    }
+    void addClient(Client*cl);
+    void delClient(Client*cl);
+    
+    void track2D();
+    void broadcastCapturedScreen();
+    bool startServer( int portnum );
+    void setWindowSize(int w, int h) { window_width = w; window_height = h; }
+    void setOnConnectCallback( void (*f)(RemoteHead *rh, Client *cl) ) { on_connect_cb = f; }
+    void setOnDisconnectCallback( void (*f)(RemoteHead *rh, Client *cl ) ) { on_disconnect_cb = f; }
+    void setOnKeyboardCallback( void (*f)(Client*cl,int,int,int,int,int) ) { on_keyboard_cb = f; }
+    void setOnMouseButtonCallback( void (*f)(Client*cl,int,int,int,int,int) ) { on_mouse_button_cb = f; }
+    void setOnMouseCursorCallback( void (*f)(Client*cl,int,int) ) { on_mouse_cursor_cb = f; }
+    void heartbeat();
+    void scanSendAllPrerequisites( uv_stream_t *outstream );
+    void scanSendAllProp2DSnapshots( uv_stream_t *outstream );
+    void notifyProp2DDeleted( Prop2D *prop_deleted );
+    void notifyGridDeleted( Grid *grid_deleted );
+    void notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop );
+    void setTargetSoundSystem(SoundSystem*ss) { target_soundsystem = ss; }
+    void setTargetMoyaiClient(MoyaiClient*mc) { target_moyai = mc; }
+    void notifySoundPlay( Sound *snd, float vol );
+    void notifySoundStop( Sound *snd );
+    void appendAudioSamples( uint32_t numChannels, float *interleavedSamples, uint32_t numSamples );
+    
+    void broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen );
+    void broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen );    
+    void broadcastUS1UI1( uint16_t usval, uint32_t uival );
+    void broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );
+    void broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
+    void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
+    void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
+    void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );    
+
+    void broadcastTimestamp();
+
+    static const char *funcidToString(PACKETTYPE pkt);
+};
+
 
 
 class Prop2D;

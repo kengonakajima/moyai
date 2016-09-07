@@ -1258,79 +1258,11 @@ void on_connect( uv_connect_t *connect, int status ) {
 
         
 void printStats() {
-
-    static const char *names[PACKETTYPE_MAX];
-    if( !names[PACKETTYPE_PING] ) {
-        names[PACKETTYPE_PING] = "PING";
-        names[PACKETTYPE_TIMESTAMP] = "TIMESTAMP";
-        names[PACKETTYPE_S2C_PROP2D_SNAPSHOT] = "PROP2D_SNAPSHOT";
-        names[PACKETTYPE_S2C_PROP2D_LOC] = "PROP2D_LOC";
-        names[PACKETTYPE_S2C_PROP2D_GRID] = "PROP2D_GRID";
-        names[PACKETTYPE_S2C_PROP2D_INDEX] = "PROP2D_INDEX";
-        names[PACKETTYPE_S2C_PROP2D_SCALE] = "PROP2D_SCALE";
-        names[PACKETTYPE_S2C_PROP2D_ROT] = "PROP2D_ROT";
-        names[PACKETTYPE_S2C_PROP2D_XFLIP] = "PROP2D_XFLIP";
-        names[PACKETTYPE_S2C_PROP2D_YFLIP] = "PROP2D_YFLIP";
-        names[PACKETTYPE_S2C_PROP2D_COLOR] = "PROP2D_COLOR";
-        names[PACKETTYPE_S2C_PROP2D_OPTBITS] = "PROP2D_OPTBITS";
-        names[PACKETTYPE_S2C_PROP2D_PRIORITY] = "PROP2D_PRIORITY";
-        names[PACKETTYPE_S2C_PROP2D_DELETE] = "PROP2D_DELETE";
-        names[PACKETTYPE_S2C_PROP2D_CLEAR_CHILD] = "PROP2D_CLEAR_CHILD";
-        names[PACKETTYPE_S2C_LAYER_CREATE] = "LAYER_CREATE";
-        names[PACKETTYPE_S2C_LAYER_VIEWPORT] = "LAYER_VIEWPORT";
-        names[PACKETTYPE_S2C_LAYER_CAMERA] = "LAYER_CAMERA";
-        names[PACKETTYPE_S2C_VIEWPORT_CREATE] = "VIEWPORT_CREATE";
-        names[PACKETTYPE_S2C_VIEWPORT_SCALE] = "VIEWPORT_SCALE";
-        names[PACKETTYPE_S2C_CAMERA_CREATE] = "CAMERA_CREATE";
-        names[PACKETTYPE_S2C_CAMERA_LOC] = "CAMERA_LOC";
-        names[PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER] = "CAMERA_DYNAMIC_LAYER";
-        names[PACKETTYPE_S2C_TEXTURE_CREATE] = "TEXTURE_CREATE";
-        names[PACKETTYPE_S2C_TEXTURE_IMAGE] = "TEXTURE_IMAGE";
-        names[PACKETTYPE_S2C_IMAGE_CREATE] = "IMAGE_CREATE";
-        names[PACKETTYPE_S2C_IMAGE_LOAD_PNG] = "IMAGE_LOAD_PNG";
-        names[PACKETTYPE_S2C_IMAGE_ENSURE_SIZE] = "IMAGE_ENSURE_SIZE";
-        names[PACKETTYPE_S2C_IMAGE_RAW] = "IMAGE_RAW";
-        names[PACKETTYPE_S2C_TILEDECK_CREATE] = "TILEDECK_CREATE";
-        names[PACKETTYPE_S2C_TILEDECK_TEXTURE] = "TILEDECK_TEXTURE";
-        names[PACKETTYPE_S2C_TILEDECK_SIZE] = "TILEDECK_SIZE";
-        names[PACKETTYPE_S2C_GRID_CREATE] = "GRID_CREATE";
-        names[PACKETTYPE_S2C_GRID_DECK] = "GRID_DECK";
-        names[PACKETTYPE_S2C_GRID_PROP2D] = "GRID_PROP2D";
-        names[PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT] = "GRID_TABLE_INDEX_SNAPSHOT";
-        names[PACKETTYPE_S2C_GRID_TABLE_FLIP_SNAPSHOT] = "GRID_TABLE_FLIP_SNAPSHOT";
-        names[PACKETTYPE_S2C_GRID_TABLE_TEXOFS_SNAPSHOT] = "GRID_TABLE_TEXOFS_SNAPSHOT";
-        names[PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT] = "GRID_TABLE_COLOR_SNAPSHOT";
-        names[PACKETTYPE_S2C_GRID_DELETE] = "GRID_DELETE";
-        names[PACKETTYPE_S2C_TEXTBOX_CREATE] = "TEXTBOX_CREATE";
-        names[PACKETTYPE_S2C_TEXTBOX_FONT] = "TEXTBOX_FONT";
-        names[PACKETTYPE_S2C_TEXTBOX_STRING] = "TEXTBOX_STRING";
-        names[PACKETTYPE_S2C_TEXTBOX_LOC] = "TEXTBOX_LOC";
-        names[PACKETTYPE_S2C_TEXTBOX_SCL] = "TEXTBOX_SCL";
-        names[PACKETTYPE_S2C_TEXTBOX_COLOR] = "TEXTBOX_COLOR";
-        names[PACKETTYPE_S2C_TEXTBOX_LAYER] = "TEXTBOX_LAYER";
-        names[PACKETTYPE_S2C_FONT_CREATE] = "FONT_CREATE";
-        names[PACKETTYPE_S2C_FONT_CHARCODES] = "FONT_CHARCODES";
-        names[PACKETTYPE_S2C_FONT_LOADTTF] = "FONT_LOADTTF";
-        names[PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT] = "COLOR_REPLACER_SHADER_SNAPSHOT";
-        names[PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT] = "PRIM_BULK_SNAPSHOT";
-        names[PACKETTYPE_S2C_SOUND_CREATE_FROM_FILE] = "SOUND_CREATE_FROM_FILE";
-        names[PACKETTYPE_S2C_SOUND_CREATE_FROM_SAMPLES] = "SOUND_CREATE_FROM_SAMPLES";
-        names[PACKETTYPE_S2C_SOUND_DEFAULT_VOLUME] = "SOUND_DEFAULT_VOLUME";
-        names[PACKETTYPE_S2C_SOUND_PLAY] = "SOUND_PLAY";
-        names[PACKETTYPE_S2C_SOUND_STOP] = "SOUND_STOP";
-        names[PACKETTYPE_S2C_SOUND_POSITION] = "SOUND_POSITION";
-        names[PACKETTYPE_S2C_JPEG_DECODER_CREATE] = "JPEG_DECODER_CREATE";
-        names[PACKETTYPE_S2C_CAPTURED_FRAME] = "CAPTURED_FRAME";
-        names[PACKETTYPE_S2C_CAPTURED_AUDIO] = "CAPTURED_AUDIO";
-        names[PACKETTYPE_S2C_FILE] = "FILE";
-        names[PACKETTYPE_S2C_WINDOW_SIZE] = "WINDOW_SIZE";
-    }
-
     SorterEntry se[PACKETTYPE_MAX];
     int pktinds[PACKETTYPE_MAX];
     memset( pktinds,0,sizeof(pktinds));
     int se_ind=0;
-    for(int i=0;i<elementof(names);i++) {
+    for(int i=0;i<PACKETTYPE_MAX;i++) {
         if( g_recv_totalcounts[i]==0)continue;
         se[se_ind].val = g_recv_counts[i];
         pktinds[i] = i;
@@ -1340,11 +1272,8 @@ void printStats() {
     quickSortF(se,0,se_ind-1);
     for(int i=0;i<se_ind;i++){
         int pkttype = *((int*)se[i].ptr);
-        if(names[pkttype]) {
-            print("%s %d(%d)", names[pkttype], g_recv_counts[pkttype], g_recv_totalcounts[pkttype]);
-        }
+        print("%s %d(%d)", RemoteHead::funcidToString((PACKETTYPE)pkttype), g_recv_counts[pkttype], g_recv_totalcounts[pkttype]);
     }
-
            
     for(int i=0;i<elementof(g_recv_counts);i++) g_recv_counts[i]=0;
 }

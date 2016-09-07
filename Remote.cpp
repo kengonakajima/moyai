@@ -1140,7 +1140,7 @@ void RemoteHead::broadcastTimestamp() {
     broadcastUS1UI2( PACKETTYPE_TIMESTAMP, sec, usec );
 }
 
-const char *funcidToString(PACKETTYPE pkt) {
+const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     switch(pkt) {
     case PACKETTYPE_PING:  return "PACKETTYPE_PING";
     case PACKETTYPE_TIMESTAMP: return "PACKETTYPE_TIMESTAMP";
@@ -1228,6 +1228,8 @@ const char *funcidToString(PACKETTYPE pkt) {
     case PACKETTYPE_S2C_WINDOW_SIZE: return "PACKETTYPE_S2C_WINDOW_SIZE";
 
     case PACKETTYPE_ERROR: return "PACKETTYPE_ERROR";
+
+    case PACKETTYPE_MAX: return "PACKETTYPE_MAX";
     }
     assertmsg(false,"invalid packet type:%d", pkt);
     return "invalid packet type";
