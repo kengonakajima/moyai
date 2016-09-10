@@ -15,6 +15,7 @@ public:
     
     Mouse() {
         memset(buttons,0,sizeof(buttons));
+        memset(toggled,0,sizeof(toggled));
     }
     void validateButtonIndex( unsigned int bti ) {
         assert( (int)bti < BUTTON_MAX );
