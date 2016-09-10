@@ -32,7 +32,6 @@ typedef struct  {
     PacketVec2 scl;
     int32_t index;
     uint32_t tiledeck_id; // non-zero
-    uint32_t grid_id; // 0 for nothing
     int32_t debug;
     float rot;
     uint32_t xflip; // TODO:smaller size

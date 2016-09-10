@@ -64,13 +64,6 @@ void Tracker2D::scanProp2D( Prop2D *parentprop ) {
     out->scl.y = target_prop2d->scl.y;
     out->index = target_prop2d->index;
     out->tiledeck_id = target_prop2d->deck ? target_prop2d->deck->id : 0;
-    if( target_prop2d->grid_used_num == 0 ) {
-        out->grid_id = 0;
-    } else if( target_prop2d->grid_used_num == 1 ) {
-        out->grid_id = target_prop2d->grids[0]->id;
-    } else {
-        assertmsg(false, "Tracker2D: multiple grids are not implemented yet" );
-    }
     out->debug = target_prop2d->debug_id;
     out->rot = target_prop2d->rot;
     out->xflip = target_prop2d->xflip;
@@ -791,7 +784,6 @@ void TrackerTextBox::scanTextBox() {
     out->scl.y = target_tb->scl.y;
     out->index = 0; // fixed
     out->tiledeck_id = 0; // fixed
-    out->grid_id = 0; // fixed
     out->debug = target_tb->debug_id;
     out->rot = 0; // fixed
     out->xflip = 0; // fixed
