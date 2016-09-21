@@ -43,6 +43,9 @@ public:
     int size() {
         return idmap.size();
     }
+    Obj *getFirst() {
+        if( idmap.size()==0 ) return NULL; else return idmap.begin()->second;
+    }
 };
 
 #endif

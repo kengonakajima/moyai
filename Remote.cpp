@@ -190,7 +190,9 @@ void RemoteHead::delClient( Client *cl ) {
     cl_pool.del(cl->id);
     print("delClient: id:%d",cl->id);
 }
-
+Client *RemoteHead::getFirstClient() {
+    return cl_pool.getFirst();
+}
 // Assume all props in all layers are Prop2Ds.
 void RemoteHead::track2D() {
     broadcastTimestamp();
