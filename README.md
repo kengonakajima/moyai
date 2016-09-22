@@ -23,6 +23,7 @@ Moai SDK: https://github.com/moai/moai-dev
 
 # Compatibility
  - OSX 10.10/10.11
+   - brew install libvorbis, libogg
  - Windows 7,8.1,10 (VS2012,2013,2015)
  - working on iOS 9 or later
  - Linux (For cloud gaming server)
