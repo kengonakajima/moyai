@@ -306,7 +306,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             //            prt("s%d ", pkt.prop_id );
 
 
-            if( pkt.debug) print("packettype_prop2d_create! id:%d layer_id:%d loc:%f,%f scl:%f,%f index:%d tdid:%d", pkt.prop_id, pkt.layer_id, pkt.loc.x, pkt.loc.y, pkt.scl.x, pkt.scl.y, pkt.index, pkt.tiledeck_id );
+            if( pkt.debug ) print("packettype_prop2d_create! id:%d layer_id:%d loc:%f,%f scl:%f,%f index:%d tdid:%d col:%.1f,%.1f,%.1f,%.1f", pkt.prop_id, pkt.layer_id, pkt.loc.x, pkt.loc.y, pkt.scl.x, pkt.scl.y, pkt.index, pkt.tiledeck_id , pkt.color.r,pkt.color.g,pkt.color.b,pkt.color.a);
 
             Layer *layer = NULL;
             Prop2D *parent_prop = NULL;
@@ -324,11 +324,15 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             }
 
             TileDeck *dk = g_tiledeck_pool.get( pkt.tiledeck_id ); // deck can be null (may have grid,textbox)
+            if(!dk) {
+                print("TileDeck is not initialized yet! id:%d",pkt.tiledeck_id);
+                break;
+            }
             Prop2D *prop = g_prop2d_pool.get(pkt.prop_id);
             if(!prop) {
                 prop = g_prop2d_pool.ensure(pkt.prop_id);
                 if(layer) {
-                    //                    print("  inserting prop %d to layer %d", pkt.prop_id, pkt.layer_id );
+                    //                                        print("  inserting prop %d to layer %d", pkt.prop_id, pkt.layer_id );
                     layer->insertProp(prop);
                 } else if(parent_prop) {
                     Prop2D *found_prop = prop->getChild( pkt.prop_id );
