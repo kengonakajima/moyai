@@ -200,7 +200,7 @@ void appendAudioSampleStereo( float *interleavedSamples, uint32_t num_samples) {
         g_audio_buf_ary = new BufferArray(256);
     }
     g_audio_buf_ary->push( (const char*)interleavedSamples, num_samples * 2 * sizeof(float));
-    print("appendAudioSampleStereo. pushed. used:%d", g_audio_buf_ary->getUsedNum() );
+    //    print("appendAudioSampleStereo. pushed. used:%d", g_audio_buf_ary->getUsedNum() );
 }
 
 UInt32 stream_callback(float* buffers, UInt32 numChannels, UInt32 length, void* userdata) {
@@ -223,7 +223,7 @@ UInt32 stream_callback(float* buffers, UInt32 numChannels, UInt32 length, void* 
         
         if( to_copy_samples > samples_in_buf ) to_copy_samples = samples_in_buf;
 
-        print("stream_callback. used:%d toplen:%d cblen:%d to_copy_smpl:%d", used, topbuf->used, length, to_copy_samples );
+        //        print("stream_callback. used:%d toplen:%d cblen:%d to_copy_smpl:%d", used, topbuf->used, length, to_copy_samples );
         
         for(int i=0;i<to_copy_samples*numChannels;i++) {
             buffers[i] = ((float*)(topbuf->buf))[i];
@@ -1227,7 +1227,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             uint32_t num_samples = get_u32(argdata+0);
             uint32_t samples_bytes = get_u32(argdata+4);
             float *interleavedSamples = (float*)(argdata+8);
-            print("audio! ns:%d sb:%d", num_samples, samples_bytes );
+            //            print("audio! ns:%d sb:%d", num_samples, samples_bytes );
             assert( num_samples * sizeof(float) * 2 == samples_bytes );
             
 #ifdef USE_UNTZ

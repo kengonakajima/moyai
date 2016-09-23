@@ -456,13 +456,13 @@ void RemoteHead::heartbeat() {
             if(used==0)break;
             Buffer *b = audio_buf_ary->getTop();
             assert(b);
-            print("heartbeat: audio used:%d next buf len:%d",audio_buf_ary->getUsedNum(), b->used );
+            //            print("heartbeat: audio used:%d next buf len:%d",audio_buf_ary->getUsedNum(), b->used );
             assert(b->used % (sizeof(float)*2) == 0 ); // L+R of float sample
             broadcastUS1UI1Bytes( PACKETTYPE_S2C_CAPTURED_AUDIO, b->used/sizeof(float)/2, b->buf, b->used );
 
             static int total_audio_samples_sent_bytes = 0;
             total_audio_samples_sent_bytes += b->used;
-            print("sent audio: %f %d", now(), total_audio_samples_sent_bytes );
+            //            print("sent audio: %f %d", now(), total_audio_samples_sent_bytes );
             audio_buf_ary->shift();
         }
     }
@@ -628,7 +628,7 @@ void RemoteHead::appendAudioSamples( uint32_t numChannels, float *interleavedSam
     if(!audio_buf_ary)return;
 
     RScopedLock _l(&g_lock);
-    print("pushing samples. numSamples:%d numChannels:%d", numSamples, numChannels );
+    //    print("pushing samples. numSamples:%d numChannels:%d", numSamples, numChannels );
     bool ret = audio_buf_ary->push( (const char*)interleavedSamples, numSamples * numChannels * sizeof(float) );
     if(!ret) print("appendAudioSamples: audio_buffer full?");
     //        print("appendAudioSamples pushed %d bytes. ret:%d used:%d", numSamples*sizeof(float), ret, audio_buffer->used );
