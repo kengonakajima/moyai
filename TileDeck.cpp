@@ -2,4 +2,4 @@
 
 #include "TileDeck.h"
 
-int TileDeck::idgen = 1;
+int Deck::idgen = 1;

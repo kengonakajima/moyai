@@ -2,15 +2,17 @@
 
 #include "Texture.h"
 
-class TileDeck {
+class Deck {
 public:
     static int idgen;
-    int id;
-	int cell_width, cell_height; // Size in pixels of a single sprite
-	int tile_width, tile_height; // Number of sprites in the atlas
+    int id;    
 	int image_width, image_height; // Size of the image in pixels
 	Texture *tex;
-	TileDeck() : id(idgen++), cell_width(0), cell_height(0), tile_width(0), tile_height(0), image_width(0), image_height(0),tex(NULL) {}
+    
+    Deck() : id(idgen++), image_width(0), image_height(0), tex(NULL) {
+    }
+    ~Deck() {
+    }
 	void setTexture( Texture *t ){
 		assertmsg(t->tex!=0, "invalid texture" );
 		tex = t;
@@ -22,18 +24,32 @@ public:
 		image_width = img->width;
 		image_height = img->height;
 	}
+	virtual void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
+        print("getUVFromIndex:should never called");
+    }
+    
+};
+
+class TileDeck : public Deck {
+public:
+
+	int cell_width, cell_height; // Size in pixels of a single sprite
+	int tile_width, tile_height; // Number of sprites in the atlas
+
+
+	TileDeck() : Deck(), cell_width(0), cell_height(0), tile_width(0), tile_height(0) {}
 
 	// sprw,sprh : number of sprites in the atlas
 	// cellw,cellh : size in pixels of a single sprite 
-	inline void setSize( int sprw, int sprh, int cellw, int cellh ){
+	void setSize( int sprw, int sprh, int cellw, int cellh ){
 		tile_width = sprw;
 		tile_height = sprh;
 		cell_width = cellw;
 		cell_height = cellh;
 	}
-    inline float getUperCell() { return (float) cell_width / (float) image_width; }
-    inline float getVperCell() { return (float) cell_height / (float) image_height; }    
-	inline void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
+    float getUperCell() { return (float) cell_width / (float) image_width; }
+    float getVperCell() { return (float) cell_height / (float) image_height; }    
+	virtual void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
         assert( image_width > 0 && image_height > 0 );
 		float uunit = (float) cell_width / (float) image_width;
 		float vunit = (float) cell_height / (float) image_height;
