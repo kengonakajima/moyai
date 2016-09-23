@@ -66,7 +66,17 @@ public:
 
     Tracker2D *tracker;
     
-	inline Prop2D() : Prop(), Renderable() {
+	Prop2D() : Prop(), Renderable() {
+        init();
+    }
+    Prop2D(TileDeck *dk, int index,float scl,Vec2 loc) : Prop(), Renderable() {
+        init();
+        setDeck(dk);
+        setIndex(index);
+        setScl(scl);
+        setLoc(loc);
+    }    
+    void init() {
 		priority = id;
 		dimension = DIMENSION_2D;
 
