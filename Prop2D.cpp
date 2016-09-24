@@ -104,7 +104,7 @@ void Prop2D::render(Camera *cam, DrawBatchList *bl ) {
 			if(!grid->visible)continue;
             if(!grid->index_table)continue;
 
-			TileDeck *draw_deck = deck;
+			Deck *draw_deck = deck;
 			if( grid->deck ) draw_deck = grid->deck;
 			if( grid->fragment_shader ){
 #if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE || defined(__linux__) )

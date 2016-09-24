@@ -351,6 +351,7 @@ public:
     void broadcastDiff( Prop2D *owner, bool force );
 };
 
+class Deck;
 class TrackerImage {
 public:
     Image *target_image;
@@ -362,7 +363,7 @@ public:
     void scanImage();
     void flipCurrentBuffer();
     bool checkDiff();
-    void broadcastDiff( TileDeck *owner_dk, bool force );
+    void broadcastDiff( Deck *owner_dk, bool force );
 
 };
 class Camera;

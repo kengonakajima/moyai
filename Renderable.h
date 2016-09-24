@@ -12,7 +12,7 @@ public:
 	int priority;        
 
 	bool visible;
-	TileDeck *deck;
+	Deck *deck;
 	float enfat_epsilon;
 	int index;    
 	Renderable() : dimension(DIMENSION_INVAL), priority(0), visible(true), deck(NULL), enfat_epsilon(0), index(-1) {
@@ -20,10 +20,8 @@ public:
 
 	~Renderable() {}
 
-	inline void setDeck( TileDeck *d ){
+	inline void setDeck( Deck *d ){
 		deck = d;
-		assert( d->cell_width > 0 );
-		assert( d->cell_height > 0 );        
 	}
 	inline void setTexture( Texture *t ){
 		assert(t->tex!=0);        

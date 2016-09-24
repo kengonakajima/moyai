@@ -11,8 +11,6 @@ public:
     
     Deck() : id(idgen++), image_width(0), image_height(0), tex(NULL) {
     }
-    ~Deck() {
-    }
 	void setTexture( Texture *t ){
 		assertmsg(t->tex!=0, "invalid texture" );
 		tex = t;
@@ -27,7 +25,8 @@ public:
 	virtual void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
         print("getUVFromIndex:should never called");
     }
-    
+    virtual float getUperCell() { return 0; }
+    virtual float getVperCell() { return 0;}
 };
 
 class TileDeck : public Deck {
@@ -47,8 +46,8 @@ public:
 		cell_width = cellw;
 		cell_height = cellh;
 	}
-    float getUperCell() { return (float) cell_width / (float) image_width; }
-    float getVperCell() { return (float) cell_height / (float) image_height; }    
+    virtual float getUperCell() { return (float) cell_width / (float) image_width; }
+    virtual float getVperCell() { return (float) cell_height / (float) image_height; }    
 	virtual void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
         assert( image_width > 0 && image_height > 0 );
 		float uunit = (float) cell_width / (float) image_width;
@@ -70,4 +69,34 @@ public:
 		*x1 = start_x + cell_width;
 		*y1 = start_y + cell_height;
 	}
+};
+
+
+class UVRect {
+public:
+    float u0,v0,u1,v1;
+};
+class PackDeck : public Deck {
+public:
+    UVRect *rects;
+    size_t rect_num;
+    PackDeck() : Deck(), rects(NULL), rect_num(0) {
+    }
+    void setRects( UVRect *in_rects, size_t n ) {
+        assert(rects==NULL);
+        size_t sz = n*sizeof(UVRect);
+        rects = (UVRect*)MALLOC(sz);
+        memcpy(rects,in_rects,n*sizeof(UVRect));
+        rect_num = n;
+    }
+	virtual void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
+        assert(ind>=0 && ind<rect_num);
+        *u0 = rects[ind].u0;
+        *v0 = rects[ind].v0;
+        *u1 = rects[ind].u1;
+        *v1 = rects[ind].v1;
+    }
+    ~PackDeck() {
+        if(rects)FREE(rects);
+    }
 };

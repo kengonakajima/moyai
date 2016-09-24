@@ -13,7 +13,7 @@
 
 
 class Camera;
-class TileDeck;
+class Deck;
 class Material;
 class MoyaiClient;
 
@@ -60,7 +60,7 @@ public:
 			center + Vec2(dia,dia),
 			out, outlen );
 	}
-	inline void drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *locofs, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  );
+	inline void drawMesh( int dbg, Mesh *mesh, Deck *deck, Vec3 *loc, Vec3 *locofs, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  );
 
 	void setupProjectionMatrix3D();
 	Vec2 getScreenPos( Vec3 at );

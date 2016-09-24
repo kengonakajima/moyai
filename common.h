@@ -396,7 +396,7 @@ public:
 };
 
 class TrackerImage;
-class TileDeck;
+class Deck;
 class RemoteHead;
 
 class Image {
@@ -430,7 +430,7 @@ public:
     void setOptionalLoadPath( const char *cstrpath );
     void fillBoxLeftBottom( Color c, int draw_width, int draw_height );
     size_t getBufferSize() { return width * height * 4; }
-    void onTrack( TileDeck *owner_dk, RemoteHead *rh );
+    void onTrack( Deck *owner_dk, RemoteHead *rh );
 };
 
 

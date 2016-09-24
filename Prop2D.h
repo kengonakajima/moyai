@@ -69,7 +69,7 @@ public:
 	Prop2D() : Prop(), Renderable() {
         init();
     }
-    Prop2D(TileDeck *dk, int index,float scl,Vec2 loc) : Prop(), Renderable() {
+    Prop2D(Deck *dk, int index,float scl,Vec2 loc) : Prop(), Renderable() {
         init();
         setDeck(dk);
         setIndex(index);

@@ -4,7 +4,7 @@
 
 #include "Mesh.h"
 
-class TileDeck;
+class Deck;
 #include "FragmentShader.h"
 
 
@@ -20,7 +20,7 @@ public:
 	Vec2 *texofs_table;
 	bool *rot_table;
 	Color *color_table;
-	TileDeck *deck;
+	Deck *deck;
 	FragmentShader *fragment_shader;
 	bool visible;
 	float enfat_epsilon;
@@ -38,7 +38,7 @@ public:
         id = idgen++;
 	}
 	~Grid();
-	void setDeck( TileDeck *d ){
+	void setDeck( Deck *d ){
 		deck = d;
 	}
 	inline int index(int x, int y){

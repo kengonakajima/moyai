@@ -9,7 +9,7 @@
 #include "Prop3D.h"
 
 
-inline void Layer::drawMesh( int dbg, Mesh *mesh, TileDeck *deck, Vec3 *loc, Vec3 *locofs, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {
+inline void Layer::drawMesh( int dbg, Mesh *mesh, Deck *deck, Vec3 *loc, Vec3 *locofs, Vec3 *scl, Vec3 *rot, Vec3 *localloc, Vec3 *localscl, Vec3 *localrot, Material *material  ) {
 	if( !mesh || mesh->vb->array_len == 0 || mesh->ib->array_len == 0 || mesh->ib->render_len == 0 ) return; // nothing to render!
 
 	if( deck ) {

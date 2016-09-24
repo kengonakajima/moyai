@@ -260,7 +260,7 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
     // Image, Texture, tiledeck
     std::unordered_map<int,Image*> imgmap;
     std::unordered_map<int,Texture*> texmap;
-    std::unordered_map<int,TileDeck*> tdmap;
+    std::unordered_map<int,Deck*> dkmap;
     std::unordered_map<int,Font*> fontmap;
     std::unordered_map<int,ColorReplacerShader*> crsmap;
     
@@ -272,7 +272,7 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
         while(cur) {
             Prop2D *p = (Prop2D*) cur;
             if(p->deck) {
-                tdmap[p->deck->id] = p->deck;
+                dkmap[p->deck->id] = p->deck;
                 if( p->deck->tex) {
                     texmap[p->deck->tex->id] = p->deck->tex;
                     if( p->deck->tex->image ) {
@@ -289,7 +289,7 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
             for(int i=0;i<p->grid_used_num;i++) {
                 Grid *g = p->grids[i];
                 if(g->deck) {
-                    tdmap[g->deck->id] = g->deck;
+                    dkmap[g->deck->id] = g->deck;
                     if( g->deck->tex) {
                         texmap[g->deck->tex->id] = g->deck->tex;
                         if( g->deck->tex->image ) {
@@ -340,11 +340,16 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
         sendUS1UI1( outstream, PACKETTYPE_S2C_TEXTURE_CREATE, tex->id );
         sendUS1UI2( outstream, PACKETTYPE_S2C_TEXTURE_IMAGE, tex->id, tex->image->id );
     }
-    for( std::unordered_map<int,TileDeck*>::iterator it = tdmap.begin(); it != tdmap.end(); ++it ) {
-        TileDeck *td = it->second;
+    for( std::unordered_map<int,Deck*>::iterator it = dkmap.begin(); it != dkmap.end(); ++it ) {
+        Deck *dk = it->second;
+        // TODO: Support PackDeck
+        assertmsg(dk->getUperCell()>0, "only tiledeck is supported" );
+        
+        TileDeck *td = (TileDeck*) dk;
+        
         //        print("sending tiledeck_create id:%d", td->id );
-        sendUS1UI1( outstream, PACKETTYPE_S2C_TILEDECK_CREATE, td->id );
-        sendUS1UI2( outstream, PACKETTYPE_S2C_TILEDECK_TEXTURE, td->id, td->tex->id );
+        sendUS1UI1( outstream, PACKETTYPE_S2C_TILEDECK_CREATE, dk->id );
+        sendUS1UI2( outstream, PACKETTYPE_S2C_TILEDECK_TEXTURE, dk->id, td->tex->id );
         //        print("sendS2RTileDeckSize: id:%d %d,%d,%d,%d", td->id, sprw, sprh, cellw, cellh );        
         sendUS1UI5( outstream, PACKETTYPE_S2C_TILEDECK_SIZE, td->id, td->tile_width, td->tile_height, td->cell_width, td->cell_height );        
     }
@@ -1016,8 +1021,9 @@ bool TrackerImage::checkDiff() {
         return false;
     }
 }
-void TrackerImage::broadcastDiff( TileDeck *owner_dk, bool force ) {
+void TrackerImage::broadcastDiff( Deck *owner_dk, bool force ) {
     if( checkDiff() || force ) {
+        assertmsg( owner_dk->getUperCell()>0, "only tiledeck is supported now" );
         //        print("TrackerImage::broadcastDiff bufsz:%d", target_image->getBufferSize() );
         parent_rh->broadcastUS1UI3( PACKETTYPE_S2C_IMAGE_ENSURE_SIZE,
                                    target_image->id, target_image->width, target_image->height );
