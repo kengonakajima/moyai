@@ -1,3 +1,7 @@
+OSX_TARGET=10.10
+OSX_TARGET_FLAG=-mmacosx-version-min=$(OSX_TARGET)
+OSX_TARGET_EXPORT=export MACOSX_DEPLOYMENT_TARGET=$(OSX_TARGET)
+
 MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Remote.cpp Keyboard.cpp JPEGCoder.cpp
 UTF8SRC=ConvertUTF.c
 UTF8OBJ=ConvertUTF.o
@@ -43,11 +47,11 @@ ALUTLIB=libalut.a
 
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB) $(ALUTLIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(GLFWLIB) $(UNTZLIB)
-CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib -L/usr/local/lib -luv -ljpeg $(UNTZDEPENDLIB) -framework OpenAL
-CFLAGS=-O0 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -Iuntz/src -Iuntz/include -I./freealut/include 
+CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib -L/usr/local/lib -luv -ljpeg $(UNTZDEPENDLIB) -framework OpenAL $(OSX_TARGET_FLAG)
+CFLAGS=-O0 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -Iuntz/src -Iuntz/include -I./freealut/include $(OSX_TARGET_FLAG)
 CFLAGS0X=-std=c++0x $(CFLAGS)
 
-ALUTCFLAGS=-DHAVE_STDINT_H -I./freealut/include -DHAVE_STAT -DHAVE_USLEEP -DHAVE_UNISTD_H
+ALUTCFLAGS=-DHAVE_STDINT_H -I./freealut/include -DHAVE_STAT -DHAVE_USLEEP -DHAVE_UNISTD_H $(OSX_TARGET_FLAG)
 
 DEMO2D=demo2d
 DEMO3D=demo3d
@@ -174,7 +178,8 @@ Keyboard.o : Keyboard.cpp
 	g++ -c $(CFLAGS0X) Keyboard.cpp -o Keyboard.o
 JPEGCoder.o : JPEGCoder.cpp
 	g++ -c $(CFLAGS0X) JPEGCoder.cpp -o JPEGCoder.o
-
+lodepng.o : lodepng.cpp
+	g++ -c $(CFLAGS0X) lodepng.cpp -o lodepng.o
 
 # freetype-gl
 texture-atlas.o :
@@ -189,12 +194,12 @@ vertex-attribute.o :
 	g++ -c freetype-gl/vertex-attribute.c $(CFLAGS)
 
 
-snappy-sinksource.o:
-	g++ -c snappy/snappy-sinksource.cc $(CFLAGS)
-snappy-c.o:
-	g++ -c snappy/snappy-c.cc $(CFLAGS)
-snappy.o:
-	g++ -c snappy/snappy.cc $(CFLAGS)
+snappy/snappy-sinksource.o:
+	g++ -c snappy/snappy-sinksource.cc $(CFLAGS) -o snappy/snappy-sinksource.o
+snappy/snappy-c.o:
+	g++ -c snappy/snappy-c.cc $(CFLAGS) -o snappy/snappy-c.o
+snappy/snappy.o:
+	g++ -c snappy/snappy.cc $(CFLAGS) -o snappy/snappy.o
 
 alutInit.o:
 	gcc -c freealut/src/alutInit.c $(ALUTCFLAGS)
@@ -213,29 +218,34 @@ alutOutputStream.o:
 alutUtil.o:
 	gcc -c freealut/src/alutUtil.c $(ALUTCFLAGS)
 
+ft: $(FREETYPELIB)
+
 $(FREETYPELIB):
 	rm -rf $(FREETYPE)
 	tar jxf $(FREETYPE).tar.bz2
-	cd $(FREETYPE); ./configure; make
+	cd $(FREETYPE); ./configure CFLAGS=$(OSX_TARGET_FLAG); make
+
+b: $(BZ2LIB)
 
 $(BZ2LIB):
 	rm -rf $(BZ2)
 	tar zxf $(BZ2).tar.gz
-	cd $(BZ2); make
+#	ruby linereplace.rb $(BZ2)/Makefile CFLAGS $(OSX_TARGET_FLAG) > $(BZ2)/Makefile
+	$(OSX_TARGET_EXPORT); cd $(BZ2); make
 
 $(ZLIBLIB):
 	rm -rf $(ZLIB)
 	tar zxf $(ZLIB).tar.gz
-	cd $(ZLIB); ./configure; make
+	cd $(ZLIB); $(OSX_TARGET_EXPORT); ./configure; make
 
 $(LIBPNGLIB):
 	rm -rf $(LIBPNG)
 	tar zxf $(LIBPNG).tar.gz
-	cd $(LIBPNG); ./configure; make
+	cd $(LIBPNG); $(OSX_TARGET_EXPORT); ./configure; make
 
 
 $(GLFWLIB):
-	cd $(GLFW); cmake .; make
+	cd $(GLFW); $(OSX_TARGET_EXPORT); cmake .; make
 
 $(UNTZLIB):
 	make -C untz
@@ -247,7 +257,7 @@ clean:
 	make -C $(GLFW) clean
 	make -C untz clean
 	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) $(ALUTLIB)
-	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(REPLAYER) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
+	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(REPLAYER) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o $(SNAPPYOBJS)
 
 depend: $(GLFWLIB) $(UNTZLIB)
 	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAICLISRCS) $(DEMO2DSRCS) $(DEMO3DSRCS) $(MIN2DSRCS) $(DYNCAM2DSRCS) $(REPLAYERSRCS) $(VIEWERSRCS) > deps.make
