@@ -2,6 +2,8 @@ OSX_TARGET=10.10
 OSX_TARGET_FLAG=-mmacosx-version-min=$(OSX_TARGET)
 OSX_TARGET_EXPORT=export MACOSX_DEPLOYMENT_TARGET=$(OSX_TARGET)
 
+PATH := /usr/local/bin:$(PATH)
+
 MOYAICLISRCS=common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Remote.cpp Keyboard.cpp JPEGCoder.cpp
 UTF8SRC=ConvertUTF.c
 UTF8OBJ=ConvertUTF.o
@@ -20,6 +22,11 @@ DYNCAM2DSRCS=dyncam2d.cpp
 DYNCAM2DOBJS=$(DYNCAM2DSRCS:.cpp=.o)
 REPLAYERSRCS=rep.cpp
 REPLAYEROBJS=$(REPLAYERSRCS:.cpp=.o)
+
+JPEGLIB=jpeg-8d/.libs/libjpeg.a # Don't use -ljpeg, because of macosx older deploy target
+
+LIBUV=libuv-1.8.0
+LIBUVLIB=$(LIBUV)/.libs/libuv.a # Don't use -luv, because of macosx older dep tgt
 
 FREETYPE=freetype-2.4.10
 FREETYPELIB=$(FREETYPE)/objs/.libs/libfreetype.a  # build product of freetype source
@@ -45,9 +52,9 @@ UNTZLIB=untz/libuntz.a
 UNTZDEPENDLIB=-framework AudioToolbox /usr/local/lib/libvorbis.a /usr/local/lib/libvorbisfile.a /usr/local/lib/libogg.a
 ALUTLIB=libalut.a
 
-EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB) $(ALUTLIB)
-EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(GLFWLIB) $(UNTZLIB)
-CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib -L/usr/local/lib -luv -ljpeg $(UNTZDEPENDLIB) -framework OpenAL $(OSX_TARGET_FLAG)
+EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB) $(ALUTLIB) $(JPEGLIB) $(LIBUVLIB)
+EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(GLFWLIB)
+CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib -L/usr/local/lib -framework OpenAL $(OSX_TARGET_FLAG)
 CFLAGS=-O0 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -Iuntz/src -Iuntz/include -I./freealut/include $(OSX_TARGET_FLAG)
 CFLAGS0X=-std=c++0x $(CFLAGS)
 
@@ -114,6 +121,13 @@ $(SNAPPYLIB) : $(SNAPPYOBJS)
 $(ALUTLIB) : $(ALUTOBJS)
 	ar cr $(ALUTLIB) $(ALUTOBJS)
 	ranlib $(ALUTLIB)
+
+$(JPEGLIB) :
+	cd jpeg-8d; $(OSX_TARGET_EXPORT); ./configure; make clean; make
+
+$(LIBUVLIB) :
+	tar zxf libuv-1.8.0.tar.gz
+	cd libuv-1.8.0; $(OSX_TARGET_EXPORT); sh autogen.sh; ./configure; make clean; make
 
 common.o : common.cpp
 	g++ -c common.cpp $(CFLAGS0X)
@@ -256,7 +270,7 @@ linux:
 clean:
 	make -C $(GLFW) clean
 	make -C untz clean
-	rm -rf $(FREETYPE) $(BZ2) $(ZLIB) $(LIBPNG) $(ALUTLIB)
+	rm -rf $(FREETYPE) $(LIBUV) $(BZ2) $(ZLIB) $(LIBPNG) $(ALUTLIB) $(JPEGLIB) $(LIBUVLIB)
 	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(REPLAYER) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o $(SNAPPYOBJS)
 
 depend: $(GLFWLIB) $(UNTZLIB)
