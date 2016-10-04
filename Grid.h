@@ -50,8 +50,9 @@ public:
 #define ENSURE_GRID_TABLE( membname, T, inival)  if( !membname ){ membname = (T*) MALLOC(width*height*sizeof(T)); int i=0; for(int y=0;y<height;y++){ for(int x=0;x<width;x++){ membname[i++] = inival; }}}
 	inline void set(int x, int y, int ind ){
 		ENSURE_GRID_TABLE( index_table, int, GRID_NOT_USED );
+        int orig = index_table[ index(x,y) ];
 		index_table[ index(x,y) ] = ind;
-        uv_changed = true;
+        if(orig!=ind) uv_changed = true;
 	}
 	inline int get(int x, int y){
 		if(!index_table){
