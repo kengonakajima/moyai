@@ -296,7 +296,7 @@ static void multiplyAlphaRGBA( unsigned char *img, int width, int height) {
         } else {
             img[i+1] = (img[i+1] * img[i+3] + 128) >> 8;
         }
-        if( img[i+1] == 0xff && img[i+3] == 0xff ) {
+        if( img[i+2] == 0xff && img[i+3] == 0xff ) {
             img[i+2] = 0xff;
         } else {
             img[i+2] = (img[i+2] * img[i+3] + 128) >> 8;
