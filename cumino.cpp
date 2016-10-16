@@ -264,7 +264,17 @@ DIR4 dxdyToDir(int dx, int dy ){
         return DIR4_NONE;
     }
 }
-
+DIR4 clockDir(DIR4 d) {
+    switch(d) {
+    case DIR4_NONE: return DIR4_NONE;
+    case DIR4_UP: return DIR4_RIGHT;
+    case DIR4_RIGHT: return DIR4_DOWN;
+    case DIR4_DOWN: return DIR4_LEFT;
+    case DIR4_LEFT: return DIR4_UP;
+    }
+    assert(false);
+    return DIR4_NONE;
+}
 void dirToDXDY( DIR4 d, int *dx, int *dy ){
     *dx = *dy = 0;
     switch(d){
