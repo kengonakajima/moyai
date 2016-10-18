@@ -204,6 +204,7 @@ bool birandom();
 DIR4 rightDir( DIR4 d );
 DIR4 leftDir( DIR4 d );
 bool validateDir( DIR4 d);
+DIR4 clockDir(DIR4 d);
 
 inline int sign(float f){
     if(f>0) return 1; else if(f<0) return -1; else return 0;
