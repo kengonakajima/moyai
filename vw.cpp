@@ -294,6 +294,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
         break;
     case PACKETTYPE_TIMESTAMP:
         {
+            g_timestamp_count++;
         }
         break;
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT:
