@@ -325,7 +325,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             }
 
             TileDeck *dk = g_tiledeck_pool.get( pkt.tiledeck_id ); // deck can be null (may have grid,textbox)
-            if(!dk) {
+            if(!dk && pkt.tiledeck_id!=0) {
                 print("TileDeck is not initialized yet! id:%d",pkt.tiledeck_id);
                 break;
             }
