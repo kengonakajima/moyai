@@ -279,7 +279,8 @@ public:
 	inline bool hit( Vec2 at, float margin = 0 ){
 		return ( at.x >= loc.x - scl.x/2 - margin ) && ( at.x <= loc.x + scl.x/2 + margin) &&
 			( at.y >= loc.y - scl.y/2 - margin) && ( at.y <= loc.y + scl.y/2 + margin );
-	}    
+	}
+    bool hitGrid(Vec2 at, float margin = 0);
 
 	virtual void render(Camera *cam, DrawBatchList *bl);
 

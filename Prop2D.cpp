@@ -441,3 +441,15 @@ bool Prop2D::clearChild( Prop2D *p ) {
     }
     return false;
 }
+
+bool Prop2D::hitGrid(Vec2 at, float margin ) {        
+    for(int i=0;i<grid_used_num;i++) {
+        Grid *g = grids[i];
+        Vec2 rt( scl.x * g->width, scl.y * g->height );
+        if( (at.x >= loc.x-margin) && (at.x <= loc.x+rt.x+margin) &&
+            (at.y >= loc.y-margin) && (at.y <= loc.y+rt.y+margin) ) {
+            return true;
+        }
+    }
+    return false;
+}
