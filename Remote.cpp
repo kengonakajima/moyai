@@ -1697,7 +1697,7 @@ void Client::flushStreamToFile() {
     uint32_t sec = (uint32_t)initialized_at;
     uint32_t usec = (uint32_t)(( initialized_at - sec ) * 1000000);
     Format outpath( "/tmp/moyaistream_%u_%u_%u", id, sec, usec );
-    print("flushing recorded stream to %s size:%d", outpath.buf, saved_stream.used );
+    //    print("flushing recorded stream to %s size:%d", outpath.buf, saved_stream.used );
     // flush to file
     bool wret = appendFile( outpath.buf, saved_stream.buf, saved_stream.used );
     if(!wret) {
