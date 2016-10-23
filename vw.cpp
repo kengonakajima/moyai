@@ -1434,7 +1434,7 @@ int main( int argc, char **argv ) {
                 last_total_read = g_total_read;
                 last_total_read_at = t;
             }
-            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d bpp:%f",
+            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d bpp:%.1f",
                         polled, rendered, kbps, g_last_ping_rtt*1000,g_timestamp_count, g_total_read_count,
                         (float)g_total_read/(float)g_packet_count );
             updateDebugStat( fmt.buf );
