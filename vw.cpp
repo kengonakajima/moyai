@@ -42,6 +42,8 @@ TextBox *g_debug_tb;
 SoundSystem *g_soundsystem;
 
 uint64_t g_total_read;
+uint64_t g_total_read_count;
+uint64_t g_packet_count;
 
 char *g_server_ip_addr = (char*)"127.0.0.1";
 int g_port = 22222;
@@ -273,8 +275,11 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
     if(g_stream) sendUS1F2( g_stream, PACKETTYPE_C2S_CURSOR_POS, x, y );
 }
 
+
+
 void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
-    //    print("on_packet_callback funcid:%d argdatalen:%d",funcid, argdatalen);
+    g_packet_count++;
+    //        print("funcid:%d l:%d",funcid, argdatalen);
     if(funcid>=0 && funcid<PACKETTYPE_MAX) {
         g_recv_counts[funcid]++;
         g_recv_totalcounts[funcid]++;
@@ -325,7 +330,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             }
 
             TileDeck *dk = g_tiledeck_pool.get( pkt.tiledeck_id ); // deck can be null (may have grid,textbox)
-            if(!dk) {
+            if(!dk && pkt.tiledeck_id!=0) {
                 print("TileDeck is not initialized yet! id:%d",pkt.tiledeck_id);
                 break;
             }
@@ -1245,6 +1250,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
 }
 
 void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
+    g_total_read_count ++;
     g_total_read += nread;
     parseRecord( s, &g_recvbuf, buf->base, nread, on_packet_callback );
     
@@ -1428,7 +1434,9 @@ int main( int argc, char **argv ) {
                 last_total_read = g_total_read;
                 last_total_read_at = t;
             }
-            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d", polled, rendered, kbps, g_last_ping_rtt*1000,g_timestamp_count);
+            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d bpp:%.1f",
+                        polled, rendered, kbps, g_last_ping_rtt*1000,g_timestamp_count, g_total_read_count,
+                        (float)g_total_read/(float)g_packet_count );
             updateDebugStat( fmt.buf );
             if(t>g_last_ping_at+1) {
                 g_last_ping_at = t;
