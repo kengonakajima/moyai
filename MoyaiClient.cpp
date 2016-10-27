@@ -27,7 +27,7 @@ int MoyaiClient::render(){
 	int render_n=0;    
 	for(int i=0;i<sort_n;i++){
 		Layer *l = (Layer*) tosort[i].ptr;
-        render_n += l->renderAllProps(&batch_list);
+        render_n += l->render(&batch_list);
 	}
 
     last_draw_call_count = batch_list.drawAll();    

@@ -126,7 +126,10 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, Deck *deck, Vec3 *loc, Vec3 *l
 #endif    
 
 }
-
+int Layer::render( DrawBatchList *bl ){
+    if(callback_func) callback_func(bl);
+    return renderAllProps(bl);
+}
 int Layer::renderAllProps( DrawBatchList *bl ){
 	assertmsg( viewport, "no viewport in a layer id:%d setViewport missed?", id );
 	if( viewport->dimension == DIMENSION_2D ) {

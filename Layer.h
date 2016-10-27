@@ -34,7 +34,9 @@ public:
 
     ObjectPool<Camera> dynamic_cameras;
 
-	Layer() : Group(), camera(NULL), viewport(NULL), light(NULL), debug_id(0), priority(0) {
+    void (*callback_func)(DrawBatchList *l);
+    
+	Layer() : Group(), camera(NULL), viewport(NULL), light(NULL), debug_id(0), priority(0), callback_func(NULL) {
 		to_render = true;
 	}
 	inline void setViewport( Viewport *vp ){
@@ -52,6 +54,7 @@ public:
     bool hasDynamicCamera() {
         return dynamic_cameras.size();
     }
+    int render( DrawBatchList *bl );
 	int renderAllProps( DrawBatchList *bl );
 
 	void selectCenterInside( Vec2 minloc, Vec2 maxloc, Prop*out[], int *outlen );
@@ -67,4 +70,5 @@ public:
 	Vec3 getWorldPos( Vec2 scrpos );
 
 	int getHighestPriority();
+    void setCallbackFunc( void (*cb)(DrawBatchList*) ) { callback_func = cb; }
 };

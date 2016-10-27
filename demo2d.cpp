@@ -18,6 +18,7 @@
 MoyaiClient *g_moyai_client;
 Viewport *g_viewport;
 Layer *g_main_layer;
+Layer *g_hud_layer;
 Texture *g_base_atlas;
 TileDeck *g_base_deck;
 Camera *g_camera;
@@ -499,6 +500,17 @@ void gameUpdate(void) {
     }
 }
 
+// direct rendering using callback function
+void drawCallback(DrawBatchList *bl) {
+    float u0,v0,u1,v1;
+    g_base_deck->getUVFromIndex(irange(0,3), &u0,&v0,&u1,&v1,0,0,0);
+    bl->appendSprite1(g_viewport,NULL,BLENDTYPE_SRC_ALPHA,g_base_atlas->tex, Color(1,1,1,1), Vec2(300,-200), Vec2(200,200), 0,
+                      Vec2(u0,v1), Vec2(u0,v0), Vec2(u1,v0), Vec2(u1,v1) );
+}
+
+
+    
+
 void qstest(){
     SorterEntry tosort[5];
     tosort[0].val = 9;
@@ -720,6 +732,11 @@ void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videost
     g_moyai_client->insertLayer(g_main_layer);
     g_main_layer->setViewport(g_viewport);
 
+    g_hud_layer = new Layer();
+    g_moyai_client->insertLayer(g_hud_layer);
+    g_hud_layer->setViewport(g_viewport);
+    g_hud_layer->setCallbackFunc(drawCallback);
+    
     g_camera = new Camera();
     g_camera->setLoc(0,0);
     g_main_layer->setCamera(g_camera);
