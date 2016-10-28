@@ -4,15 +4,35 @@
 #include "DrawBatch.h"
 
 
-DrawBatch::DrawBatch( Viewport *vp, VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew ) : vf_type(vft), tex(tx), prim_type(primtype), f_shader(fs), blend_type(bt), line_width(linew), vert_used(0), index_used(0), mesh(NULL), translate(0,0), scale(8,8), radrot(0), viewport(vp) {
-    VertexFormat *vf = getVertexFormat(vft);
-    vb = new VertexBuffer();
-    vb->setFormat(vf);
-    vb->reserve(MAXVERTEX);
-    ib = new IndexBuffer();
-    ib->reserve(MAXINDEX);
+DrawBatch::DrawBatch( Viewport *vp, VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew ) : vf_type(vft), tex(tx), prim_type(primtype), f_shader(fs), blend_type(bt), line_width(linew), vert_used(0), index_used(0), mesh(NULL), translate(0,0), scale(8,8), radrot(0), viewport(vp), perform_transform(false) {
+    setupVBIB(NULL,vft);
 }
-DrawBatch::DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx, Vec2 tr, Vec2 scl, float r, Mesh *m ) : vf_type(VFTYPE_INVAL), tex(tx), prim_type(0), f_shader(fs), blend_type(bt), line_width(0), vb(NULL), ib(NULL), vert_used(0), index_used(0), mesh(m), translate(tr), scale(scl), radrot(r), viewport(vp) {
+void DrawBatch::setupVBIB( Mesh *copy_from,VFTYPE vft ) {
+    vb = new VertexBuffer();
+    ib = new IndexBuffer();        
+    if(copy_from) {
+        vb->setFormat(copy_from->vb->fmt);
+        vb->reserve(copy_from->vb->array_len);
+        vb->copyFromBuffer(copy_from->vb->buf,copy_from->vb->array_len);
+        ib->reserve(copy_from->ib->array_len);
+        ib->copyFromBuffer(copy_from->ib->buf,copy_from->ib->array_len);
+        prim_type = copy_from->prim_type;
+        index_used = copy_from->ib->render_len;
+        vert_used = copy_from->vb->array_len;
+    } else {
+        VertexFormat *vf = getVertexFormat(vft);
+        vb->setFormat(vf);        
+        vb->reserve(MAXVERTEX);
+        ib->reserve(MAXINDEX);
+    }
+}
+DrawBatch::DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx, Vec2 tr, Vec2 scl, float r, Mesh *m, bool copy_mesh ) : vf_type(VFTYPE_INVAL), tex(tx), prim_type(0), f_shader(fs), blend_type(bt), line_width(0), vb(NULL), ib(NULL), vert_used(0), index_used(0), translate(tr), scale(scl), radrot(r), viewport(vp), perform_transform(true) {
+    if(copy_mesh) {
+        setupVBIB(m);
+        mesh = NULL;
+    } else {
+        mesh = m;
+    }
 }
 bool DrawBatch::shouldContinue( Viewport *vp, VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew  ) {
     //    print("shouldcont:vf:%d:%d tex:%d:%d prim:%d:%d fs:%p:%p", vft,vf_type,texid,tex,primtype,prim_type,f_shader,fs);
@@ -107,6 +127,7 @@ void DrawBatch::draw() {
     // normal 2D sprites
     vb_use->bless();
     ib_use->bless();
+
 #if 0
     if( prim_type == GL_LINES ) {
         print("GL_LINES. vbdump:");
@@ -123,6 +144,7 @@ void DrawBatch::draw() {
     glDisableClientState( GL_COLOR_ARRAY );
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
     glDisableClientState( GL_NORMAL_ARRAY );
+
 
     
     // 以下prop3dからのコピペ、動いたら共通化する
@@ -163,13 +185,15 @@ void DrawBatch::draw() {
     glLoadIdentity();        
 
         
-    if(mesh) {
+    if(perform_transform) {
         // grid, textbox, prims, and 3d meshes        
         glTranslatef( translate.x, translate.y, 0 );
         // TODO: apply camera
         glRotatef( radrot * (180.0f/M_PI), 0,0,1);
         // TODO: apply viewport scaling
         glScalef( scale.x, scale.y, 1 );
+    }
+    if(mesh) {
         assert( mesh->ib );
         glDrawElements( mesh->prim_type, mesh->ib->render_len, INDEX_BUFFER_GL_TYPE, 0);
     } else {
@@ -313,8 +337,8 @@ bool DrawBatchList::appendRect( Viewport *vp, Vec2 p0, Vec2 p1, Color c, Vec2 tr
     b->pushVertices( 4, cols, coords, 6, inds );
     return true;
 }
-bool DrawBatchList::appendMesh( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh ) {
-    DrawBatch *b = startNextMeshBatch( vp, fs, bt, tex, tr,scl,radrot,mesh );
+bool DrawBatchList::appendMesh( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh, bool copy_mesh ) {
+    DrawBatch *b = startNextMeshBatch( vp, fs, bt, tex, tr,scl,radrot,mesh,copy_mesh );
     if(!b) {
         print("appendMesh: can't start mesh batch!" );
         return false;
@@ -354,9 +378,9 @@ DrawBatch *DrawBatchList::startNextBatch( Viewport *vp, VFTYPE vft, GLuint tex, 
     used++;
     return b;
 }
-DrawBatch *DrawBatchList::startNextMeshBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh ) {
+DrawBatch *DrawBatchList::startNextMeshBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh, bool copy_mesh ) {
     assertmsg( used<MAXBATCH, "max draw batch (withshader). need tune" );
-    DrawBatch *b = new DrawBatch( vp, fs, bt, tex, tr, scl, radrot, mesh );
+    DrawBatch *b = new DrawBatch( vp, fs, bt, tex, tr, scl, radrot, mesh, copy_mesh );
     batches[used] = b;
     used++;
     return b;

@@ -22,6 +22,7 @@ Layer *g_hud_layer;
 Texture *g_base_atlas;
 TileDeck *g_base_deck;
 Camera *g_camera;
+Font *g_font;
 
 Texture *g_bmpfont_atlas;
 TileDeck *g_bmpfont_deck;
@@ -507,6 +508,7 @@ void drawCallback(Layer *l, DrawBatchList *bl) {
     bl->appendSprite1(g_viewport,NULL,BLENDTYPE_SRC_ALPHA,g_base_atlas->tex, Color(1,1,1,1), Vec2(200,-200), Vec2(100,100), 0,
                       Vec2(u0,v1), Vec2(u0,v0), Vec2(u1,v0), Vec2(u1,v1) );
     Prop2D::drawToDBL(l,bl,NULL,false,g_base_deck,irange(0,3),Color(1,1,1,1), Vec2(350,-200), Vec2(100,100), 0 );
+    TextBox::drawToDBL(l,bl,false,g_font, "hogeほげDBL", Color(1,1,1,1), Vec2(200,-200), 1, 0 );
 }
 
 
@@ -871,19 +873,19 @@ void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videost
     ////////////////////
     wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえおぁぃぅぇぉかきくけこがぎぐげごさしすせそざじずぜぞたちつてとだぢづでどなにぬねのはひふへほばびぶべぼぱぴぷぺぽまみむめもやゆよゃゅょらりるれろわをん、。アイウエオァィゥェォカキクケコガギグゲゴサシスセソザジズゼゾタチツテトダヂヅデドナニヌネノハヒフヘホバビブベボパピプペポマミムメモヤユヨャュョラリルレロワヲンーッっ　「」";    
 
-    Font *font = new Font();
-    font->loadFromTTF("./assets/cinecaption227.ttf", charcodes, 12 );
+    g_font = new Font();
+    g_font->loadFromTTF("./assets/cinecaption227.ttf", charcodes, 12 );
 
 
     g_tb = new TextBox();
-    g_tb->setFont(font);
+    g_tb->setFont(g_font);
     g_tb->setString("dummy");
     g_tb->setScl(1);
     g_tb->setLoc(22,22);
     g_main_layer->insertProp(g_tb);
 
     TextBox *t3 = new TextBox();
-    t3->setFont(font);
+    t3->setFont(g_font);
     t3->setString( L"ABC012あいうえお\nあいうえお(wchar_t)。" );
     t3->setLoc(-100,-50);
     t3->setScl(1);
@@ -891,7 +893,7 @@ void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videost
 
 
     TextBox *t4 = new TextBox();
-    t4->setFont(font);
+    t4->setFont(g_font);
     t4->setString( "ABC012あいうえお\nあいうえお(mb-utf8)。" );
     t4->setLoc(-100,-90);
     t4->setScl(0.75f);
@@ -899,7 +901,7 @@ void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videost
     
     // Check bottom line
     TextBox *t5 = new TextBox();
-    t5->setFont(font);
+    t5->setFont(g_font);
     t5->setString( L"THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない1ぎょうめ\n"
                    L"THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない2ぎょうめ"
                    );

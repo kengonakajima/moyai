@@ -244,7 +244,7 @@ void Prop2D::render(Camera *cam, DrawBatchList *bl ) {
             FragmentShader *fs = fragment_shader;
             if( grid->fragment_shader ) fs = grid->fragment_shader;
             //            print("appendMesh, tex:%d vn:%d rn:%d", draw_deck->tex->tex, grid->mesh->vb->array_len, grid->mesh->ib->render_len );
-            bl->appendMesh( getViewport(), fs, getBlendType(), draw_deck->tex->tex, loc - Vec2(camx,camy), scl, rot, grid->mesh );
+            bl->appendMesh( getViewport(), fs, getBlendType(), draw_deck->tex->tex, loc - Vec2(camx,camy), scl, rot, grid->mesh, copy_mesh_at_draw );
 		}
 	}
 
@@ -454,11 +454,11 @@ bool Prop2D::hitGrid(Vec2 at, float margin ) {
     return false;
 }
 void Prop2D::drawToDBL( Layer *l, DrawBatchList *bl, FragmentShader *fs, bool additive_blend, Deck *dk, int index, Color col, Vec2 loc, Vec2 scl, float rot ) {
-    Prop2D *p = new Prop2D(dk,index,scl,loc);
-    p->parent_group = l;
-    p->use_additive_blend = additive_blend;
-    p->setFragmentShader(fs);
-    p->setColor(col);
-    p->setRot(rot);
-    p->render(l->camera,bl);
+    Prop2D p(dk,index,scl,loc);
+    p.parent_group = l;
+    p.use_additive_blend = additive_blend;
+    p.setFragmentShader(fs);
+    p.setColor(col);
+    p.setRot(rot);
+    p.render(l->camera,bl);
 }

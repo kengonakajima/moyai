@@ -82,4 +82,5 @@ public:
         clearMesh();
         updateMesh();
     }
+    static void drawToDBL( Layer *l, DrawBatchList *bl, bool additiveblend, Font *font, const char *s, Color col, Vec2 loc, float scl, float rot );    
 };

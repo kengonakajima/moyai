@@ -26,4 +26,5 @@ public:
 	void bless();
     void unbless();
 	void dump(int lim);
+    void copyFromBuffer( IndexBufferType *buf, int ind_cnt );
 };

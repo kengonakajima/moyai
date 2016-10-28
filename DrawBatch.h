@@ -42,16 +42,18 @@ public:
     Vec2 translate, scale; // used only when drawing mesh
     float radrot;
     Viewport *viewport;
+    bool perform_transform; // true for drawing Mesh pointer or copied Mesh
     
     static const int MAXQUAD = 256;
     static const int MAXVERTEX = MAXQUAD*4;
     static const int MAXINDEX = MAXQUAD*6;
     DrawBatch( Viewport *vp, VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew = 1 );
-    DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx, Vec2 translate, Vec2 scale, float r, Mesh *m );
+    DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx, Vec2 translate, Vec2 scale, float r, Mesh *m, bool copy_mesh );
     ~DrawBatch() {
         if(vb)delete vb;
         if(ib)delete ib;
     };
+    void setupVBIB(Mesh*m, VFTYPE vft = VFTYPE_INVAL);
     bool shouldContinue( Viewport *vp, VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew = 1);
     void draw();
     int hasVertexRoom( int n ) {
@@ -74,12 +76,12 @@ public:
     void dump();
     DrawBatch *getCurrentBatch();
     DrawBatch *startNextBatch( Viewport *vp, VFTYPE vft, GLuint tex, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew = 1 );
-    DrawBatch *startNextMeshBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh );
+    DrawBatch *startNextMeshBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh, bool copy_mesh );
     int drawAll();
 
     bool appendSprite1( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Color c, Vec2 tr, Vec2 scl, float radrot, Vec2 lb, Vec2 lt, Vec2 rt, Vec2 rb );
 
-    bool appendMesh( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh );
+    bool appendMesh( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh, bool copy_mesh );
     bool appendLine( Viewport *vp, Vec2 a, Vec2 b, Color c, Vec2 tr, Vec2 scl, float radrot, int linew );
     bool appendRect( Viewport *vp, Vec2 a, Vec2 b, Color c, Vec2 tr, Vec2 scl, float radrot );
 };

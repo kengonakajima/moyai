@@ -7,15 +7,12 @@
 
 void TextBox::render(Camera *cam, DrawBatchList *bl ) {
     if(!str) return;
-
-    //    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );    
-
     Vec2 camloc;
     if(cam) {
         camloc.x = cam->loc.x;
         camloc.y = cam->loc.y;
     }
-    bl->appendMesh( getViewport(), fragment_shader, getBlendType(), font->atlas->id, loc - camloc, scl, rot, mesh );
+    bl->appendMesh( getViewport(), fragment_shader, getBlendType(), font->atlas->id, loc - camloc, scl, rot, mesh, copy_mesh_at_draw );
 }
 
 void TextBox::updateMesh() {
@@ -113,4 +110,17 @@ void TextBox::onTrack( RemoteHead *rh, Prop2D *parentprop ) {
     tracker->scanTextBox();
     tracker->broadcastDiff( false );
     tracker->flipCurrentBuffer();
+}
+void TextBox::drawToDBL( Layer *l, DrawBatchList *bl, bool additiveblend, Font *font, const char *s, Color col, Vec2 loc, float scl, float rot ) {
+    TextBox tb;
+    tb.setFont(font);
+    tb.setColor(col);    
+    tb.use_additive_blend = additiveblend;
+    tb.setScl(scl);
+    tb.setRot(rot);
+    tb.setLoc(loc);
+    tb.parent_group = l;
+    tb.copy_mesh_at_draw = true;
+    tb.setString(s);
+    tb.render(l->camera,bl);
 }

@@ -65,6 +65,7 @@ public:
     static VertexFormat *vf_single_sprite; 
 
     Tracker2D *tracker;
+    bool copy_mesh_at_draw;
     
 	Prop2D() : Prop(), Renderable() {
         init();
@@ -110,6 +111,7 @@ public:
         use_additive_blend = false;
 
         tracker = NULL;
+        copy_mesh_at_draw = false; // set true for drawDBL
 	}
 	virtual ~Prop2D(){
 		for(int i=0;i<grid_used_num;i++){

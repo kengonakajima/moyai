@@ -69,3 +69,8 @@ void IndexBuffer::setRenderLen(int l) {
     render_len = l;        
 }
 
+void IndexBuffer::copyFromBuffer( IndexBufferType *inbuf, int ind_cnt ) {
+	assertmsg( ind_cnt <= array_len, "size too big");
+	render_len = ind_cnt;
+	memcpy( buf, inbuf, ind_cnt * sizeof(IndexBufferType) );
+}
