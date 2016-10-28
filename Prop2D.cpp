@@ -453,3 +453,12 @@ bool Prop2D::hitGrid(Vec2 at, float margin ) {
     }
     return false;
 }
+void Prop2D::drawToDBL( Layer *l, DrawBatchList *bl, FragmentShader *fs, bool additive_blend, Deck *dk, int index, Color col, Vec2 loc, Vec2 scl, float rot ) {
+    Prop2D *p = new Prop2D(dk,index,scl,loc);
+    p->parent_group = l;
+    p->use_additive_blend = additive_blend;
+    p->setFragmentShader(fs);
+    p->setColor(col);
+    p->setRot(rot);
+    p->render(l->camera,bl);
+}

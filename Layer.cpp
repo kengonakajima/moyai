@@ -127,7 +127,7 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, Deck *deck, Vec3 *loc, Vec3 *l
 
 }
 int Layer::render( DrawBatchList *bl ){
-    if(callback_func) callback_func(bl);
+    if(callback_func) callback_func(this,bl);
     return renderAllProps(bl);
 }
 int Layer::renderAllProps( DrawBatchList *bl ){

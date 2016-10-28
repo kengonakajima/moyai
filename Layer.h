@@ -34,7 +34,7 @@ public:
 
     ObjectPool<Camera> dynamic_cameras;
 
-    void (*callback_func)(DrawBatchList *l);
+    void (*callback_func)(Layer *l,DrawBatchList *bl);
     
 	Layer() : Group(), camera(NULL), viewport(NULL), light(NULL), debug_id(0), priority(0), callback_func(NULL) {
 		to_render = true;
@@ -70,5 +70,5 @@ public:
 	Vec3 getWorldPos( Vec2 scrpos );
 
 	int getHighestPriority();
-    void setCallbackFunc( void (*cb)(DrawBatchList*) ) { callback_func = cb; }
+    void setCallbackFunc( void (*cb)(Layer *l,DrawBatchList*) ) { callback_func = cb; }
 };

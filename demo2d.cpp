@@ -501,11 +501,12 @@ void gameUpdate(void) {
 }
 
 // direct rendering using callback function
-void drawCallback(DrawBatchList *bl) {
+void drawCallback(Layer *l, DrawBatchList *bl) {
     float u0,v0,u1,v1;
     g_base_deck->getUVFromIndex(irange(0,3), &u0,&v0,&u1,&v1,0,0,0);
-    bl->appendSprite1(g_viewport,NULL,BLENDTYPE_SRC_ALPHA,g_base_atlas->tex, Color(1,1,1,1), Vec2(300,-200), Vec2(200,200), 0,
+    bl->appendSprite1(g_viewport,NULL,BLENDTYPE_SRC_ALPHA,g_base_atlas->tex, Color(1,1,1,1), Vec2(200,-200), Vec2(100,100), 0,
                       Vec2(u0,v1), Vec2(u0,v0), Vec2(u1,v0), Vec2(u1,v1) );
+    Prop2D::drawToDBL(l,bl,NULL,false,g_base_deck,irange(0,3),Color(1,1,1,1), Vec2(350,-200), Vec2(100,100), 0 );
 }
 
 

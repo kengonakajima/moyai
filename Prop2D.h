@@ -312,4 +312,5 @@ public:
     void deletePrim( int prim_id ) {
         if( prim_drawer ) prim_drawer->deletePrim(prim_id);
     }
+    static void drawToDBL( Layer *l, DrawBatchList *bl,FragmentShader *fs, bool additive_blend, Deck *dk, int index, Color col, Vec2 loc, Vec2 scl, float rot );
 };
