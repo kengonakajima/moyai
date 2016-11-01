@@ -28,6 +28,7 @@
 
 #if defined(__linux__)
 #include "GLemu.h"
+#include "GLFWemu.h"
 #endif
 
 // GFX API specific includes

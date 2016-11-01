@@ -36,3 +36,4 @@ typedef void (* GLFWframebuffersizefun)(GLFWwindow*,int,int);
 GLFWframebuffersizefun glfwSetFramebufferSizeCallback(GLFWwindow* window, GLFWframebuffersizefun cbfun);
 
 
+#define GLFW_KEY_SPACE 32

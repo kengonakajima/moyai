@@ -602,7 +602,9 @@ void glfw_error_cb( int code, const char *desc ) {
 }
 void fbsizeCallback( GLFWwindow *window, int w, int h ) {
     print("fbsizeCallback: %d,%d",w,h);
+#ifndef __linux__
 	glViewport(0, 0, w, h);
+#endif    
 }
 
 void keyboardCallback( GLFWwindow *window, int key, int scancode, int action, int mods ) {
