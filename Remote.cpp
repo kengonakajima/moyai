@@ -193,6 +193,9 @@ void RemoteHead::delClient( Client *cl ) {
 Client *RemoteHead::getFirstClient() {
     return cl_pool.getFirst();
 }
+int RemoteHead::getClientCount() {
+    return cl_pool.size();
+}
 // Assume all props in all layers are Prop2Ds.
 void RemoteHead::track2D() {
     broadcastTimestamp();

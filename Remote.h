@@ -215,6 +215,7 @@ public:
     void addClient(Client*cl);
     void delClient(Client*cl);
     Client *getFirstClient();
+    int getClientCount();
     
     void track2D();
     void broadcastCapturedScreen();
