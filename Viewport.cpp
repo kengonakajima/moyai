@@ -46,7 +46,7 @@ void Viewport::addTargetLayer(Layer *to_add) {
 }
 void Viewport::onTrackDynamic() {
     if(!remote_client) return;
-    print("Viewport::onTrackDynamic: clid:%d layersize:%d",remote_client->id, target_layers.size() );
+    //    print("Viewport::onTrackDynamic: clid:%d layersize:%d",remote_client->id, target_layers.size() );
     if(!tracker) {
         tracker = new TrackerViewport(NULL,this);
         tracker->unicastCreate(remote_client);
