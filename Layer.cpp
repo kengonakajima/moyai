@@ -405,6 +405,17 @@ void Layer::addDynamicCamera( Camera *cam ) {
     print("addDynamicCamera: added a dynamic camera. id:%d sz:%d",cam->id, dynamic_cameras.size() );
     cam->addTargetLayer(this);
 }
+void Layer::addDynamicViewport( Viewport *vp ) {
+    Viewport *v = dynamic_viewports.get(vp->id);
+    if(v) {
+        print("addDynamicViewport: adding viewport %d again",vp->id);
+        return;
+    }
+    assertmsg( vp->remote_client, "addDynamicViewport: dynamic viewport must have remote_client");
+    dynamic_viewports.set(vp->id,vp);
+    print("addDynamicViewport: added a dynamic viewport. id:%d sz:%d", vp->id, dynamic_viewports.size() );
+    vp->addTargetLayer(this);
+}
 void Layer::delDynamicCamera( Camera *cam ) {
     Camera *c = dynamic_cameras.get(cam->id);
     if(!c) {
@@ -419,4 +430,10 @@ void Layer::onTrackDynamicCameras() {
         Camera *cam = it->second;
         cam->onTrackDynamic();
     }
+}
+void Layer::onTrackDynamicViewports() {
+    for(std::unordered_map<unsigned int,Viewport*>::iterator it = dynamic_viewports.idmap.begin(); it != dynamic_viewports.idmap.end(); ++it ) {
+        Viewport *vp = it->second;
+        vp->onTrackDynamic();
+    }    
 }

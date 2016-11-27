@@ -202,10 +202,12 @@ void RemoteHead::track2D() {
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
         Layer *layer = (Layer*) target_moyai->getGroupByIndex(i);
         if(!layer)continue;
-        if(layer->hasDynamicCamera()) {
+        if(layer->hasDynamicCameras()) {
             layer->onTrackDynamicCameras();
         } else if(layer->camera) layer->camera->onTrack(this);
-         if(layer->viewport) layer->viewport->onTrack(this);
+        if(layer->hasDynamicViewports()) {
+            layer->onTrackDynamicViewports();
+        } else if(layer->viewport) layer->viewport->onTrack(this);
         Prop *cur = layer->prop_top;
         while(cur) {
             Prop2D *p = (Prop2D*) cur;
@@ -1106,6 +1108,21 @@ void TrackerViewport::broadcastDiff( bool force ) {
         parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_VIEWPORT_SCALE, target_viewport->id, sclbuf[cur_buffer_index].x, sclbuf[cur_buffer_index].y );
     }
 }
+void TrackerViewport::unicastDiff( Client *dest, bool force ) {
+    if( checkDiff() || force ) {
+        sendUS1UI1F2( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_VIEWPORT_SCALE, target_viewport->id, sclbuf[cur_buffer_index].x, sclbuf[cur_buffer_index].y );
+    }
+}
+void TrackerViewport::unicastCreate( Client *dest ) {
+    print("TrackerViewport::unicastCreate. id:%d",dest->id);
+    sendUS1UI1( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_VIEWPORT_CREATE, target_viewport->id );
+    for(std::unordered_map<unsigned int,Layer*>::iterator it = target_viewport->target_layers.idmap.begin();
+        it != target_viewport->target_layers.idmap.end(); ++it ) {
+        Layer *l = it->second;
+        print("  TrackerViewport::unicastCreate: camera_dynamic_layer:%d", l->id );
+        sendUS1UI2( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER, target_viewport->id, l->id );
+    }
+}
 
 /////////////////////
 
@@ -1178,6 +1195,7 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     case PACKETTYPE_S2C_VIEWPORT_CREATE: return "PACKETTYPE_S2C_VIEWPORT_CREATE";
     //    case PACKETTYPE_S2C_VIEWPORT_SIZE: 331,  not used now
     case PACKETTYPE_S2C_VIEWPORT_SCALE: return "PACKETTYPE_S2C_VIEWPORT_SCALE";
+    case PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER: return "PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER";        
     case PACKETTYPE_S2C_CAMERA_CREATE: return "PACKETTYPE_S2C_CAMERA_CREATE";
     case PACKETTYPE_S2C_CAMERA_LOC: return "PACKETTYPE_S2C_CAMERA_LOC";
     case PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER: return "PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER";

@@ -1,5 +1,7 @@
 #include "Viewport.h"
 #include "Remote.h"
+#include "client.h"
+#include "Layer.h"
 
 int Viewport::id_gen = 1;
 
@@ -31,5 +33,25 @@ void Viewport::onTrack( RemoteHead *rh ) {
     }
     tracker->scanViewport();
     tracker->broadcastDiff(false);
+    tracker->flipCurrentBuffer();
+}
+void Viewport::addTargetLayer(Layer *to_add) {
+    Layer *l = target_layers.get(to_add->id);
+    if(l) {
+        print("Viewport::addTargetLayer:warning: layer %d already added", to_add->id );
+        return;
+    }
+    target_layers.set(to_add->id,to_add);
+    
+}
+void Viewport::onTrackDynamic() {
+    if(!remote_client) return;
+    print("Viewport::onTrackDynamic: clid:%d layersize:%d",remote_client->id, target_layers.size() );
+    if(!tracker) {
+        tracker = new TrackerViewport(NULL,this);
+        tracker->unicastCreate(remote_client);
+    }
+    tracker->scanViewport();
+    tracker->unicastDiff(remote_client,false);
     tracker->flipCurrentBuffer();
 }

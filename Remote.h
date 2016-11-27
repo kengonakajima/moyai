@@ -128,7 +128,8 @@ typedef enum {
     PACKETTYPE_S2C_LAYER_CAMERA = 302,
     PACKETTYPE_S2C_VIEWPORT_CREATE = 330,
     //    PACKETTYPE_S2C_VIEWPORT_SIZE = 331,  not used now
-    PACKETTYPE_S2C_VIEWPORT_SCALE = 332,    
+    PACKETTYPE_S2C_VIEWPORT_SCALE = 332,
+    PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER = 333,    
     PACKETTYPE_S2C_CAMERA_CREATE = 340,
     PACKETTYPE_S2C_CAMERA_LOC = 341,
     PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER = 342, // cam id, layer id: camera belongs to the layer's dynamic_cameras
@@ -397,7 +398,9 @@ public:
     void scanViewport();
     void flipCurrentBuffer();
     bool checkDiff();
-    void broadcastDiff( bool force );    
+    void broadcastDiff( bool force );
+    void unicastDiff( Client *dest, bool force );
+    void unicastCreate( Client *dest );
 };
 
 

@@ -2,8 +2,11 @@
 
 #include "Enums.h"
 #include "common.h"
+#include "Pool.h"
 
 class TrackerViewport;
+class Client;
+class Layer;
 
 class Viewport {
 public:
@@ -14,7 +17,9 @@ public:
 	Vec3 scl;
 	float near_clip, far_clip;
     TrackerViewport *tracker;
-	Viewport() : screen_width(0), screen_height(0), dimension(DIMENSION_2D), scl(0,0,0), near_clip(0.01f), far_clip(100), tracker(0) {
+    Client *remote_client;
+    ObjectPool<Layer> target_layers;    
+	Viewport(Client *cl=NULL) : screen_width(0), screen_height(0), dimension(DIMENSION_2D), scl(0,0,0), near_clip(0.01f), far_clip(100), tracker(0), remote_client(cl) {
         id = id_gen++;
     }
 	void setSize(int scrw, int scrh );
@@ -22,4 +27,6 @@ public:
 	void setClip3D( float near, float far ); 
 	void getMinMax( Vec2 *minv, Vec2 *maxv );
     void onTrack( RemoteHead *rh );
+    void onTrackDynamic(); // for dynamic_viewport.
+    void addTargetLayer(Layer *l);    
 };

@@ -33,6 +33,7 @@ public:
     int priority; // decided when inserting layer into moyaiclient
 
     ObjectPool<Camera> dynamic_cameras;
+    ObjectPool<Viewport> dynamic_viewports;
 
     void (*callback_func)(Layer *l,DrawBatchList *bl);
     
@@ -50,9 +51,14 @@ public:
 	}
     void addDynamicCamera( Camera *cam );
     void delDynamicCamera( Camera *cam );
+    void addDynamicViewport( Viewport *vp);
     void onTrackDynamicCameras();
-    bool hasDynamicCamera() {
+    void onTrackDynamicViewports();    
+    bool hasDynamicCameras() {
         return dynamic_cameras.size();
+    }
+    bool hasDynamicViewports() {
+        return dynamic_viewports.size();
     }
     int render( DrawBatchList *bl );
 	int renderAllProps( DrawBatchList *bl );

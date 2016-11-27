@@ -18,6 +18,13 @@
 #include <strings.h>
 #endif
 
+#if defined(__APPLE__)
+#define RETINA 2
+#else
+#define RETINA 1
+#endif
+
+
 #include "client.h"
 
 TileDeck *g_deck;
@@ -50,14 +57,22 @@ public:
     Client *cl;
     Keyboard *keyboard;
     Camera *camera;
-    PC(Client *cl) : Prop2D(), cl(cl) {
+    Viewport *viewport;
+    float zoom_rate;
+    PC(Client *cl) : Prop2D(), cl(cl), zoom_rate(1) {
         setDeck(g_deck);
         setScl(32);
         setIndex(0);
         keyboard = new Keyboard();
         camera = new Camera(cl);
+        viewport = new Viewport(cl);
+        viewport->setSize(SCRW*RETINA,SCRH*RETINA); // set actual framebuffer size to output
+        modZoom(0);
+        
         g_field_layer->addDynamicCamera(camera);
         g_char_layer->addDynamicCamera(camera);
+        g_field_layer->addDynamicViewport(viewport);
+        g_char_layer->addDynamicViewport(viewport);        
     }
     virtual bool prop2DPoll(double dt) {
         float speed = 3;
@@ -65,9 +80,15 @@ public:
         if( keyboard->getKey( 'S' ) ) loc.y -= speed;
         if( keyboard->getKey( 'A' ) ) loc.x -= speed;
         if( keyboard->getKey( 'D' ) ) loc.x += speed;
+        if( keyboard->getKey( 'Z' ) ) modZoom(0.01);
+        if( keyboard->getKey( 'X' ) ) modZoom(-0.01);
         camera->setLoc(loc);
         return true;
     }
+    void modZoom(float d) {
+        zoom_rate += d;
+        viewport->setScale2D(SCRW*zoom_rate,SCRH*zoom_rate);
+    }    
 };
 
 ObjectPool<PC> g_pc_cl_pool; // client idから検索
@@ -208,6 +229,8 @@ int main(int argc, char **argv )
         print("headless server: can't start server. port:%d", 22222 );
         exit(1);
     }
+    rh->enableSpriteStream();
+    //    rh->enableVideoStream(SCRW,SCRH,3);
     moyai_client->setRemoteHead(rh);
     rh->setTargetMoyaiClient(moyai_client);
     rh->setOnKeyboardCallback(onRemoteKeyboardCallback);

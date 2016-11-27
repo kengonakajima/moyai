@@ -38,7 +38,7 @@ void Camera::onTrackDynamic() {
 void Camera::addTargetLayer(Layer *to_add) {
     Layer *l = target_layers.get(to_add->id);
     if(l) {
-        print("addTargetLayer:warning: layer %d already added", to_add->id );
+        print("Camera::addTargetLayer:warning: layer %d already added", to_add->id );
         return;
     }
     target_layers.set(to_add->id,to_add);
@@ -46,7 +46,7 @@ void Camera::addTargetLayer(Layer *to_add) {
 void Camera::delTargetLayer(Layer *to_del) {
     Layer *l = target_layers.get(to_del->id);
     if(!l) {
-        print("delTargetLayer:warning: layer %d not found", to_del->id );
+        print("Camera::delTargetLayer:warning: layer %d not found", to_del->id );
         return;
     }
     target_layers.del(to_del->id);

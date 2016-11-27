@@ -510,6 +510,18 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             vp->setScale2D(sclx,scly);
         }
         break;
+    case PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER:
+        {
+            unsigned int viewport_id = get_u32(argdata);
+            unsigned int layer_id = get_u32(argdata+4);
+            Viewport *vp = g_viewport_pool.get(viewport_id);
+            Layer *l = g_layer_pool.get(layer_id);
+            //            print("received vp dyn layer. vp:%d l:%d",viewport_id, layer_id);
+            if(vp&&l) {
+                l->setViewport(vp);
+            }
+        }
+        break;
 
     case PACKETTYPE_S2C_CAMERA_CREATE:
         {
