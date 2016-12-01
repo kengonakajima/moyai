@@ -66,7 +66,8 @@ public:
 
     Tracker2D *tracker;
     bool copy_mesh_at_draw;
-    
+
+    int loc_sync_skip;
 	Prop2D() : Prop(), Renderable() {
         init();
     }
@@ -112,6 +113,8 @@ public:
 
         tracker = NULL;
         copy_mesh_at_draw = false; // set true for drawDBL
+
+        loc_sync_skip = 0;
 	}
 	virtual ~Prop2D(){
 		for(int i=0;i<grid_used_num;i++){

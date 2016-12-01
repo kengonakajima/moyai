@@ -130,9 +130,13 @@ void Tracker2D::broadcastDiff( bool force ) {
     int diff = checkDiff();
     if( diff || force ) {
         if( diff == CHANGED_LOC && (!force) ) {
-            parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_PROP2D_LOC,
-                                          pktbuf[cur_buffer_index].prop_id,
-                                          pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
+            bool to_send = true;
+            if(target_prop2d->loc_sync_skip>0 && (target_prop2d->poll_count % target_prop2d->loc_sync_skip)==0) {
+                to_send = false;
+            }
+            if(to_send) parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_PROP2D_LOC,
+                                                      pktbuf[cur_buffer_index].prop_id,
+                                                      pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
         } else if( diff == CHANGED_SCL && (!force) ) {
             parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_PROP2D_SCALE,
                                           pktbuf[cur_buffer_index].prop_id,
