@@ -130,13 +130,33 @@ void Tracker2D::broadcastDiff( bool force ) {
     int diff = checkDiff();
     if( diff || force ) {
         if( diff == CHANGED_LOC && (!force) ) {
-            bool to_send = true;
-            if(target_prop2d->loc_sync_skip>0 && (target_prop2d->poll_count % target_prop2d->loc_sync_skip)==0) {
-                to_send = false;
+            // only location changed!
+            if( target_prop2d->locsync_mode == LOCSYNCMODE_LINEAR ) {
+                bool to_send = true;                
+                int prev_buffer_index = cur_buffer_index==0?1:0;
+                Vec2 v0(pktbuf[prev_buffer_index].loc.x,pktbuf[prev_buffer_index].loc.y);
+                Vec2 v1(pktbuf[cur_buffer_index].loc.x,pktbuf[cur_buffer_index].loc.y);
+                float l = v0.len(v1);
+                target_prop2d->loc_sync_score+= l;
+                if(target_prop2d->loc_sync_score>40 ) {
+                    target_prop2d->loc_sync_score=0;
+                } else if( target_prop2d->poll_count>2 ){
+                    to_send = false;
+                }
+                if(to_send) {
+                    Vec2 vel = (v1 - v0) / target_prop2d->getParentLayer()->last_dt;
+                    parent_rh->broadcastUS1UI1F4( PACKETTYPE_S2C_PROP2D_LOC_VEL,
+                                                  pktbuf[cur_buffer_index].prop_id,
+                                                  pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y,
+                                                  vel.x, vel.y
+                                                  );                    
+                }
+                //                print("l:%f lss:%f id:%d", l, target_prop2d->loc_sync_score, target_prop2d->id);
+            } else {
+                parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_PROP2D_LOC,
+                                              pktbuf[cur_buffer_index].prop_id,
+                                              pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
             }
-            if(to_send) parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_PROP2D_LOC,
-                                                      pktbuf[cur_buffer_index].prop_id,
-                                                      pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
         } else if( diff == CHANGED_SCL && (!force) ) {
             parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_PROP2D_SCALE,
                                           pktbuf[cur_buffer_index].prop_id,
@@ -164,7 +184,7 @@ void Tracker2D::broadcastDiff( bool force ) {
             prt("PRI ");
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_PRIORITY, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].priority );
         } else {
-            //            prt("SS%d ",diff);            
+            //                        prt("SS%d ",diff);            
             parent_rh->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&pktbuf[cur_buffer_index], sizeof(PacketProp2DSnapshot) );
         }        
     }
@@ -1192,6 +1212,7 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     case PACKETTYPE_S2C_PROP2D_PRIORITY: return "PACKETTYPE_S2C_PROP2D_PRIORITY";
     case PACKETTYPE_S2C_PROP2D_DELETE: return "PACKETTYPE_S2C_PROP2D_DELETE";
     case PACKETTYPE_S2C_PROP2D_CLEAR_CHILD: return "PACKETTYPE_S2C_PROP2D_CLEAR_CHILD";
+    case PACKETTYPE_S2C_PROP2D_LOC_VEL: return "PACKETTYPE_S2C_PROP2D_LOC_VEL";        
     
     case PACKETTYPE_S2C_LAYER_CREATE: return "PACKETTYPE_S2C_LAYER_CREATE";
     case PACKETTYPE_S2C_LAYER_VIEWPORT: return "PACKETTYPE_S2C_LAYER_VIEWPORT";
@@ -1301,6 +1322,12 @@ void RemoteHead::broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *w
     for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
         Client *cl = it->second;
         sendUS1UI1Wstr( (uv_stream_t*)cl->tcp, usval, uival, wstr, wstr_num_letters );
+    }
+}
+void RemoteHead::broadcastUS1UI1F4( uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 ) {
+    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
+        Client *cl = it->second;
+        sendUS1UI1F4( (uv_stream_t*)cl->tcp, usval, uival, f0, f1, f2, f3 );
     }
 }
 void RemoteHead::broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
@@ -1439,6 +1466,19 @@ int sendUS1UI1F2( uv_stream_t *s, uint16_t usval, uint32_t uival, float f0, floa
     SAVE_STREAM;    
     return totalsize;    
 }
+int sendUS1UI1F4( uv_stream_t *s, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 ) {
+    size_t totalsize = 4 + 2 + 4+4+4+4+4;
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, uival );
+    memcpy( sendbuf_work+4+2+4, &f0, 4 );
+    memcpy( sendbuf_work+4+2+4+4, &f1, 4 );
+    memcpy( sendbuf_work+4+2+4+4+4, &f2, 4 );
+    memcpy( sendbuf_work+4+2+4+4+4+4, &f3, 4 );    
+    SETUP_UV_WRITE;
+    SAVE_STREAM;    
+    return totalsize;    
+}
+
 int sendUS1F2( uv_stream_t *s, uint16_t usval, float f0, float f1 ) {
     size_t totalsize = 4 + 2 + 4+4;
     SET_RECORD_LEN_AND_US1;

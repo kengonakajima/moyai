@@ -68,6 +68,7 @@ int Group::countProps() {
 
 
 int Group::pollAllProps(double dt ){
+    last_dt = dt;
     int cnt=0;
     Prop *cur = prop_top;
 
@@ -85,7 +86,7 @@ int Group::pollAllProps(double dt ){
                 to_clean[ to_clean_cnt ] = cur;
                 to_clean_cnt ++;
             }
-        }
+        } 
         cur = cur->next;
     }
 

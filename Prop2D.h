@@ -67,7 +67,11 @@ public:
     Tracker2D *tracker;
     bool copy_mesh_at_draw;
 
-    int loc_sync_skip;
+    // location sync skipping
+    float loc_sync_score;
+    LOCSYNCMODE locsync_mode;
+    Vec2 remote_vel;
+    
 	Prop2D() : Prop(), Renderable() {
         init();
     }
@@ -114,7 +118,8 @@ public:
         tracker = NULL;
         copy_mesh_at_draw = false; // set true for drawDBL
 
-        loc_sync_skip = 0;
+        loc_sync_score = 0;
+        locsync_mode = LOCSYNCMODE_ALWAYS;
 	}
 	virtual ~Prop2D(){
 		for(int i=0;i<grid_used_num;i++){
@@ -318,4 +323,5 @@ public:
         if( prim_drawer ) prim_drawer->deletePrim(prim_id);
     }
     static void drawToDBL( Layer *l, DrawBatchList *bl,FragmentShader *fs, bool additive_blend, Deck *dk, int index, Color col, Vec2 loc, Vec2 scl, float rot );
+    void setLocSyncMode(LOCSYNCMODE mode ) { locsync_mode = mode; }
 };

@@ -7,6 +7,9 @@
 
 bool Prop2D::propPoll(double dt) {
 	if( prop2DPoll(dt) == false ) return false;
+    if(remote_vel.isZero()==false) { // for cloud syncing
+        loc += remote_vel*dt;
+    }
 
 	// animation of index
 	if(anim_curve){

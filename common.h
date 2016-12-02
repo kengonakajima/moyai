@@ -359,8 +359,9 @@ public:
 #else    
     std::unordered_map<int,Prop*> idmap;
 #endif    
-    
-    Group() : prop_top(NULL), last_poll_num(0), to_render(false), skip_poll(false) {
+
+    double last_dt;
+    Group() : prop_top(NULL), last_poll_num(0), to_render(false), skip_poll(false), last_dt(0) {
         id = idgen++;        
     }
 

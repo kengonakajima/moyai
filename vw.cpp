@@ -382,6 +382,20 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             }
         }
         break;
+    case PACKETTYPE_S2C_PROP2D_LOC_VEL:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                float lx = get_f32(argdata+4);
+                float ly = get_f32(argdata+8);
+                float vx = get_f32(argdata+12);
+                float vy = get_f32(argdata+16);                
+                prop->setLoc(lx,ly);
+                prop->remote_vel = Vec2(vx,vy);
+            }
+        }
+        break;        
     case PACKETTYPE_S2C_PROP2D_SCALE:
         {
             uint32_t id = get_u32(argdata+0);

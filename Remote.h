@@ -93,6 +93,10 @@ class BufferArray;
 
 typedef std::unordered_map<unsigned int,Client*>::iterator ClientIteratorType;
 
+typedef enum {
+    LOCSYNCMODE_ALWAYS = 0, // always send loc-sync
+    LOCSYNCMODE_LINEAR = 1,
+} LOCSYNCMODE;
 
 typedef enum {
     // generic
@@ -122,6 +126,7 @@ typedef enum {
     PACKETTYPE_S2C_PROP2D_PRIORITY = 210,
     PACKETTYPE_S2C_PROP2D_DELETE = 230,
     PACKETTYPE_S2C_PROP2D_CLEAR_CHILD = 240,
+    PACKETTYPE_S2C_PROP2D_LOC_VEL = 250,
     
     PACKETTYPE_S2C_LAYER_CREATE = 300,
     PACKETTYPE_S2C_LAYER_VIEWPORT = 301,
@@ -246,7 +251,8 @@ public:
     void broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
     void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
     void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
-    void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );    
+    void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
+    void broadcastUS1UI1F4( uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );        
 
     void broadcastTimestamp();
 
@@ -467,6 +473,7 @@ int sendUS1UI3( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, ui
 int sendUS1UI5( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 );
 int sendUS1UI1F1( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0 );    
 int sendUS1UI1F2( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0, float f1 );
+int sendUS1UI1F4( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );
 int sendUS1UI1Str( uv_stream_t *out, uint16_t usval, uint32_t uival, const char *cstr );
 int sendUS1UI2Str( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr );
 int sendUS1StrBytes( uv_stream_t *out, uint16_t usval, const char *cstr, const char *data, uint32_t datalen );
