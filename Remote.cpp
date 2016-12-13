@@ -1708,7 +1708,7 @@ void BufferArray::shift() {
 
 //////////////////
 int Client::idgen = 1;
-Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : id(idgen++), tcp(sk), parent_rh(rh), save_stream(false), target_camera(NULL) {
+Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : id(idgen++), tcp(sk), parent_rh(rh), save_stream(false), target_camera(NULL), target_viewport(NULL) {
     recvbuf.ensureMemory(8*1024); // Only receiving keyboard and mouse input events!
     initialized_at = now();
 }
