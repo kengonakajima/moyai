@@ -465,3 +465,17 @@ void Prop2D::drawToDBL( Layer *l, DrawBatchList *bl, FragmentShader *fs, bool ad
     p.setRot(rot);
     p.render(l->camera,bl);
 }
+
+bool Prop2D::isInView( Vec2 *minv, Vec2 *maxv, Camera *cam ) {
+    float camx=0,camy=0;
+    if(cam) {
+        camx=cam->loc.x;
+        camy=cam->loc.y;
+    }
+    float scr_maxx = loc.x - camx + scl.x/2 + max_rt_cache.x;
+    float scr_minx = loc.x - camx - scl.x/2 + min_lb_cache.x;
+    float scr_maxy = loc.y - camy + scl.y/2 + max_rt_cache.y;
+    float scr_miny = loc.y - camy - scl.y/2 + min_lb_cache.y;
+
+    return ( scr_maxx >= minv->x && scr_minx <= maxv->x && scr_maxy >= minv->y && scr_miny <= maxv->y );
+}

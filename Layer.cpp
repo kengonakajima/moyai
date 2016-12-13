@@ -146,19 +146,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 
 			assert( cur2d->dimension == viewport->dimension );
 
-			// culling
-			float camx=0,camy=0;
-			if(camera){
-				camx = camera->loc.x;
-				camy = camera->loc.y;
-			}
-
-			float scr_maxx = cur2d->loc.x - camx + cur2d->scl.x/2 + cur2d->max_rt_cache.x;
-			float scr_minx = cur2d->loc.x - camx - cur2d->scl.x/2 + cur2d->min_lb_cache.x;
-			float scr_maxy = cur2d->loc.y - camy + cur2d->scl.y/2 + cur2d->max_rt_cache.y;
-			float scr_miny = cur2d->loc.y - camy - cur2d->scl.y/2 + cur2d->min_lb_cache.y;
-
-			if( scr_maxx >= minv.x && scr_minx <= maxv.x && scr_maxy >= minv.y && scr_miny <= maxv.y ){
+			if(cur2d->isInView(&minv,&maxv,camera)) {
 				tosort[cnt].val = cur2d->priority;
 				tosort[cnt].ptr = cur2d;
 				cnt++;

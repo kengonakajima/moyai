@@ -5,6 +5,17 @@
 
 int Viewport::id_gen = 1;
 
+Viewport::Viewport(Client *cl) : screen_width(0), screen_height(0), dimension(DIMENSION_2D), scl(0,0,0), near_clip(0.01f), far_clip(100), tracker(0), remote_client(cl) {
+    if(cl) {
+        if(cl->target_viewport) {
+            assertmsg(false,"client already have target_viewport set");
+        }
+        cl->target_viewport = this;
+    }
+    id = id_gen++;
+}
+
+
 void Viewport::setSize(int scrw, int scrh ) {
 	screen_width = scrw;
 	screen_height = scrh;

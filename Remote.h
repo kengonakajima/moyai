@@ -254,6 +254,8 @@ public:
     void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
     void broadcastUS1UI1F4( uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );        
 
+    void nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1 );
+    
     void broadcastTimestamp();
 
     static const char *funcidToString(PACKETTYPE pkt);
@@ -451,11 +453,14 @@ public:
     Buffer saved_stream;
     double initialized_at;
     bool save_stream;
+    Camera *target_camera;
+    Viewport *target_viewport;
     Client( uv_tcp_t *sk, RemoteHead *rh );
     ~Client();
     void saveStream( const char *data, size_t datalen );
     void flushStreamToFile();
     void onDelete();
+    bool canSee(Prop2D*p);
 };
 
 // record parser

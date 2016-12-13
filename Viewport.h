@@ -18,15 +18,13 @@ public:
 	float near_clip, far_clip;
     TrackerViewport *tracker;
     Client *remote_client;
-    ObjectPool<Layer> target_layers;    
-	Viewport(Client *cl=NULL) : screen_width(0), screen_height(0), dimension(DIMENSION_2D), scl(0,0,0), near_clip(0.01f), far_clip(100), tracker(0), remote_client(cl) {
-        id = id_gen++;
-    }
+    ObjectPool<Layer> target_layers;
+	Viewport(Client *cl=NULL);
 	void setSize(int scrw, int scrh );
 	void setScale2D( float sx, float sy );
 	void setClip3D( float near, float far ); 
 	void getMinMax( Vec2 *minv, Vec2 *maxv );
     void onTrack( RemoteHead *rh );
     void onTrackDynamic(); // for dynamic_viewport.
-    void addTargetLayer(Layer *l);    
+    void addTargetLayer(Layer *l);
 };

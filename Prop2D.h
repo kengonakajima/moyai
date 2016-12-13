@@ -324,4 +324,6 @@ public:
     }
     static void drawToDBL( Layer *l, DrawBatchList *bl,FragmentShader *fs, bool additive_blend, Deck *dk, int index, Color col, Vec2 loc, Vec2 scl, float rot );
     void setLocSyncMode(LOCSYNCMODE mode ) { locsync_mode = mode; }
+    bool isInView( Vec2 *minv, Vec2 *maxv, Camera *cam );
+    
 };

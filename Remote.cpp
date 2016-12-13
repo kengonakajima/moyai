@@ -153,9 +153,9 @@ void Tracker2D::broadcastDiff( bool force ) {
                 }
                 //                print("l:%f lss:%f id:%d", l, target_prop2d->loc_sync_score, target_prop2d->id);
             } else {
-                parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_PROP2D_LOC,
-                                              pktbuf[cur_buffer_index].prop_id,
-                                              pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
+                parent_rh->nearcastUS1UI1F2( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,
+                                             pktbuf[cur_buffer_index].prop_id,
+                                             pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
             }
         } else if( diff == CHANGED_SCL && (!force) ) {
             parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_PROP2D_SCALE,
@@ -1336,6 +1336,13 @@ void RemoteHead::broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, fl
         sendUS1UI1F2( (uv_stream_t*)cl->tcp, usval, uival, f0, f1 );
     }
 }
+void RemoteHead::nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1 ) {
+    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
+        Client *cl = it->second;
+        if(cl->canSee(p)==false) continue;
+        sendUS1UI1F2( (uv_stream_t*)cl->tcp, usval, uival, f0, f1 );
+    }
+}
 void RemoteHead::broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
     for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
         Client *cl = it->second;
@@ -1701,7 +1708,7 @@ void BufferArray::shift() {
 
 //////////////////
 int Client::idgen = 1;
-Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : id(idgen++), tcp(sk), parent_rh(rh), save_stream(false) {
+Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : id(idgen++), tcp(sk), parent_rh(rh), save_stream(false), target_camera(NULL) {
     recvbuf.ensureMemory(8*1024); // Only receiving keyboard and mouse input events!
     initialized_at = now();
 }
@@ -1774,3 +1781,9 @@ void Client::onDelete() {
     saved_stream.used = 0;
 }
 
+bool Client::canSee(Prop2D*p) {
+    if(!target_viewport) return true;
+    Vec2 minv, maxv;
+    target_viewport->getMinMax(&minv,&maxv);
+    return p->isInView(&minv,&maxv,target_camera);    
+}

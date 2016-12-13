@@ -5,6 +5,16 @@
 
 int Camera::id_gen = 1;
 
+Camera::Camera(Client *cl) : tracker(0), remote_client(cl) {
+    if(cl) {
+        if( cl->target_camera) {
+            assertmsg(false,"client already have target_camera set");
+        }
+        cl->target_camera = this;
+    }
+    id = id_gen++;
+}
+
 void Camera::screenToGL( int scr_x, int scr_y, int scrw, int scrh, Vec2 *out ) {    
 	out->x = scr_x - scrw/2;
 	out->y = scr_y - scrh/2;
@@ -50,4 +60,25 @@ void Camera::delTargetLayer(Layer *to_del) {
         return;
     }
     target_layers.del(to_del->id);
+}
+void Camera::adjustInsideDisplay( Vec2 scrsz, Vec2 area_min, Vec2 area_max, float zoom_rate ) {        
+    float xsz = scrsz.x / 2 / zoom_rate;
+    float ysz = scrsz.y / 2 / zoom_rate;
+    float left = area_min.x + xsz;
+    if( loc.x < left ) {
+        loc.x = left;
+    }
+    float right = area_max.x - xsz;
+    if( loc.x > right ) {
+        loc.x = right;
+    }
+
+    float bottom = area_min.y + ysz;
+    if( loc.y < bottom ) {
+        loc.y = bottom;
+    }
+    float top = area_max.y - ysz;
+    if( loc.y > top ) {
+        loc.y = top;
+    }
 }
