@@ -488,8 +488,6 @@ void gameUpdate(void) {
         frame_counter = 0;
         last_print_at = t;
     }
-
-    if(g_rh) g_rh->heartbeat();
     
     double loop_end_at = now();
     double loop_time = loop_end_at - loop_start_at;
