@@ -602,7 +602,7 @@ void moyai_libuv_alloc_buffer( uv_handle_t *handle, size_t suggested_size, uv_bu
 
 static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
     if( status != 0 ) {
-        print("on_accept_callback status:%d", status);
+        print("remotehead_on_accept_callback status:%d", status);
         return;
     }
 
@@ -622,7 +622,7 @@ static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
             print("uv_read_start: fail ret:%d",r);
         }
 
-        sendUS1UI2( (uv_stream_t*)newsock, PACKETTYPE_S2C_WINDOW_SIZE, cl->parent_rh->window_width, cl->parent_rh->window_height );
+        cl->parent_rh->sendWindowSize((uv_stream_t*)newsock);
 
         if(rh->enable_spritestream) {
             cl->parent_rh->scanSendAllPrerequisites( (uv_stream_t*) newsock );
@@ -667,6 +667,10 @@ bool init_tcp_listener( uv_tcp_t *l, void *data, int portnum, void (*cb)(uv_stre
 // TODO: implement error handling
 bool RemoteHead::startServer( int portnum ) {
     return init_tcp_listener( &listener, (void*)this, portnum, remotehead_on_accept_callback );
+}
+
+void RemoteHead::sendWindowSize( uv_stream_t *outstream ) {
+    sendUS1UI2( outstream, PACKETTYPE_S2C_WINDOW_SIZE, window_width, window_height );
 }
 
 void RemoteHead::notifySoundPlay( Sound *snd, float vol ) {
@@ -1169,11 +1173,55 @@ void TrackerViewport::unicastCreate( Client *dest ) {
 }
 
 /////////////////////
+static void reprecator_on_close_callback( uv_handle_t *s ) {
+    print("reprecator_on_close_callback");    
+}
+static void reprecator_on_read_callback( uv_stream_t *s, ssize_t nread, const uv_buf_t *inbuf ) {
+    print("reprecator_on_read_callback");
+}
 static void reprecator_on_accept_callback( uv_stream_t *listener, int status ) {
-    print("reprecator_on_accept_callback");
+    print("reprecator_on_accept_callback status:%d",status);
+    if( status != 0) {
+        print("reprecator_on_accept_callback status:%d",status);
+        return;
+    }
+
+    uv_tcp_t *newsock = (uv_tcp_t*) MALLOC( sizeof(uv_tcp_t) );
+    uv_tcp_init( uv_default_loop(), newsock );
+    if( uv_accept( listener, (uv_stream_t*) newsock ) == 0 ) {
+        Reprecator *rep = (Reprecator*)listener->data;
+        rep->appendStream(newsock);
+        int r = uv_read_start( (uv_stream_t*) newsock, moyai_libuv_alloc_buffer, reprecator_on_read_callback );
+        if(r) print("uv_read_start: fail ret:%d",r);
+
+        print("accepted new reprecator");
+
+        rep->parent_rh->sendWindowSize((uv_stream_t*)newsock);        
+    }    
 }
 
-Reprecator::Reprecator(int portnum) {
+bool Reprecator::appendStream(uv_tcp_t *tcp) {
+    for(int i=0;i<elementof(streams);i++) {
+        if(streams[i]==tcp)return false;
+        if(streams[i]==NULL) {
+            streams[i] = tcp;
+            return true;
+        }
+    }
+    return false;
+}
+void Reprecator::deleteStream(uv_tcp_t *tcp) {
+    for(int i=0;i<elementof(streams);i++) {
+        if(streams[i]==tcp) {
+            streams[i]=NULL;
+            return;
+        }
+    }
+}
+
+Reprecator::Reprecator(RemoteHead *rh, int portnum) : parent_rh(rh) {
+    for(int i=0;i<elementof(streams);i++)streams[i]=NULL;
+    
     if( ! init_tcp_listener( &listener, (void*)this, portnum, reprecator_on_accept_callback ) ) {
         assertmsg(false, "can't initialize reprecator server");
     }
@@ -1191,7 +1239,7 @@ void RemoteHead::enableVideoStream( int w, int h, int pixel_skip ) {
 }
 void RemoteHead::enableReprecation(int portnum) {
     assertmsg(!reprecator, "can't enable reprecation twice");
-    reprecator = new Reprecator(portnum);
+    reprecator = new Reprecator(this,portnum);
 }
 
 // Note: don't support dynamic cameras

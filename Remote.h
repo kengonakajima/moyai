@@ -204,7 +204,12 @@ public:
 class Reprecator {
 public:
     uv_tcp_t listener;
-    Reprecator(int portnum);
+    RemoteHead *parent_rh;
+    uv_tcp_t *streams[16];
+    
+    Reprecator(RemoteHead *parent_rh, int portnum);
+    bool appendStream(uv_tcp_t *tcp);
+    void deleteStream(uv_tcp_t *tcp);
 };
     
 class RemoteHead {
@@ -251,6 +256,7 @@ public:
     void heartbeat();
     void scanSendAllPrerequisites( uv_stream_t *outstream );
     void scanSendAllProp2DSnapshots( uv_stream_t *outstream );
+    void sendWindowSize( uv_stream_t *outstream );
     void notifyProp2DDeleted( Prop2D *prop_deleted );
     void notifyGridDeleted( Grid *grid_deleted );
     void notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop );
