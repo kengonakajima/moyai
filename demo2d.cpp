@@ -15,6 +15,11 @@
 
 #include "client.h"
 
+bool g_headless_mode=false;
+bool g_enable_videostream=false;
+bool g_enable_spritestream=true;
+bool g_enable_reprecation=false;
+
 MoyaiClient *g_moyai_client;
 Viewport *g_viewport;
 Layer *g_main_layer;
@@ -51,6 +56,8 @@ Prim *g_narrow_line_prim;
 int g_last_render_cnt ;
 
 #define HEADLESS_SERVER_PORT 22222
+#define REPRECATOR_SERVER_PORT 22223
+
 RemoteHead *g_rh;
 
 GLFWwindow *g_window;
@@ -626,12 +633,12 @@ void onRemoteMouseButtonCallback( Client *cl, int btn, int act, int modshift, in
 void onRemoteMouseCursorCallback( Client *cl, int x, int y ) {
     g_mouse->updateCursorPosition(x,y);
 }
-void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videostream ) {
+void gameInit() {
     qstest();
     optest();
     comptest();
 
-    print("gameInit: headless_mode:%d spritestream:%d videostream:%d", headless_mode, enable_spritestream, enable_videostream );
+    print("gameInit: headless_mode:%d spritestream:%d videostream:%d", g_headless_mode, g_enable_spritestream, g_enable_videostream );
 
 #ifdef __APPLE__    
     setlocale( LC_ALL, "ja_JP");
@@ -692,15 +699,16 @@ void gameInit( bool headless_mode, bool enable_spritestream, bool enable_videost
 
     g_moyai_client = new MoyaiClient(g_window, SCRW, SCRH );
     
-    if( headless_mode ) {
+    if( g_headless_mode ) {
         Moyai::globalInitNetwork();
         g_rh = new RemoteHead();
         if( g_rh->startServer(HEADLESS_SERVER_PORT) == false ) {
             print("headless server: can't start server. port:%d", HEADLESS_SERVER_PORT );
             exit(1);
         }
-        if( enable_spritestream ) g_rh->enableSpriteStream();
-        if( enable_videostream ) g_rh->enableVideoStream(SCRW*RETINA,SCRH*RETINA,3);
+        if( g_enable_spritestream ) g_rh->enableSpriteStream();
+        if( g_enable_videostream ) g_rh->enableVideoStream(SCRW*RETINA,SCRH*RETINA,3);
+        if( g_enable_reprecation ) g_rh->enableReprecation(REPRECATOR_SERVER_PORT);
         
         g_moyai_client->setRemoteHead(g_rh);
         g_rh->setTargetMoyaiClient(g_moyai_client);
@@ -1035,15 +1043,16 @@ void gameFinish() {
 #if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
 int main(int argc, char **argv )
 {
-    bool headless_mode=false, enable_videostream=false, enable_spritestream=true;
+    
     for(int i=0;;i++) {
         if(!argv[i])break;
-        if(strcmp(argv[i], "--headless") == 0 ) headless_mode = true;
-        if(strcmp(argv[i], "--videostream") == 0 ) enable_videostream = true;
-        if(strcmp(argv[i], "--skip-spritestream") == 0 ) enable_spritestream = false;
+        if(strcmp(argv[i], "--headless") == 0 ) g_headless_mode = true;
+        if(strcmp(argv[i], "--videostream") == 0 ) g_enable_videostream = true;
+        if(strcmp(argv[i], "--skip-spritestream") == 0 ) g_enable_spritestream = false;
+        if(strcmp(argv[i], "--reprecation") == 0 ) g_enable_reprecation = true;
     }
         
-    gameInit(headless_mode, enable_spritestream, enable_videostream);
+    gameInit();
     while( !glfwWindowShouldClose(g_window) && (!g_game_done) ){
         gameUpdate();       
         gameRender();

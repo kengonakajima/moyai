@@ -639,29 +639,34 @@ static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
     }
 }
 
-// return false if can't
-// TODO: implement error handling
-bool RemoteHead::startServer( int portnum ) {    
-    tcp_port = portnum;
-    int r = uv_tcp_init( uv_default_loop(), &listener );
+bool init_tcp_listener( uv_tcp_t *l, void *data, int portnum, void (*cb)(uv_stream_t*l,int status) ) {
+    
+    int r = uv_tcp_init( uv_default_loop(), l );
     if(r) {
         print("uv_tcp_init failed");
         return false;
     }
-    listener.data = (void*)this;
+    l->data = data;
     struct sockaddr_in addr;
     uv_ip4_addr("0.0.0.0", portnum, &addr );
-    r = uv_tcp_bind( &listener, (const struct sockaddr*) &addr, SO_REUSEADDR );
+    r = uv_tcp_bind( l, (const struct sockaddr*) &addr, SO_REUSEADDR );
     if(r) {
         print("uv_tcp_bind failed");
         return false;
     }
-    r = uv_listen( (uv_stream_t*)&listener, 10, remotehead_on_accept_callback );
+    r = uv_listen( (uv_stream_t*)l, 10, cb );
     if(r) {
         print("uv_listen failed");
         return false;
     }
     return true;
+    
+}
+
+// return false if can't
+// TODO: implement error handling
+bool RemoteHead::startServer( int portnum ) {
+    return init_tcp_listener( &listener, (void*)this, portnum, remotehead_on_accept_callback );
 }
 
 void RemoteHead::notifySoundPlay( Sound *snd, float vol ) {
@@ -1164,6 +1169,18 @@ void TrackerViewport::unicastCreate( Client *dest ) {
 }
 
 /////////////////////
+static void reprecator_on_accept_callback( uv_stream_t *listener, int status ) {
+    print("reprecator_on_accept_callback");
+}
+
+Reprecator::Reprecator(int portnum) {
+    if( ! init_tcp_listener( &listener, (void*)this, portnum, reprecator_on_accept_callback ) ) {
+        assertmsg(false, "can't initialize reprecator server");
+    }
+    print("Reprecator server started");
+}
+
+/////////////////////
 
 void RemoteHead::enableVideoStream( int w, int h, int pixel_skip ) {
     enable_videostream = true;
@@ -1171,6 +1188,10 @@ void RemoteHead::enableVideoStream( int w, int h, int pixel_skip ) {
     jc = new JPEGCoder(w,h,pixel_skip);
     audio_buf_ary = new BufferArray(256);
     print("enableVideoStream done");
+}
+void RemoteHead::enableReprecation(int portnum) {
+    assertmsg(!reprecator, "can't enable reprecation twice");
+    reprecator = new Reprecator(portnum);
 }
 
 // Note: don't support dynamic cameras
@@ -1392,7 +1413,7 @@ void RemoteHead::broadcastSortedChangelist() {
         sent_n++;
         if( sent_n >= max_send_num )break;
     }
-    print("broadcastChangelist: tot:%d sent:%d max:%d", changelist_used, sent_n, max_send_num);
+    //    print("broadcastChangelist: tot:%d sent:%d max:%d", changelist_used, sent_n, max_send_num);
 }
 
 

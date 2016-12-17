@@ -200,10 +200,15 @@ public:
     ChangeEntry() : p(NULL),pkt(NULL) {}
     ChangeEntry(Prop2D*p, PacketProp2DSnapshot *pkt) : p(p), pkt(pkt) {}    
 };
+
+class Reprecator {
+public:
+    uv_tcp_t listener;
+    Reprecator(int portnum);
+};
     
 class RemoteHead {
 public:
-    int tcp_port;
     uv_tcp_t listener;
     MoyaiClient *target_moyai;
     SoundSystem *target_soundsystem;
@@ -214,9 +219,12 @@ public:
     bool enable_videostream;
     JPEGCoder *jc;
     BufferArray *audio_buf_ary;
+
+    Reprecator *reprecator;
     
     void enableSpriteStream() { enable_spritestream = true; };
     void enableVideoStream( int w, int h, int pixel_skip );
+    void enableReprecation(int portnum);
     
     void (*on_connect_cb)(RemoteHead*rh,Client *cl);
     void (*on_disconnect_cb)(RemoteHead*rh, Client *cl);
@@ -224,7 +232,7 @@ public:
     void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
     void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : tcp_port(0), target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_save_stream(true), enable_spritestream(0), enable_videostream(0), jc(NULL), audio_buf_ary(0), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
+    RemoteHead() : target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_save_stream(true), enable_spritestream(0), enable_videostream(0), jc(NULL), audio_buf_ary(0), reprecator(NULL), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
