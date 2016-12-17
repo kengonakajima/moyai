@@ -130,14 +130,15 @@ void Tracker2D::broadcastDiff( bool force ) {
     int diff = checkDiff();
     if( diff || force ) {
         if( diff == CHANGED_LOC && (!force) ) {
+            int prev_buffer_index = cur_buffer_index==0?1:0;
+            Vec2 v0(pktbuf[prev_buffer_index].loc.x,pktbuf[prev_buffer_index].loc.y);
+            Vec2 v1(pktbuf[cur_buffer_index].loc.x,pktbuf[cur_buffer_index].loc.y);
+            float l = v0.len(v1);
+            target_prop2d->loc_sync_score+= l;
+            
             // only location changed!
             if( target_prop2d->locsync_mode == LOCSYNCMODE_LINEAR ) {
                 bool to_send = true;                
-                int prev_buffer_index = cur_buffer_index==0?1:0;
-                Vec2 v0(pktbuf[prev_buffer_index].loc.x,pktbuf[prev_buffer_index].loc.y);
-                Vec2 v1(pktbuf[cur_buffer_index].loc.x,pktbuf[cur_buffer_index].loc.y);
-                float l = v0.len(v1);
-                target_prop2d->loc_sync_score+= l;
                 if(target_prop2d->loc_sync_score>40 ) {
                     target_prop2d->loc_sync_score=0;
                 } else if( target_prop2d->poll_count>2 ){
@@ -153,9 +154,21 @@ void Tracker2D::broadcastDiff( bool force ) {
                 }
                 //                print("l:%f lss:%f id:%d", l, target_prop2d->loc_sync_score, target_prop2d->id);
             } else {
-                parent_rh->nearcastUS1UI1F2( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,
-                                             pktbuf[cur_buffer_index].prop_id,
-                                             pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
+                target_prop2d->loc_sync_score+=1; // avoid missing syncing stopped props
+                if( target_prop2d->loc_sync_score < 50 ) {
+                    if( !parent_rh->appendChangelist( target_prop2d, &pktbuf[cur_buffer_index] ) ) {
+                        // must send if changelist is full
+                        parent_rh->nearcastUS1UI1F2( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,
+                                                     pktbuf[cur_buffer_index].prop_id,
+                                                     pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );                    
+                    }
+                } else {
+                    target_prop2d->loc_sync_score=0;                                
+                    // dont use changelist sorting for big changes
+                    parent_rh->nearcastUS1UI1F2( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,
+                                                 pktbuf[cur_buffer_index].prop_id,
+                                                 pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
+                }
             }
         } else if( diff == CHANGED_SCL && (!force) ) {
             parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_PROP2D_SCALE,
@@ -223,6 +236,7 @@ int RemoteHead::getClientCount() {
 // Assume all props in all layers are Prop2Ds.
 void RemoteHead::track2D() {
     broadcastTimestamp();
+    clearChangelist();
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
         Layer *layer = (Layer*) target_moyai->getGroupByIndex(i);
         if(!layer)continue;
@@ -239,6 +253,7 @@ void RemoteHead::track2D() {
             cur = cur->next;
         }        
     }
+    broadcastSortedChangelist();
 }
 // Send all IDs of tiledecks, layers, textures, fonts, viwports by scanning all props and grids.
 // This occurs only when new player is comming in.
@@ -1349,6 +1364,37 @@ void RemoteHead::broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
         sendUS1UI1F1( (uv_stream_t*)cl->tcp, usval, uival, f0 );
     }
 }
+
+
+bool RemoteHead::appendChangelist(Prop2D *p, PacketProp2DSnapshot *pkt) {
+    if( changelist_used == elementof(changelist) )return false;
+    changelist[changelist_used] = ChangeEntry(p,pkt);
+    changelist_used++;
+    return true;
+}
+void RemoteHead::broadcastSortedChangelist() {
+    static SorterEntry tosort[elementof(changelist)];
+    for(int i=0;i<changelist_used;i++) {
+        tosort[i].val = changelist[i].p->loc_sync_score;
+        tosort[i].ptr = &changelist[i];
+    }
+    quickSortF( tosort, 0, changelist_used-1);
+    //    print("sortChangelist:%d",changelist_used);
+
+    int max_send_num = 200; // about 1.5Mbps
+    if( max_send_num > changelist_used ) max_send_num = changelist_used;
+    int sent_n=0;
+    for(int i=changelist_used-1;i>=0;i--) { // reverse order: biggest first
+        //        print("KKK:%d %f",i, changelist[i].p->loc_sync_score);
+        ChangeEntry *e = (ChangeEntry*)tosort[i].ptr;
+        nearcastUS1UI1F2( e->p, PACKETTYPE_S2C_PROP2D_LOC, e->pkt->prop_id, e->pkt->loc.x, e->pkt->loc.y );
+        e->p->loc_sync_score=0;
+        sent_n++;
+        if( sent_n >= max_send_num )break;
+    }
+    print("broadcastChangelist: tot:%d sent:%d max:%d", changelist_used, sent_n, max_send_num);
+}
+
 
 ///////////////////
 char sendbuf_work[1024*1024*8];

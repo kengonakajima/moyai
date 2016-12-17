@@ -193,6 +193,14 @@ typedef enum {
 } PACKETTYPE;
 
 
+class ChangeEntry {
+public:
+    Prop2D *p;
+    PacketProp2DSnapshot *pkt;
+    ChangeEntry() : p(NULL),pkt(NULL) {}
+    ChangeEntry(Prop2D*p, PacketProp2DSnapshot *pkt) : p(p), pkt(pkt) {}    
+};
+    
 class RemoteHead {
 public:
     int tcp_port;
@@ -259,6 +267,13 @@ public:
     void broadcastTimestamp();
 
     static const char *funcidToString(PACKETTYPE pkt);
+
+
+    ChangeEntry changelist[4096];
+    int changelist_used;
+    void clearChangelist() { changelist_used=0; }
+    bool appendChangelist(Prop2D *p, PacketProp2DSnapshot *pkt);
+    void broadcastSortedChangelist();
 };
 
 
