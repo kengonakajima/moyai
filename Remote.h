@@ -219,7 +219,6 @@ public:
     SoundSystem *target_soundsystem;
     ObjectPool<Client> cl_pool;
     int window_width, window_height;
-    bool enable_save_stream;
     bool enable_spritestream;
     bool enable_videostream;
     JPEGCoder *jc;
@@ -237,7 +236,7 @@ public:
     void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
     void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_save_stream(true), enable_spritestream(0), enable_videostream(0), jc(NULL), audio_buf_ary(0), reprecator(NULL), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
+    RemoteHead() : target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_spritestream(0), enable_videostream(0), jc(NULL), audio_buf_ary(0), reprecator(NULL), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
@@ -481,7 +480,6 @@ public:
     RemoteHead *parent_rh;
     Buffer saved_stream;
     double initialized_at;
-    bool save_stream;
     Camera *target_camera;
     Viewport *target_viewport;
     Client( uv_tcp_t *sk, RemoteHead *rh );
