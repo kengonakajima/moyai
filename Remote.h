@@ -524,5 +524,15 @@ void moyai_libuv_alloc_buffer( uv_handle_t *handle, size_t suggested_size, uv_bu
 void uv_run_times( int maxcount );
 
 
+/*
+  demo2d --headless
+    + @HEADLESS_SERVER_PORT     <------------- viewer
+    + @REPRECATOR_SERVER_PORT   <------------- viewer --reprecate
+                                                  + @REPRECATOR_PROXY_PORT   <---------------- viewer
+ */
+#define HEADLESS_SERVER_PORT 22222  
+#define REPRECATOR_SERVER_PORT 22223 
+#define REPRECATOR_PROXY_PORT 22224
+
 
 #endif

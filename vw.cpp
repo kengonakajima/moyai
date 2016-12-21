@@ -46,7 +46,7 @@ uint64_t g_total_read_count;
 uint64_t g_packet_count;
 
 char *g_server_ip_addr = (char*)"127.0.0.1";
-int g_port = 22222;
+int g_port = HEADLESS_SERVER_PORT;
 int g_window_width = 0;
 int g_window_height = 0;
 int g_timestamp_count = 0;

@@ -55,8 +55,6 @@ Prim *g_narrow_line_prim;
 
 int g_last_render_cnt ;
 
-#define HEADLESS_SERVER_PORT 22222
-#define REPRECATOR_SERVER_PORT 22223
 
 RemoteHead *g_rh;
 
