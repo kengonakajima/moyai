@@ -1489,11 +1489,6 @@ void on_write_end( uv_write_t *req, int status ) {
     int r = uv_write( write_req, s, &buf, 1, on_write_end );\
     if(r) { print("uv_write fail. %d",r); uv_close( (uv_handle_t*)s, NULL); return false; }
 
-#define SAVE_STREAM \
-    {\
-    Client *cl = (Client*) s->data; \
-    if(cl&&cl->save_stream) cl->saveStream(sendbuf_work,totalsize); \
-    }
 
 int sendUS1RawArgs( uv_stream_t *s, uint16_t usval, const char *data, uint32_t datalen ) {
     size_t totalsize = 4 + 2 + datalen;
