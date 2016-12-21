@@ -20,7 +20,7 @@ VIEWERSRCS=vw.cpp
 VIEWEROBJS=$(VIEWERSRCS:.cpp=.o)
 DYNCAM2DSRCS=dyncam2d.cpp
 DYNCAM2DOBJS=$(DYNCAM2DSRCS:.cpp=.o)
-REPLAYERSRCS=rep.cpp
+REPLAYERSRCS=replay.cpp
 REPLAYEROBJS=$(REPLAYERSRCS:.cpp=.o)
 
 JPEGLIB=jpeg-8d/.libs/libjpeg.a # Don't use -ljpeg, because of macosx older deploy target
@@ -99,8 +99,8 @@ vw.o : vw.cpp
 	g++ -c vw.cpp $(CFLAGS0X)
 dyncam2d.o : dyncam2d.cpp
 	g++ -c dyncam2d.cpp $(CFLAGS0X)
-rep.o : rep.cpp
-	g++ -c rep.cpp $(CFLAGS0X)
+replay.o : replay.cpp
+	g++ -c replay.cpp $(CFLAGS0X)
 
 $(OUTCLILIB) : $(MOYAICLIOBJS)
 	ar cr $(OUTCLILIB) $(MOYAICLIOBJS)
