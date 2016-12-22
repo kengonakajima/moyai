@@ -1205,7 +1205,11 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             float vol = get_f32(argdata+4);
             Sound *snd = g_sound_pool.get(snd_id);
             if(snd) {
-                snd->play(vol);
+                if(g_enable_reprecation) {
+                    print("TODO: repr: implement sound play");
+                } else {
+                    snd->play(vol);
+                }                
             } else {
                 print("sound_play: %d not found", snd_id );
             }

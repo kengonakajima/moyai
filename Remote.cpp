@@ -1374,61 +1374,38 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
 #endif
 
 #define REPRECATOR_ITER_SEND  if(reprecator) for(int i=0;i<elementof(reprecator->streams);i++) if(reprecator->streams[i])
+#define CLIENT_ITER_SEND for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it )
 
 void RemoteHead::broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen ) {
-    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
-        Client *cl = it->second;
-        sendUS1Bytes( (uv_stream_t*)cl->tcp, usval, data, datalen );
-    }
+    CLIENT_ITER_SEND sendUS1Bytes( (uv_stream_t*)it->second->tcp, usval, data, datalen );
     REPRECATOR_ITER_SEND sendUS1Bytes( (uv_stream_t*) reprecator->streams[i], usval, data, datalen );
 }
 void RemoteHead::broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen ) {
-    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
-        Client *cl = it->second;
-        sendUS1UI1Bytes( (uv_stream_t*)cl->tcp, usval, uival, data, datalen );
-    }
+    CLIENT_ITER_SEND sendUS1UI1Bytes( (uv_stream_t*)it->second->tcp, usval, uival, data, datalen );
     REPRECATOR_ITER_SEND sendUS1UI1Bytes( (uv_stream_t*)reprecator->streams[i], usval, uival, data, datalen );
 }
 void RemoteHead::broadcastUS1UI1( uint16_t usval, uint32_t uival ) {
-    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
-        Client *cl = it->second;
-        sendUS1UI1(  (uv_stream_t*)cl->tcp, usval, uival );
-    }
+    CLIENT_ITER_SEND sendUS1UI1(  (uv_stream_t*)it->second->tcp, usval, uival );
     REPRECATOR_ITER_SEND sendUS1UI1(  (uv_stream_t*)reprecator->streams[i], usval, uival );
 }
 void RemoteHead::broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
-    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
-        Client *cl = it->second;
-        sendUS1UI2(  (uv_stream_t*)cl->tcp, usval, ui0, ui1 );
-    }
+    CLIENT_ITER_SEND sendUS1UI2(  (uv_stream_t*)it->second->tcp, usval, ui0, ui1 );
     REPRECATOR_ITER_SEND sendUS1UI2(  (uv_stream_t*)reprecator->streams[i], usval, ui0, ui1 );
 }
 void RemoteHead::broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
-    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
-        Client *cl = it->second;
-        sendUS1UI3( (uv_stream_t*)cl->tcp, usval, ui0, ui1, ui2 );
-    }
+    CLIENT_ITER_SEND sendUS1UI3( (uv_stream_t*)it->second->tcp, usval, ui0, ui1, ui2 );
     REPRECATOR_ITER_SEND sendUS1UI3( (uv_stream_t*)reprecator->streams[i], usval, ui0, ui1, ui2 );
 }
 void RemoteHead::broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters ) {
-    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
-        Client *cl = it->second;
-        sendUS1UI1Wstr( (uv_stream_t*)cl->tcp, usval, uival, wstr, wstr_num_letters );
-    }
+    CLIENT_ITER_SEND sendUS1UI1Wstr( (uv_stream_t*)it->second->tcp, usval, uival, wstr, wstr_num_letters );
     REPRECATOR_ITER_SEND sendUS1UI1Wstr( (uv_stream_t*)reprecator->streams[i], usval, uival, wstr, wstr_num_letters );
 }
 void RemoteHead::broadcastUS1UI1F4( uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 ) {
-    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
-        Client *cl = it->second;
-        sendUS1UI1F4( (uv_stream_t*)cl->tcp, usval, uival, f0, f1, f2, f3 );
-    }
+    CLIENT_ITER_SEND sendUS1UI1F4( (uv_stream_t*)it->second->tcp, usval, uival, f0, f1, f2, f3 );
     REPRECATOR_ITER_SEND sendUS1UI1F4( (uv_stream_t*)reprecator->streams[i], usval, uival, f0, f1, f2, f3 );
 }
 void RemoteHead::broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
-    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
-        Client *cl = it->second;
-        sendUS1UI1F2( (uv_stream_t*)cl->tcp, usval, uival, f0, f1 );
-    }
+    CLIENT_ITER_SEND sendUS1UI1F2( (uv_stream_t*)it->second->tcp, usval, uival, f0, f1 );
     REPRECATOR_ITER_SEND sendUS1UI1F2( (uv_stream_t*)reprecator->streams[i], usval, uival, f0, f1 );
 }
 
@@ -1441,10 +1418,8 @@ void RemoteHead::nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, fl
     REPRECATOR_ITER_SEND sendUS1UI1F2( (uv_stream_t*)reprecator->streams[i], usval, uival, f0, f1 );
 }
 void RemoteHead::broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
-    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
-        Client *cl = it->second;
-        sendUS1UI1F1( (uv_stream_t*)cl->tcp, usval, uival, f0 );
-    }
+    CLIENT_ITER_SEND sendUS1UI1F1( (uv_stream_t*)it->second->tcp, usval, uival, f0 );
+    REPRECATOR_ITER_SEND sendUS1UI1F1( (uv_stream_t*)reprecator->streams[i], usval, uival, f0 );
 }
 
 
