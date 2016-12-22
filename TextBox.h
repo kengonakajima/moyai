@@ -14,8 +14,8 @@ public:
     int len_str;
     Mesh *mesh;
     TrackerTextBox *tracker;
-    
-	TextBox() : str(NULL), len_str(0), mesh(NULL), tracker(0) {
+    bool skip_meshing; // true for repreproxy    
+	TextBox() : str(NULL), len_str(0), mesh(NULL), tracker(0), skip_meshing(false) {
 		setScl(1,1);
 	}
     ~TextBox() {
@@ -57,7 +57,7 @@ public:
 		assert( wcslen(str) == wcslen(s) );
         len_str = l;
         clearMesh();
-        updateMesh();
+        if(!skip_meshing) updateMesh();
 	}
     bool compareString( const char *u8s ) {
         int l = strlen(u8s);
@@ -80,7 +80,7 @@ public:
     virtual void onTrack( RemoteHead *rh, Prop2D *parentprop );
     virtual void onColorChanged() {
         clearMesh();
-        updateMesh();
+        if(!skip_meshing) updateMesh();
     }
     static void drawToDBL( Layer *l, DrawBatchList *bl, bool additiveblend, Font *font, const char *s, Color col, Vec2 loc, float scl, float rot );    
 };

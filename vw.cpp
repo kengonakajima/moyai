@@ -867,7 +867,8 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             //                print("ALREADY tb.%d par:%p", tb_id, hogetb->getParentLayer() );
             //                break;
             //            }
-            g_textbox_pool.ensure(tb_id);
+            TextBox *tb = g_textbox_pool.ensure(tb_id);
+            if(g_enable_reprecation) tb->skip_meshing = true;
             //            print("tb_creat id:%d ptr:%p par:%p", tb_id, tb, tb->getParentLayer() );
         }
         break;
