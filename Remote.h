@@ -490,6 +490,14 @@ public:
     bool canSee(Prop2D*p);
 };
 
+class ReprecationProxy {
+public:
+    uv_tcp_t listener;
+    ReprecationProxy(int port);
+};
+  
+
+            
 // record parser
 bool parseRecord( uv_stream_t *s, Buffer *recvbuf, const char *data, size_t datalen, void (*funcCallback)( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) );
 
@@ -534,5 +542,6 @@ void uv_run_times( int maxcount );
 #define REPRECATOR_SERVER_PORT 22223 
 #define REPRECATOR_PROXY_PORT 22224
 
+bool init_tcp_listener( uv_tcp_t *l, void *data, int portnum, void (*cb)(uv_stream_t*l,int status) ) ;
 
 #endif

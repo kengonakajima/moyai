@@ -1870,3 +1870,14 @@ bool Client::canSee(Prop2D*p) {
     target_viewport->getMinMax(&minv,&maxv);
     return p->isInView(&minv,&maxv,target_camera);    
 }
+
+//////////////////////
+
+void reproxy_on_connect_callback(uv_stream_t *l, int status) {
+    print("reproxy_on_connect_callback: status:%d",status);
+}
+ReprecationProxy::ReprecationProxy(int portnum) {
+    bool res = init_tcp_listener( &listener, (void*)this, portnum, reproxy_on_connect_callback );
+    assertmsg(res, "Reproxy: listen error");
+    print("Reproxy: listening on %d", portnum);
+}

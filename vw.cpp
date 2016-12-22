@@ -70,7 +70,7 @@ Texture *g_video_tex;
 int g_recv_counts[PACKETTYPE_MAX];
 int g_recv_totalcounts[PACKETTYPE_MAX];
 
-
+ReprecationProxy *g_reproxy;
 
     
 ///////////////
@@ -283,7 +283,7 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
 void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     g_packet_count++;
     
-    if(g_enable_reprecation) print("funcid:%d l:%d",funcid, argdatalen);
+    // if(g_enable_reprecation) print("funcid:%d l:%d",funcid, argdatalen);
     
     if(funcid>=0 && funcid<PACKETTYPE_MAX) {
         g_recv_counts[funcid]++;
@@ -1456,6 +1456,8 @@ int main( int argc, char **argv ) {
         return 1;
     }
 
+    if(g_enable_reprecation) g_reproxy = new ReprecationProxy(REPRECATOR_PROXY_PORT);
+    
     g_filedepo = new FileDepo();
 
     print("start viewer loop");
