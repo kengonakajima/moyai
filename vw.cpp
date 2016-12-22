@@ -54,6 +54,7 @@ double g_last_ping_at=0;
 double g_last_ping_rtt=0;
 
 bool g_enable_print_stats = false;
+bool g_enable_reprecation = false;
 
 #if defined(__APPLE__)
 #define RETINA 2
@@ -68,6 +69,8 @@ Texture *g_video_tex;
 
 int g_recv_counts[PACKETTYPE_MAX];
 int g_recv_totalcounts[PACKETTYPE_MAX];
+
+
 
     
 ///////////////
@@ -279,7 +282,9 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
 
 void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     g_packet_count++;
-    //        print("funcid:%d l:%d",funcid, argdatalen);
+    
+    if(g_enable_reprecation) print("funcid:%d l:%d",funcid, argdatalen);
+    
     if(funcid>=0 && funcid<PACKETTYPE_MAX) {
         g_recv_counts[funcid]++;
         g_recv_totalcounts[funcid]++;
@@ -629,7 +634,11 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             assert(tex);
             Image *img = g_image_pool.get(img_id);
             assert(img);
-            tex->setImage(img);
+            if(g_enable_reprecation) {
+                tex->image = img; // skip generating OpenGL texture
+            } else {
+                tex->setImage(img);
+            }
         }
         break;
     case PACKETTYPE_S2C_IMAGE_CREATE:
@@ -675,7 +684,11 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             assert(dk);
             Texture *tex = g_texture_pool.get(tex_id);
             assert(tex);
-            dk->setTexture(tex);
+            if(g_enable_reprecation) {
+                dk->tex = tex;
+            } else {
+                dk->setTexture(tex);
+            }
         }
         break;
     case PACKETTYPE_S2C_TILEDECK_SIZE: 
@@ -965,7 +978,8 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
         {
             uint32_t font_id = get_u32(argdata);
             print("font_create id:%d", font_id );
-            g_font_pool.ensure(font_id);            
+            Font *f = g_font_pool.ensure(font_id);
+            if(g_enable_reprecation) f->skip_actual_font_load=true; // don't generate opengl texture when repreproxy
         }
         break;        
     case PACKETTYPE_S2C_FONT_CHARCODES: // fontid, utf8str
@@ -1024,8 +1038,10 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 print("  crs new..");
                 s = g_crshader_pool.ensure(pkt.shader_id);
             }
-            if( !s->init() ) {
-                assertmsg(false, "shader %d init failed, fatal", pkt.shader_id);
+            if(g_enable_reprecation==false) {
+                if( !s->init() ) {
+                    assertmsg(false, "shader %d init failed, fatal", pkt.shader_id);
+                }
             }
             Color fromcol, tocol;
             copyPacketColorToColor( &fromcol, &pkt.from_color);
@@ -1160,7 +1176,11 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             assertmsg( bytenum % sizeof(float) == 0, "invalid sample format" );
             size_t samples_num = bytenum / sizeof(float);
             float* samples = (float*)(argdata+4+4);
-            snd = g_soundsystem->newSoundFromMemory( samples, samples_num );
+            if(g_enable_reprecation) {
+                snd = g_soundsystem->newSoundFromMemoryVirtual( samples, samples_num );
+            } else {
+                snd = g_soundsystem->newSoundFromMemory( samples, samples_num );
+            }            
             g_sound_pool.set( snd_id, snd );
             print("sound_create_from_samples: id:%d samples_num:%d", snd_id, samples_num );
         }
@@ -1224,7 +1244,16 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             uint32_t w = get_u32(argdata+0);
             uint32_t h = get_u32(argdata+4);
             print("received window_size. %d,%d",w,h);
-            setupClient(w,h);
+            if(g_enable_reprecation) {
+                g_window_width = w;
+                g_window_height = h;
+                assert(!g_moyai_client);
+                g_moyai_client = new MoyaiClient( NULL, w, h );
+                assert(!g_soundsystem);
+                g_soundsystem = new SoundSystem();                
+            } else {
+                setupClient(w,h);
+            }            
         }
         break;
     case PACKETTYPE_S2C_JPEG_DECODER_CREATE:
@@ -1258,11 +1287,11 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
         {
             uint32_t num_samples = get_u32(argdata+0);
             uint32_t samples_bytes = get_u32(argdata+4);
-            float *interleavedSamples = (float*)(argdata+8);
             //            print("audio! ns:%d sb:%d", num_samples, samples_bytes );
             assert( num_samples * sizeof(float) * 2 == samples_bytes );
             
 #ifdef USE_UNTZ
+            float *interleavedSamples = (float*)(argdata+8);
             appendAudioSampleStereo(interleavedSamples, num_samples*2);
 #else            
             print("CAPTURED_AUDIO: only implemented with UNTZ");
@@ -1326,6 +1355,9 @@ bool parseProgramArgs( int argc, char **argv ) {
         }
         if( strcmp( argv[i], "--print_stats" ) == 0 ) {
             g_enable_print_stats = true;
+        }
+        if( strcmp( argv[i], "--reprecation" ) == 0 ) {
+            g_enable_reprecation = true;
         }
     }
     print("viewer config: serverip:'%s' port:%d window:%d,%d", g_server_ip_addr, g_port, g_window_width, g_window_height );
@@ -1408,6 +1440,7 @@ int main( int argc, char **argv ) {
     uv_tcp_t *client = (uv_tcp_t*)MALLOC( sizeof(uv_tcp_t) );
     uv_tcp_init( uv_default_loop(), client );
     struct sockaddr_in svaddr;
+    if(g_port==HEADLESS_SERVER_PORT && g_enable_reprecation) g_port = REPRECATOR_SERVER_PORT;
     uv_ip4_addr( g_server_ip_addr, g_port, &svaddr );
 
     uv_connect_t *connect = (uv_connect_t*)MALLOC( sizeof(uv_connect_t));
@@ -1438,7 +1471,7 @@ int main( int argc, char **argv ) {
 
         uv_run_times(100);
         
-        if( g_moyai_client) {
+        if( g_moyai_client && g_enable_reprecation==false ) {
             if( glfwWindowShouldClose(g_window) ) {
                 done = true;
             }

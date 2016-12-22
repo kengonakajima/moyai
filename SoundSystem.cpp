@@ -125,6 +125,16 @@ Sound *SoundSystem::newSoundFromMemory( float *samples, int samples_num ) {
     append(out);
     return out;
 }
+// don't create actual sound object, just store waves in memory. Used for repreproxy.
+Sound *SoundSystem::newSoundFromMemoryVirtual(float *samples, int samples_num ) {
+    Sound *out = new Sound(this);
+    out->sound = NULL;
+    out->default_volume = 1;
+    out->id = id_gen++;
+    out->updateLastSamples(samples,samples_num);
+    append(out);
+    return out;
+}
 
 void SoundSystem::append( Sound *s ) {
     for(int i=0;i<elementof(sounds);i++) {

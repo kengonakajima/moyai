@@ -1195,7 +1195,9 @@ static void reprecator_on_accept_callback( uv_stream_t *listener, int status ) {
 
         print("accepted new reprecator");
 
-        rep->parent_rh->sendWindowSize((uv_stream_t*)newsock);        
+        rep->parent_rh->sendWindowSize((uv_stream_t*)newsock);
+        rep->parent_rh->scanSendAllPrerequisites( (uv_stream_t*) newsock );
+        rep->parent_rh->scanSendAllProp2DSnapshots( (uv_stream_t*) newsock);
     }    
 }
 
