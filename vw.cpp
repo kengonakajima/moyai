@@ -1440,6 +1440,14 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
         print("sending cam id:%d pos:%f,%f",it->second->id, it->second->loc.x, it->second->loc.y );
         sendCameraCreateLoc(newsock,it->second);
     }
+    POOL_SCAN(g_layer_pool,Layer) {
+        sendLayerSetup(newsock,it->second);
+    }
+    for(int i=0;i<FileDepo::MAX_FILES;i++) {
+        File *f = g_filedepo->getByIndex(i);
+        int r = sendUS1StrBytes(newsock, PACKETTYPE_S2C_FILE, f->path, f->data, f->data_len );
+        assert(r>0);
+    }
     
     // layers, image, texture, tiledeck,
     // image files, tex files, font, CRS,
