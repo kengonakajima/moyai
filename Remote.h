@@ -534,6 +534,7 @@ void sendFile( uv_stream_t *outstream, const char *filename );
 void sendPing( uv_stream_t *s );
 void sendWindowSize( uv_stream_t *outstream, int w, int h );
 void sendViewportCreateScale( uv_stream_t *outstream, Viewport *vp );
+void sendCameraCreateLoc( uv_stream_t *outstream, Camera *cam );
 
 // parse helpers
 void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize );

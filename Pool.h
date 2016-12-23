@@ -48,4 +48,7 @@ public:
     }
 };
 
+#define POOL_SCAN(NAME,T) for( std::unordered_map<unsigned int,T*>::iterator it = NAME.idmap.begin(); it != NAME.idmap.end(); ++it )
+
+        
 #endif

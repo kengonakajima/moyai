@@ -1432,9 +1432,13 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
     sendWindowSize(newsock,g_window_width,g_window_height);
     // scansendallprereqsとおなじことする
     // viewport,camera
-    for( std::unordered_map<unsigned int,Viewport*>::iterator it = g_viewport_pool.idmap.begin(); it != g_viewport_pool.idmap.end(); ++it ) {
+    POOL_SCAN(g_viewport_pool,Viewport) {
         print("sending vp id:%d scl:%f,%f", it->second->id, it->second->scl.x, it->second->scl.y );
         sendViewportCreateScale(newsock,it->second);
+    }
+    POOL_SCAN(g_camera_pool,Camera) {
+        print("sending cam id:%d pos:%f,%f",it->second->id, it->second->loc.x, it->second->loc.y );
+        sendCameraCreateLoc(newsock,it->second);
     }
     
     // layers, image, texture, tiledeck,

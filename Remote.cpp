@@ -285,8 +285,7 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
     for( std::unordered_map<int,Camera*>::iterator it = cammap.begin(); it != cammap.end(); ++it ) {
         Camera *cam = it->second;
         print("sending camera_create id:%d", cam->id );
-        sendUS1UI1( outstream, PACKETTYPE_S2C_CAMERA_CREATE, cam->id );
-        sendUS1UI1F2( outstream, PACKETTYPE_S2C_CAMERA_LOC, cam->id, cam->loc.x, cam->loc.y );
+        sendCameraCreateLoc(outstream,cam);
     }
     
     // Layers(Groups) don't need scanning props
@@ -1075,7 +1074,7 @@ void TrackerImage::broadcastDiff( Deck *owner_dk, bool force ) {
         parent_rh->broadcastUS1UI3( PACKETTYPE_S2C_IMAGE_ENSURE_SIZE,
                                    target_image->id, target_image->width, target_image->height );
         parent_rh->broadcastUS1UI1Bytes( PACKETTYPE_S2C_IMAGE_RAW,
-                                        target_image->id, (const char*) imgbuf[cur_buffer_index], target_image->getBufferSize() );
+                                         target_image->id, (const char*) imgbuf[cur_buffer_index], target_image->getBufferSize() );
         parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_TEXTURE_IMAGE, owner_dk->tex->id, target_image->id );
         parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_TILEDECK_TEXTURE, owner_dk->id, owner_dk->tex->id ); // to update tileeck's image_width/height
     }
@@ -1089,7 +1088,7 @@ void TrackerCamera::scanCamera() {
     locbuf[cur_buffer_index] = Vec2( target_camera->loc.x, target_camera->loc.y );
 }
 void TrackerCamera::flipCurrentBuffer() {
-    cur_buffer_index = ( cur_buffer_index == 0 ? 1 : 0 );    
+    cur_buffer_index = ( cur_buffer_index == 0 ? 1 : 0 );
 }
 bool TrackerCamera::checkDiff() {
     Vec2 curloc, prevloc;
@@ -1143,7 +1142,7 @@ bool TrackerViewport::checkDiff() {
         curscl = sclbuf[1];
         prevscl = sclbuf[0];
     }
-    return curscl != prevscl;    
+    return curscl != prevscl;
 }
 void TrackerViewport::broadcastDiff( bool force ) {
     if( checkDiff() | force ) {
@@ -1680,7 +1679,10 @@ void sendViewportCreateScale( uv_stream_t *outstream, Viewport *vp ) {
     sendUS1UI1( outstream, PACKETTYPE_S2C_VIEWPORT_CREATE, vp->id );
     sendUS1UI1F2( outstream, PACKETTYPE_S2C_VIEWPORT_SCALE, vp->id, vp->scl.x, vp->scl.y );
 }
-
+void sendCameraCreateLoc( uv_stream_t *outstream, Camera *cam ) {
+    sendUS1UI1( outstream, PACKETTYPE_S2C_CAMERA_CREATE, cam->id );
+    sendUS1UI1F2( outstream, PACKETTYPE_S2C_CAMERA_LOC, cam->id, cam->loc.x, cam->loc.y );
+}
 
 ////////////////////
 Buffer::Buffer() : buf(0), size(0), used(0) {
