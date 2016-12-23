@@ -1430,6 +1430,18 @@ void reproxy_rpc_cb( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datal
 void reproxy_accept_cb( uv_stream_t *newsock ) {
     print("reproxy_accept_cb");
     sendWindowSize(newsock,g_window_width,g_window_height);
+    // scansendallprereqsとおなじことする
+    // viewport,camera
+    for( std::unordered_map<unsigned int,Viewport*>::iterator it = g_viewport_pool.idmap.begin(); it != g_viewport_pool.idmap.end(); ++it ) {
+        print("sending vp id:%d scl:%f,%f", it->second->id, it->second->scl.x, it->second->scl.y );
+        sendViewportCreateScale(newsock,it->second);
+    }
+    
+    // layers, image, texture, tiledeck,
+    // image files, tex files, font, CRS,
+    // sounds
+    
+    // scansendallprop2dsnapshots とおなじことする
 }
     
 int main( int argc, char **argv ) {

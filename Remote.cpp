@@ -280,8 +280,7 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
     for( std::unordered_map<int,Viewport*>::iterator it = vpmap.begin(); it != vpmap.end(); ++it ) {
         Viewport *vp = it->second;
         print("sending viewport_create id:%d sz:%d,%d scl:%f,%f", vp->id, vp->screen_width, vp->screen_height, vp->scl.x, vp->scl.y );
-        sendUS1UI1( outstream, PACKETTYPE_S2C_VIEWPORT_CREATE, vp->id );
-        sendUS1UI1F2( outstream, PACKETTYPE_S2C_VIEWPORT_SCALE, vp->id, vp->scl.x, vp->scl.y );
+        sendViewportCreateScale(outstream,vp);
     }
     for( std::unordered_map<int,Camera*>::iterator it = cammap.begin(); it != cammap.end(); ++it ) {
         Camera *cam = it->second;
@@ -1676,6 +1675,10 @@ void sendPing( uv_stream_t *s ) {
 }
 void sendWindowSize( uv_stream_t *outstream, int w, int h ) {
     sendUS1UI2( outstream, PACKETTYPE_S2C_WINDOW_SIZE, w,h );
+}
+void sendViewportCreateScale( uv_stream_t *outstream, Viewport *vp ) {
+    sendUS1UI1( outstream, PACKETTYPE_S2C_VIEWPORT_CREATE, vp->id );
+    sendUS1UI1F2( outstream, PACKETTYPE_S2C_VIEWPORT_SCALE, vp->id, vp->scl.x, vp->scl.y );
 }
 
 

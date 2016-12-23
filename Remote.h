@@ -533,6 +533,7 @@ int sendUS1F2( uv_stream_t *out, uint16_t usval, float f0, float f1 );
 void sendFile( uv_stream_t *outstream, const char *filename );
 void sendPing( uv_stream_t *s );
 void sendWindowSize( uv_stream_t *outstream, int w, int h );
+void sendViewportCreateScale( uv_stream_t *outstream, Viewport *vp );
 
 // parse helpers
 void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize );
