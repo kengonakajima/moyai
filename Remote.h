@@ -255,7 +255,6 @@ public:
     void heartbeat();
     void scanSendAllPrerequisites( uv_stream_t *outstream );
     void scanSendAllProp2DSnapshots( uv_stream_t *outstream );
-    void sendWindowSize( uv_stream_t *outstream );
     void notifyProp2DDeleted( Prop2D *prop_deleted );
     void notifyGridDeleted( Grid *grid_deleted );
     void notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop );
@@ -471,6 +470,8 @@ public:
     size_t getUsedNum() { return buffer_used; }
 };
 
+class ReprecationProxy;
+
 class Client {
 public:
     static int idgen;
@@ -478,11 +479,13 @@ public:
     Buffer recvbuf;
     uv_tcp_t *tcp;
     RemoteHead *parent_rh;
+    ReprecationProxy *parent_reproxy; 
     Buffer saved_stream;
     double initialized_at;
     Camera *target_camera;
     Viewport *target_viewport;
     Client( uv_tcp_t *sk, RemoteHead *rh );
+    Client( uv_tcp_t *sk, ReprecationProxy *reproxy );    
     ~Client();
     void saveStream( const char *data, size_t datalen );
     void flushStreamToFile();
@@ -490,10 +493,18 @@ public:
     bool canSee(Prop2D*p);
 };
 
+
 class ReprecationProxy {
 public:
     uv_tcp_t listener;
+    ObjectPool<Client> cl_pool;    
+    void (*func_callback)( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen );
+    void (*accept_callback)(uv_stream_t *s);
     ReprecationProxy(int port);
+    void setFuncCallback( void (*cb)( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) ) {func_callback = cb;}
+    void setAcceptCallback( void (*cb)(uv_stream_t*s) ) { accept_callback = cb; }
+    void addClient( Client *cl);
+    void delClient(Client*cl);    
 };
   
 
@@ -521,6 +532,7 @@ int sendUS1UI1Wstr( uv_stream_t *out, uint16_t usval, uint32_t uival, wchar_t *w
 int sendUS1F2( uv_stream_t *out, uint16_t usval, float f0, float f1 );
 void sendFile( uv_stream_t *outstream, const char *filename );
 void sendPing( uv_stream_t *s );
+void sendWindowSize( uv_stream_t *outstream, int w, int h );
 
 // parse helpers
 void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize );

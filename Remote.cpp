@@ -225,7 +225,6 @@ void RemoteHead::addClient( Client *cl ) {
 }
 void RemoteHead::delClient( Client *cl ) {
     cl_pool.del(cl->id);
-    print("delClient: id:%d",cl->id);
 }
 Client *RemoteHead::getFirstClient() {
     return cl_pool.getFirst();
@@ -592,7 +591,7 @@ static void remotehead_on_read_callback( uv_stream_t *s, ssize_t nread, const uv
         }        
     } else if( nread <= 0 ) {
         print("on_read_callback EOF. clid:%d", cl->id );
-        uv_close( (uv_handle_t*)s, remotehead_on_close_callback );        
+        uv_close( (uv_handle_t*)s, remotehead_on_close_callback );
     }
 }
 
@@ -614,14 +613,15 @@ static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
         newsock->data = cl;
         cl->tcp = newsock;
         cl->parent_rh->addClient(cl);
-        print("on_accept_callback. ok status:%d client-id:%d", status, cl->id );
+        print("remotehead_on_accept_callback. ok status:%d client-id:%d", status, cl->id );
 
         int r = uv_read_start( (uv_stream_t*) newsock, moyai_libuv_alloc_buffer, remotehead_on_read_callback );
         if(r) {
             print("uv_read_start: fail ret:%d",r);
+            return;
         }
 
-        cl->parent_rh->sendWindowSize((uv_stream_t*)newsock);
+        sendWindowSize((uv_stream_t*)newsock, cl->parent_rh->window_width, cl->parent_rh->window_height);
 
         if(rh->enable_spritestream) {
             cl->parent_rh->scanSendAllPrerequisites( (uv_stream_t*) newsock );
@@ -666,10 +666,6 @@ bool init_tcp_listener( uv_tcp_t *l, void *data, int portnum, void (*cb)(uv_stre
 // TODO: implement error handling
 bool RemoteHead::startServer( int portnum ) {
     return init_tcp_listener( &listener, (void*)this, portnum, remotehead_on_accept_callback );
-}
-
-void RemoteHead::sendWindowSize( uv_stream_t *outstream ) {
-    sendUS1UI2( outstream, PACKETTYPE_S2C_WINDOW_SIZE, window_width, window_height );
 }
 
 void RemoteHead::notifySoundPlay( Sound *snd, float vol ) {
@@ -1191,11 +1187,14 @@ static void reprecator_on_accept_callback( uv_stream_t *listener, int status ) {
         Reprecator *rep = (Reprecator*)listener->data;
         rep->appendStream(newsock);
         int r = uv_read_start( (uv_stream_t*) newsock, moyai_libuv_alloc_buffer, reprecator_on_read_callback );
-        if(r) print("uv_read_start: fail ret:%d",r);
+        if(r) {
+            print("uv_read_start: fail ret:%d",r);
+            return;
+        }
 
         print("accepted new reprecator");
 
-        rep->parent_rh->sendWindowSize((uv_stream_t*)newsock);
+        sendWindowSize((uv_stream_t*)newsock, rep->parent_rh->window_width, rep->parent_rh->window_height);
         rep->parent_rh->scanSendAllPrerequisites( (uv_stream_t*) newsock );
         rep->parent_rh->scanSendAllProp2DSnapshots( (uv_stream_t*) newsock);
     }    
@@ -1675,6 +1674,10 @@ void sendPing( uv_stream_t *s ) {
     uint32_t usec = (t - sec)*1000000;
     sendUS1UI2( s, PACKETTYPE_PING, sec, usec );    
 }
+void sendWindowSize( uv_stream_t *outstream, int w, int h ) {
+    sendUS1UI2( outstream, PACKETTYPE_S2C_WINDOW_SIZE, w,h );
+}
+
 
 ////////////////////
 Buffer::Buffer() : buf(0), size(0), used(0) {
@@ -1795,6 +1798,10 @@ Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : id(idgen++), tcp(sk), parent_rh
     recvbuf.ensureMemory(8*1024); // Only receiving keyboard and mouse input events!
     initialized_at = now();
 }
+Client::Client( uv_tcp_t *sk, ReprecationProxy *reproxy ) : id(idgen++), tcp(sk), parent_reproxy(reproxy), target_camera(NULL), target_viewport(NULL) {
+    recvbuf.ensureMemory(8*1024); // Only receiving keyboard and mouse input events!
+    initialized_at = now();
+}
 Client::~Client() {
     print("~Client called for %d", id );
 }
@@ -1872,12 +1879,63 @@ bool Client::canSee(Prop2D*p) {
 }
 
 //////////////////////
-
-void reproxy_on_connect_callback(uv_stream_t *l, int status) {
-    print("reproxy_on_connect_callback: status:%d",status);
+static void reproxy_on_close_callback( uv_handle_t *s ) {
+    print("reproxy_on_close_callback");    
 }
-ReprecationProxy::ReprecationProxy(int portnum) {
-    bool res = init_tcp_listener( &listener, (void*)this, portnum, reproxy_on_connect_callback );
+static void reproxy_on_read_callback( uv_stream_t *s, ssize_t nread, const uv_buf_t *inbuf ) {
+    print("reproxy_on_read_callback: nread:%d",nread);
+    Client *cl = (Client*)s->data;
+    if(nread>0) {
+        ReprecationProxy *rp = cl->parent_reproxy;
+        assert(rp);
+        assert(rp->func_callback);
+        bool res = parseRecord(s, &cl->recvbuf, inbuf->base, nread, rp->func_callback );
+        if(!res) {
+            uv_close( (uv_handle_t*)s, reproxy_on_close_callback );
+            return;
+        }
+    } else if( nread<=0 ) {
+        print("reproxy_on_read_callback EOF. clid:%d", cl->id );
+        uv_close( (uv_handle_t*)s, reproxy_on_close_callback );
+    }
+}
+void reproxy_on_accept_callback(uv_stream_t *listener, int status) {
+    print("reproxy_on_accept_callback: status:%d",status);
+    if(status!=0) {
+        print("reproxy_on_accept_callback error status:%d",status);
+        return;
+    }
+    
+    uv_tcp_t *newsock = (uv_tcp_t*)MALLOC( sizeof(uv_tcp_t));
+    uv_tcp_init( uv_default_loop(), newsock );
+    if( uv_accept( listener, (uv_stream_t*)newsock) == 0 ) {
+        ReprecationProxy *rp = (ReprecationProxy*)listener->data;
+        Client *cl = new Client(newsock,rp);
+        newsock->data = cl;
+        cl->parent_reproxy->addClient(cl);
+        print("reproxy_on_accept_callback. accepted");
+
+        int r = uv_read_start( (uv_stream_t*)newsock, moyai_libuv_alloc_buffer, reproxy_on_read_callback );
+        if(r) {
+            print("uv_read_start: failed. ret:%d",r);
+            return;
+        }
+        assert(rp->accept_callback);
+        rp->accept_callback((uv_stream_t*)newsock);
+    }
+}
+ReprecationProxy::ReprecationProxy(int portnum) : func_callback(NULL) {
+    bool res = init_tcp_listener( &listener, (void*)this, portnum, reproxy_on_accept_callback );
     assertmsg(res, "Reproxy: listen error");
     print("Reproxy: listening on %d", portnum);
+}
+void ReprecationProxy::addClient( Client *cl) {
+    Client *stored = cl_pool.get(cl->id);
+    if(!stored) {
+        cl->parent_reproxy = this;
+        cl_pool.set(cl->id,cl);
+    }
+}
+void ReprecationProxy::delClient(Client*cl) {
+    cl_pool.del(cl->id);
 }

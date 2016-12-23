@@ -1424,6 +1424,13 @@ void setupClient( int win_w, int win_h ) {
     setupDebugStat();    
 }
 
+void reproxy_rpc_cb( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) {
+    print("reproxy_rpc_cb: funcid:",funcid);
+}
+void reproxy_accept_cb( uv_stream_t *newsock ) {
+    print("reproxy_accept_cb");
+    sendWindowSize(newsock,g_window_width,g_window_height);
+}
     
 int main( int argc, char **argv ) {
 
@@ -1456,7 +1463,11 @@ int main( int argc, char **argv ) {
         return 1;
     }
 
-    if(g_enable_reprecation) g_reproxy = new ReprecationProxy(REPRECATOR_PROXY_PORT);
+    if(g_enable_reprecation) {
+        g_reproxy = new ReprecationProxy(REPRECATOR_PROXY_PORT);
+        g_reproxy->setFuncCallback( reproxy_rpc_cb );
+        g_reproxy->setAcceptCallback( reproxy_accept_cb );
+    }
     
     g_filedepo = new FileDepo();
 
