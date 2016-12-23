@@ -414,13 +414,13 @@ void Layer::delDynamicCamera( Camera *cam ) {
     cam->delTargetLayer(this);
 }
 void Layer::onTrackDynamicCameras() {
-    for(std::unordered_map<unsigned int,Camera*>::iterator it = dynamic_cameras.idmap.begin(); it != dynamic_cameras.idmap.end(); ++it ) {
+    POOL_SCAN(dynamic_cameras, Camera) {
         Camera *cam = it->second;
         cam->onTrackDynamic();
     }
 }
 void Layer::onTrackDynamicViewports() {
-    for(std::unordered_map<unsigned int,Viewport*>::iterator it = dynamic_viewports.idmap.begin(); it != dynamic_viewports.idmap.end(); ++it ) {
+    POOL_SCAN(dynamic_viewports,Viewport) {
         Viewport *vp = it->second;
         vp->onTrackDynamic();
     }    

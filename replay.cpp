@@ -106,7 +106,7 @@ void on_accept_callback( uv_stream_t *listener, int status ) {
 }
 
 void pollReplClients(double dt) {
-    for( std::unordered_map<unsigned int,ReplayClient*>::iterator it = g_clients.idmap.begin(); it != g_clients.idmap.end(); ++it ) {
+    POOL_SCAN(g_clients,ReplayClient){
         ReplayClient *repcl = it->second;
         repcl->poll(dt);
     }

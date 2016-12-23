@@ -77,7 +77,7 @@ ReprecationProxy *g_reproxy;
 
 // debug funcs
 Prop2D *findProp2DByTexture( uint32_t tex_id ) {
-    for( std::unordered_map<unsigned int,Prop2D*>::iterator it = g_prop2d_pool.idmap.begin(); it != g_prop2d_pool.idmap.end(); ++it ) {
+    POOL_SCAN(g_prop2d_pool,Prop2D) {
         Prop2D *p =  it->second;
         if( p->deck && p->deck->tex && p->deck->tex->id == tex_id ) {
             return p;

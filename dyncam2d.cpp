@@ -120,7 +120,7 @@ PC *getPC(Client *cl) {
     return g_pc_cl_pool.get(cl->id);
 }
 PC *getLocalPC() {
-    for( std::unordered_map<unsigned int,PC*>::iterator it = g_pc_cl_pool.idmap.begin(); it != g_pc_cl_pool.idmap.end(); ++it ) {
+    POOL_SCAN(g_pc_cl_pool,PC){
         PC *pc = it->second;
         if(pc->cl == 0) {
             return pc;            

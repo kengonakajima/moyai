@@ -1114,8 +1114,7 @@ void TrackerCamera::unicastDiff( Client *dest, bool force ) {
 void TrackerCamera::unicastCreate( Client *dest ) {
     print("unicastCreate. id:%d",dest->id);
     sendUS1UI1( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_CAMERA_CREATE, target_camera->id );
-    for(std::unordered_map<unsigned int,Layer*>::iterator it = target_camera->target_layers.idmap.begin();
-        it != target_camera->target_layers.idmap.end(); ++it ) {
+    POOL_SCAN(target_camera->target_layers,Layer) {
         Layer *l = it->second;
         print("  unicastCreate: camera_dynamic_layer:%d", l->id );
         sendUS1UI2( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER, target_camera->id, l->id );
@@ -1407,7 +1406,7 @@ void RemoteHead::broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, fl
 }
 
 void RemoteHead::nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1 ) {
-    for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it ) {
+    POOL_SCAN(cl_pool,Client) {
         Client *cl = it->second;
         if(cl->canSee(p)==false) continue;
         sendUS1UI1F2( (uv_stream_t*)cl->tcp, usval, uival, f0, f1 );
