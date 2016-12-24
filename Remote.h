@@ -540,6 +540,8 @@ void sendImageSetup( uv_stream_t *outstream, Image *img );
 class Texture;
 void sendTextureCreateWithImage( uv_stream_t *outstream, Texture *tex );
 void sendDeckSetup( uv_stream_t *outstream, Deck *dk );
+class Font;
+void sendFontSetupWithFile( uv_stream_t *outstream, Font *f ) ;
 
 // parse helpers
 void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize );

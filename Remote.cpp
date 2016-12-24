@@ -368,12 +368,7 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
     }
     for( std::unordered_map<int,Font*>::iterator it = fontmap.begin(); it != fontmap.end(); ++it ) {
         Font *f = it->second;
-        print("sending font id:%d path:%s", f->id, f->last_load_file_path );
-        sendUS1UI1( outstream, PACKETTYPE_S2C_FONT_CREATE, f->id );
-        // utf32toutf8
-        sendUS1UI1Wstr( outstream, PACKETTYPE_S2C_FONT_CHARCODES, f->id, f->charcode_table, f->charcode_table_used_num );
-        sendFile( outstream, f->last_load_file_path );
-        sendUS1UI2Str( outstream, PACKETTYPE_S2C_FONT_LOADTTF, f->id, f->pixel_size, f->last_load_file_path );
+        sendFontSetupWithFile(outstream,f);
     }
     for( std::unordered_map<int,ColorReplacerShader*>::iterator it = crsmap.begin(); it != crsmap.end(); ++it ) {
         ColorReplacerShader *crs = it->second;
@@ -1688,6 +1683,14 @@ void sendDeckSetup( uv_stream_t *outstream, Deck *dk ) {
     sendUS1UI2( outstream, PACKETTYPE_S2C_TILEDECK_TEXTURE, dk->id, td->tex->id );
     //        print("sendS2RTileDeckSize: id:%d %d,%d,%d,%d", td->id, sprw, sprh, cellw, cellh );        
     sendUS1UI5( outstream, PACKETTYPE_S2C_TILEDECK_SIZE, td->id, td->tile_width, td->tile_height, td->cell_width, td->cell_height );
+}
+void sendFontSetupWithFile( uv_stream_t *outstream, Font *f ) {
+    print("sending font id:%d path:%s", f->id, f->last_load_file_path );
+    sendUS1UI1( outstream, PACKETTYPE_S2C_FONT_CREATE, f->id );
+    // utf32toutf8
+    sendUS1UI1Wstr( outstream, PACKETTYPE_S2C_FONT_CHARCODES, f->id, f->charcode_table, f->charcode_table_used_num );
+    sendFile( outstream, f->last_load_file_path );
+    sendUS1UI2Str( outstream, PACKETTYPE_S2C_FONT_LOADTTF, f->id, f->pixel_size, f->last_load_file_path );
 }
 
 ////////////////////

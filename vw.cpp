@@ -1236,8 +1236,12 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             Sound *snd = g_sound_pool.get(snd_id);
             if(snd) {
                 print("sound_position: id:%d pos:%f last:%f", snd_id, pos_sec, last_play_vol );
-                if(snd->isPlaying() == false ) snd->play(last_play_vol);
-                snd->setTimePositionSec( pos_sec );
+                if(!g_enable_reprecation) {
+                    if(snd->isPlaying() == false ) snd->play(last_play_vol);
+                    snd->setTimePositionSec( pos_sec );
+                } else {
+                    // TODO: broadcast event
+                }                     
             } else {
                 print("sound_position: %d not found", snd_id );
             }
@@ -1459,7 +1463,9 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
     POOL_SCAN(g_tiledeck_pool,TileDeck) {
         sendDeckSetup(newsock,it->second);
     }
-    // layers, image, texture, tiledeck,
+    POOL_SCAN(g_font_pool,Font) {
+        sendFontSetupWithFile(newsock,it->second);
+    }
     // image files, tex files, font, CRS,
     // sounds
     
