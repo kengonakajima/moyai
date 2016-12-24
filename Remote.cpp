@@ -380,22 +380,8 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
         if(!target_soundsystem)break;
         Sound *snd = target_soundsystem->sounds[i];
         if(!snd)continue;
-
-        if( snd->last_load_file_path[0] ) {
-            sendFile( outstream, snd->last_load_file_path );
-            print("sending sound load file: %d, '%s'", snd->id, snd->last_load_file_path );
-            sendUS1UI1Str( outstream, PACKETTYPE_S2C_SOUND_CREATE_FROM_FILE, snd->id, snd->last_load_file_path );
-        } else if( snd->last_samples ){
-            sendUS1UI1Bytes( outstream, PACKETTYPE_S2C_SOUND_CREATE_FROM_SAMPLES, snd->id,
-                                    (const char*) snd->last_samples,
-                                    snd->last_samples_num * sizeof(snd->last_samples[0]) );
-        }
-        sendUS1UI1F1( outstream, PACKETTYPE_S2C_SOUND_DEFAULT_VOLUME, snd->id, snd->default_volume );
-        if(snd->isPlaying()) {
-            sendUS1UI1F2( outstream, PACKETTYPE_S2C_SOUND_POSITION, snd->id, snd->getTimePositionSec(), snd->last_play_volume );
-        }
+        sendSoundSetup(outstream,snd);
     }
-
 }
 
 // Send snapshots of all props and grids
@@ -1694,6 +1680,21 @@ void sendColorReplacerShaderSetup( uv_stream_t *outstream, ColorReplacerShader *
     PacketColorReplacerShaderSnapshot ss;
     setupPacketColorReplacerShaderSnapshot(&ss,crs);
     sendUS1Bytes( outstream, PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT, (const char*)&ss, sizeof(ss) );        
+}
+void sendSoundSetup( uv_stream_t *outstream, Sound *snd ) {
+    if( snd->last_load_file_path[0] ) {
+        sendFile( outstream, snd->last_load_file_path );
+        print("sending sound load file: %d, '%s'", snd->id, snd->last_load_file_path );
+        sendUS1UI1Str( outstream, PACKETTYPE_S2C_SOUND_CREATE_FROM_FILE, snd->id, snd->last_load_file_path );
+    } else if( snd->last_samples ){
+        sendUS1UI1Bytes( outstream, PACKETTYPE_S2C_SOUND_CREATE_FROM_SAMPLES, snd->id,
+                         (const char*) snd->last_samples,
+                         snd->last_samples_num * sizeof(snd->last_samples[0]) );
+    }
+    sendUS1UI1F1( outstream, PACKETTYPE_S2C_SOUND_DEFAULT_VOLUME, snd->id, snd->default_volume );
+    if(snd->isPlaying()) {
+        sendUS1UI1F2( outstream, PACKETTYPE_S2C_SOUND_POSITION, snd->id, snd->getTimePositionSec(), snd->last_play_volume );
+    }
 }
 
 ////////////////////

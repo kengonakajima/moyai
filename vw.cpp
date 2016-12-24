@@ -1469,8 +1469,9 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
     POOL_SCAN(g_crshader_pool,ColorReplacerShader) {
         sendColorReplacerShaderSetup(newsock,it->second);
     }
-
-    // sounds
+    POOL_SCAN(g_sound_pool,Sound) {
+        sendSoundSetup(newsock,it->second);
+    }
     
     // scansendallprop2dsnapshots とおなじことする
 }
