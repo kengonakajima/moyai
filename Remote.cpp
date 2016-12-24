@@ -257,7 +257,6 @@ void RemoteHead::track2D() {
 // Send all IDs of tiledecks, layers, textures, fonts, viwports by scanning all props and grids.
 // This occurs only when new player is comming in.
 void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
-    assert(outstream->data);
     if( window_width==0 || window_height==0) {
         assertmsg( false, "remotehead: window size not set?");
     }
@@ -356,41 +355,16 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
     }
     for( std::unordered_map<int,Image*>::iterator it = imgmap.begin(); it != imgmap.end(); ++it ) {
         Image *img = it->second;
-        //        print("sending image_create id:%d", img->id );
-        sendUS1UI1( outstream, PACKETTYPE_S2C_IMAGE_CREATE, img->id );
-        if( img->last_load_file_path[0] ) {
-            print("sending image_load_png: '%s'", img->last_load_file_path );
-            sendUS1UI1Str( outstream, PACKETTYPE_S2C_IMAGE_LOAD_PNG, img->id, img->last_load_file_path );                
-        }
-        if( img->width>0 && img->buffer) {
-            // this image is not from file, maybe generated.
-            sendUS1UI3( outstream, PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, img->id, img->width, img->height );
-        }
-        if( img->modified_pixel_num > 0 ) {
-            // modified image (includes loadPNG case)
-            sendUS1UI3( outstream, PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, img->id, img->width, img->height );
-            broadcastUS1UI1Bytes( PACKETTYPE_S2C_IMAGE_RAW,
-                                  img->id, (const char*) img->buffer, img->getBufferSize() );                
-        }
+        sendImageSetup(outstream,img);
     }
     for( std::unordered_map<int,Texture*>::iterator it = texmap.begin(); it != texmap.end(); ++it ) {
         Texture *tex = it->second;
         //        print("sending texture_create id:%d", tex->id );
-        sendUS1UI1( outstream, PACKETTYPE_S2C_TEXTURE_CREATE, tex->id );
-        sendUS1UI2( outstream, PACKETTYPE_S2C_TEXTURE_IMAGE, tex->id, tex->image->id );
+        sendTextureCreateWithImage(outstream,tex);
     }
     for( std::unordered_map<int,Deck*>::iterator it = dkmap.begin(); it != dkmap.end(); ++it ) {
         Deck *dk = it->second;
-        // TODO: Support PackDeck
-        assertmsg(dk->getUperCell()>0, "only tiledeck is supported" );
-        
-        TileDeck *td = (TileDeck*) dk;
-        
-        //        print("sending tiledeck_create id:%d", td->id );
-        sendUS1UI1( outstream, PACKETTYPE_S2C_TILEDECK_CREATE, dk->id );
-        sendUS1UI2( outstream, PACKETTYPE_S2C_TILEDECK_TEXTURE, dk->id, td->tex->id );
-        //        print("sendS2RTileDeckSize: id:%d %d,%d,%d,%d", td->id, sprw, sprh, cellw, cellh );        
-        sendUS1UI5( outstream, PACKETTYPE_S2C_TILEDECK_SIZE, td->id, td->tile_width, td->tile_height, td->cell_width, td->cell_height );        
+        sendDeckSetup(outstream,dk);
     }
     for( std::unordered_map<int,Font*>::iterator it = fontmap.begin(); it != fontmap.end(); ++it ) {
         Font *f = it->second;
@@ -1684,6 +1658,36 @@ void sendLayerSetup( uv_stream_t *outstream, Layer *l ) {
     sendUS1UI2( outstream, PACKETTYPE_S2C_LAYER_CREATE, l->id, l->priority );
     if( l->viewport ) sendUS1UI2( outstream, PACKETTYPE_S2C_LAYER_VIEWPORT, l->id, l->viewport->id);
     if( l->camera ) sendUS1UI2( outstream, PACKETTYPE_S2C_LAYER_CAMERA, l->id, l->camera->id );
+}
+void sendImageSetup( uv_stream_t *outstream, Image *img ) {
+    print("sending image_create id:%d", img->id );
+    sendUS1UI1( outstream, PACKETTYPE_S2C_IMAGE_CREATE, img->id );
+    if( img->last_load_file_path[0] ) {
+        print("sending image_load_png: '%s'", img->last_load_file_path );
+        sendUS1UI1Str( outstream, PACKETTYPE_S2C_IMAGE_LOAD_PNG, img->id, img->last_load_file_path );                
+    }
+    if( img->width>0 && img->buffer) {
+        // this image is not from file, maybe generated.
+        sendUS1UI3( outstream, PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, img->id, img->width, img->height );
+    }
+    if( img->modified_pixel_num > 0 ) {
+        // modified image (includes loadPNG case)
+        sendUS1UI3( outstream, PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, img->id, img->width, img->height );
+        sendUS1UI1Bytes( outstream, PACKETTYPE_S2C_IMAGE_RAW, img->id, (const char*) img->buffer, img->getBufferSize() );                
+    }
+}
+void sendTextureCreateWithImage( uv_stream_t *outstream, Texture *tex ) {
+    sendUS1UI1( outstream, PACKETTYPE_S2C_TEXTURE_CREATE, tex->id );
+    sendUS1UI2( outstream, PACKETTYPE_S2C_TEXTURE_IMAGE, tex->id, tex->image->id );
+}
+void sendDeckSetup( uv_stream_t *outstream, Deck *dk ) {
+    assertmsg(dk->getUperCell()>0, "only tiledeck is supported" ); // TODO: Support PackDeck
+    TileDeck *td = (TileDeck*) dk;
+    //        print("sending tiledeck_create id:%d", td->id );
+    sendUS1UI1( outstream, PACKETTYPE_S2C_TILEDECK_CREATE, dk->id );
+    sendUS1UI2( outstream, PACKETTYPE_S2C_TILEDECK_TEXTURE, dk->id, td->tex->id );
+    //        print("sendS2RTileDeckSize: id:%d %d,%d,%d,%d", td->id, sprw, sprh, cellw, cellh );        
+    sendUS1UI5( outstream, PACKETTYPE_S2C_TILEDECK_SIZE, td->id, td->tile_width, td->tile_height, td->cell_width, td->cell_height );
 }
 
 ////////////////////

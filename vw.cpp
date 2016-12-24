@@ -612,7 +612,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
         {
             unsigned int tex_id = get_u32(argdata);
             unsigned int img_id = get_u32(argdata+4);
-            //            print("received texture_image. tex:%d img:%d", tex_id, img_id );
+            print("received texture_image. tex:%d img:%d", tex_id, img_id );
 #if 0
 
             {
@@ -669,7 +669,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
     case PACKETTYPE_S2C_TILEDECK_CREATE:
         {
             unsigned int dk_id = get_u32(argdata);
-            //            print("received tiledeck_create. id:%d", dk_id);
+            print("received tiledeck_create. id:%d", dk_id);
             TileDeck *dk = g_tiledeck_pool.ensure(dk_id);
             assert(dk);
         }
@@ -678,7 +678,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
         {
             unsigned int dk_id = get_u32(argdata);
             unsigned int tex_id = get_u32(argdata+4);
-            //            print("received tiledeck_texture. dk:%d tex:%d", dk_id, tex_id );
+            print("received tiledeck_texture. dk:%d tex:%d", dk_id, tex_id );
             
             TileDeck *dk = g_tiledeck_pool.get(dk_id);
             assert(dk);
@@ -1445,10 +1445,20 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
     }
     for(int i=0;i<FileDepo::MAX_FILES;i++) {
         File *f = g_filedepo->getByIndex(i);
-        int r = sendUS1StrBytes(newsock, PACKETTYPE_S2C_FILE, f->path, f->data, f->data_len );
-        assert(r>0);
+        if(f) {
+            int r = sendUS1StrBytes(newsock, PACKETTYPE_S2C_FILE, f->path, f->data, f->data_len );
+            assert(r>0);
+        }
     }
-    
+    POOL_SCAN(g_image_pool,Image) {
+        sendImageSetup(newsock,it->second);
+    }
+    POOL_SCAN(g_texture_pool,Texture) {
+        sendTextureCreateWithImage(newsock,it->second);
+    }
+    POOL_SCAN(g_tiledeck_pool,TileDeck) {
+        sendDeckSetup(newsock,it->second);
+    }
     // layers, image, texture, tiledeck,
     // image files, tex files, font, CRS,
     // sounds

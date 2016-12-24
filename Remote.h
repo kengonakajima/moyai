@@ -536,6 +536,10 @@ void sendWindowSize( uv_stream_t *outstream, int w, int h );
 void sendViewportCreateScale( uv_stream_t *outstream, Viewport *vp );
 void sendCameraCreateLoc( uv_stream_t *outstream, Camera *cam );
 void sendLayerSetup( uv_stream_t *outstream, Layer *l );
+void sendImageSetup( uv_stream_t *outstream, Image *img );
+class Texture;
+void sendTextureCreateWithImage( uv_stream_t *outstream, Texture *tex );
+void sendDeckSetup( uv_stream_t *outstream, Deck *dk );
 
 // parse helpers
 void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize );
