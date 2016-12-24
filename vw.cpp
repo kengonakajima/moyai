@@ -1036,7 +1036,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             //            print("crs ss id:%d", pkt.shader_id );
             ColorReplacerShader *s = g_crshader_pool.get(pkt.shader_id);
             if(!s) {
-                print("  crs new..");
+                print("received colorreplacershader_snapshot creating new one. id:", pkt.shader_id);
                 s = g_crshader_pool.ensure(pkt.shader_id);
             }
             if(g_enable_reprecation==false) {
@@ -1466,7 +1466,10 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
     POOL_SCAN(g_font_pool,Font) {
         sendFontSetupWithFile(newsock,it->second);
     }
-    // image files, tex files, font, CRS,
+    POOL_SCAN(g_crshader_pool,ColorReplacerShader) {
+        sendColorReplacerShaderSetup(newsock,it->second);
+    }
+
     // sounds
     
     // scansendallprop2dsnapshots とおなじことする

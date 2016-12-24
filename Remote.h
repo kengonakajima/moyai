@@ -542,6 +542,7 @@ void sendTextureCreateWithImage( uv_stream_t *outstream, Texture *tex );
 void sendDeckSetup( uv_stream_t *outstream, Deck *dk );
 class Font;
 void sendFontSetupWithFile( uv_stream_t *outstream, Font *f ) ;
+void sendColorReplacerShaderSetup( uv_stream_t *outstream, ColorReplacerShader *crs ) ;
 
 // parse helpers
 void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize );

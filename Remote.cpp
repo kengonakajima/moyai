@@ -372,10 +372,7 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
     }
     for( std::unordered_map<int,ColorReplacerShader*>::iterator it = crsmap.begin(); it != crsmap.end(); ++it ) {
         ColorReplacerShader *crs = it->second;
-        print("sending col repl shader id:%d", crs->id );
-        PacketColorReplacerShaderSnapshot ss;
-        setupPacketColorReplacerShaderSnapshot(&ss,crs);
-        sendUS1Bytes( outstream, PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT, (const char*)&ss, sizeof(ss) );        
+        sendColorReplacerShaderSetup(outstream,crs);
     }
 
     // sounds
@@ -1691,6 +1688,12 @@ void sendFontSetupWithFile( uv_stream_t *outstream, Font *f ) {
     sendUS1UI1Wstr( outstream, PACKETTYPE_S2C_FONT_CHARCODES, f->id, f->charcode_table, f->charcode_table_used_num );
     sendFile( outstream, f->last_load_file_path );
     sendUS1UI2Str( outstream, PACKETTYPE_S2C_FONT_LOADTTF, f->id, f->pixel_size, f->last_load_file_path );
+}
+void sendColorReplacerShaderSetup( uv_stream_t *outstream, ColorReplacerShader *crs ) {
+    print("sending col repl shader id:%d", crs->id );
+    PacketColorReplacerShaderSnapshot ss;
+    setupPacketColorReplacerShaderSnapshot(&ss,crs);
+    sendUS1Bytes( outstream, PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT, (const char*)&ss, sizeof(ss) );        
 }
 
 ////////////////////
