@@ -1539,13 +1539,19 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
                                          (const char*) color_table, g->getCellNum() * sizeof(PacketColor) );
         }
 
-
-#if 0
-        if(!g->tracker) {
-            g->tracker = new TrackerGrid(this,g);
-            g->tracker->scanGrid();                    
+        // prims
+        if(p->prim_drawer) {
+            static PacketPrim prims[256]; // avoid malloc
+            assertmsg( elementof(prims) >= p->prim_drawer->prim_num, "too many prims? max:%d got:%d", elementof(prims), p->prim_drawer->prim_num);
+            for(int i=0;i<p->prim_drawer->prim_num;i++){
+                copyPrimToPacketPrim( &prims[i], p->prim_drawer->prims[i]);
+            }
+            sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT, p->id,
+                             (const char*) prims, p->prim_drawer->prim_num * sizeof(PacketPrim) );
+            
         }
-        g->tracker->broadcastDiff(p, true );
+        
+#if 0
         // prims
         if(p->prim_drawer) {
             if( !p->prim_drawer->tracker) p->prim_drawer->tracker = new TrackerPrimDrawer(this,p->prim_drawer);

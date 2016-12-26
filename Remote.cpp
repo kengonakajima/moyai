@@ -46,7 +46,17 @@ void setupPacketColorReplacerShaderSnapshot( PacketColorReplacerShaderSnapshot *
 }
 
 //////////////
-
+void copyPrimToPacketPrim( PacketPrim*out, Prim *src ) {
+    out->prim_id = src->id;
+    out->prim_type = src->type;
+    out->a.x = src->a.x;
+    out->a.y = src->a.y;
+    out->b.x = src->b.x;
+    out->b.y = src->b.y;
+    copyColorToPacketColor( &out->color, &src->color );
+    out->line_width = src->line_width;
+}
+    
 void makePacketProp2DSnapshot( PacketProp2DSnapshot *out, Prop2D *tgt, Prop2D *parent ) {
     out->prop_id = tgt->id;
     if( parent ) {
@@ -927,16 +937,7 @@ void TrackerPrimDrawer::scanPrimDrawer() {
     // scan
     pktnum[cur_buffer_index] = target_pd->prim_num;
     for(int i=0;i<pktnum[cur_buffer_index];i++){
-        PacketPrim *outpkt = &pktbuf[cur_buffer_index][i];
-        Prim *srcprim = target_pd->prims[i];
-        outpkt->prim_id = srcprim->id;
-        outpkt->prim_type = srcprim->type;
-        outpkt->a.x = srcprim->a.x;
-        outpkt->a.y = srcprim->a.y;
-        outpkt->b.x = srcprim->b.x;
-        outpkt->b.y = srcprim->b.y;
-        copyColorToPacketColor( &outpkt->color, &srcprim->color );
-        outpkt->line_width = srcprim->line_width;
+        copyPrimToPacketPrim( &pktbuf[cur_buffer_index][i], target_pd->prims[i] );
     }
 }
 bool TrackerPrimDrawer::checkDiff() {
