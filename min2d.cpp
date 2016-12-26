@@ -113,6 +113,7 @@ int main(int argc, char **argv )
             print("Start headless server port:%d",port);
         }
         rh->enableSpriteStream();
+        rh->enableReprecation(REPRECATOR_SERVER_PORT);
         moyai_client->setRemoteHead(rh);
         rh->setTargetMoyaiClient(moyai_client);
         ss->setRemoteHead(rh);
@@ -150,7 +151,7 @@ int main(int argc, char **argv )
     Grid *g=NULL;
     CharGrid *cg=NULL;
     
-#if 1
+
     // normal single
     p = new Prop2D();
     p->setDeck(deck);
@@ -158,7 +159,7 @@ int main(int argc, char **argv )
     p->setScl(64,64);
     p->setLoc(0,0);
     l->insertProp(p);
-
+#if 0
     // with prim
     pp = new Prop2D();
     pp->setScl(1.0f);
@@ -241,7 +242,8 @@ int main(int argc, char **argv )
     chp->addChild(dynchp);
     l->insertProp(chp);
 #endif    
-    
+
+#if 0
     // text
     wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえお";
     
@@ -279,6 +281,8 @@ int main(int argc, char **argv )
     l2->insertProp(p2);
     moyai_client->insertLayer(l2);
 
+#endif
+    
     // main loop
 
     while( !glfwWindowShouldClose(window) ){
@@ -328,13 +332,13 @@ int main(int argc, char **argv )
             g->set( irange(0,4), irange(0,4), irange(0,3) );
             g->setColor( irange(0,4), irange(0,4), Color( range(0,1), range(0,1), range(0,1), range(0,1) ) );
         }
-
+#if 0
         float tbr = 4 + ::sin(t)*3;
         movtb->setScl(tbr);
 
         Format fmt("%d", loop_counter);
         tbs[19]->setString(fmt.buf);
-
+#endif
         
         // fps disp
         static double last_print_at = 0;
@@ -388,6 +392,7 @@ int main(int argc, char **argv )
         if( g_keyboard->getKey( '2' ) ) {
             if(cg) cg->printf(0,4, Color(1,1,1,1), Format( "CNT:%d", loop_counter).buf);
         }
+#if 0        
         if( loop_counter % 25 == 0 ) {
             if( dynchp ) {
                 bool res = chp->clearChild(dynchp);
@@ -403,7 +408,7 @@ int main(int argc, char **argv )
                 chp->addChild(dynchp);
             }            
         }
-        
+#endif        
         glfwPollEvents();
 
         double loop_end_at = now();

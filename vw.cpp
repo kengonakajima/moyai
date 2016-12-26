@@ -317,7 +317,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             //            prt("s%d ", pkt.prop_id );
 
 
-            if( pkt.debug ) print("packettype_prop2d_create! id:%d layer_id:%d loc:%f,%f scl:%f,%f index:%d tdid:%d col:%.1f,%.1f,%.1f,%.1f", pkt.prop_id, pkt.layer_id, pkt.loc.x, pkt.loc.y, pkt.scl.x, pkt.scl.y, pkt.index, pkt.tiledeck_id , pkt.color.r,pkt.color.g,pkt.color.b,pkt.color.a);
+            if( pkt.debug ||pkt.prop_id==29) print("packettype_prop2d_create! id:%d layer_id:%d parentprop:%d loc:%f,%f scl:%f,%f index:%d tdid:%d col:%.1f,%.1f,%.1f,%.1f", pkt.prop_id, pkt.layer_id, pkt.parent_prop_id, pkt.loc.x, pkt.loc.y, pkt.scl.x, pkt.scl.y, pkt.index, pkt.tiledeck_id , pkt.color.r,pkt.color.g,pkt.color.b,pkt.color.a);
 
             Layer *layer = NULL;
             Prop2D *parent_prop = NULL;
@@ -327,6 +327,11 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             } else if( pkt.parent_prop_id > 0 ) {
                 //                print("Child prop.id:%d par:%d", pkt.prop_id, pkt.parent_prop_id );                
                 parent_prop = g_prop2d_pool.get(pkt.parent_prop_id);
+                if(!parent_prop) {
+                    print("Warning: prop:%d can't find parent prop:%d", pkt.prop_id, pkt.parent_prop_id );
+                } else {
+                    print("PARENT:%d FOUND, chld[0]:%p chn:%d", pkt.parent_prop_id, parent_prop->children[0], parent_prop->children_num);
+                }
             }
             if( !(layer || parent_prop ) ) {
                 // no parent!
@@ -343,14 +348,16 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             if(!prop) {
                 prop = g_prop2d_pool.ensure(pkt.prop_id);
                 if(layer) {
-                    //                                        print("  inserting prop %d to layer %d", pkt.prop_id, pkt.layer_id );
+                    print("  inserting prop %d to layer %d", pkt.prop_id, pkt.layer_id );
                     layer->insertProp(prop);
                 } else if(parent_prop) {
                     Prop2D *found_prop = prop->getChild( pkt.prop_id );
                     if(!found_prop) {
-                        //                        print("  adding child prop %d to a prop %d", pkt.prop_id, pkt.parent_prop_id );
+                        print("  adding child prop %d to a prop %d", pkt.prop_id, pkt.parent_prop_id );
                         parent_prop->addChild(prop);
                     }
+                } else {
+                    print("Warning: this prop has no parent? id:%d layer:%d",pkt.prop_id, pkt.layer_id );
                 }
             }
             if(dk) prop->setDeck(dk);
@@ -374,6 +381,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 }
             }
             prop->priority = pkt.priority;
+            //            print("KKKKKKKKKK: ind:%d dk:%p vis:%d scl:%f,%f", prop->index, dk, prop->visible, prop->scl.x, prop->scl.y);
         }
         break;
     case PACKETTYPE_S2C_PROP2D_LOC:
@@ -555,7 +563,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             unsigned int camera_id = get_u32(argdata);
             float x = get_f32(argdata+4);
             float y = get_f32(argdata+4+4);
-            //                        print("received camera_loc. id:%d (%f,%f)", camera_id, x,y );            
+            print("received camera_loc. id:%d (%f,%f)", camera_id, x,y );            
             Camera *cam = g_camera_pool.get(camera_id);
             assert(cam);
             cam->setLoc(x,y);
@@ -663,7 +671,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             assert(fe);
             bool ret = img->loadPNGMem( (unsigned char*) fe->data, fe->data_len );
             assert(ret);
-            img->setOptionalLoadPath( cstrpath );
+            strncpy( img->last_load_file_path, cstrpath, sizeof(img->last_load_file_path) );
         }
         break;
     case PACKETTYPE_S2C_TILEDECK_CREATE:
@@ -1434,8 +1442,7 @@ void reproxy_rpc_cb( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datal
 void reproxy_accept_cb( uv_stream_t *newsock ) {
     print("reproxy_accept_cb");
     sendWindowSize(newsock,g_window_width,g_window_height);
-    // scansendallprereqsとおなじことする
-    // viewport,camera
+    // scansendallprereqs
     POOL_SCAN(g_viewport_pool,Viewport) {
         print("sending vp id:%d scl:%f,%f", it->second->id, it->second->scl.x, it->second->scl.y );
         sendViewportCreateScale(newsock,it->second);
@@ -1455,6 +1462,7 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
         }
     }
     POOL_SCAN(g_image_pool,Image) {
+        print("IIIIIIIIIIIII: latloadpat:%s", it->second->last_load_file_path);
         sendImageSetup(newsock,it->second);
     }
     POOL_SCAN(g_texture_pool,Texture) {
@@ -1473,7 +1481,40 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
         sendSoundSetup(newsock,it->second);
     }
     
-    // scansendallprop2dsnapshots とおなじことする
+    // scansendallprop2dsnapshots ..
+
+    // prop body, grid, prims, childrenを送るが、既存コードがremoteheadに依存しているので再利用できない。
+    // scanProp2D, scanTextBox, scanGrid, scanPrimDrawer, をtrackerの外に出して再利用でよいかな。
+
+    POOL_SCAN(g_prop2d_pool,Prop2D) {
+        Prop2D *p = it->second;
+        PacketProp2DSnapshot out;
+        if(p->getParentLayer()) {
+            makePacketProp2DSnapshot(&out,p,NULL);
+            print("sending prop2d_snapshot id:%d", out.prop_id);
+            sendUS1Bytes( newsock, PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&out, sizeof(out));            
+        } 
+
+#if 0
+        if(!g->tracker) {
+            g->tracker = new TrackerGrid(this,g);
+            g->tracker->scanGrid();                    
+        }
+        g->tracker->broadcastDiff(p, true );
+        // prims
+        if(p->prim_drawer) {
+            if( !p->prim_drawer->tracker) p->prim_drawer->tracker = new TrackerPrimDrawer(this,p->prim_drawer);
+            p->prim_drawer->tracker->scanPrimDrawer();
+            p->prim_drawer->tracker->broadcastDiff(p, true );
+        }
+#endif
+        // children
+        for(int i=0;i<p->children_num;i++) {
+            Prop2D *chp = p->children[i];
+            makePacketProp2DSnapshot(&out,chp,p);
+            sendUS1Bytes( newsock, PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&out, sizeof(out));
+        }
+    }    
 }
     
 int main( int argc, char **argv ) {

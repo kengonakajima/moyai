@@ -989,7 +989,7 @@ void gameInit() {
     // add child to line prop
     Prop2D *childp = new Prop2D();
     childp->setDeck(g_base_deck);
-    childp->setScl(16,16);
+    childp->setScl(16,44);
     childp->seekRot( M_PI * 100, 30 );
     childp->setIndex(0);
     childp->setLoc(-222,-222);

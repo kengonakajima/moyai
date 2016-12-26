@@ -76,8 +76,10 @@ bool Sound::isPlaying() {
 	if( r != FMOD_OK ) return false;
 	return val;
 #elif defined(USE_UNTZ)
+    if(!sound)return false;
     return sound->isPlaying();
 #elif defined(USE_OPENAL)
+    if(!sound)return false;    
     return sound->isPlaying();
 #else
     return false; // TODO: implement linux virtual sound

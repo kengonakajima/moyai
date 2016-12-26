@@ -42,6 +42,8 @@ typedef struct  {
     uint32_t optbits;
     int32_t priority;
 } PacketProp2DSnapshot;
+class Prop2D;
+void makePacketProp2DSnapshot( PacketProp2DSnapshot *out, Prop2D *tgt, Prop2D *parent );
 
 #define PROP2D_OPTBIT_ADDITIVE_BLEND 0x00000001
 

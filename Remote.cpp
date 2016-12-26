@@ -47,36 +47,40 @@ void setupPacketColorReplacerShaderSnapshot( PacketColorReplacerShaderSnapshot *
 
 //////////////
 
+void makePacketProp2DSnapshot( PacketProp2DSnapshot *out, Prop2D *tgt, Prop2D *parent ) {
+    out->prop_id = tgt->id;
+    if( parent ) {
+        out->layer_id = 0;
+        out->parent_prop_id = parent->id;
+    } else {
+        out->layer_id = tgt->getParentLayer()->id;
+        out->parent_prop_id = 0;
+    }
+    out->loc.x = tgt->loc.x;
+    out->loc.y = tgt->loc.y;
+    out->scl.x = tgt->scl.x;
+    out->scl.y = tgt->scl.y;
+    out->index = tgt->index;
+    out->tiledeck_id = tgt->deck ? tgt->deck->id : 0;
+    out->debug = tgt->debug_id;
+    out->rot = tgt->rot;
+    out->xflip = tgt->xflip;
+    out->yflip = tgt->yflip;
+    out->uvrot = tgt->uvrot;
+    out->color.r = tgt->color.r;
+    out->color.g = tgt->color.g;
+    out->color.b = tgt->color.b;
+    out->color.a = tgt->color.a;
+    out->shader_id = tgt->fragment_shader ? tgt->fragment_shader->id : 0;
+    out->optbits = 0;
+    if( tgt->use_additive_blend ) out->optbits |= PROP2D_OPTBIT_ADDITIVE_BLEND;
+    out->priority = tgt->priority;
+    
+}
 void Tracker2D::scanProp2D( Prop2D *parentprop ) {
     PacketProp2DSnapshot *out = & pktbuf[cur_buffer_index];
 
-    out->prop_id = target_prop2d->id;
-    if( parentprop ) {
-        out->layer_id = 0;
-        out->parent_prop_id = parentprop->id;
-    } else {
-        out->layer_id = target_prop2d->getParentLayer()->id;
-        out->parent_prop_id = 0;
-    }
-    out->loc.x = target_prop2d->loc.x;
-    out->loc.y = target_prop2d->loc.y;
-    out->scl.x = target_prop2d->scl.x;
-    out->scl.y = target_prop2d->scl.y;
-    out->index = target_prop2d->index;
-    out->tiledeck_id = target_prop2d->deck ? target_prop2d->deck->id : 0;
-    out->debug = target_prop2d->debug_id;
-    out->rot = target_prop2d->rot;
-    out->xflip = target_prop2d->xflip;
-    out->yflip = target_prop2d->yflip;
-    out->uvrot = target_prop2d->uvrot;
-    out->color.r = target_prop2d->color.r;
-    out->color.g = target_prop2d->color.g;
-    out->color.b = target_prop2d->color.b;
-    out->color.a = target_prop2d->color.a;
-    out->shader_id = target_prop2d->fragment_shader ? target_prop2d->fragment_shader->id : 0;
-    out->optbits = 0;
-    if( target_prop2d->use_additive_blend ) out->optbits |= PROP2D_OPTBIT_ADDITIVE_BLEND;
-    out->priority = target_prop2d->priority;
+    makePacketProp2DSnapshot(out,target_prop2d,parentprop);
 }
 
 void Tracker2D::flipCurrentBuffer() {
