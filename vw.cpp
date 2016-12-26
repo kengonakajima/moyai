@@ -1550,15 +1550,7 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
                              (const char*) prims, p->prim_drawer->prim_num * sizeof(PacketPrim) );
             
         }
-        
-#if 0
-        // prims
-        if(p->prim_drawer) {
-            if( !p->prim_drawer->tracker) p->prim_drawer->tracker = new TrackerPrimDrawer(this,p->prim_drawer);
-            p->prim_drawer->tracker->scanPrimDrawer();
-            p->prim_drawer->tracker->broadcastDiff(p, true );
-        }
-#endif
+
         // children
         for(int i=0;i<p->children_num;i++) {
             Prop2D *chp = p->children[i];
