@@ -1495,6 +1495,51 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
             sendUS1Bytes( newsock, PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&out, sizeof(out));            
         } 
 
+        // grids, mostly copied from TrackerGrid. TODO:refactor...
+        static const int N=4096;
+        static int32_t index_table[N]; // avoid malloc
+        static uint8_t flip_table[N];
+        static PacketVec2 texofs_table[N];
+        static PacketColor color_table[N];
+        for(int i=0;i<p->grid_used_num;i++) {
+            Grid *g = p->grids[i];
+            assertmsg(g->getCellNum()<=N, "too many cells in a grid? max:%d",N);
+            for(int y=0;y<g->height;y++){
+                for(int x=0;x<g->width;x++){
+                    int ind = g->index(x,y);
+                    index_table[ind] = g->get(x,y);
+                    uint8_t bits = 0;
+                    if( g->getXFlip(x,y) ) bits |= GTT_FLIP_BIT_X;
+                    if( g->getYFlip(x,y) ) bits |= GTT_FLIP_BIT_Y;
+                    if( g->getUVRot(x,y) ) bits |= GTT_FLIP_BIT_UVROT;
+                    flip_table[ind] = bits;
+                    Vec2 texofs;
+                    g->getTexOffset(x,y,&texofs);
+                    texofs_table[ind].x = texofs.x;
+                    texofs_table[ind].y = texofs.y;
+                    Color col = g->getColor(x,y);
+                    color_table[ind].r = col.r;
+                    color_table[ind].g = col.g;
+                    color_table[ind].b = col.b;
+                    color_table[ind].a = col.a;                                
+                }
+            }
+            sendUS1UI3( newsock, PACKETTYPE_S2C_GRID_CREATE, g->id, g->width, g->height );
+            int dk_id = 0;
+            if(g->deck) dk_id = g->deck->id; else if(p->deck) dk_id = p->deck->id;
+            if(dk_id) sendUS1UI2( newsock, PACKETTYPE_S2C_GRID_DECK, g->id, dk_id );
+            sendUS1UI2( newsock, PACKETTYPE_S2C_GRID_PROP2D, g->id, p->id );    
+            sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, g->id,
+                                         (const char*) index_table, g->getCellNum() * sizeof(int32_t) );
+            sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_GRID_TABLE_FLIP_SNAPSHOT, g->id,
+                                         (const char*) flip_table, g->getCellNum() * sizeof(uint8_t) );
+            sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_GRID_TABLE_TEXOFS_SNAPSHOT, g->id,
+                                         (const char*) texofs_table, g->getCellNum() * sizeof(Vec2) );
+            sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT, g->id,
+                                         (const char*) color_table, g->getCellNum() * sizeof(PacketColor) );
+        }
+
+
 #if 0
         if(!g->tracker) {
             g->tracker = new TrackerGrid(this,g);
