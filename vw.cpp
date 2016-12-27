@@ -279,12 +279,17 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
 }
 
 
+#define REPROXY_FORWARD_PACKET  if(g_reproxy) {\
+        print("forwarding pkt: f:%d sz:%d",funcid, argdatalen);\
+        g_reproxy->broadcastUS1Bytes(funcid,argdata,argdatalen);\
+    }        
+
 
 void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     g_packet_count++;
     
     // if(g_enable_reprecation) print("funcid:%d l:%d",funcid, argdatalen);
-    
+
     if(funcid>=0 && funcid<PACKETTYPE_MAX) {
         g_recv_counts[funcid]++;
         g_recv_totalcounts[funcid]++;
@@ -301,12 +306,12 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             g_last_ping_rtt = dt;
             prt("received ping: %u %u dt:%f", sec, usec, dt );
 
-            if(g_reproxy) g_reproxy->broadcastUS1Bytes(funcid,argdata,argdatalen);
         }
         break;
     case PACKETTYPE_TIMESTAMP:
         {
             g_timestamp_count++;
+            REPROXY_FORWARD_PACKET;
         }
         break;
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT:

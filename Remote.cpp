@@ -481,7 +481,7 @@ void RemoteHead::heartbeat() {
     uv_run_times(100);
 }    
 static void remotehead_on_close_callback( uv_handle_t *s ) {
-    print("on_close_callback");
+    print("remotehead_on_close_callback");
     Client *cli = (Client*)s->data;
     cli->parent_rh->delClient(cli); // Call this before on_disconnect_cb to make it possible to delete prop in callback and it causes write to network
     if( cli->parent_rh->on_disconnect_cb ) {
@@ -1903,7 +1903,11 @@ bool Client::canSee(Prop2D*p) {
 
 //////////////////////
 static void reproxy_on_close_callback( uv_handle_t *s ) {
-    print("reproxy_on_close_callback");    
+    print("reproxy_on_close_callback");
+    Client *cli = (Client*)s->data;
+    cli->parent_reproxy->delClient(cli);
+    cli->onDelete();
+    delete cli;
 }
 static void reproxy_on_read_callback( uv_stream_t *s, ssize_t nread, const uv_buf_t *inbuf ) {
     print("reproxy_on_read_callback: nread:%d",nread);
