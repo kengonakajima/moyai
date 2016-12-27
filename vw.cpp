@@ -299,7 +299,9 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             double t = (double)(sec) + (double)(usec)/1000000.0f;
             double dt = now() - t;
             g_last_ping_rtt = dt;
-            //            prt("PINGrecv: %u %u dt:%f", sec, usec, dt );
+            prt("received ping: %u %u dt:%f", sec, usec, dt );
+
+            if(g_reproxy) g_reproxy->broadcastUS1Bytes(funcid,argdata,argdatalen);
         }
         break;
     case PACKETTYPE_TIMESTAMP:

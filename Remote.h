@@ -509,7 +509,8 @@ public:
     void setFuncCallback( void (*cb)( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) ) {func_callback = cb;}
     void setAcceptCallback( void (*cb)(uv_stream_t*s) ) { accept_callback = cb; }
     void addClient( Client *cl);
-    void delClient(Client*cl);    
+    void delClient(Client*cl);
+    void broadcastUS1Bytes(uint16_t funcid, const char*data, size_t datalen );
 };
   
 
