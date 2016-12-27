@@ -1966,8 +1966,8 @@ void ReprecationProxy::addClient( Client *cl) {
 void ReprecationProxy::delClient(Client*cl) {
     cl_pool.del(cl->id);
 }
-void ReprecationProxy::broadcastUS1Bytes(uint16_t funcid, const char*data, size_t datalen ) {
+void ReprecationProxy::broadcastUS1RawArgs(uint16_t funcid, const char*data, size_t datalen ) {
     POOL_SCAN(cl_pool,Client) {
-        sendUS1Bytes( (uv_stream_t*)it->second->tcp, funcid, data, datalen );
+        sendUS1RawArgs( (uv_stream_t*)it->second->tcp, funcid, data, datalen );
     }
 }

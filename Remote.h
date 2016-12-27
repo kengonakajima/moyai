@@ -510,7 +510,7 @@ public:
     void setAcceptCallback( void (*cb)(uv_stream_t*s) ) { accept_callback = cb; }
     void addClient( Client *cl);
     void delClient(Client*cl);
-    void broadcastUS1Bytes(uint16_t funcid, const char*data, size_t datalen );
+    void broadcastUS1RawArgs(uint16_t funcid, const char*data, size_t datalen );
 };
   
 
