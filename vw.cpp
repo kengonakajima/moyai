@@ -72,6 +72,8 @@ int g_recv_totalcounts[PACKETTYPE_MAX];
 
 ReprecationProxy *g_reproxy;
 
+bool g_done=false;
+
     
 ///////////////
 
@@ -354,7 +356,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             if(!prop) {
                 prop = g_prop2d_pool.ensure(pkt.prop_id);
                 if(layer) {
-                    print("  inserting prop %d to layer %d", pkt.prop_id, pkt.layer_id );
+                    //                    print("  inserting prop %d to layer %d", pkt.prop_id, pkt.layer_id );
                     layer->insertProp(prop);
                 } else if(parent_prop) {
                     Prop2D *found_prop = prop->getChild( pkt.prop_id );
@@ -1314,6 +1316,10 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
 }
 
 void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
+    if(nread<0) {
+        print("read error! closing");
+        g_done=true;
+    }
     g_total_read_count ++;
     g_total_read += nread;
     parseRecord( s, &g_recvbuf, buf->base, nread, on_packet_callback );
@@ -1566,7 +1572,7 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
         sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_TEXTBOX_COLOR, target_tb->id, (const char*)&pc, sizeof(pc) );            
     }
 }
-    
+
 int main( int argc, char **argv ) {
 
 #ifdef __APPLE__    
@@ -1615,8 +1621,8 @@ int main( int argc, char **argv ) {
     double last_print_stats_at=0;
     float kbps = 0;
     
-    bool done = false;
-    while( !done ) {
+    g_done = false;
+    while( !g_done ) {
         
         static double last_poll_at = now();
         double t = now();
@@ -1626,7 +1632,7 @@ int main( int argc, char **argv ) {
         
         if( g_moyai_client && g_enable_reprecation==false ) {
             if( glfwWindowShouldClose(g_window) ) {
-                done = true;
+                g_done = true;
             }
             
             glfwPollEvents();
