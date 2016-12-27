@@ -1209,7 +1209,6 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             Sound *snd = g_sound_pool.get(snd_id);
             if(snd) {
                 if(g_enable_reprecation) {
-                    print("TODO: repr: implement sound play");
                 } else {
                     snd->play(vol);
                 }                
@@ -1242,9 +1241,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 if(!g_enable_reprecation) {
                     if(snd->isPlaying() == false ) snd->play(last_play_vol);
                     snd->setTimePositionSec( pos_sec );
-                } else {
-                    // TODO: broadcast event
-                }                     
+                }
             } else {
                 print("sound_position: %d not found", snd_id );
             }
