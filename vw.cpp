@@ -869,21 +869,10 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
         break;
     case PACKETTYPE_S2C_TEXTBOX_CREATE:
         {
-            //                        static int hoge = 0;
-            //                        hoge++;
-            //                        if(hoge>8) exit(0);
-
-
-            
             uint32_t tb_id = get_u32(argdata);
-            //            TextBox *hogetb = g_textbox_pool.get(tb_id);
-            //            if(hogetb) {
-            //                print("ALREADY tb.%d par:%p", tb_id, hogetb->getParentLayer() );
-            //                break;
-            //            }
             TextBox *tb = g_textbox_pool.ensure(tb_id);
             if(g_enable_reprecation) tb->skip_meshing = true;
-            //            print("tb_creat id:%d ptr:%p par:%p", tb_id, tb, tb->getParentLayer() );
+            //            print("received tb_create. id:%d ptr:%p par:%p", tb_id, tb, tb->getParentLayer() );
         }
         break;
     case PACKETTYPE_S2C_TEXTBOX_FONT:
@@ -1491,7 +1480,6 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
 
     // prop body, grid, prims, childrenを送るが、既存コードがremoteheadに依存しているので再利用できない。
     // scanProp2D, scanTextBox, scanGrid, scanPrimDrawer, をtrackerの外に出して再利用でよいかな。
-
     POOL_SCAN(g_prop2d_pool,Prop2D) {
         Prop2D *p = it->second;
         PacketProp2DSnapshot out;
@@ -1563,7 +1551,23 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
             makePacketProp2DSnapshot(&out,chp,p);
             sendUS1Bytes( newsock, PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&out, sizeof(out));
         }
-    }    
+    }
+    POOL_SCAN(g_textbox_pool,TextBox) {
+        // copied from trackertextbox::broadcastdiff.. TODO:refactor.
+        TextBox *target_tb = it->second;
+        sendUS1UI1( newsock, PACKETTYPE_S2C_TEXTBOX_CREATE, target_tb->id );
+        sendUS1UI2( newsock, PACKETTYPE_S2C_TEXTBOX_LAYER, target_tb->id, target_tb->getParentLayer()->id );        
+        sendUS1UI2( newsock, PACKETTYPE_S2C_TEXTBOX_FONT, target_tb->id, target_tb->font->id );
+        sendUS1UI1Wstr( newsock, PACKETTYPE_S2C_TEXTBOX_STRING, target_tb->id, target_tb->str, target_tb->len_str );
+        sendUS1UI1F2( newsock, PACKETTYPE_S2C_TEXTBOX_LOC, target_tb->id, target_tb->loc.x, target_tb->loc.y );
+        sendUS1UI1F2( newsock, PACKETTYPE_S2C_TEXTBOX_SCL, target_tb->id, target_tb->scl.x, target_tb->scl.y );        
+        PacketColor pc;
+        pc.r = target_tb->color.r;
+        pc.g = target_tb->color.g;
+        pc.b = target_tb->color.b;
+        pc.a = target_tb->color.a;        
+        sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_TEXTBOX_COLOR, target_tb->id, (const char*)&pc, sizeof(pc) );            
+    }
 }
     
 int main( int argc, char **argv ) {
