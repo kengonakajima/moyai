@@ -505,10 +505,10 @@ static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char
         {
             uint32_t keycode = get_u32(argdata);
             uint32_t action = get_u32(argdata+4);
-            uint32_t mod_shift = get_u32(argdata+8);
-            uint32_t mod_ctrl = get_u32(argdata+12);
-            uint32_t mod_alt = get_u32(argdata+16);
-            //            print("kbd: %d %d %d %d %d", keycode, action, mod_shift, mod_ctrl, mod_alt );            
+            uint32_t modbits = get_u32(argdata+8);
+            bool mod_shift,mod_ctrl,mod_alt;
+            getModkeyBits(modbits, &mod_shift, &mod_ctrl, &mod_alt);
+                        print("kbd: %d %d %d %d %d", keycode, action, mod_shift, mod_ctrl, mod_alt );            
             if(cli->parent_rh->on_keyboard_cb) {
                 cli->parent_rh->on_keyboard_cb(cli,keycode,action,mod_shift,mod_ctrl,mod_alt);
             }
@@ -518,10 +518,10 @@ static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char
         {
             uint32_t button = get_u32(argdata);
             uint32_t action = get_u32(argdata+4);
-            uint32_t mod_shift = get_u32(argdata+8);
-            uint32_t mod_ctrl = get_u32(argdata+12);
-            uint32_t mod_alt = get_u32(argdata+16);
-            //            print("mou: %d %d %d %d %d", button, action, mod_shift, mod_ctrl, mod_alt );
+            uint32_t modbits = get_u32(argdata+8);
+            bool mod_shift,mod_ctrl,mod_alt;
+            getModkeyBits(modbits, &mod_shift, &mod_ctrl, &mod_alt);
+                        print("mou: %d %d %d %d %d", button, action, mod_shift, mod_ctrl, mod_alt );
             if(cli->parent_rh->on_mouse_button_cb) {
                 cli->parent_rh->on_mouse_button_cb(cli,button,action,mod_shift,mod_ctrl,mod_alt);
             }
@@ -1256,6 +1256,9 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     // reprecator to server
     case PACKETTYPE_R2S_CLIENT_LOGIN: return "PACKETTYPE_R2S_CLIENT_LOGIN";
     case PACKETTYPE_S2R_NEW_CLIENT_ID: return "PACKETTYPE_S2R_NEW_CLIENT_ID";
+    case PACKETTYPE_R2S_KEYBOARD: return "PACKETTYPE_R2S_KEYBOARD";
+    case PACKETTYPE_R2S_MOUSE_BUTTON: return "PACKETTYPE_R2S_MOUSE_BUTTON";
+    case PACKETTYPE_R2S_CURSOR_POS: return "PACKETTYPE_R2S_CURSOR_POS";
         
     // server to client
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT: return "PACKETTYPE_S2C_PROP2D_SNAPSHOT";
@@ -1426,6 +1429,20 @@ void RemoteHead::broadcastSortedChangelist() {
     //    print("broadcastChangelist: tot:%d sent:%d max:%d", changelist_used, sent_n, max_send_num);
 }
 
+
+///////////////////
+int calcModkeyBits(bool shift, bool ctrl, bool alt ) {
+    int out=0;
+    if(shift) out |= MODKEY_BIT_SHIFT;
+    if(ctrl) out |= MODKEY_BIT_CONTROL;
+    if(alt) out |= MODKEY_BIT_ALT;
+    return out;
+}
+void getModkeyBits(int val, bool *shift, bool *ctrl, bool *alt ) {
+    *shift = val & MODKEY_BIT_SHIFT;
+    *ctrl = val & MODKEY_BIT_CONTROL;
+    *alt = val & MODKEY_BIT_ALT;
+}
 
 ///////////////////
 char sendbuf_work[1024*1024*8];

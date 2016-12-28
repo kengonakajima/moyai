@@ -268,13 +268,13 @@ void keyboardCallback( GLFWwindow *window, int keycode, int scancode, int action
     int mod_shift = mods & GLFW_MOD_SHIFT;
     int mod_ctrl = mods & GLFW_MOD_CONTROL;
     int mod_alt = mods & GLFW_MOD_ALT;
-    if(g_stream) sendUS1UI5( g_stream, PACKETTYPE_C2S_KEYBOARD, keycode, action, mod_shift, mod_ctrl, mod_alt );
+    if(g_stream) sendUS1UI3( g_stream, PACKETTYPE_C2S_KEYBOARD, keycode, action, calcModkeyBits(mod_shift, mod_ctrl, mod_alt ));
 }
 void mouseButtonCallback( GLFWwindow *window, int button, int action, int mods ) {
     int mod_shift = mods & GLFW_MOD_SHIFT;
     int mod_ctrl = mods & GLFW_MOD_CONTROL;
     int mod_alt = mods & GLFW_MOD_ALT;
-    if(g_stream) sendUS1UI5( g_stream, PACKETTYPE_C2S_MOUSE_BUTTON, button, action, mod_shift, mod_ctrl, mod_alt );
+    if(g_stream) sendUS1UI3( g_stream, PACKETTYPE_C2S_MOUSE_BUTTON, button, action, calcModkeyBits(mod_shift, mod_ctrl, mod_alt ));
 }
 void cursorPosCallback( GLFWwindow *window, double x, double y ) {
     if(g_stream) sendUS1F2( g_stream, PACKETTYPE_C2S_CURSOR_POS, x, y );
@@ -1448,17 +1448,23 @@ void setupClient( int win_w, int win_h ) {
     setupDebugStat();    
 }
 
-void reproxy_rpc_cb( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) {
+void reproxy_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) {
+    if(!g_reproxy)return;
+    Client *cl = (Client*)s->data;
+
     switch(funcid) {
     case PACKETTYPE_C2S_KEYBOARD:
+        print("reproxy_on_packet_cb: kbd. cl_g_id:%d",cl->global_client_id);
+        break;
     case PACKETTYPE_C2S_MOUSE_BUTTON:
     case PACKETTYPE_C2S_CURSOR_POS:
     case PACKETTYPE_C2S_TOUCH_BEGIN:
     case PACKETTYPE_C2S_TOUCH_MOVE:
     case PACKETTYPE_C2S_TOUCH_END:
     case PACKETTYPE_C2S_TOUCH_CANCEL:
+        break;
     default:
-        print("Warning: reproxy_rpc_cb: funcid:%d is not handled",funcid);
+        print("Warning: reproxy_on_packet_cb: funcid:%d is not handled",funcid);
         break;
     }
 }
@@ -1635,7 +1641,7 @@ int main( int argc, char **argv ) {
 
     if(g_enable_reprecation) {
         g_reproxy = new ReprecationProxy(REPRECATOR_PROXY_PORT);
-        g_reproxy->setFuncCallback( reproxy_rpc_cb );
+        g_reproxy->setFuncCallback( reproxy_on_packet_cb );
         g_reproxy->setAcceptCallback( reproxy_on_accept_cb );
     }
     

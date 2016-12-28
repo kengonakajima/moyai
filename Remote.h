@@ -119,6 +119,10 @@ typedef enum {
 
     // reprecator to server
     PACKETTYPE_R2S_CLIENT_LOGIN = 150, // accepting new client, getting new id number of this client
+    PACKETTYPE_R2S_KEYBOARD = 151,
+    PACKETTYPE_R2S_MOUSE_BUTTON = 152,
+    PACKETTYPE_R2S_CURSOR_POS = 153,
+    
     // server to reprecator
     PACKETTYPE_S2R_NEW_CLIENT_ID = 170,
     
@@ -202,6 +206,11 @@ typedef enum {
     PACKETTYPE_ERROR = 2000, // error code
 } PACKETTYPE;
 
+#define MODKEY_BIT_SHIFT 0x01
+#define MODKEY_BIT_CONTROL 0x02
+#define MODKEY_BIT_ALT 0x04
+int calcModkeyBits(bool shift, bool ctrl, bool alt );
+void getModkeyBits(int val, bool *shift, bool *ctrl, bool *alt );
 
 class ChangeEntry {
 public:
