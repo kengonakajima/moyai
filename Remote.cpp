@@ -1120,11 +1120,38 @@ void TrackerViewport::unicastCreate( Client *dest ) {
 }
 
 /////////////////////
+static void reprecator_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
+    print("reprecator_on_packet_cb. funcid:%d",funcid);
+    switch(funcid) {
+    case PACKETTYPE_R2S_CLIENT_LOGIN:
+        {
+            static int client_id=1;
+            int reproxy_cl_id = get_u32(argdata+0);
+            print("received r2s_login. giving a new client id:%d, reproxy_cl_id:%d",client_id, reproxy_cl_id);
+            sendUS1UI2(s,PACKETTYPE_S2R_NEW_CLIENT_ID, client_id, reproxy_cl_id );
+            client_id++;
+            break;
+        }
+    default:
+        break;
+    }
+}
 static void reprecator_on_close_callback( uv_handle_t *s ) {
     print("reprecator_on_close_callback");    
 }
 static void reprecator_on_read_callback( uv_stream_t *s, ssize_t nread, const uv_buf_t *inbuf ) {
-    print("reprecator_on_read_callback");
+    print("reprecator_on_read_callback nread:%d",nread);
+    if(nread>0) {
+        Client *cl = (Client*)s->data;
+        bool res = parseRecord( s, &cl->recvbuf, inbuf->base, nread, reprecator_on_packet_cb );
+        if(!res) {
+            uv_close( (uv_handle_t*)s, reprecator_on_close_callback );
+            return;
+        }
+    } else if( nread<=0) {
+        print("reprecator_on_read_callback eof or error" );
+        uv_close( (uv_handle_t*)s, reprecator_on_close_callback );
+    }
 }
 static void reprecator_on_accept_callback( uv_stream_t *listener, int status ) {
     print("reprecator_on_accept_callback status:%d",status);
@@ -1137,7 +1164,10 @@ static void reprecator_on_accept_callback( uv_stream_t *listener, int status ) {
     uv_tcp_init( uv_default_loop(), newsock );
     if( uv_accept( listener, (uv_stream_t*) newsock ) == 0 ) {
         Reprecator *rep = (Reprecator*)listener->data;
-        rep->appendStream(newsock);
+        Client *cl = new Client(newsock,rep);
+        rep->addClient(cl);
+        newsock->data=(void*)cl;
+        
         int r = uv_read_start( (uv_stream_t*) newsock, moyai_libuv_alloc_buffer, reprecator_on_read_callback );
         if(r) {
             print("uv_read_start: fail ret:%d",r);
@@ -1152,28 +1182,17 @@ static void reprecator_on_accept_callback( uv_stream_t *listener, int status ) {
     }    
 }
 
-bool Reprecator::appendStream(uv_tcp_t *tcp) {
-    for(int i=0;i<elementof(streams);i++) {
-        if(streams[i]==tcp)return false;
-        if(streams[i]==NULL) {
-            streams[i] = tcp;
-            return true;
-        }
-    }
-    return false;
-}
-void Reprecator::deleteStream(uv_tcp_t *tcp) {
-    for(int i=0;i<elementof(streams);i++) {
-        if(streams[i]==tcp) {
-            streams[i]=NULL;
-            return;
-        }
+void Reprecator::addClient( Client *cl) {
+    Client *stored = cl_pool.get(cl->id);
+    if(!stored) {
+        cl->parent_reprecator = this;
+        cl_pool.set(cl->id,cl);
     }
 }
-
+void Reprecator::delClient(Client*cl) {
+    cl_pool.del(cl->id);
+}
 Reprecator::Reprecator(RemoteHead *rh, int portnum) : parent_rh(rh) {
-    for(int i=0;i<elementof(streams);i++)streams[i]=NULL;
-    
     if( ! init_tcp_listener( &listener, (void*)this, portnum, reprecator_on_accept_callback ) ) {
         assertmsg(false, "can't initialize reprecator server");
     }
@@ -1233,7 +1252,11 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     case PACKETTYPE_C2S_TOUCH_MOVE: return "PACKETTYPE_C2S_TOUCH_MOVE";
     case PACKETTYPE_C2S_TOUCH_END: return "PACKETTYPE_C2S_TOUCH_END";
     case PACKETTYPE_C2S_TOUCH_CANCEL: return "PACKETTYPE_C2S_TOUCH_CANCEL";
-
+        
+    // reprecator to server
+    case PACKETTYPE_R2S_CLIENT_LOGIN: return "PACKETTYPE_R2S_CLIENT_LOGIN";
+    case PACKETTYPE_S2R_NEW_CLIENT_ID: return "PACKETTYPE_S2R_NEW_CLIENT_ID";
+        
     // server to client
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT: return "PACKETTYPE_S2C_PROP2D_SNAPSHOT";
     case PACKETTYPE_S2C_PROP2D_LOC: return "PACKETTYPE_S2C_PROP2D_LOC";
@@ -1324,40 +1347,40 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
 #define FUNCID_LOG(id,sendfuncname) ;
 #endif
 
-#define REPRECATOR_ITER_SEND  if(reprecator) for(int i=0;i<elementof(reprecator->streams);i++) if(reprecator->streams[i])
+#define REPRECATOR_ITER_SEND  if(reprecator) POOL_SCAN(reprecator->cl_pool,Client)
 #define CLIENT_ITER_SEND for( ClientIteratorType it = cl_pool.idmap.begin(); it != cl_pool.idmap.end(); ++it )
 
 void RemoteHead::broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen ) {
     CLIENT_ITER_SEND sendUS1Bytes( (uv_stream_t*)it->second->tcp, usval, data, datalen );
-    REPRECATOR_ITER_SEND sendUS1Bytes( (uv_stream_t*) reprecator->streams[i], usval, data, datalen );
+    REPRECATOR_ITER_SEND sendUS1Bytes( (uv_stream_t*) it->second->tcp, usval, data, datalen );
 }
 void RemoteHead::broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen ) {
     CLIENT_ITER_SEND sendUS1UI1Bytes( (uv_stream_t*)it->second->tcp, usval, uival, data, datalen );
-    REPRECATOR_ITER_SEND sendUS1UI1Bytes( (uv_stream_t*)reprecator->streams[i], usval, uival, data, datalen );
+    REPRECATOR_ITER_SEND sendUS1UI1Bytes( (uv_stream_t*)it->second->tcp, usval, uival, data, datalen );
 }
 void RemoteHead::broadcastUS1UI1( uint16_t usval, uint32_t uival ) {
     CLIENT_ITER_SEND sendUS1UI1(  (uv_stream_t*)it->second->tcp, usval, uival );
-    REPRECATOR_ITER_SEND sendUS1UI1(  (uv_stream_t*)reprecator->streams[i], usval, uival );
+    REPRECATOR_ITER_SEND sendUS1UI1(  (uv_stream_t*)it->second->tcp, usval, uival );
 }
 void RemoteHead::broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
     CLIENT_ITER_SEND sendUS1UI2(  (uv_stream_t*)it->second->tcp, usval, ui0, ui1 );
-    REPRECATOR_ITER_SEND sendUS1UI2(  (uv_stream_t*)reprecator->streams[i], usval, ui0, ui1 );
+    REPRECATOR_ITER_SEND sendUS1UI2(  (uv_stream_t*)it->second->tcp, usval, ui0, ui1 );
 }
 void RemoteHead::broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
     CLIENT_ITER_SEND sendUS1UI3( (uv_stream_t*)it->second->tcp, usval, ui0, ui1, ui2 );
-    REPRECATOR_ITER_SEND sendUS1UI3( (uv_stream_t*)reprecator->streams[i], usval, ui0, ui1, ui2 );
+    REPRECATOR_ITER_SEND sendUS1UI3( (uv_stream_t*)it->second->tcp, usval, ui0, ui1, ui2 );
 }
 void RemoteHead::broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters ) {
     CLIENT_ITER_SEND sendUS1UI1Wstr( (uv_stream_t*)it->second->tcp, usval, uival, wstr, wstr_num_letters );
-    REPRECATOR_ITER_SEND sendUS1UI1Wstr( (uv_stream_t*)reprecator->streams[i], usval, uival, wstr, wstr_num_letters );
+    REPRECATOR_ITER_SEND sendUS1UI1Wstr( (uv_stream_t*)it->second->tcp, usval, uival, wstr, wstr_num_letters );
 }
 void RemoteHead::broadcastUS1UI1F4( uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 ) {
     CLIENT_ITER_SEND sendUS1UI1F4( (uv_stream_t*)it->second->tcp, usval, uival, f0, f1, f2, f3 );
-    REPRECATOR_ITER_SEND sendUS1UI1F4( (uv_stream_t*)reprecator->streams[i], usval, uival, f0, f1, f2, f3 );
+    REPRECATOR_ITER_SEND sendUS1UI1F4( (uv_stream_t*)it->second->tcp, usval, uival, f0, f1, f2, f3 );
 }
 void RemoteHead::broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
     CLIENT_ITER_SEND sendUS1UI1F2( (uv_stream_t*)it->second->tcp, usval, uival, f0, f1 );
-    REPRECATOR_ITER_SEND sendUS1UI1F2( (uv_stream_t*)reprecator->streams[i], usval, uival, f0, f1 );
+    REPRECATOR_ITER_SEND sendUS1UI1F2( (uv_stream_t*)it->second->tcp, usval, uival, f0, f1 );
 }
 
 void RemoteHead::nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1 ) {
@@ -1366,11 +1389,11 @@ void RemoteHead::nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, fl
         if(cl->canSee(p)==false) continue;
         sendUS1UI1F2( (uv_stream_t*)cl->tcp, usval, uival, f0, f1 );
     }
-    REPRECATOR_ITER_SEND sendUS1UI1F2( (uv_stream_t*)reprecator->streams[i], usval, uival, f0, f1 );
+    REPRECATOR_ITER_SEND sendUS1UI1F2( (uv_stream_t*)it->second->tcp, usval, uival, f0, f1 );
 }
 void RemoteHead::broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
     CLIENT_ITER_SEND sendUS1UI1F1( (uv_stream_t*)it->second->tcp, usval, uival, f0 );
-    REPRECATOR_ITER_SEND sendUS1UI1F1( (uv_stream_t*)reprecator->streams[i], usval, uival, f0 );
+    REPRECATOR_ITER_SEND sendUS1UI1F1( (uv_stream_t*)it->second->tcp, usval, uival, f0 );
 }
 
 
@@ -1817,13 +1840,29 @@ void BufferArray::shift() {
 
 //////////////////
 int Client::idgen = 1;
-Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : id(idgen++), tcp(sk), parent_rh(rh), target_camera(NULL), target_viewport(NULL) {
-    recvbuf.ensureMemory(8*1024); // Only receiving keyboard and mouse input events!
-    initialized_at = now();
+Client::Client( uv_tcp_t *sk, RemoteHead *rh ) {
+    init(sk);
+    parent_rh = rh;
 }
-Client::Client( uv_tcp_t *sk, ReprecationProxy *reproxy ) : id(idgen++), tcp(sk), parent_reproxy(reproxy), target_camera(NULL), target_viewport(NULL) {
+Client::Client( uv_tcp_t *sk, ReprecationProxy *reproxy )  {
+    init(sk);
+    parent_reproxy = reproxy;
+}
+Client::Client( uv_tcp_t *sk, Reprecator *repr ) {
+    init(sk);
+    parent_reprecator = repr;
+}
+void Client::init(uv_tcp_t *sk) {
+    id = idgen++;
+    tcp = sk;
+    parent_rh = NULL;
+    parent_reproxy = NULL;
+    parent_reprecator = NULL;
+    target_camera = NULL;
+    target_viewport = NULL;
     recvbuf.ensureMemory(8*1024); // Only receiving keyboard and mouse input events!
     initialized_at = now();
+    global_client_id = 0;
 }
 Client::~Client() {
     print("~Client called for %d", id );

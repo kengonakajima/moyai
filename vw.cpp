@@ -315,6 +315,20 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             g_timestamp_count++;
         }
         break;
+
+    case PACKETTYPE_S2R_NEW_CLIENT_ID:
+        {
+            if(g_reproxy) {
+                uint32_t server_cl_id = get_u32(argdata+0);
+                uint32_t reproxy_cl_id = get_u32(argdata+4);
+                print("received new_client_id: server_cl_id:%d reproxy_cl_id:%d",server_cl_id,reproxy_cl_id);
+                Client *cl = g_reproxy->getClient(reproxy_cl_id);
+                if(cl) {
+                    cl->global_client_id = server_cl_id;
+                }                
+            }
+        }
+        break;
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT:
         {
             uint32_t pktsize = get_u32(argdata+0);
@@ -1316,7 +1330,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
 }
 
 void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
-    if(nread<0) {
+    if(nread<=0) {
         print("read error! closing");
         g_done=true;
     }
@@ -1435,10 +1449,22 @@ void setupClient( int win_w, int win_h ) {
 }
 
 void reproxy_rpc_cb( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) {
-    print("reproxy_rpc_cb: funcid:",funcid);
+    switch(funcid) {
+    case PACKETTYPE_C2S_KEYBOARD:
+    case PACKETTYPE_C2S_MOUSE_BUTTON:
+    case PACKETTYPE_C2S_CURSOR_POS:
+    case PACKETTYPE_C2S_TOUCH_BEGIN:
+    case PACKETTYPE_C2S_TOUCH_MOVE:
+    case PACKETTYPE_C2S_TOUCH_END:
+    case PACKETTYPE_C2S_TOUCH_CANCEL:
+    default:
+        print("Warning: reproxy_rpc_cb: funcid:%d is not handled",funcid);
+        break;
+    }
 }
-void reproxy_accept_cb( uv_stream_t *newsock ) {
-    print("reproxy_accept_cb");
+
+void reproxy_on_accept_cb( uv_stream_t *newsock ) {
+    print("reproxy_on_accept_cb");
     sendWindowSize(newsock,g_window_width,g_window_height);
     // scansendallprereqs
     POOL_SCAN(g_viewport_pool,Viewport) {
@@ -1460,7 +1486,6 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
         }
     }
     POOL_SCAN(g_image_pool,Image) {
-        print("IIIIIIIIIIIII: latloadpat:%s", it->second->last_load_file_path);
         sendImageSetup(newsock,it->second);
     }
     POOL_SCAN(g_texture_pool,Texture) {
@@ -1571,6 +1596,10 @@ void reproxy_accept_cb( uv_stream_t *newsock ) {
         pc.a = target_tb->color.a;        
         sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_TEXTBOX_COLOR, target_tb->id, (const char*)&pc, sizeof(pc) );            
     }
+
+    Client *cl = (Client*)newsock->data;
+    print("sending client_login to master server");
+    sendUS1UI1(g_stream, PACKETTYPE_R2S_CLIENT_LOGIN, cl->id );
 }
 
 int main( int argc, char **argv ) {
@@ -1607,7 +1636,7 @@ int main( int argc, char **argv ) {
     if(g_enable_reprecation) {
         g_reproxy = new ReprecationProxy(REPRECATOR_PROXY_PORT);
         g_reproxy->setFuncCallback( reproxy_rpc_cb );
-        g_reproxy->setAcceptCallback( reproxy_accept_cb );
+        g_reproxy->setAcceptCallback( reproxy_on_accept_cb );
     }
     
     g_filedepo = new FileDepo();

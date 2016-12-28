@@ -230,6 +230,8 @@ int main(int argc, char **argv )
         exit(1);
     }
     rh->enableSpriteStream();
+    rh->enableReprecation(REPRECATOR_SERVER_PORT);
+    
     //    rh->enableVideoStream(SCRW,SCRH,3);
     moyai_client->setRemoteHead(rh);
     rh->setTargetMoyaiClient(moyai_client);

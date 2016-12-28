@@ -117,6 +117,11 @@ typedef enum {
     PACKETTYPE_C2S_TOUCH_END = 106,
     PACKETTYPE_C2S_TOUCH_CANCEL = 107,
 
+    // reprecator to server
+    PACKETTYPE_R2S_CLIENT_LOGIN = 150, // accepting new client, getting new id number of this client
+    // server to reprecator
+    PACKETTYPE_S2R_NEW_CLIENT_ID = 170,
+    
     // server to client
     PACKETTYPE_S2C_PROP2D_SNAPSHOT = 200, 
     PACKETTYPE_S2C_PROP2D_LOC = 201,
@@ -210,11 +215,11 @@ class Reprecator {
 public:
     uv_tcp_t listener;
     RemoteHead *parent_rh;
-    uv_tcp_t *streams[16];
+    ObjectPool<Client> cl_pool;
     
     Reprecator(RemoteHead *parent_rh, int portnum);
-    bool appendStream(uv_tcp_t *tcp);
-    void deleteStream(uv_tcp_t *tcp);
+    void addClient(Client*cl);
+    void delClient(Client*cl);    
 };
     
 class RemoteHead {
@@ -483,14 +488,22 @@ public:
     int id;
     Buffer recvbuf;
     uv_tcp_t *tcp;
-    RemoteHead *parent_rh;
-    ReprecationProxy *parent_reproxy; 
+    
+    RemoteHead *parent_rh; 
+    ReprecationProxy *parent_reproxy;
+    Reprecator *parent_reprecator;
+    
     Buffer saved_stream;
     double initialized_at;
     Camera *target_camera;
     Viewport *target_viewport;
+
+    uint32_t global_client_id; // used by reproxy
+    
     Client( uv_tcp_t *sk, RemoteHead *rh );
-    Client( uv_tcp_t *sk, ReprecationProxy *reproxy );    
+    Client( uv_tcp_t *sk, ReprecationProxy *reproxy );
+    Client( uv_tcp_t *sk, Reprecator *repr );
+    void init(uv_tcp_t*sk);
     ~Client();
     void saveStream( const char *data, size_t datalen );
     void flushStreamToFile();
@@ -510,6 +523,7 @@ public:
     void setAcceptCallback( void (*cb)(uv_stream_t*s) ) { accept_callback = cb; }
     void addClient( Client *cl);
     void delClient(Client*cl);
+    Client *getClient(unsigned int id) { return cl_pool.get(id); }
     void broadcastUS1RawArgs(uint16_t funcid, const char*data, size_t datalen );
 };
   
