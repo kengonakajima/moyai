@@ -1448,13 +1448,19 @@ void setupClient( int win_w, int win_h ) {
     setupDebugStat();    
 }
 
-void reproxy_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) {
+void reproxy_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     if(!g_reproxy)return;
     Client *cl = (Client*)s->data;
 
     switch(funcid) {
     case PACKETTYPE_C2S_KEYBOARD:
-        print("reproxy_on_packet_cb: kbd. cl_g_id:%d",cl->global_client_id);
+        {
+            uint32_t keycode = get_u32(argdata);
+            uint32_t action = get_u32(argdata+4);
+            uint32_t modbits = get_u32(argdata+8);        
+            print("reproxy_on_packet_cb: kbd. cl_g_id:%d",cl->global_client_id);
+            sendUS1UI4(g_stream,PACKETTYPE_R2S_KEYBOARD, cl->global_client_id, keycode, action, modbits );
+        }
         break;
     case PACKETTYPE_C2S_MOUSE_BUTTON:
     case PACKETTYPE_C2S_CURSOR_POS:

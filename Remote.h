@@ -225,10 +225,14 @@ public:
     uv_tcp_t listener;
     RemoteHead *parent_rh;
     ObjectPool<Client> cl_pool;
+    ObjectPool<Client> logical_cl_pool;
     
     Reprecator(RemoteHead *parent_rh, int portnum);
-    void addClient(Client*cl);
-    void delClient(Client*cl);    
+    void addRealClient(Client*cl); // real clients are reproxies
+    void delRealClient(Client*cl);
+    void addLogicalClient(Client*cl); // logical clients are viewers
+    void delLogicalClient(Client*cl);
+    Client *getLogicalClient(uint32_t logclid);
 };
     
 class RemoteHead {
@@ -512,6 +516,7 @@ public:
     Client( uv_tcp_t *sk, RemoteHead *rh );
     Client( uv_tcp_t *sk, ReprecationProxy *reproxy );
     Client( uv_tcp_t *sk, Reprecator *repr );
+    Client(RemoteHead *rh); // logical client
     void init(uv_tcp_t*sk);
     ~Client();
     void saveStream( const char *data, size_t datalen );
@@ -549,7 +554,8 @@ int sendUS1Bytes( uv_stream_t *out, uint16_t usval, const char *buf, uint16_t da
 int sendUS1UI1Bytes( uv_stream_t *out, uint16_t usval, uint32_t uival, const char *buf, uint32_t datalen );
 int sendUS1UI1( uv_stream_t *out, uint16_t usval, uint32_t ui0 );
 int sendUS1UI2( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1 );    
-int sendUS1UI3( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );    
+int sendUS1UI3( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
+int sendUS1UI4( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3 );
 int sendUS1UI5( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 );
 int sendUS1UI1F1( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0 );    
 int sendUS1UI1F2( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0, float f1 );

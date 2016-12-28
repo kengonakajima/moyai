@@ -1122,16 +1122,57 @@ void TrackerViewport::unicastCreate( Client *dest ) {
 /////////////////////
 static void reprecator_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     print("reprecator_on_packet_cb. funcid:%d",funcid);
+    Client *realcl = (Client*)s->data;
+    Reprecator *rep = realcl->parent_reprecator;
+    assert(rep);
+    RemoteHead *rh = rep->parent_rh;
+    assert(rh);
+    
     switch(funcid) {
     case PACKETTYPE_R2S_CLIENT_LOGIN:
         {
-            static int client_id=1;
             int reproxy_cl_id = get_u32(argdata+0);
-            print("received r2s_login. giving a new client id:%d, reproxy_cl_id:%d",client_id, reproxy_cl_id);
-            sendUS1UI2(s,PACKETTYPE_S2R_NEW_CLIENT_ID, client_id, reproxy_cl_id );
-            client_id++;
+            Client *newcl = new Client(rh);
+            rep->addLogicalClient(newcl);
+            print("received r2s_login. giving a new newclid:%d, reproxy_cl_id:%d",newcl->id, reproxy_cl_id);
+            sendUS1UI2(s,PACKETTYPE_S2R_NEW_CLIENT_ID, newcl->id, reproxy_cl_id );
             break;
         }
+    case PACKETTYPE_R2S_KEYBOARD:
+        {
+            uint32_t logclid = get_u32(argdata+0);
+            uint32_t kc = get_u32(argdata+4);
+            uint32_t act = get_u32(argdata+8);
+            uint32_t modbits = get_u32(argdata+12);
+            print("received r2s_kbd. logclid:%d kc:%d act:%d modbits:%d", logclid, kc, act, modbits );
+            bool mod_shift,mod_ctrl,mod_alt;
+            getModkeyBits(modbits, &mod_shift, &mod_ctrl, &mod_alt);
+            /*
+              if(cli->parent_rh->on_keyboard_cb) {
+                cli->parent_rh->on_keyboard_cb(cli,keycode,action,mod_shift,mod_ctrl,mod_alt);
+              }
+              これをやるには、cliが必要。cliは、tcpとrecvbufがある。
+
+              アプリとしてはcli->idは識別のために欲しい。cliのポインタも使っている(これは最悪IDからの検索にできる)
+              
+              案1: LOGINのときにnew Clientやって、parentが何もない論理的なクライアントとしてフラグをたてておいて、それを引数として使う。
+              案2: on_keyboard_cbを2種類にして、論理的なクライアントからのと直接のクライアントのを分ける。
+
+              案1が必要。論理的なクライアントは必要。なぜならカメラとかも必要だから。
+              
+             */
+            Client *logcl = rep->getLogicalClient(logclid);
+            if(logcl) {
+                if(rh->on_keyboard_cb) {
+                    print("KKKKKKKKKKKKKKKKKKKKKKKKkk");
+                    rh->on_keyboard_cb(logcl,kc,act,mod_shift,mod_ctrl,mod_alt);
+                }
+            } else {
+                print("logical cliend id:%d not found", logclid);
+            }
+        }
+        
+        break;
     default:
         break;
     }
@@ -1165,7 +1206,7 @@ static void reprecator_on_accept_callback( uv_stream_t *listener, int status ) {
     if( uv_accept( listener, (uv_stream_t*) newsock ) == 0 ) {
         Reprecator *rep = (Reprecator*)listener->data;
         Client *cl = new Client(newsock,rep);
-        rep->addClient(cl);
+        rep->addRealClient(cl);
         newsock->data=(void*)cl;
         
         int r = uv_read_start( (uv_stream_t*) newsock, moyai_libuv_alloc_buffer, reprecator_on_read_callback );
@@ -1182,15 +1223,27 @@ static void reprecator_on_accept_callback( uv_stream_t *listener, int status ) {
     }    
 }
 
-void Reprecator::addClient( Client *cl) {
+void Reprecator::addRealClient( Client *cl) {
     Client *stored = cl_pool.get(cl->id);
     if(!stored) {
         cl->parent_reprecator = this;
         cl_pool.set(cl->id,cl);
     }
 }
-void Reprecator::delClient(Client*cl) {
+void Reprecator::delRealClient(Client*cl) {
     cl_pool.del(cl->id);
+}
+void Reprecator::addLogicalClient( Client *cl) {
+    Client *stored = logical_cl_pool.get(cl->id);
+    if(!stored) {
+        logical_cl_pool.set(cl->id,cl);
+    }
+}
+void Reprecator::delLogicalClient(Client*cl) {
+    logical_cl_pool.del(cl->id);
+}
+Client *Reprecator::getLogicalClient(uint32_t logclid) {
+    return logical_cl_pool.get(logclid);
 }
 Reprecator::Reprecator(RemoteHead *rh, int portnum) : parent_rh(rh) {
     if( ! init_tcp_listener( &listener, (void*)this, portnum, reprecator_on_accept_callback ) ) {
@@ -1524,14 +1577,24 @@ int sendUS1UI3( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint
     SETUP_UV_WRITE;
     return totalsize;
 }
+int sendUS1UI4( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3 ) {
+    size_t totalsize = 4 + 2 + 4+4+4+4+4;
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, ui0 );
+    set_u32( sendbuf_work+4+2+4, ui1 );
+    set_u32( sendbuf_work+4+2+4+4, ui2 );
+    set_u32( sendbuf_work+4+2+4+4+4, ui3 );
+    SETUP_UV_WRITE;
+    return totalsize;
+}
 int sendUS1UI5( uv_stream_t *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 ) {
     size_t totalsize = 4 + 2 + 4+4+4+4+4;
     SET_RECORD_LEN_AND_US1;
     set_u32( sendbuf_work+4+2, ui0 );
     set_u32( sendbuf_work+4+2+4, ui1 );
-    set_u32( sendbuf_work+4+2+4+4, ui2 );    
+    set_u32( sendbuf_work+4+2+4+4, ui2 );
     set_u32( sendbuf_work+4+2+4+4+4, ui3 );
-    set_u32( sendbuf_work+4+2+4+4+4+4, ui4 );        
+    set_u32( sendbuf_work+4+2+4+4+4+4, ui4 );
     SETUP_UV_WRITE;
     return totalsize;
 }
@@ -1869,6 +1932,11 @@ Client::Client( uv_tcp_t *sk, Reprecator *repr ) {
     init(sk);
     parent_reprecator = repr;
 }
+Client::Client( RemoteHead *rh ) { // logical client in game server reprecator
+    init(NULL);
+    parent_rh = rh;
+}
+    
 void Client::init(uv_tcp_t *sk) {
     id = idgen++;
     tcp = sk;
