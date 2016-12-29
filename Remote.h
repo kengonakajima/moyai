@@ -119,9 +119,10 @@ typedef enum {
 
     // reprecator to server
     PACKETTYPE_R2S_CLIENT_LOGIN = 150, // accepting new client, getting new id number of this client
-    PACKETTYPE_R2S_KEYBOARD = 151,
-    PACKETTYPE_R2S_MOUSE_BUTTON = 152,
-    PACKETTYPE_R2S_CURSOR_POS = 153,
+    PACKETTYPE_R2S_CLIENT_LOGOUT = 151,
+    PACKETTYPE_R2S_KEYBOARD = 155,
+    PACKETTYPE_R2S_MOUSE_BUTTON = 156,
+    PACKETTYPE_R2S_CURSOR_POS = 157,
     
     // server to reprecator
     PACKETTYPE_S2R_NEW_CLIENT_ID = 170,
@@ -538,9 +539,11 @@ public:
     ObjectPool<Client> cl_pool;    
     void (*func_callback)( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen );
     void (*accept_callback)(uv_stream_t *s);
+    void (*close_callback)(uv_stream_t *s);
     ReprecationProxy(int port);
     void setFuncCallback( void (*cb)( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) ) {func_callback = cb;}
     void setAcceptCallback( void (*cb)(uv_stream_t*s) ) { accept_callback = cb; }
+    void setCloseCallback( void (*cb)(uv_stream_t*) ) { close_callback = cb; }
     void addClient( Client *cl);
     void delClient(Client*cl);
     Client *getClient(unsigned int id) { return cl_pool.get(id); }

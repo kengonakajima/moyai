@@ -1475,6 +1475,13 @@ void reproxy_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argdata, uint3
     }
 }
 
+
+void reproxy_on_close_cb( uv_stream_t *s ) {
+    Client *cl = (Client*)s->data;
+    print("reproxy_on_close_cb: sending logout to master.. clid:%d gclid:%d",cl->id, cl->global_client_id);
+    sendUS1UI1(g_stream, PACKETTYPE_R2S_CLIENT_LOGOUT, cl->global_client_id);
+}
+
 void reproxy_on_accept_cb( uv_stream_t *newsock ) {
     print("reproxy_on_accept_cb");
     sendWindowSize(newsock,g_window_width,g_window_height);
@@ -1649,6 +1656,7 @@ int main( int argc, char **argv ) {
         g_reproxy = new ReprecationProxy(REPRECATOR_PROXY_PORT);
         g_reproxy->setFuncCallback( reproxy_on_packet_cb );
         g_reproxy->setAcceptCallback( reproxy_on_accept_cb );
+        g_reproxy->setCloseCallback( reproxy_on_close_cb );
     }
     
     g_filedepo = new FileDepo();

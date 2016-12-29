@@ -1139,8 +1139,27 @@ static void reprecator_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argd
             if(rh->on_connect_cb) {
                 rh->on_connect_cb(rh,newcl);
             }
-            break;
         }
+        break;
+    case PACKETTYPE_R2S_CLIENT_LOGOUT:
+        {
+            int gclid = get_u32(argdata+0);
+            print("received r2s_client_logout gclid:%d",gclid);
+            Client *logcl = rep->logical_cl_pool.get(gclid);
+            if(logcl) {
+                assert(logcl->id==gclid);
+                print("found client, deleting");
+                if(logcl->parent_rh->on_disconnect_cb) {
+                    logcl->parent_rh->on_disconnect_cb( logcl->parent_rh,logcl);
+                }
+                logcl->onDelete();
+                rep->logical_cl_pool.del(logcl->id);
+                delete logcl;
+            } else {
+                print("can't find logical client id:%d",gclid);
+            }
+        }
+        break;
     case PACKETTYPE_R2S_KEYBOARD:
         {
             uint32_t logclid = get_u32(argdata+0);
@@ -1335,6 +1354,7 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
         
     // reprecator to server
     case PACKETTYPE_R2S_CLIENT_LOGIN: return "PACKETTYPE_R2S_CLIENT_LOGIN";
+    case PACKETTYPE_R2S_CLIENT_LOGOUT: return "PACKETTYPE_R2S_CLIENT_LOGOUT";        
     case PACKETTYPE_S2R_NEW_CLIENT_ID: return "PACKETTYPE_S2R_NEW_CLIENT_ID";
     case PACKETTYPE_R2S_KEYBOARD: return "PACKETTYPE_R2S_KEYBOARD";
     case PACKETTYPE_R2S_MOUSE_BUTTON: return "PACKETTYPE_R2S_MOUSE_BUTTON";
@@ -1997,7 +2017,6 @@ bool parseRecord( uv_stream_t *s, Buffer *recvbuf, const char *data, size_t data
 
     // Parse RPC
     //        fprintf(stderr, "recvbuf used:%zu\n", c->recvbuf->used );
-    //        moynet_t *h = c->parent_moynet;
     while(true) { // process everything in one poll
         //            print("recvbuf:%d", c->recvbuf->used );
         if( recvbuf->used < (4+2) ) return true; // need more data from network
@@ -2061,6 +2080,7 @@ bool Client::canSee(Prop2D*p) {
 static void reproxy_on_close_callback( uv_handle_t *s ) {
     print("reproxy_on_close_callback");
     Client *cli = (Client*)s->data;
+    if(cli->parent_reproxy->close_callback) cli->parent_reproxy->close_callback((uv_stream_t*)s);
     cli->parent_reproxy->delClient(cli);
     cli->onDelete();
     delete cli;
