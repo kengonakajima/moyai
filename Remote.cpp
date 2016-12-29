@@ -1063,11 +1063,12 @@ void TrackerCamera::broadcastDiff( bool force ) {
 }
 void TrackerCamera::unicastDiff( Client *dest, bool force ) {
     if( checkDiff() || force ) {
+        print("KKKKKKKKKKKkkkk");
         sendUS1UI1F2( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_CAMERA_LOC, target_camera->id, locbuf[cur_buffer_index].x, locbuf[cur_buffer_index].y );
     }
 }
 void TrackerCamera::unicastCreate( Client *dest ) {
-    print("unicastCreate. id:%d",dest->id);
+    print("TrackerCamera: unicastCreate. id:%d",dest->id);
     sendUS1UI1( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_CAMERA_CREATE, target_camera->id );
     POOL_SCAN(target_camera->target_layers,Layer) {
         Layer *l = it->second;
@@ -1132,10 +1133,13 @@ static void reprecator_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argd
     case PACKETTYPE_R2S_CLIENT_LOGIN:
         {
             int reproxy_cl_id = get_u32(argdata+0);
-            Client *newcl = new Client(rh);
+            Client *newcl = new Client((uv_tcp_t*)s,rh);
             rep->addLogicalClient(newcl);
             print("received r2s_login. giving a new newclid:%d, reproxy_cl_id:%d",newcl->id, reproxy_cl_id);
             sendUS1UI2(s,PACKETTYPE_S2R_NEW_CLIENT_ID, newcl->id, reproxy_cl_id );
+            if(rh->on_connect_cb) {
+                rh->on_connect_cb(rh,newcl);
+            }
             break;
         }
     case PACKETTYPE_R2S_KEYBOARD:
@@ -1164,7 +1168,6 @@ static void reprecator_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argd
             Client *logcl = rep->getLogicalClient(logclid);
             if(logcl) {
                 if(rh->on_keyboard_cb) {
-                    print("KKKKKKKKKKKKKKKKKKKKKKKKkk");
                     rh->on_keyboard_cb(logcl,kc,act,mod_shift,mod_ctrl,mod_alt);
                 }
             } else {
@@ -1181,7 +1184,7 @@ static void reprecator_on_close_callback( uv_handle_t *s ) {
     print("reprecator_on_close_callback");    
 }
 static void reprecator_on_read_callback( uv_stream_t *s, ssize_t nread, const uv_buf_t *inbuf ) {
-    print("reprecator_on_read_callback nread:%d",nread);
+    //    print("reprecator_on_read_callback nread:%d",nread);
     if(nread>0) {
         Client *cl = (Client*)s->data;
         bool res = parseRecord( s, &cl->recvbuf, inbuf->base, nread, reprecator_on_packet_cb );
@@ -1931,10 +1934,6 @@ Client::Client( uv_tcp_t *sk, ReprecationProxy *reproxy )  {
 Client::Client( uv_tcp_t *sk, Reprecator *repr ) {
     init(sk);
     parent_reprecator = repr;
-}
-Client::Client( RemoteHead *rh ) { // logical client in game server reprecator
-    init(NULL);
-    parent_rh = rh;
 }
     
 void Client::init(uv_tcp_t *sk) {
