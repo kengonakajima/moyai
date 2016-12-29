@@ -1063,17 +1063,16 @@ void TrackerCamera::broadcastDiff( bool force ) {
 }
 void TrackerCamera::unicastDiff( Client *dest, bool force ) {
     if( checkDiff() || force ) {
-        print("KKKKKKKKKKKkkkk");
-        sendUS1UI1F2( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_CAMERA_LOC, target_camera->id, locbuf[cur_buffer_index].x, locbuf[cur_buffer_index].y );
+        sendUS1UI1F2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_CAMERA_LOC, target_camera->id, locbuf[cur_buffer_index].x, locbuf[cur_buffer_index].y );
     }
 }
 void TrackerCamera::unicastCreate( Client *dest ) {
     print("TrackerCamera: unicastCreate. id:%d",dest->id);
-    sendUS1UI1( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_CAMERA_CREATE, target_camera->id );
+    sendUS1UI1( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_CAMERA_CREATE, target_camera->id );
     POOL_SCAN(target_camera->target_layers,Layer) {
         Layer *l = it->second;
         print("  unicastCreate: camera_dynamic_layer:%d", l->id );
-        sendUS1UI2( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER, target_camera->id, l->id );
+        sendUS1UI2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER, target_camera->id, l->id );
     }
 }
 
@@ -1106,17 +1105,17 @@ void TrackerViewport::broadcastDiff( bool force ) {
 }
 void TrackerViewport::unicastDiff( Client *dest, bool force ) {
     if( checkDiff() || force ) {
-        sendUS1UI1F2( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_VIEWPORT_SCALE, target_viewport->id, sclbuf[cur_buffer_index].x, sclbuf[cur_buffer_index].y );
+        sendUS1UI1F2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_VIEWPORT_SCALE, target_viewport->id, sclbuf[cur_buffer_index].x, sclbuf[cur_buffer_index].y );
     }
 }
 void TrackerViewport::unicastCreate( Client *dest ) {
     print("TrackerViewport::unicastCreate. id:%d",dest->id);
-    sendUS1UI1( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_VIEWPORT_CREATE, target_viewport->id );
+    sendUS1UI1( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_VIEWPORT_CREATE, target_viewport->id );
     for(std::unordered_map<unsigned int,Layer*>::iterator it = target_viewport->target_layers.idmap.begin();
         it != target_viewport->target_layers.idmap.end(); ++it ) {
         Layer *l = it->second;
         print("  TrackerViewport::unicastCreate: camera_dynamic_layer:%d", l->id );
-        sendUS1UI2( (uv_stream_t*) dest->tcp, PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER, target_viewport->id, l->id );
+        sendUS1UI2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER, target_viewport->id, l->id );
     }
 }
 
@@ -1133,7 +1132,7 @@ static void reprecator_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argd
     case PACKETTYPE_R2S_CLIENT_LOGIN:
         {
             int reproxy_cl_id = get_u32(argdata+0);
-            Client *newcl = new Client((uv_tcp_t*)s,rh);
+            Client *newcl = Client::createLogicalClient((uv_tcp_t*)s,rh);
             rep->addLogicalClient(newcl);
             print("received r2s_login. giving a new newclid:%d, reproxy_cl_id:%d",newcl->id, reproxy_cl_id);
             sendUS1UI2(s,PACKETTYPE_S2R_NEW_CLIENT_ID, newcl->id, reproxy_cl_id );
@@ -1181,7 +1180,32 @@ static void reprecator_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argd
     }
 }
 static void reprecator_on_close_callback( uv_handle_t *s ) {
-    print("reprecator_on_close_callback");    
+    print("reprecator_on_close_callback");
+    Client *cl = (Client*)s->data;
+    assert(cl->parent_reprecator);
+    int ids_toclean[1024];
+    int ids_toclean_num=0;
+    POOL_SCAN(cl->parent_reprecator->logical_cl_pool,Client) {
+        Client *logcl = it->second;
+        if(logcl->reprecator_tcp == (uv_tcp_t*)s) {
+            print("freeing logical client id:%d", logcl->id);
+            if( logcl->parent_rh->on_disconnect_cb ) {
+                logcl->parent_rh->on_disconnect_cb( logcl->parent_rh, logcl );
+            }
+            logcl->onDelete();
+            if( ids_toclean_num==elementof(ids_toclean))break;
+            ids_toclean[ids_toclean_num] = logcl->id;
+            ids_toclean_num++;
+            delete logcl;
+            // yes we can use it=pool.erase(xx) but i dont like it..
+        }
+    }
+    for(int i=0;i<ids_toclean_num;i++) {
+        print("deleting from pool:%d",ids_toclean[i]);
+        cl->parent_reprecator->logical_cl_pool.del(ids_toclean[i]);
+    }
+    
+    cl->parent_reprecator->delRealClient(cl);
 }
 static void reprecator_on_read_callback( uv_stream_t *s, ssize_t nread, const uv_buf_t *inbuf ) {
     //    print("reprecator_on_read_callback nread:%d",nread);
@@ -1523,7 +1547,7 @@ void on_write_end( uv_write_t *req, int status ) {
     write_req->data = _data;        \
     uv_buf_t buf = uv_buf_init(_data,totalsize);\
     int r = uv_write( write_req, s, &buf, 1, on_write_end );\
-    if(r) { print("uv_write fail. %d",r); uv_close( (uv_handle_t*)s, NULL); return false; }
+    if(r) { print("uv_write fail. %d",r); return -1; }
 
 
 int sendUS1RawArgs( uv_stream_t *s, uint16_t usval, const char *data, uint32_t datalen ) {
@@ -1935,7 +1959,16 @@ Client::Client( uv_tcp_t *sk, Reprecator *repr ) {
     init(sk);
     parent_reprecator = repr;
 }
-    
+Client::Client( RemoteHead *rh ) {
+    init(NULL);
+    parent_rh = rh;
+}
+Client *Client::createLogicalClient( uv_tcp_t *reprecator_tcp, RemoteHead *rh ) {   
+    Client *cl = new Client(rh);
+    cl->reprecator_tcp = reprecator_tcp;
+    return cl;
+}
+
 void Client::init(uv_tcp_t *sk) {
     id = idgen++;
     tcp = sk;

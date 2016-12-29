@@ -3,6 +3,8 @@
 
 #include <unordered_map>
 
+
+
 // Generic ID > pointer pool 
 template <class Obj> class ObjectPool {
 public:
@@ -46,9 +48,18 @@ public:
     Obj *getFirst() {
         if( idmap.size()==0 ) return NULL; else return idmap.begin()->second;
     }
+#if 0    
+    void freeAll() {
+        typedef typename std::unordered_map<unsigned int,Obj*>::iterator iterator;
+        for( iterator it = idmap.begin(); it != idmap.end(); ++it ) {
+            delete it->second;
+        }
+        idmap.clear();	
+    }
+#endif    
 };
 
-#define POOL_SCAN(NAME,T) for( std::unordered_map<unsigned int,T*>::iterator it = NAME.idmap.begin(); it != NAME.idmap.end(); ++it )
 
+#define POOL_SCAN(NAME,T) for( std::unordered_map<unsigned int,T*>::iterator it = NAME.idmap.begin(); it != NAME.idmap.end(); ++it )
         
 #endif

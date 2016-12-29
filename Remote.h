@@ -512,16 +512,23 @@ public:
     Viewport *target_viewport;
 
     uint32_t global_client_id; // used by reproxy
+
+    uv_tcp_t *reprecator_tcp; // used when reproxy
     
     Client( uv_tcp_t *sk, RemoteHead *rh );
     Client( uv_tcp_t *sk, ReprecationProxy *reproxy );
     Client( uv_tcp_t *sk, Reprecator *repr );
+    Client( RemoteHead *rh );
+    static Client *createLogicalClient( uv_tcp_t *reprecator_tcp, RemoteHead *rh );
     void init(uv_tcp_t*sk);
     ~Client();
     void saveStream( const char *data, size_t datalen );
     void flushStreamToFile();
     void onDelete();
     bool canSee(Prop2D*p);
+    uv_tcp_t *getTCP() {
+        if(tcp) return tcp; else return reprecator_tcp;
+    }
 };
 
 
