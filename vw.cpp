@@ -352,9 +352,10 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 print("received s2r_viewport_create. gclid:%d vpid:%d", gclid, viewport_id );
                 Client *cl = g_reproxy->getClientByGlobalId(gclid);
                 if(cl) {
-                    print("  ensuring viewport");
-                    Viewport *vp = g_viewport_pool.ensure(viewport_id);                
-                    cl->target_viewport = vp;
+                    print("  sending as s2c_viewport_create");
+                    sendUS1UI1( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_VIEWPORT_CREATE, viewport_id);
+                    //                    Viewport *vp = g_viewport_pool.ensure(viewport_id);                
+                    //                    cl->target_viewport = vp;
                 } else {
                     print("  client gclid:%d not found", gclid);
                 }
@@ -363,15 +364,31 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
         case PACKETTYPE_S2R_VIEWPORT_DYNAMIC_LAYER:
             {
                 uint32_t gclid = get_u32(argdata+0);
-                uint32_t cam_id = get_u32(argdata+4);
-                print("received s2r_camera_create. gclid:%d vpid:%d", gclid, cam_id );
+                uint32_t vp_id = get_u32(argdata+4);
+                uint32_t layid = get_u32(argdata+8);
+                print("received s2r_vp_dyn_layer. gclid:%d vpid:%d lid:%d", gclid, vp_id, layid );
                 Client *cl = g_reproxy->getClientByGlobalId(gclid);
                 if(cl) {
-                    print("  ensuring camera");                    
-                    Camera *cam = g_camera_pool.ensure(cam_id);
-                    cl->target_camera = cam;
+                    print("  sending as s2c_viewport_dyn_layer");
+                    sendUS1UI2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER, vp_id, layid);
                 } else {
                     print("  client gclid:%d not found", gclid);
+                }
+            }
+            return;
+        case PACKETTYPE_S2R_VIEWPORT_SCALE:
+            {
+                uint32_t gclid=get_u32(argdata+0);
+                uint32_t vpid=get_u32(argdata+4);
+                float sx=get_f32(argdata+8);
+                float sy=get_f32(argdata+12);
+                print("received s2r_vp_scl. gclid:%d vpid:%d s:%f,%f",gclid,vpid,sx,sy);
+                Client *cl = g_reproxy->getClientByGlobalId(gclid);
+                if(cl){
+                    print("sending as s2c_vp_scale");
+                    sendUS1UI1F2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_VIEWPORT_SCALE, vpid, sx,sy);
+                } else {
+                    print("client gclid:%d not found",gclid);
                 }
             }
             return;
@@ -391,7 +408,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             double t = (double)(sec) + (double)(usec)/1000000.0f;
             double dt = now() - t;
             g_last_ping_rtt = dt;
-            prt("received ping: %u %u dt:%f", sec, usec, dt );
+            print("received ping: %u %u dt:%f", sec, usec, dt );
 
         }
         break;
@@ -650,7 +667,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             unsigned int layer_id = get_u32(argdata+4);
             Viewport *vp = g_viewport_pool.get(viewport_id);
             Layer *l = g_layer_pool.get(layer_id);
-            //            print("received vp dyn layer. vp:%d l:%d",viewport_id, layer_id);
+            print("received vp dyn layer. vp:%d l:%d",viewport_id, layer_id);
             if(vp&&l) {
                 l->setViewport(vp);
             }
@@ -1538,6 +1555,8 @@ void reproxy_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argdata, uint3
     Client *cl = (Client*)s->data;
 
     switch(funcid) {
+    case PACKETTYPE_PING:
+        break;
     case PACKETTYPE_C2S_KEYBOARD:
         {
             uint32_t keycode = get_u32(argdata);

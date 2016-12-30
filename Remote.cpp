@@ -1120,17 +1120,31 @@ void TrackerViewport::broadcastDiff( bool force ) {
 }
 void TrackerViewport::unicastDiff( Client *dest, bool force ) {
     if( checkDiff() || force ) {
-        sendUS1UI1F2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_VIEWPORT_SCALE, target_viewport->id, sclbuf[cur_buffer_index].x, sclbuf[cur_buffer_index].y );
+        if(dest->isReprecation()) {
+            print("XXXXXXXXXX:%f %f", sclbuf[cur_buffer_index].x, sclbuf[cur_buffer_index].y );
+            sendUS1UI2F2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2R_VIEWPORT_SCALE, dest->id, target_viewport->id, sclbuf[cur_buffer_index].x, sclbuf[cur_buffer_index].y );
+        } else {
+            sendUS1UI1F2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_VIEWPORT_SCALE, target_viewport->id, sclbuf[cur_buffer_index].x, sclbuf[cur_buffer_index].y );
+        }        
     }
 }
 void TrackerViewport::unicastCreate( Client *dest ) {
     print("TrackerViewport::unicastCreate. id:%d",dest->id);
-    sendUS1UI1( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_VIEWPORT_CREATE, target_viewport->id );
+    if(dest->isReprecation()) {
+        sendUS1UI2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2R_VIEWPORT_CREATE, dest->id, target_viewport->id );        
+    } else {
+        sendUS1UI1( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_VIEWPORT_CREATE, target_viewport->id );
+    }
+    
     for(std::unordered_map<unsigned int,Layer*>::iterator it = target_viewport->target_layers.idmap.begin();
         it != target_viewport->target_layers.idmap.end(); ++it ) {
         Layer *l = it->second;
         print("  TrackerViewport::unicastCreate: camera_dynamic_layer:%d", l->id );
-        sendUS1UI2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER, target_viewport->id, l->id );
+        if(dest->isReprecation()) {
+            sendUS1UI3( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2R_VIEWPORT_DYNAMIC_LAYER, dest->id, target_viewport->id, l->id );
+        } else {
+            sendUS1UI2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER, target_viewport->id, l->id );
+        }        
     }
 }
 
@@ -1379,6 +1393,7 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     case PACKETTYPE_S2R_CAMERA_LOC: return "PACKETTYPE_S2R_CAMERA_LOC";        
     case PACKETTYPE_S2R_VIEWPORT_CREATE: return "PACKETTYPE_S2R_VIEWPORT_CREATE";
     case PACKETTYPE_S2R_VIEWPORT_DYNAMIC_LAYER: return "PACKETTYPE_S2R_VIEWPORT_DYNAMIC_LAYER";
+    case PACKETTYPE_S2R_VIEWPORT_SCALE: return "PACKETTYPE_S2R_VIEWPORT_SCALE";        
         
     // server to client
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT: return "PACKETTYPE_S2C_PROP2D_SNAPSHOT";
@@ -1683,7 +1698,7 @@ int sendUS1UI1F2( uv_stream_t *s, uint16_t usval, uint32_t uival, float f0, floa
     return totalsize;    
 }
 int sendUS1UI2F2( uv_stream_t *s, uint16_t usval, uint32_t uival0, uint32_t uival1, float f0, float f1 ) {
-    size_t totalsize = 4 + 2 + 4+4+4;
+    size_t totalsize = 4 + 2 + 4+4+4+4;
     SET_RECORD_LEN_AND_US1;
     set_u32( sendbuf_work+4+2, uival0 );
     set_u32( sendbuf_work+4+2+4, uival1 );    
