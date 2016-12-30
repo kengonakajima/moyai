@@ -508,7 +508,7 @@ static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char
             uint32_t modbits = get_u32(argdata+8);
             bool mod_shift,mod_ctrl,mod_alt;
             getModkeyBits(modbits, &mod_shift, &mod_ctrl, &mod_alt);
-                        print("kbd: %d %d %d %d %d", keycode, action, mod_shift, mod_ctrl, mod_alt );            
+            //                        print("kbd: %d %d %d %d %d", keycode, action, mod_shift, mod_ctrl, mod_alt );            
             if(cli->parent_rh->on_keyboard_cb) {
                 cli->parent_rh->on_keyboard_cb(cli,keycode,action,mod_shift,mod_ctrl,mod_alt);
             }

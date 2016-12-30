@@ -145,7 +145,7 @@ void localKeyboardCallback( GLFWwindow *window, int keycode, int scancode, int a
 }
 void onRemoteKeyboardCallback( Client *cl, int kc, int act, int modshift, int modctrl, int modalt ) {
     PC *pc = getPC(cl);
-    print("onRemoteKeyboardCallback kc:%d act:%d cl:%d", kc, act, cl->id );
+    //    print("onRemoteKeyboardCallback kc:%d act:%d cl:%d", kc, act, cl->id );
     if(!pc)return;
 
     pc->keyboard->update(kc,act,modshift,modctrl,modalt);
