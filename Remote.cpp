@@ -2013,9 +2013,10 @@ Client::Client( RemoteHead *rh ) {
     init(NULL);
     parent_rh = rh;
 }
-Client *Client::createLogicalClient( uv_tcp_t *reprecator_tcp, RemoteHead *rh ) {   
+Client *Client::createLogicalClient( uv_tcp_t *reprecator_tcp, RemoteHead *rh ) {
     Client *cl = new Client(rh);
     cl->reprecator_tcp = reprecator_tcp;
+    print("createLogicalClient called. newclid:%d",cl->id);
     return cl;
 }
 
@@ -2030,6 +2031,7 @@ void Client::init(uv_tcp_t *sk) {
     recvbuf.ensureMemory(8*1024); // Only receiving keyboard and mouse input events!
     initialized_at = now();
     global_client_id = 0;
+    reprecator_tcp=NULL;
 }
 Client::~Client() {
     print("~Client called for %d", id );
