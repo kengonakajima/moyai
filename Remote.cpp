@@ -1195,7 +1195,7 @@ static void reprecator_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argd
             uint32_t kc = get_u32(argdata+4);
             uint32_t act = get_u32(argdata+8);
             uint32_t modbits = get_u32(argdata+12);
-            print("received r2s_kbd. logclid:%d kc:%d act:%d modbits:%d", logclid, kc, act, modbits );
+            //            print("received r2s_kbd. logclid:%d kc:%d act:%d modbits:%d", logclid, kc, act, modbits );
             bool mod_shift,mod_ctrl,mod_alt;
             getModkeyBits(modbits, &mod_shift, &mod_ctrl, &mod_alt);
             /*
@@ -2122,6 +2122,7 @@ bool Client::canSee(Prop2D*p) {
     target_viewport->getMinMax(&minv,&maxv);
     return p->isInView(&minv,&maxv,target_camera);    
 }
+
 
 //////////////////////
 static void reproxy_on_close_callback( uv_handle_t *s ) {

@@ -292,6 +292,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
     }
 
 
+    // first step switch
     if(g_reproxy) {
         switch(funcid) {
         case PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER:
@@ -300,6 +301,25 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
         case PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER:
             print("ignoring cam_dyn_layer");
             return;
+        case PACKETTYPE_S2C_PROP2D_LOC:
+            {
+                uint32_t propid = get_u32(argdata+0);
+                float x = get_f32(argdata+4);
+                float y = get_f32(argdata+8);
+                //                print("step1sw: p2dloc: id:%d loc:%f,%f",propid, x,y);
+                Prop2D *p = g_prop2d_pool.get(propid);
+                if(p) {
+                    POOL_SCAN(g_reproxy->cl_pool,Client) {
+                        Client *cl = it->second;
+                        if(cl->canSee(p)==false) {
+                            continue;
+                        } else {
+                            sendUS1UI1F2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_PROP2D_LOC, propid,x,y);
+                        }                    
+                    }
+                }
+            }
+            break; // must go to second step switch.
         case PACKETTYPE_S2R_CAMERA_CREATE:
             {
                 uint32_t gclid = get_u32(argdata+0);
@@ -307,6 +327,8 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 print("received s2r_cam_create. gclid:%d camid:%d",gclid,camid);
                 Client *cl = g_reproxy->getClientByGlobalId(gclid);
                 if(cl) {
+                    Camera *cam = g_camera_pool.ensure(camid);
+                    cl->target_camera = cam;
                     print(" sending as s2c_camera_create id:%d",camid);
                     sendUS1UI1( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_CAMERA_CREATE, camid );
                 } else {
@@ -338,7 +360,8 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 print("received s2r_camera_loc. gclid:%d camid:%d (%f,%f)", gclid, camid, x,y );
                 Client *cl = g_reproxy->getClientByGlobalId(gclid);
                 if(cl) {
-                    print("sending as s2c_camera_loc");
+                    Camera *cam = g_camera_pool.get(camid);
+                    if(cam) cam->setLoc(x,y);
                     sendUS1UI1F2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_CAMERA_LOC, camid, x,y );
                 } else {
                     print("client gclid:%d not found", gclid);
@@ -352,6 +375,8 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 print("received s2r_viewport_create. gclid:%d vpid:%d", gclid, viewport_id );
                 Client *cl = g_reproxy->getClientByGlobalId(gclid);
                 if(cl) {
+                    Viewport *vp = g_viewport_pool.ensure(viewport_id);
+                    cl->target_viewport = vp;
                     print("  sending as s2c_viewport_create");
                     sendUS1UI1( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_VIEWPORT_CREATE, viewport_id);
                     //                    Viewport *vp = g_viewport_pool.ensure(viewport_id);                
@@ -385,6 +410,8 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 print("received s2r_vp_scl. gclid:%d vpid:%d s:%f,%f",gclid,vpid,sx,sy);
                 Client *cl = g_reproxy->getClientByGlobalId(gclid);
                 if(cl){
+                    Viewport *vp = g_viewport_pool.get(vpid);
+                    if(vp) vp->setScale2D(sx,sy);
                     print("sending as s2c_vp_scale");
                     sendUS1UI1F2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_VIEWPORT_SCALE, vpid, sx,sy);
                 } else {
@@ -399,6 +426,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
         }
     }
 
+    // second step switch
     switch(funcid) {
     case PACKETTYPE_PING:
         {
@@ -687,7 +715,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             unsigned int camera_id = get_u32(argdata);
             float x = get_f32(argdata+4);
             float y = get_f32(argdata+4+4);
-            print("received camera_loc. id:%d (%f,%f)", camera_id, x,y );            
+            print("received s2c_camera_loc. id:%d (%f,%f)", camera_id, x,y );            
             Camera *cam = g_camera_pool.get(camera_id);
             assert(cam);
             cam->setLoc(x,y);
@@ -699,7 +727,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             unsigned int layer_id = get_u32(argdata+4);
             Camera *cam = g_camera_pool.get(camera_id);
             Layer *l = g_layer_pool.get(layer_id);
-            print("camera_dynamic_layer. cam:%d l:%d",camera_id, layer_id);
+            print("received s2c_camera_dynamic_layer. cam:%d l:%d",camera_id, layer_id);
             if(cam && l) {
                 l->setCamera(cam);
             }
