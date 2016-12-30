@@ -126,6 +126,11 @@ typedef enum {
     
     // server to reprecator
     PACKETTYPE_S2R_NEW_CLIENT_ID = 170,
+    PACKETTYPE_S2R_CAMERA_CREATE = 175,
+    PACKETTYPE_S2R_CAMERA_DYNAMIC_LAYER = 176,
+    PACKETTYPE_S2R_CAMERA_LOC = 177,
+    PACKETTYPE_S2R_VIEWPORT_CREATE = 180,
+    PACKETTYPE_S2R_VIEWPORT_DYNAMIC_LAYER = 181,
     
     // server to client
     PACKETTYPE_S2C_PROP2D_SNAPSHOT = 200, 
@@ -530,6 +535,7 @@ public:
     uv_tcp_t *getTCP() {
         if(tcp) return tcp; else return reprecator_tcp;
     }
+    bool isReprecation() { return reprecator_tcp; }
 };
 
 
@@ -547,6 +553,7 @@ public:
     void addClient( Client *cl);
     void delClient(Client*cl);
     Client *getClient(unsigned int id) { return cl_pool.get(id); }
+    Client *getClientByGlobalId(unsigned int gclid);
     void broadcastUS1RawArgs(uint16_t funcid, const char*data, size_t datalen );
 };
   
@@ -568,6 +575,7 @@ int sendUS1UI4( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, ui
 int sendUS1UI5( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 );
 int sendUS1UI1F1( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0 );    
 int sendUS1UI1F2( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0, float f1 );
+int sendUS1UI2F2( uv_stream_t *s, uint16_t usval, uint32_t uival0, uint32_t uival1, float f0, float f1 ) ;
 int sendUS1UI1F4( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );
 int sendUS1UI1Str( uv_stream_t *out, uint16_t usval, uint32_t uival, const char *cstr );
 int sendUS1UI2Str( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr );

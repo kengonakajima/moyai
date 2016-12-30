@@ -1063,16 +1063,31 @@ void TrackerCamera::broadcastDiff( bool force ) {
 }
 void TrackerCamera::unicastDiff( Client *dest, bool force ) {
     if( checkDiff() || force ) {
-        sendUS1UI1F2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_CAMERA_LOC, target_camera->id, locbuf[cur_buffer_index].x, locbuf[cur_buffer_index].y );
+        if( dest->isReprecation()) {
+            sendUS1UI2F2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2R_CAMERA_LOC, dest->id,  target_camera->id, locbuf[cur_buffer_index].x, locbuf[cur_buffer_index].y );
+        } else { 
+            sendUS1UI1F2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_CAMERA_LOC, target_camera->id, locbuf[cur_buffer_index].x, locbuf[cur_buffer_index].y );
+        }
     }
 }
 void TrackerCamera::unicastCreate( Client *dest ) {
-    print("TrackerCamera: unicastCreate. id:%d",dest->id);
-    sendUS1UI1( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_CAMERA_CREATE, target_camera->id );
+    print("TrackerCamera: unicastCreate. id:%d repr:%d",dest->id, dest->isReprecation() );
+    if( dest->isReprecation() ) {
+        print("sending s2r_cam_creat clid:%d camid:%d",dest->id, target_camera->id);
+        sendUS1UI2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2R_CAMERA_CREATE, dest->id, target_camera->id );
+    } else {
+        print("sending s2c_cam_creat camid:%d",target_camera->id);
+        sendUS1UI1( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_CAMERA_CREATE, target_camera->id );
+    }
     POOL_SCAN(target_camera->target_layers,Layer) {
         Layer *l = it->second;
-        print("  unicastCreate: camera_dynamic_layer:%d", l->id );
-        sendUS1UI2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER, target_camera->id, l->id );
+        if(dest->isReprecation()) {
+            print("sending s2r_cam_dyn_lay cl:%d cam:%d lay:%d", dest->id, target_camera->id, l->id);
+            sendUS1UI3( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2R_CAMERA_DYNAMIC_LAYER, dest->id, target_camera->id, l->id );            
+        } else {
+            print("sending s2c_cam_dyN_lay cam:%d lay:%d ", target_camera->id, l->id);
+            sendUS1UI2( (uv_stream_t*) dest->getTCP(), PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER, target_camera->id, l->id );
+        }
     }
 }
 
@@ -1121,7 +1136,7 @@ void TrackerViewport::unicastCreate( Client *dest ) {
 
 /////////////////////
 static void reprecator_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
-    print("reprecator_on_packet_cb. funcid:%d",funcid);
+    //    print("reprecator_on_packet_cb. funcid:%d",funcid);
     Client *realcl = (Client*)s->data;
     Reprecator *rep = realcl->parent_reprecator;
     assert(rep);
@@ -1355,10 +1370,15 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     // reprecator to server
     case PACKETTYPE_R2S_CLIENT_LOGIN: return "PACKETTYPE_R2S_CLIENT_LOGIN";
     case PACKETTYPE_R2S_CLIENT_LOGOUT: return "PACKETTYPE_R2S_CLIENT_LOGOUT";        
-    case PACKETTYPE_S2R_NEW_CLIENT_ID: return "PACKETTYPE_S2R_NEW_CLIENT_ID";
     case PACKETTYPE_R2S_KEYBOARD: return "PACKETTYPE_R2S_KEYBOARD";
     case PACKETTYPE_R2S_MOUSE_BUTTON: return "PACKETTYPE_R2S_MOUSE_BUTTON";
     case PACKETTYPE_R2S_CURSOR_POS: return "PACKETTYPE_R2S_CURSOR_POS";
+    case PACKETTYPE_S2R_NEW_CLIENT_ID: return "PACKETTYPE_S2R_NEW_CLIENT_ID";
+    case PACKETTYPE_S2R_CAMERA_CREATE: return "PACKETTYPE_S2R_CAMERA_CREATE";
+    case PACKETTYPE_S2R_CAMERA_DYNAMIC_LAYER: return "PACKETTYPE_S2R_CAMERA_DYNAMIC_LAYER";
+    case PACKETTYPE_S2R_CAMERA_LOC: return "PACKETTYPE_S2R_CAMERA_LOC";        
+    case PACKETTYPE_S2R_VIEWPORT_CREATE: return "PACKETTYPE_S2R_VIEWPORT_CREATE";
+    case PACKETTYPE_S2R_VIEWPORT_DYNAMIC_LAYER: return "PACKETTYPE_S2R_VIEWPORT_DYNAMIC_LAYER";
         
     // server to client
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT: return "PACKETTYPE_S2C_PROP2D_SNAPSHOT";
@@ -1659,6 +1679,16 @@ int sendUS1UI1F2( uv_stream_t *s, uint16_t usval, uint32_t uival, float f0, floa
     set_u32( sendbuf_work+4+2, uival );
     memcpy( sendbuf_work+4+2+4, &f0, 4 );
     memcpy( sendbuf_work+4+2+4+4, &f1, 4 );
+    SETUP_UV_WRITE;
+    return totalsize;    
+}
+int sendUS1UI2F2( uv_stream_t *s, uint16_t usval, uint32_t uival0, uint32_t uival1, float f0, float f1 ) {
+    size_t totalsize = 4 + 2 + 4+4+4;
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, uival0 );
+    set_u32( sendbuf_work+4+2+4, uival1 );    
+    memcpy( sendbuf_work+4+2+4+4, &f0, 4 );
+    memcpy( sendbuf_work+4+2+4+4+4, &f1, 4 );
     SETUP_UV_WRITE;
     return totalsize;    
 }
@@ -1990,7 +2020,7 @@ Client *Client::createLogicalClient( uv_tcp_t *reprecator_tcp, RemoteHead *rh ) 
 }
 
 void Client::init(uv_tcp_t *sk) {
-    id = idgen++;
+    id = ++idgen;
     tcp = sk;
     parent_rh = NULL;
     parent_reproxy = NULL;
@@ -2086,7 +2116,7 @@ static void reproxy_on_close_callback( uv_handle_t *s ) {
     delete cli;
 }
 static void reproxy_on_read_callback( uv_stream_t *s, ssize_t nread, const uv_buf_t *inbuf ) {
-    print("reproxy_on_read_callback: nread:%d",nread);
+    //    print("reproxy_on_read_callback: nread:%d",nread);
     Client *cl = (Client*)s->data;
     if(nread>0) {
         ReprecationProxy *rp = cl->parent_reproxy;
@@ -2146,4 +2176,12 @@ void ReprecationProxy::broadcastUS1RawArgs(uint16_t funcid, const char*data, siz
     POOL_SCAN(cl_pool,Client) {
         sendUS1RawArgs( (uv_stream_t*)it->second->tcp, funcid, data, datalen );
     }
+}
+Client *ReprecationProxy::getClientByGlobalId(unsigned int gclid) {
+    POOL_SCAN(cl_pool,Client) {
+        if( it->second->global_client_id==gclid) {
+            return it->second;
+        }
+    }
+    return NULL;
 }

@@ -293,8 +293,93 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
 
 
     if(g_reproxy) {
-        //        print("forwarding pkt: f:%d sz:%d",funcid, argdatalen);
-        g_reproxy->broadcastUS1RawArgs(funcid,argdata,argdatalen);
+        switch(funcid) {
+        case PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER:
+            print("ignoring vp_dyn_layer");
+            return;
+        case PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER:
+            print("ignoring cam_dyn_layer");
+            return;
+        case PACKETTYPE_S2R_CAMERA_CREATE:
+            {
+                uint32_t gclid = get_u32(argdata+0);
+                uint32_t camid = get_u32(argdata+4);
+                print("received s2r_cam_create. gclid:%d camid:%d",gclid,camid);
+                Client *cl = g_reproxy->getClientByGlobalId(gclid);
+                if(cl) {
+                    print(" sending as s2c_camera_create id:%d",camid);
+                    sendUS1UI1( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_CAMERA_CREATE, camid );
+                } else {
+                    print("  client gcl:%d is not found",gclid );
+                }
+            }            
+            return;
+        case PACKETTYPE_S2R_CAMERA_DYNAMIC_LAYER:
+            {
+                uint32_t gclid=get_u32(argdata+0);
+                uint32_t camid=get_u32(argdata+4);
+                uint32_t layid=get_u32(argdata+8);
+                print("received s2r_cam_dyn_layer gcl:%d cam:%d l:%d", gclid, camid, layid );
+                Client *cl = g_reproxy->getClientByGlobalId(gclid);
+                if(cl) {
+                    print(" sending as s2c_camera_dynamic_layer");
+                    sendUS1UI2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER, camid, layid );
+                } else {
+                    print(" client gclid:%d is not found", gclid);
+                }
+            }
+            return;
+        case PACKETTYPE_S2R_CAMERA_LOC:
+            {
+                uint32_t gclid=get_u32(argdata+0);
+                uint32_t camid=get_u32(argdata+4);
+                float x = get_f32(argdata+4+4);
+                float y = get_f32(argdata+4+4+4);
+                print("received s2r_camera_loc. gclid:%d camid:%d (%f,%f)", gclid, camid, x,y );
+                Client *cl = g_reproxy->getClientByGlobalId(gclid);
+                if(cl) {
+                    print("sending as s2c_camera_loc");
+                    sendUS1UI1F2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_CAMERA_LOC, camid, x,y );
+                } else {
+                    print("client gclid:%d not found", gclid);
+                }
+            }
+            return;
+        case PACKETTYPE_S2R_VIEWPORT_CREATE:
+            {
+                uint32_t gclid = get_u32(argdata+0);
+                uint32_t viewport_id = get_u32(argdata+4);
+                print("received s2r_viewport_create. gclid:%d vpid:%d", gclid, viewport_id );
+                Client *cl = g_reproxy->getClientByGlobalId(gclid);
+                if(cl) {
+                    print("  ensuring viewport");
+                    Viewport *vp = g_viewport_pool.ensure(viewport_id);                
+                    cl->target_viewport = vp;
+                } else {
+                    print("  client gclid:%d not found", gclid);
+                }
+            }
+            return;
+        case PACKETTYPE_S2R_VIEWPORT_DYNAMIC_LAYER:
+            {
+                uint32_t gclid = get_u32(argdata+0);
+                uint32_t cam_id = get_u32(argdata+4);
+                print("received s2r_camera_create. gclid:%d vpid:%d", gclid, cam_id );
+                Client *cl = g_reproxy->getClientByGlobalId(gclid);
+                if(cl) {
+                    print("  ensuring camera");                    
+                    Camera *cam = g_camera_pool.ensure(cam_id);
+                    cl->target_camera = cam;
+                } else {
+                    print("  client gclid:%d not found", gclid);
+                }
+            }
+            return;
+        default:
+            //        print("forwarding pkt: f:%d sz:%d",funcid, argdatalen);
+            g_reproxy->broadcastUS1RawArgs(funcid,argdata,argdatalen);
+            break;
+        }
     }
 
     switch(funcid) {
@@ -1532,7 +1617,7 @@ void reproxy_on_accept_cb( uv_stream_t *newsock ) {
         PacketProp2DSnapshot out;
         if(p->getParentLayer()) {
             makePacketProp2DSnapshot(&out,p,NULL);
-            print("sending prop2d_snapshot id:%d", out.prop_id);
+            //            print("sending prop2d_snapshot id:%d", out.prop_id);
             sendUS1Bytes( newsock, PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&out, sizeof(out));            
         } 
 
