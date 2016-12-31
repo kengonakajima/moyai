@@ -1595,7 +1595,22 @@ void reproxy_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argdata, uint3
         }
         break;
     case PACKETTYPE_C2S_MOUSE_BUTTON:
+        {
+            uint32_t btn = get_u32(argdata);
+            uint32_t act = get_u32(argdata+4);
+            uint32_t modbits = get_u32(argdata+8);
+            //            print("reproxy_on_packet_cb: mousebtn. cl_g_id:%d",cl->global_client_id);
+            sendUS1UI4(g_stream,PACKETTYPE_R2S_MOUSE_BUTTON, cl->global_client_id, btn,act,modbits);
+        }
+        break;
     case PACKETTYPE_C2S_CURSOR_POS:
+        {
+            float x = get_f32(argdata);
+            float y = get_f32(argdata+4);
+            //            print("reproxy_on_packet_cb: cursor. %f,%f",x,y);
+            sendUS1UI1F2(g_stream,PACKETTYPE_R2S_CURSOR_POS, cl->global_client_id,x,y);
+        }        
+        break;
     case PACKETTYPE_C2S_TOUCH_BEGIN:
     case PACKETTYPE_C2S_TOUCH_MOVE:
     case PACKETTYPE_C2S_TOUCH_END:

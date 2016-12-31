@@ -1198,30 +1198,32 @@ static void reprecator_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argd
             //            print("received r2s_kbd. logclid:%d kc:%d act:%d modbits:%d", logclid, kc, act, modbits );
             bool mod_shift,mod_ctrl,mod_alt;
             getModkeyBits(modbits, &mod_shift, &mod_ctrl, &mod_alt);
-            /*
-              if(cli->parent_rh->on_keyboard_cb) {
-                cli->parent_rh->on_keyboard_cb(cli,keycode,action,mod_shift,mod_ctrl,mod_alt);
-              }
-              これをやるには、cliが必要。cliは、tcpとrecvbufがある。
-
-              アプリとしてはcli->idは識別のために欲しい。cliのポインタも使っている(これは最悪IDからの検索にできる)
-              
-              案1: LOGINのときにnew Clientやって、parentが何もない論理的なクライアントとしてフラグをたてておいて、それを引数として使う。
-              案2: on_keyboard_cbを2種類にして、論理的なクライアントからのと直接のクライアントのを分ける。
-
-              案1が必要。論理的なクライアントは必要。なぜならカメラとかも必要だから。
-              
-             */
             Client *logcl = rep->getLogicalClient(logclid);
-            if(logcl) {
-                if(rh->on_keyboard_cb) {
-                    rh->on_keyboard_cb(logcl,kc,act,mod_shift,mod_ctrl,mod_alt);
-                }
-            } else {
-                print("logical cliend id:%d not found", logclid);
-            }
+            if(logcl && rh->on_keyboard_cb) rh->on_keyboard_cb(logcl,kc,act,mod_shift,mod_ctrl,mod_alt);
         }
-        
+        break;
+    case PACKETTYPE_R2S_MOUSE_BUTTON:
+        {
+            uint32_t logclid = get_u32(argdata+0);
+            uint32_t btn = get_u32(argdata+4);
+            uint32_t act = get_u32(argdata+8);
+            uint32_t modbits = get_u32(argdata+12);
+            //            print("received r2s_mousebtn. logclid:%d b:%d a:%d mod:%d", logclid, btn,act,modbits);
+            bool mod_shift,mod_ctrl,mod_alt;
+            getModkeyBits(modbits, &mod_shift, &mod_ctrl, &mod_alt);
+            Client *logcl = rep->getLogicalClient(logclid);
+            if(logcl && rh->on_mouse_button_cb )rh->on_mouse_button_cb(logcl,btn,act,mod_shift,mod_ctrl,mod_alt);
+        }
+        break;
+    case PACKETTYPE_R2S_CURSOR_POS:
+        {
+            uint32_t logclid = get_u32(argdata+0);
+            float x = get_f32(argdata+4);
+            float y = get_f32(argdata+8);
+            //            print("received r2s_cursorpos. logclid:%d %f,%f",logclid,x,y);
+            Client *logcl = rep->getLogicalClient(logclid);
+            if(logcl && rh->on_mouse_cursor_cb ) rh->on_mouse_cursor_cb(logcl,x,y);
+        }
         break;
     default:
         break;
