@@ -241,6 +241,15 @@ void RemoteHead::delClient( Client *cl ) {
     cl_pool.del(cl->id);
 }
 Client *RemoteHead::getFirstClient() {
+    // normal clients first and then reprecated clients
+    if(cl_pool.size()==0) {
+        if(reprecator) {
+            Client *cl = reprecator->logical_cl_pool.getFirst();
+            return cl;
+        } else {
+            return NULL;
+        }
+    }
     return cl_pool.getFirst();
 }
 int RemoteHead::getClientCount() {
