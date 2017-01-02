@@ -513,7 +513,6 @@ public:
     ReprecationProxy *parent_reproxy;
     Reprecator *parent_reprecator;
     
-    Buffer saved_stream;
     double initialized_at;
     Camera *target_camera;
     Viewport *target_viewport;
@@ -531,7 +530,6 @@ public:
     ~Client();
     void saveStream( const char *data, size_t datalen );
     void flushStreamToFile();
-    void onDelete();
     bool canSee(Prop2D*p);
     uv_tcp_t *getTCP() {
         if(tcp) return tcp; else return reprecator_tcp;

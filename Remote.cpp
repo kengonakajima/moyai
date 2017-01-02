@@ -487,7 +487,6 @@ static void remotehead_on_close_callback( uv_handle_t *s ) {
     if( cli->parent_rh->on_disconnect_cb ) {
         cli->parent_rh->on_disconnect_cb( cli->parent_rh, cli );
     }
-    cli->onDelete();
     delete cli;
 }
 static void remotehead_on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
@@ -1181,7 +1180,6 @@ static void reprecator_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argd
                 if(logcl->parent_rh->on_disconnect_cb) {
                     logcl->parent_rh->on_disconnect_cb( logcl->parent_rh,logcl);
                 }
-                logcl->onDelete();
                 rep->logical_cl_pool.del(logcl->id);
                 delete logcl;
             } else {
@@ -1242,7 +1240,6 @@ static void reprecator_on_close_callback( uv_handle_t *s ) {
             if( logcl->parent_rh->on_disconnect_cb ) {
                 logcl->parent_rh->on_disconnect_cb( logcl->parent_rh, logcl );
             }
-            logcl->onDelete();
             if( ids_toclean_num==elementof(ids_toclean))break;
             ids_toclean[ids_toclean_num] = logcl->id;
             ids_toclean_num++;
@@ -2091,33 +2088,6 @@ bool parseRecord( uv_stream_t *s, Buffer *recvbuf, const char *data, size_t data
     }
 }
 
-void Client::saveStream( const char *data, size_t datalen ) {
-    const size_t BUFFER_MAX = 128*1024;
-    saved_stream.ensureMemory(BUFFER_MAX);
-    size_t room = saved_stream.getRoom();
-    if( room < datalen ) {
-        flushStreamToFile();
-        saved_stream.used = 0;
-    }
-    saved_stream.push(data,datalen);
-    //    print("saveStream: used:%d", saved_stream.used);
-}
-void Client::flushStreamToFile() {
-    uint32_t sec = (uint32_t)initialized_at;
-    uint32_t usec = (uint32_t)(( initialized_at - sec ) * 1000000);
-    Format outpath( "/tmp/moyaistream_%u_%u_%u", id, sec, usec );
-    //    print("flushing recorded stream to %s size:%d", outpath.buf, saved_stream.used );
-    // flush to file
-    bool wret = appendFile( outpath.buf, saved_stream.buf, saved_stream.used );
-    if(!wret) {
-        print("saveStream: can't append data to '%s', discarding stream", outpath.buf );
-    }
-}
-void Client::onDelete() {
-    flushStreamToFile();
-    saved_stream.used = 0;
-}
-
 bool Client::canSee(Prop2D*p) {
     if(!target_viewport) return true;
     Vec2 minv, maxv;
@@ -2132,7 +2102,6 @@ static void reproxy_on_close_callback( uv_handle_t *s ) {
     Client *cli = (Client*)s->data;
     if(cli->parent_reproxy->close_callback) cli->parent_reproxy->close_callback((uv_stream_t*)s);
     cli->parent_reproxy->delClient(cli);
-    cli->onDelete();
     delete cli;
 }
 static void reproxy_on_read_callback( uv_stream_t *s, ssize_t nread, const uv_buf_t *inbuf ) {

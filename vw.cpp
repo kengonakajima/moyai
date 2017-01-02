@@ -74,7 +74,9 @@ ReprecationProxy *g_reproxy;
 
 bool g_done=false;
 
-    
+Buffer g_savebuf;
+char g_savepath[512];
+
 ///////////////
 
 // debug funcs
@@ -169,6 +171,26 @@ File *FileDepo::getByIndex(int ind) {
 
 
 ///////////////////
+
+void flushBufferToFile( Buffer *buf, const char *path ) {
+    bool wret = appendFile( path, buf->buf, buf->used );
+    if(!wret) {
+        print("flushBufferToFile: can't append data to '%s', discarding stream", path );
+    }
+}
+void saveStreamToBuffer( Buffer *outbuf, const char *data, size_t datalen, const char *path ) {
+    const size_t BUFFER_MAX = 128*1024;
+    outbuf->ensureMemory(BUFFER_MAX);
+    size_t room = outbuf->getRoom();
+    if( room < datalen ) {
+        flushBufferToFile(outbuf,path);
+        outbuf->used = 0;
+    }
+    outbuf->push(data,datalen);
+    //    print("saveStream: used:%d", outbuf->used);
+}
+
+//////////////////
 
 void winclose_callback( GLFWwindow *w ){
     exit(0);
@@ -1466,6 +1488,10 @@ void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
     }
     g_total_read_count ++;
     g_total_read += nread;
+
+    if(g_savepath[0]) {
+        saveStreamToBuffer(&g_savebuf, buf->base, nread, g_savepath );
+    }
     parseRecord( s, &g_recvbuf, buf->base, nread, on_packet_callback );
     
 }
@@ -1505,7 +1531,7 @@ void printStats() {
 
 bool parseProgramArgs( int argc, char **argv ) {
     const char *port_prefix = "--port=";
-    
+    const char *save_prefix = "--savepath=";
     for(int i=1;i<argc;i++) {
         if( strncmp( argv[i], port_prefix, strlen(port_prefix) ) == 0 ){
             g_port = atoi( argv[i] + strlen(port_prefix) );
@@ -1518,14 +1544,14 @@ bool parseProgramArgs( int argc, char **argv ) {
         if( strcmp( argv[i], "--reprecation" ) == 0 ) {
             g_enable_reprecation = true;
         }
+        if( strncmp( argv[i], save_prefix, strlen(save_prefix)) == 0 ) {
+            snprintf( g_savepath, sizeof(g_savepath), "%s", argv[i] + strlen(save_prefix));
+        }
     }
     print("viewer config: serverip:'%s' port:%d window:%d,%d", g_server_ip_addr, g_port, g_window_width, g_window_height );
     return true;
 }
-void printUsage() {
-    print("Usage: viewer [OPTIONS] SERVER_IPADDR" );
-    print("  Options: --window_size=800x600" );
-}
+
 
 void setupClient( int win_w, int win_h ) {
     if(g_moyai_client) {
@@ -1779,7 +1805,6 @@ int main( int argc, char **argv ) {
 
     bool argret = parseProgramArgs(argc, argv );
     if(!argret) {
-        printUsage();
         return 1;
     }
     
@@ -1865,6 +1890,9 @@ int main( int argc, char **argv ) {
         
         last_poll_at = t;
     }
-    if(g_moyai_client) glfwTerminate();    
+    if(g_moyai_client) glfwTerminate();
+    if(g_savepath[0]) {
+        flushBufferToFile(&g_savebuf, g_savepath);
+    }
     return 0;
 }
