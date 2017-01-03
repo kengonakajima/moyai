@@ -1558,7 +1558,7 @@ void RemoteHead::broadcastSortedChangelist() {
     quickSortF( tosort, 0, changelist_used-1);
     //    print("sortChangelist:%d",changelist_used);
 
-    int max_send_num = 200; // about 1.5Mbps
+    int max_send_num = sort_sync_thres; 
     if( max_send_num > changelist_used ) max_send_num = changelist_used;
     int sent_n=0;
     for(int i=changelist_used-1;i>=0;i--) { // reverse order: biggest first
