@@ -1519,7 +1519,7 @@ void printStats() {
     int se_ind=0;
     for(int i=0;i<PACKETTYPE_MAX;i++) {
         if( g_recv_totalcounts[i]==0)continue;
-        se[se_ind].val = g_recv_counts[i];
+        se[se_ind].val = g_recv_sizes[i];
         pktinds[i] = i;
         se[se_ind].ptr = (void*) (&pktinds[i]);
         se_ind++;
