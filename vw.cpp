@@ -359,7 +359,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                         if(cl->canSee(p)==false) {
                             continue;
                         } else {
-                            sendUS1UI2F2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_PROP2D_LOC, propid,index,x,y);
+                            sendUS1UI2F2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_PROP2D_INDEX_LOC, propid,index,x,y);
                         }                    
                     }
                 }                
