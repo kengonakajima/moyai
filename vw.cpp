@@ -379,7 +379,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 uint32_t camid=get_u32(argdata+4);
                 float x = get_f32(argdata+4+4);
                 float y = get_f32(argdata+4+4+4);
-                print("received s2r_camera_loc. gclid:%d camid:%d (%f,%f)", gclid, camid, x,y );
+                //                print("received s2r_camera_loc. gclid:%d camid:%d (%f,%f)", gclid, camid, x,y );
                 Client *cl = g_reproxy->getClientByGlobalId(gclid);
                 if(cl) {
                     Camera *cam = g_camera_pool.get(camid);
@@ -504,7 +504,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 if(!parent_prop) {
                     print("Warning: prop:%d can't find parent prop:%d", pkt.prop_id, pkt.parent_prop_id );
                 } else {
-                    print("PARENT:%d FOUND, chld[0]:%p chn:%d", pkt.parent_prop_id, parent_prop->children[0], parent_prop->children_num);
+                    //                    print("PARENT:%d FOUND, chld[0]:%p chn:%d", pkt.parent_prop_id, parent_prop->children[0], parent_prop->children_num);
                 }
             }
             if( !(layer || parent_prop ) ) {
