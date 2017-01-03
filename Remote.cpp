@@ -324,6 +324,15 @@ void RemoteHead::scanSendAllPrerequisites( uv_stream_t *outstream ) {
     std::unordered_map<int,Deck*> dkmap;
     std::unordered_map<int,Font*> fontmap;
     std::unordered_map<int,ColorReplacerShader*> crsmap;
+
+    POOL_SCAN(prereq_deck_pool,Deck) {
+        Deck *dk = it->second;
+        dkmap[dk->id] = dk;
+        if( dk->tex) {
+            texmap[dk->tex->id] = dk->tex;
+            if( dk->tex->image ) imgmap[dk->tex->image->id] = dk->tex->image;        
+        }
+    }
     
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
         Group *grp = target_moyai->getGroupByIndex(i);
@@ -1572,6 +1581,9 @@ void RemoteHead::broadcastSortedChangelist() {
     //    print("broadcastChangelist: tot:%d sent:%d max:%d", changelist_used, sent_n, max_send_num);
 }
 
+void RemoteHead::addPrerequisites(Deck *dk) {
+    prereq_deck_pool.set(dk->id,dk);
+}
 
 ///////////////////
 int calcModkeyBits(bool shift, bool ctrl, bool alt ) {

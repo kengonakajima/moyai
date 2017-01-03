@@ -318,6 +318,9 @@ public:
     void clearChangelist() { changelist_used=0; }
     bool appendChangelist(Prop2D *p, PacketProp2DSnapshot *pkt);
     void broadcastSortedChangelist();
+
+    ObjectPool<Deck> prereq_deck_pool;
+    void addPrerequisites(Deck *dk);
 };
 
 
