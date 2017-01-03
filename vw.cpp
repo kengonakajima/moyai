@@ -346,6 +346,25 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 }
             }
             break; // must go to second step switch.
+        case PACKETTYPE_S2C_PROP2D_INDEX_LOC:
+            {
+                uint32_t propid = get_u32(argdata+0);
+                uint32_t index = get_u32(argdata+4);
+                float x = get_f32(argdata+8);
+                float y = get_f32(argdata+12);
+                Prop2D *p = g_prop2d_pool.get(propid);
+                if(p) {
+                    POOL_SCAN(g_reproxy->cl_pool,Client) {
+                        Client *cl = it->second;
+                        if(cl->canSee(p)==false) {
+                            continue;
+                        } else {
+                            sendUS1UI2F2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_PROP2D_LOC, propid,index,x,y);
+                        }                    
+                    }
+                }                
+            }
+            break;// must go to second step switch.
         case PACKETTYPE_S2R_CAMERA_CREATE:
             {
                 uint32_t gclid = get_u32(argdata+0);
@@ -570,6 +589,19 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 float x = get_f32(argdata+4);
                 float y = get_f32(argdata+8);
                 prop->setLoc(x,y);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_INDEX_LOC:
+        {
+            uint32_t id = get_u32(argdata+0);
+            uint32_t ind = get_u32(argdata+4);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                float x = get_f32(argdata+8);
+                float y = get_f32(argdata+12);
+                prop->setLoc(x,y);
+                prop->setIndex(ind);
             }
         }
         break;

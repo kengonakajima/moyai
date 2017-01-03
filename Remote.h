@@ -148,6 +148,7 @@ typedef enum {
     PACKETTYPE_S2C_PROP2D_DELETE = 230,
     PACKETTYPE_S2C_PROP2D_CLEAR_CHILD = 240,
     PACKETTYPE_S2C_PROP2D_LOC_VEL = 250,
+    PACKETTYPE_S2C_PROP2D_INDEX_LOC = 251,    
     
     PACKETTYPE_S2C_LAYER_CREATE = 300,
     PACKETTYPE_S2C_LAYER_VIEWPORT = 301,
@@ -302,6 +303,7 @@ public:
     void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
     void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
     void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
+    void broadcastUS1UI2F2( uint16_t usval, uint32_t ui0, uint32_t ui1, float f0, float f1 );    
     void broadcastUS1UI1F4( uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );        
 
     void nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1 );

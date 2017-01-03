@@ -198,17 +198,15 @@ void Tracker2D::broadcastDiff( bool force ) {
                                              (const char*)&pktbuf[cur_buffer_index].color, sizeof(PacketColor));
         } else if( diff == CHANGED_INDEX && (!force) ) {
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_INDEX, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].index );
+        } else if( diff == (CHANGED_INDEX | CHANGED_LOC) && (!force) ) {
+            parent_rh->broadcastUS1UI2F2( PACKETTYPE_S2C_PROP2D_INDEX_LOC, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].index, pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
         } else if( diff == CHANGED_XFLIP && (!force) ) {
-            prt("XFL ");
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_XFLIP, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].xflip );
         } else if( diff == CHANGED_YFLIP && (!force) ) {
-            prt("YFL ");
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_YFLIP, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].yflip );            
         } else if( diff == CHANGED_OPTBITS && (!force) ) {
-            prt("OPT ");
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_OPTBITS, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].optbits );
         } else if( diff == CHANGED_PRIORITY && (!force) ) {
-            prt("PRI ");
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_PRIORITY, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].priority );
         } else {
             //                        prt("SS%d ",diff);            
@@ -1426,7 +1424,8 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     case PACKETTYPE_S2C_PROP2D_PRIORITY: return "PACKETTYPE_S2C_PROP2D_PRIORITY";
     case PACKETTYPE_S2C_PROP2D_DELETE: return "PACKETTYPE_S2C_PROP2D_DELETE";
     case PACKETTYPE_S2C_PROP2D_CLEAR_CHILD: return "PACKETTYPE_S2C_PROP2D_CLEAR_CHILD";
-    case PACKETTYPE_S2C_PROP2D_LOC_VEL: return "PACKETTYPE_S2C_PROP2D_LOC_VEL";        
+    case PACKETTYPE_S2C_PROP2D_LOC_VEL: return "PACKETTYPE_S2C_PROP2D_LOC_VEL";
+    case PACKETTYPE_S2C_PROP2D_INDEX_LOC: return "PACKETTYPE_S2C_PROP2D_INDEX_LOC";
     
     case PACKETTYPE_S2C_LAYER_CREATE: return "PACKETTYPE_S2C_LAYER_CREATE";
     case PACKETTYPE_S2C_LAYER_VIEWPORT: return "PACKETTYPE_S2C_LAYER_VIEWPORT";
@@ -1536,6 +1535,10 @@ void RemoteHead::broadcastUS1UI1F4( uint16_t usval, uint32_t uival, float f0, fl
 void RemoteHead::broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 ) {
     CLIENT_ITER_SEND sendUS1UI1F2( (uv_stream_t*)it->second->tcp, usval, uival, f0, f1 );
     REPRECATOR_ITER_SEND sendUS1UI1F2( (uv_stream_t*)it->second->tcp, usval, uival, f0, f1 );
+}
+void RemoteHead::broadcastUS1UI2F2( uint16_t usval, uint32_t ui0, uint32_t ui1, float f0, float f1 ) {
+    CLIENT_ITER_SEND sendUS1UI2F2( (uv_stream_t*)it->second->tcp, usval, ui0, ui1, f0, f1 );
+    REPRECATOR_ITER_SEND sendUS1UI2F2( (uv_stream_t*)it->second->tcp, usval, ui0, ui1, f0, f1 );
 }
 
 void RemoteHead::nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1 ) {
