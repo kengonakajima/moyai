@@ -67,8 +67,10 @@ JPEGCoder *g_jc;
 Prop2D *g_video_prop;
 Texture *g_video_tex;
 
-int g_recv_counts[PACKETTYPE_MAX];
-int g_recv_totalcounts[PACKETTYPE_MAX];
+unsigned int g_recv_counts[PACKETTYPE_MAX];
+unsigned int g_recv_totalcounts[PACKETTYPE_MAX];
+unsigned int g_recv_sizes[PACKETTYPE_MAX];
+unsigned int g_recv_totalsizes[PACKETTYPE_MAX];
 
 ReprecationProxy *g_reproxy;
 
@@ -311,6 +313,8 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
     if(funcid>=0 && funcid<PACKETTYPE_MAX) {
         g_recv_counts[funcid]++;
         g_recv_totalcounts[funcid]++;
+        g_recv_sizes[funcid]+=argdatalen+2+4;        
+        g_recv_totalsizes[funcid]+=argdatalen+2+4;
     }
 
 
@@ -1523,10 +1527,12 @@ void printStats() {
     quickSortF(se,0,se_ind-1);
     for(int i=0;i<se_ind;i++){
         int pkttype = *((int*)se[i].ptr);
-        print("%s %d(%d)", RemoteHead::funcidToString((PACKETTYPE)pkttype), g_recv_counts[pkttype], g_recv_totalcounts[pkttype]);
+        print("%s cnt: %d(%d) sz: %d(%d)",
+              RemoteHead::funcidToString((PACKETTYPE)pkttype),
+              g_recv_counts[pkttype], g_recv_totalcounts[pkttype], g_recv_sizes[pkttype], g_recv_totalsizes[pkttype] );
     }
            
-    for(int i=0;i<elementof(g_recv_counts);i++) g_recv_counts[i]=0;
+    for(int i=0;i<elementof(g_recv_counts);i++) g_recv_counts[i]=g_recv_sizes[i]=0;
 }
 
 bool parseProgramArgs( int argc, char **argv ) {
