@@ -2080,6 +2080,16 @@ void Client::init(uv_tcp_t *sk) {
 }
 Client::~Client() {
     print("~Client called for %d", id );
+    if(target_camera) {
+        POOL_SCAN(target_camera->target_layers,Layer){
+            it->second->delDynamicCamera(target_camera);
+        }
+    }
+    if(target_viewport) {
+        POOL_SCAN(target_viewport->target_layers,Layer) {
+            it->second->delDynamicViewport(target_viewport);
+        }
+    }
 }
 
 // return false when error(to close)
