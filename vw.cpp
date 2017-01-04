@@ -481,8 +481,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             double t = (double)(sec) + (double)(usec)/1000000.0f;
             double dt = now() - t;
             g_last_ping_rtt = dt;
-            print("received ping: %u %u dt:%f", sec, usec, dt );
-
+            //            print("received ping: %u %u dt:%f", sec, usec, dt );
         }
         break;
     case PACKETTYPE_TIMESTAMP:
@@ -1911,9 +1910,9 @@ int main( int argc, char **argv ) {
                 last_total_read = g_total_read;
                 last_total_read_at = t;
             }
-            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d bpp:%.1f",
+            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d B/p:%.1f B/r:%.1f",
                         polled, rendered, kbps, g_last_ping_rtt*1000,g_timestamp_count, g_total_read_count,
-                        (float)g_total_read/(float)g_packet_count );
+                        (float)g_total_read/(float)g_packet_count, (float)g_total_read/(float)g_total_read_count );
             updateDebugStat( fmt.buf );
             if(t>g_last_ping_at+1) {
                 g_last_ping_at = t;
