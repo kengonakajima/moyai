@@ -160,11 +160,11 @@ void Tracker2D::broadcastDiff( bool force ) {
                 }
                 if(to_send) {
                     Vec2 vel = (v1 - v0) / target_prop2d->getParentLayer()->last_dt;
-                    parent_rh->broadcastUS1UI1F4( PACKETTYPE_S2C_PROP2D_LOC_VEL,
-                                                  pktbuf[cur_buffer_index].prop_id,
-                                                  pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y,
-                                                  vel.x, vel.y
-                                                  );                    
+                    parent_rh->nearcastUS1UI1F4( target_prop2d,
+                                                 PACKETTYPE_S2C_PROP2D_LOC_VEL,
+                                                 pktbuf[cur_buffer_index].prop_id,
+                                                 pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y,
+                                                 vel.x, vel.y );
                 }
                 //                print("l:%f lss:%f id:%d", l, target_prop2d->loc_sync_score, target_prop2d->id);
             } else {
@@ -177,7 +177,7 @@ void Tracker2D::broadcastDiff( bool force ) {
                                                      pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );                    
                     }
                 } else {
-                    target_prop2d->loc_sync_score=0;                                
+                    target_prop2d->loc_sync_score=0;
                     // dont use changelist sorting for big changes
                     parent_rh->nearcastUS1UI1F2( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,
                                                  pktbuf[cur_buffer_index].prop_id,
@@ -1540,12 +1540,19 @@ void RemoteHead::broadcastUS1UI2F2( uint16_t usval, uint32_t ui0, uint32_t ui1, 
     CLIENT_ITER_SEND sendUS1UI2F2( (uv_stream_t*)it->second->tcp, usval, ui0, ui1, f0, f1 );
     REPRECATOR_ITER_SEND sendUS1UI2F2( (uv_stream_t*)it->second->tcp, usval, ui0, ui1, f0, f1 );
 }
-
 void RemoteHead::nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1 ) {
     POOL_SCAN(cl_pool,Client) {
         Client *cl = it->second;
         if(cl->canSee(p)==false) continue;
         sendUS1UI1F2( (uv_stream_t*)cl->tcp, usval, uival, f0, f1 );
+    }
+    REPRECATOR_ITER_SEND sendUS1UI1F2( (uv_stream_t*)it->second->tcp, usval, uival, f0, f1 );
+}
+void RemoteHead::nearcastUS1UI1F4( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 ) {
+    POOL_SCAN(cl_pool,Client) {
+        Client *cl = it->second;
+        if(cl->canSee(p)==false) continue;
+        sendUS1UI1F4( (uv_stream_t*)cl->tcp, usval, uival, f0, f1, f2, f3 );
     }
     REPRECATOR_ITER_SEND sendUS1UI1F2( (uv_stream_t*)it->second->tcp, usval, uival, f0, f1 );
 }
@@ -2113,7 +2120,7 @@ bool parseRecord( uv_stream_t *s, Buffer *recvbuf, const char *data, size_t data
 }
 
 bool Client::canSee(Prop2D*p) {
-    if(!target_viewport) return true;
+    if(!target_viewport) { return true; }
     Vec2 minv, maxv;
     target_viewport->getMinMax(&minv,&maxv);
     return p->isInView(&minv,&maxv,target_camera);    
