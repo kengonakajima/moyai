@@ -1054,10 +1054,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 assert( (bytes_num % sizeof(PacketColor)) == 0 );
                 for(int i=0;i<n;i++) {
                     Color outcol;
-                    outcol.r = cols[i].r;
-                    outcol.g = cols[i].g;
-                    outcol.b = cols[i].b;
-                    outcol.a = cols[i].a;
+                    copyPacketColorToColor( &outcol, &cols[i] );
                     g->setColorIndex(i,outcol);
                 }
             }
@@ -1769,10 +1766,7 @@ void reproxy_on_accept_cb( uv_stream_t *newsock ) {
                     texofs_table[ind].x = texofs.x;
                     texofs_table[ind].y = texofs.y;
                     Color col = g->getColor(x,y);
-                    color_table[ind].r = col.r;
-                    color_table[ind].g = col.g;
-                    color_table[ind].b = col.b;
-                    color_table[ind].a = col.a;                                
+                    copyColorToPacketColor( &color_table[ind], &col );
                 }
             }
             sendUS1UI3( newsock, PACKETTYPE_S2C_GRID_CREATE, g->id, g->width, g->height );
@@ -1819,10 +1813,7 @@ void reproxy_on_accept_cb( uv_stream_t *newsock ) {
         sendUS1UI1F2( newsock, PACKETTYPE_S2C_TEXTBOX_LOC, target_tb->id, target_tb->loc.x, target_tb->loc.y );
         sendUS1UI1F2( newsock, PACKETTYPE_S2C_TEXTBOX_SCL, target_tb->id, target_tb->scl.x, target_tb->scl.y );        
         PacketColor pc;
-        pc.r = target_tb->color.r;
-        pc.g = target_tb->color.g;
-        pc.b = target_tb->color.b;
-        pc.a = target_tb->color.a;        
+        copyColorToPacketColor(&pc, &target_tb->color );
         sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_TEXTBOX_COLOR, target_tb->id, (const char*)&pc, sizeof(pc) );            
     }
 

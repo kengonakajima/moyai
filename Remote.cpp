@@ -54,6 +54,7 @@ void copyPrimToPacketPrim( PacketPrim*out, Prim *src ) {
     out->b.x = src->b.x;
     out->b.y = src->b.y;
     copyColorToPacketColor( &out->color, &src->color );
+    //    print("copyColorToPacketColor: out:%d %d %d %d", out->color.r, out->color.g, out->color.b, out->color.a );
     out->line_width = src->line_width;
 }
     
@@ -77,10 +78,7 @@ void makePacketProp2DSnapshot( PacketProp2DSnapshot *out, Prop2D *tgt, Prop2D *p
     out->xflip = tgt->xflip;
     out->yflip = tgt->yflip;
     out->uvrot = tgt->uvrot;
-    out->color.r = tgt->color.r;
-    out->color.g = tgt->color.g;
-    out->color.b = tgt->color.b;
-    out->color.a = tgt->color.a;
+    copyColorToPacketColor(&out->color,&tgt->color);
     out->shader_id = tgt->fragment_shader ? tgt->fragment_shader->id : 0;
     out->optbits = 0;
     if( tgt->use_additive_blend ) out->optbits |= PROP2D_OPTBIT_ADDITIVE_BLEND;
@@ -701,10 +699,7 @@ void TrackerGrid::scanGrid() {
             texofs_table[cur_buffer_index][ind].x = texofs.x;
             texofs_table[cur_buffer_index][ind].y = texofs.y;
             Color col = target_grid->getColor(x,y);
-            color_table[cur_buffer_index][ind].r = col.r;
-            color_table[cur_buffer_index][ind].g = col.g;
-            color_table[cur_buffer_index][ind].b = col.b;
-            color_table[cur_buffer_index][ind].a = col.a;            
+            copyColorToPacketColor(&color_table[cur_buffer_index][ind],&col);
         }
     }
 }
@@ -820,10 +815,7 @@ void TrackerTextBox::scanTextBox() {
     out->rot = 0; // fixed
     out->xflip = 0; // fixed
     out->yflip = 0; // fixed
-    out->color.r = target_tb->color.r;
-    out->color.g = target_tb->color.g;
-    out->color.b = target_tb->color.b;
-    out->color.a = target_tb->color.a;
+    copyColorToPacketColor(&out->color,&target_tb->color);
     out->priority = target_tb->priority;
 
     size_t copy_sz = (target_tb->len_str + 1) * sizeof(wchar_t);
@@ -878,10 +870,7 @@ void TrackerTextBox::broadcastDiff( bool force ) {
         parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_TEXTBOX_LOC, target_tb->id, target_tb->loc.x, target_tb->loc.y );
         parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_TEXTBOX_SCL, target_tb->id, target_tb->scl.x, target_tb->scl.y );        
         PacketColor pc;
-        pc.r = target_tb->color.r;
-        pc.g = target_tb->color.g;
-        pc.b = target_tb->color.b;
-        pc.a = target_tb->color.a;        
+        copyColorToPacketColor(&pc,&target_tb->color);
         parent_rh->broadcastUS1UI1Bytes( PACKETTYPE_S2C_TEXTBOX_COLOR, target_tb->id, (const char*)&pc, sizeof(pc) );            
     }
 }

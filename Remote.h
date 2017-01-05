@@ -22,7 +22,7 @@ typedef struct {
     float x,y,z;
 } PacketVec3;
 typedef struct {
-    float r,g,b,a;
+    uint8_t r,g,b,a;
 } PacketColor;
 typedef struct  {
     uint32_t prop_id; // non-zero
@@ -55,16 +55,10 @@ typedef struct {
 } PacketColorReplacerShaderSnapshot;
 
 inline void copyColorToPacketColor( PacketColor *dest, Color *src ) {
-    dest->r = src->r;
-    dest->g = src->g;
-    dest->b = src->b;
-    dest->a = src->a;    
+    src->toRGBA( &dest->r, &dest->g, &dest->b, &dest->a );
 }
 inline void copyPacketColorToColor( Color *dest, PacketColor *src ) {
-    dest->r = src->r;
-    dest->g = src->g;
-    dest->b = src->b;
-    dest->a = src->a;        
+    dest->fromRGBA( src->r, src->g, src->b, src->a );
 }
 
 
