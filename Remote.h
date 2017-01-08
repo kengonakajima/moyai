@@ -246,8 +246,9 @@ public:
     void addLogicalClient(Client*cl); // logical clients are viewers
     void delLogicalClient(Client*cl);
     Client *getLogicalClient(uint32_t logclid);
+    void heartbeat();
 };
-    
+class Stream;    
 class RemoteHead {
 public:
     uv_tcp_t listener;
@@ -289,8 +290,9 @@ public:
     void setOnMouseButtonCallback( void (*f)(Client*cl,int,int,int,int,int) ) { on_mouse_button_cb = f; }
     void setOnMouseCursorCallback( void (*f)(Client*cl,int,int) ) { on_mouse_cursor_cb = f; }
     void heartbeat();
-    void scanSendAllPrerequisites( uv_stream_t *outstream );
-    void scanSendAllProp2DSnapshots( uv_stream_t *outstream );
+    void flushBufferToNetwork();
+    void scanSendAllPrerequisites( Stream *outstream );
+    void scanSendAllProp2DSnapshots( Stream *outstream );
     void notifyProp2DDeleted( Prop2D *prop_deleted );
     void notifyGridDeleted( Grid *grid_deleted );
     void notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop );
@@ -517,12 +519,20 @@ public:
 
 class ReprecationProxy;
 
-class Client {
+class Stream {
 public:
+    
     static int idgen;
-    int id;
+    int id;    
+    Buffer sendbuf;    
     Buffer recvbuf;
-    uv_tcp_t *tcp;
+    uv_tcp_t *tcp;    
+    Stream( uv_tcp_t *sk, size_t sendbufsize, size_t recvbufsize );
+    void flushSendbuf(size_t unitsize);    
+};
+
+class Client : public Stream {
+public:
     
     RemoteHead *parent_rh; 
     ReprecationProxy *parent_reproxy;
@@ -534,22 +544,23 @@ public:
 
     uint32_t global_client_id; // used by reproxy
 
-    uv_tcp_t *reprecator_tcp; // used when reproxy
+    Stream *reprecator_stream; // used only when logical client
     
     Client( uv_tcp_t *sk, RemoteHead *rh );
     Client( uv_tcp_t *sk, ReprecationProxy *reproxy );
     Client( uv_tcp_t *sk, Reprecator *repr );
     Client( RemoteHead *rh );
     static Client *createLogicalClient( uv_tcp_t *reprecator_tcp, RemoteHead *rh );
-    void init(uv_tcp_t*sk);
+    void init();
     ~Client();
     void saveStream( const char *data, size_t datalen );
     void flushStreamToFile();
     bool canSee(Prop2D*p);
-    uv_tcp_t *getTCP() {
-        if(tcp) return tcp; else return reprecator_tcp;
+    Stream *getStream() {
+        if(this->tcp) return this; else return this->reprecator_stream;
     }
-    bool isReprecation() { return reprecator_tcp; }
+    bool isLogical() { return reprecator_stream; }
+    void flushSendbufToNetwork();
 };
 
 
@@ -557,60 +568,61 @@ class ReprecationProxy {
 public:
     uv_tcp_t listener;
     ObjectPool<Client> cl_pool;    
-    void (*func_callback)( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen );
-    void (*accept_callback)(uv_stream_t *s);
-    void (*close_callback)(uv_stream_t *s);
+    void (*func_callback)( Stream *s, uint16_t funcid, char *data, uint32_t datalen );
+    void (*accept_callback)(Stream *s);
+    void (*close_callback)(Stream *s);
     ReprecationProxy(int port);
-    void setFuncCallback( void (*cb)( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) ) {func_callback = cb;}
-    void setAcceptCallback( void (*cb)(uv_stream_t*s) ) { accept_callback = cb; }
-    void setCloseCallback( void (*cb)(uv_stream_t*) ) { close_callback = cb; }
+    void setFuncCallback( void (*cb)( Stream *s, uint16_t funcid, char *data, uint32_t datalen ) ) {func_callback = cb;}
+    void setAcceptCallback( void (*cb)(Stream*s) ) { accept_callback = cb; }
+    void setCloseCallback( void (*cb)(Stream*) ) { close_callback = cb; }
     void addClient( Client *cl);
     void delClient(Client*cl);
     Client *getClient(unsigned int id) { return cl_pool.get(id); }
     Client *getClientByGlobalId(unsigned int gclid);
     void broadcastUS1RawArgs(uint16_t funcid, const char*data, size_t datalen );
+    void heartbeat();
 };
   
 
             
 // record parser
-bool parseRecord( uv_stream_t *s, Buffer *recvbuf, const char *data, size_t datalen, void (*funcCallback)( uv_stream_t *s, uint16_t funcid, char *data, uint32_t datalen ) );
+bool parseRecord( Stream *s, Buffer *recvbuf, const char *data, size_t datalen, void (*funcCallback)( Stream *s, uint16_t funcid, char *data, uint32_t datalen ) );
 
 
 // send funcs
-int sendUS1( uv_stream_t *out, uint16_t usval );
-int sendUS1RawArgs( uv_stream_t *s, uint16_t usval, const char *data, uint32_t datalen );
-int sendUS1Bytes( uv_stream_t *out, uint16_t usval, const char *buf, uint16_t datalen );
-int sendUS1UI1Bytes( uv_stream_t *out, uint16_t usval, uint32_t uival, const char *buf, uint32_t datalen );
-int sendUS1UI1( uv_stream_t *out, uint16_t usval, uint32_t ui0 );
-int sendUS1UI2( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1 );    
-int sendUS1UI3( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
-int sendUS1UI4( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3 );
-int sendUS1UI5( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 );
-int sendUS1UI1F1( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0 );    
-int sendUS1UI1F2( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0, float f1 );
-int sendUS1UI2F2( uv_stream_t *s, uint16_t usval, uint32_t uival0, uint32_t uival1, float f0, float f1 ) ;
-int sendUS1UI1F4( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );
-int sendUS1UI1UC1( uv_stream_t *out, uint16_t usval, uint32_t uival, uint8_t ucval );
-int sendUS1UI1Str( uv_stream_t *out, uint16_t usval, uint32_t uival, const char *cstr );
-int sendUS1UI2Str( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr );
-int sendUS1StrBytes( uv_stream_t *out, uint16_t usval, const char *cstr, const char *data, uint32_t datalen );
-int sendUS1UI1Wstr( uv_stream_t *out, uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
-int sendUS1F2( uv_stream_t *out, uint16_t usval, float f0, float f1 );
-void sendFile( uv_stream_t *outstream, const char *filename );
-void sendPing( uv_stream_t *s );
-void sendWindowSize( uv_stream_t *outstream, int w, int h );
-void sendViewportCreateScale( uv_stream_t *outstream, Viewport *vp );
-void sendCameraCreateLoc( uv_stream_t *outstream, Camera *cam );
-void sendLayerSetup( uv_stream_t *outstream, Layer *l );
-void sendImageSetup( uv_stream_t *outstream, Image *img );
+int sendUS1( Stream *out, uint16_t usval );
+int sendUS1RawArgs( Stream *s, uint16_t usval, const char *data, uint32_t datalen );
+int sendUS1Bytes( Stream *out, uint16_t usval, const char *buf, uint16_t datalen );
+int sendUS1UI1Bytes( Stream *out, uint16_t usval, uint32_t uival, const char *buf, uint32_t datalen );
+int sendUS1UI1( Stream *out, uint16_t usval, uint32_t ui0 );
+int sendUS1UI2( Stream *out, uint16_t usval, uint32_t ui0, uint32_t ui1 );    
+int sendUS1UI3( Stream *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
+int sendUS1UI4( Stream *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3 );
+int sendUS1UI5( Stream *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 );
+int sendUS1UI1F1( Stream *out, uint16_t usval, uint32_t uival, float f0 );    
+int sendUS1UI1F2( Stream *out, uint16_t usval, uint32_t uival, float f0, float f1 );
+int sendUS1UI2F2( Stream *s, uint16_t usval, uint32_t uival0, uint32_t uival1, float f0, float f1 ) ;
+int sendUS1UI1F4( Stream *out, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );
+int sendUS1UI1UC1( Stream *out, uint16_t usval, uint32_t uival, uint8_t ucval );
+int sendUS1UI1Str( Stream *out, uint16_t usval, uint32_t uival, const char *cstr );
+int sendUS1UI2Str( Stream *out, uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr );
+int sendUS1StrBytes( Stream *out, uint16_t usval, const char *cstr, const char *data, uint32_t datalen );
+int sendUS1UI1Wstr( Stream *out, uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
+int sendUS1F2( Stream *out, uint16_t usval, float f0, float f1 );
+void sendFile( Stream *outstream, const char *filename );
+void sendPing( Stream *s );
+void sendWindowSize( Stream *outstream, int w, int h );
+void sendViewportCreateScale( Stream *outstream, Viewport *vp );
+void sendCameraCreateLoc( Stream *outstream, Camera *cam );
+void sendLayerSetup( Stream *outstream, Layer *l );
+void sendImageSetup( Stream *outstream, Image *img );
 class Texture;
-void sendTextureCreateWithImage( uv_stream_t *outstream, Texture *tex );
-void sendDeckSetup( uv_stream_t *outstream, Deck *dk );
+void sendTextureCreateWithImage( Stream *outstream, Texture *tex );
+void sendDeckSetup( Stream *outstream, Deck *dk );
 class Font;
-void sendFontSetupWithFile( uv_stream_t *outstream, Font *f ) ;
-void sendColorReplacerShaderSetup( uv_stream_t *outstream, ColorReplacerShader *crs ) ;
-void sendSoundSetup( uv_stream_t *outstream, Sound *snd ) ;
+void sendFontSetupWithFile( Stream *outstream, Font *f ) ;
+void sendColorReplacerShaderSetup( Stream *outstream, ColorReplacerShader *crs ) ;
+void sendSoundSetup( Stream *outstream, Sound *snd ) ;
 
 // parse helpers
 void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize );
