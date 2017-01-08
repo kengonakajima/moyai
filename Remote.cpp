@@ -74,10 +74,8 @@ void makePacketProp2DSnapshot( PacketProp2DSnapshot *out, Prop2D *tgt, Prop2D *p
     out->index = tgt->index;
     out->tiledeck_id = tgt->deck ? tgt->deck->id : 0;
     out->debug = tgt->debug_id;
+    out->fliprotbits = toFlipRotBits(tgt->xflip,tgt->yflip,tgt->uvrot);
     out->rot = tgt->rot;
-    out->xflip = tgt->xflip;
-    out->yflip = tgt->yflip;
-    out->uvrot = tgt->uvrot;
     copyColorToPacketColor(&out->color,&tgt->color);
     out->shader_id = tgt->fragment_shader ? tgt->fragment_shader->id : 0;
     out->optbits = 0;
@@ -99,12 +97,11 @@ static const int CHANGED_LOC = 0x1;
 static const int CHANGED_INDEX = 0x2;
 static const int CHANGED_SCL = 0x4;
 static const int CHANGED_ROT = 0x8;
-static const int CHANGED_XFLIP = 0x10;
-static const int CHANGED_YFLIP = 0x20;
-static const int CHANGED_COLOR = 0x40;
-static const int CHANGED_SHADER = 0x80;
-static const int CHANGED_OPTBITS = 0x100;
-static const int CHANGED_PRIORITY = 0x200;
+static const int CHANGED_FLIPROTBITS = 0x10;
+static const int CHANGED_COLOR = 0x20;
+static const int CHANGED_SHADER = 0x40;
+static const int CHANGED_OPTBITS = 0x80;
+static const int CHANGED_PRIORITY = 0x100;
 
 int getPacketProp2DSnapshotDiff( PacketProp2DSnapshot *s0, PacketProp2DSnapshot *s1 ) {
     int changes = 0;
@@ -114,8 +111,7 @@ int getPacketProp2DSnapshotDiff( PacketProp2DSnapshot *s0, PacketProp2DSnapshot 
     if(s0->scl.x != s1->scl.x) changes |= CHANGED_SCL;
     if(s0->scl.y != s1->scl.y) changes |= CHANGED_SCL;
     if(s0->rot != s1->rot ) changes |= CHANGED_ROT;
-    if(s0->xflip != s1->xflip ) changes |= CHANGED_XFLIP;
-    if(s0->yflip != s1->yflip ) changes |= CHANGED_YFLIP;
+    if( s0->fliprotbits != s1->fliprotbits ) changes |= CHANGED_FLIPROTBITS;
     if(s0->color.r != s1->color.r ) changes |= CHANGED_COLOR;
     if(s0->color.g != s1->color.g ) changes |= CHANGED_COLOR;    
     if(s0->color.b != s1->color.b ) changes |= CHANGED_COLOR;
@@ -198,10 +194,8 @@ void Tracker2D::broadcastDiff( bool force ) {
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_INDEX, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].index );
         } else if( diff == (CHANGED_INDEX | CHANGED_LOC) && (!force) ) {
             parent_rh->broadcastUS1UI2F2( PACKETTYPE_S2C_PROP2D_INDEX_LOC, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].index, pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
-        } else if( diff == CHANGED_XFLIP && (!force) ) {
-            parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_XFLIP, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].xflip );
-        } else if( diff == CHANGED_YFLIP && (!force) ) {
-            parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_YFLIP, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].yflip );            
+        } else if( diff == CHANGED_FLIPROTBITS && (!force) ) {
+            parent_rh->broadcastUS1UI1UC1( PACKETTYPE_S2C_PROP2D_FLIPROTBITS, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].fliprotbits );
         } else if( diff == CHANGED_OPTBITS && (!force) ) {
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_OPTBITS, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].optbits );
         } else if( diff == CHANGED_PRIORITY && (!force) ) {
@@ -813,8 +807,7 @@ void TrackerTextBox::scanTextBox() {
     out->tiledeck_id = 0; // fixed
     out->debug = target_tb->debug_id;
     out->rot = 0; // fixed
-    out->xflip = 0; // fixed
-    out->yflip = 0; // fixed
+    out->fliprotbits = 0; // fixed
     copyColorToPacketColor(&out->color,&target_tb->color);
     out->priority = target_tb->priority;
 
@@ -1406,8 +1399,7 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     case PACKETTYPE_S2C_PROP2D_INDEX: return "PACKETTYPE_S2C_PROP2D_INDEX";
     case PACKETTYPE_S2C_PROP2D_SCALE: return "PACKETTYPE_S2C_PROP2D_SCALE";
     case PACKETTYPE_S2C_PROP2D_ROT: return "PACKETTYPE_S2C_PROP2D_ROT";
-    case PACKETTYPE_S2C_PROP2D_XFLIP: return "PACKETTYPE_S2C_PROP2D_XFLIP";
-    case PACKETTYPE_S2C_PROP2D_YFLIP: return "PACKETTYPE_S2C_PROP2D_YFLIP";
+    case PACKETTYPE_S2C_PROP2D_FLIPROTBITS: return "PACKETTYPE_S2C_PROP2D_FLIPROTBITS";
     case PACKETTYPE_S2C_PROP2D_COLOR: return "PACKETTYPE_S2C_PROP2D_COLOR";
     case PACKETTYPE_S2C_PROP2D_OPTBITS: return "PACKETTYPE_S2C_PROP2D_OPTBITS";
     case PACKETTYPE_S2C_PROP2D_PRIORITY: return "PACKETTYPE_S2C_PROP2D_PRIORITY";
@@ -1528,6 +1520,10 @@ void RemoteHead::broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, fl
 void RemoteHead::broadcastUS1UI2F2( uint16_t usval, uint32_t ui0, uint32_t ui1, float f0, float f1 ) {
     CLIENT_ITER_SEND sendUS1UI2F2( (uv_stream_t*)it->second->tcp, usval, ui0, ui1, f0, f1 );
     REPRECATOR_ITER_SEND sendUS1UI2F2( (uv_stream_t*)it->second->tcp, usval, ui0, ui1, f0, f1 );
+}
+void RemoteHead::broadcastUS1UI1UC1( uint16_t usval, uint32_t uival, uint8_t ucval ) {
+    CLIENT_ITER_SEND sendUS1UI1UC1( (uv_stream_t*)it->second->tcp, usval, uival, ucval );
+    REPRECATOR_ITER_SEND sendUS1UI1UC1( (uv_stream_t*)it->second->tcp, usval, uival, ucval );
 }
 void RemoteHead::nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1 ) {
     POOL_SCAN(cl_pool,Client) {
@@ -1737,7 +1733,14 @@ int sendUS1UI1F4( uv_stream_t *s, uint16_t usval, uint32_t uival, float f0, floa
     SETUP_UV_WRITE;
     return totalsize;    
 }
-
+int sendUS1UI1UC1( uv_stream_t *s, uint16_t usval, uint32_t uival, uint8_t ucval ) {
+    size_t totalsize = 4 + 2 + 4+1;
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, uival );
+    sendbuf_work[4+2+4] = ucval;
+    SETUP_UV_WRITE;
+    return totalsize;        
+}
 int sendUS1F2( uv_stream_t *s, uint16_t usval, float f0, float f1 ) {
     size_t totalsize = 4 + 2 + 4+4;
     SET_RECORD_LEN_AND_US1;

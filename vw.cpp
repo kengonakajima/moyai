@@ -561,9 +561,9 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             prop->setScl( Vec2(pkt.scl.x,pkt.scl.y) );
             prop->setLoc( Vec2(pkt.loc.x, pkt.loc.y) );
             prop->setRot( pkt.rot );
-            prop->setXFlip( pkt.xflip );
-            prop->setYFlip( pkt.yflip );
-            prop->setUVRot( pkt.uvrot );
+            prop->setXFlip( getXFlipFromFlipRotBits(pkt.fliprotbits) );
+            prop->setYFlip( getYFlipFromFlipRotBits(pkt.fliprotbits) );
+            prop->setUVRot( getUVRotFromFlipRotBits(pkt.fliprotbits) );
             Color col( pkt.color.r, pkt.color.g, pkt.color.b, pkt.color.a );
             prop->setColor(col);
             prop->use_additive_blend = pkt.optbits & PROP2D_OPTBIT_ADDITIVE_BLEND;
@@ -662,25 +662,17 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             }
         }
         break;
-    case PACKETTYPE_S2C_PROP2D_XFLIP:
+    case PACKETTYPE_S2C_PROP2D_FLIPROTBITS:
         {
             uint32_t id = get_u32(argdata+0);
+            uint8_t bits = argdata[4];
             Prop2D *prop = g_prop2d_pool.get(id);
             if(prop) {
-                uint32_t xfl = get_u32(argdata+4);
+                bool xfl,yfl,uvr;
+                fromFlipRotBits(bits,&xfl,&yfl,&uvr);
                 prop->setXFlip(xfl);
-                prt("XFL ");
-            }
-        }
-        break;
-    case PACKETTYPE_S2C_PROP2D_YFLIP:
-        {
-            uint32_t id = get_u32(argdata+0);
-            Prop2D *prop = g_prop2d_pool.get(id);
-            if(prop) {
-                uint32_t yfl = get_u32(argdata+4);
                 prop->setYFlip(yfl);
-                prt("YFL ");
+                prop->setUVRot(uvr);
             }
         }
         break;

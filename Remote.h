@@ -34,16 +34,29 @@ typedef struct  {
     uint32_t tiledeck_id; // non-zero
     int32_t debug;
     float rot;
-    uint32_t xflip; // TODO:smaller size
-    uint32_t yflip;
-    uint32_t uvrot; 
     PacketColor color;
     uint32_t shader_id;
     uint32_t optbits;
     int32_t priority;
+    uint8_t fliprotbits;
 } PacketProp2DSnapshot;
 class Prop2D;
 void makePacketProp2DSnapshot( PacketProp2DSnapshot *out, Prop2D *tgt, Prop2D *parent );
+inline uint8_t toFlipRotBits(bool xflip, bool yflip, bool uvrot) {
+    uint8_t out=0;
+    if(xflip) out|=0x1;
+    if(yflip) out|=0x2;
+    if(uvrot) out|=0x4;
+    return out;
+}
+inline void fromFlipRotBits(uint8_t bits, bool *xfl, bool *yfl, bool *uvr ) {
+    if(bits&0x01) *xfl=true;
+    if(bits&0x02) *yfl=true;
+    if(bits&0x04) *uvr=true;
+}
+inline bool getXFlipFromFlipRotBits(uint8_t bits) { return bits & 0x01; }
+inline bool getYFlipFromFlipRotBits(uint8_t bits) { return bits & 0x02; }
+inline bool getUVRotFromFlipRotBits(uint8_t bits) { return bits & 0x04; }
 
 #define PROP2D_OPTBIT_ADDITIVE_BLEND 0x00000001
 
@@ -60,7 +73,6 @@ inline void copyColorToPacketColor( PacketColor *dest, Color *src ) {
 inline void copyPacketColorToColor( Color *dest, PacketColor *src ) {
     dest->fromRGBA( src->r, src->g, src->b, src->a );
 }
-
 
 typedef struct {
     uint32_t prim_id;
@@ -134,8 +146,7 @@ typedef enum {
     PACKETTYPE_S2C_PROP2D_INDEX = 203,
     PACKETTYPE_S2C_PROP2D_SCALE = 204,
     PACKETTYPE_S2C_PROP2D_ROT = 205,
-    PACKETTYPE_S2C_PROP2D_XFLIP = 206,
-    PACKETTYPE_S2C_PROP2D_YFLIP = 207,
+    PACKETTYPE_S2C_PROP2D_FLIPROTBITS = 206,
     PACKETTYPE_S2C_PROP2D_COLOR = 208,
     PACKETTYPE_S2C_PROP2D_OPTBITS = 209,
     PACKETTYPE_S2C_PROP2D_PRIORITY = 210,
@@ -298,7 +309,8 @@ public:
     void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
     void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
     void broadcastUS1UI2F2( uint16_t usval, uint32_t ui0, uint32_t ui1, float f0, float f1 );    
-    void broadcastUS1UI1F4( uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );        
+    void broadcastUS1UI1F4( uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );
+    void broadcastUS1UI1UC1( uint16_t usval, uint32_t uival, uint8_t ucval );
 
     void nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1 );
     void nearcastUS1UI1F4( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );
@@ -579,6 +591,7 @@ int sendUS1UI1F1( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0 );
 int sendUS1UI1F2( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0, float f1 );
 int sendUS1UI2F2( uv_stream_t *s, uint16_t usval, uint32_t uival0, uint32_t uival1, float f0, float f1 ) ;
 int sendUS1UI1F4( uv_stream_t *out, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );
+int sendUS1UI1UC1( uv_stream_t *out, uint16_t usval, uint32_t uival, uint8_t ucval );
 int sendUS1UI1Str( uv_stream_t *out, uint16_t usval, uint32_t uival, const char *cstr );
 int sendUS1UI2Str( uv_stream_t *out, uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr );
 int sendUS1StrBytes( uv_stream_t *out, uint16_t usval, const char *cstr, const char *data, uint32_t datalen );

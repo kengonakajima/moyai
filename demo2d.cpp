@@ -295,6 +295,7 @@ public:
         g_pad->getVec(&force);
         v.x = force.x * vel;
         v.y = force.y * vel;
+        if(v.x>0) setXFlip(false); else if( v.x<0) setXFlip(true);
 
         float c = absolute(::sin( accum_time * 2 ) );
         setColor( Color(c,c,c,1));
@@ -632,6 +633,7 @@ void onRemoteMouseCursorCallback( Client *cl, int x, int y ) {
     g_mouse->updateCursorPosition(x,y);
 }
 void gameInit() {
+    print("PacketProp2DSnapshot size:%d",sizeof(PacketProp2DSnapshot));
     qstest();
     optest();
     comptest();
