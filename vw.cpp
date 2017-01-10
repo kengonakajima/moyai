@@ -491,16 +491,15 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
         break;
     case PACKETTYPE_ZIPPED_RECORDS:
         {
-            print("received zipped_records argdatalen:%d", argdatalen );
+            //            print("received zipped_records argdatalen:%d", argdatalen );
             static char unzipout[8*1024*1024];
             int unzipped_size = memDecompressSnappy( unzipout, sizeof(unzipout), argdata, argdatalen );
-            print("  unzipped_size:%d",unzipped_size);
             bool pushed = s->unzipped_recvbuf.push(unzipout,unzipped_size);
             if(!pushed) {
                 print("unzipped_recvbuf full?");
                 break;
             }
-            print("pushed to unzipped_recvbuf. used:%d", s->unzipped_recvbuf.used);
+            //            print("pushed to unzipped_recvbuf. used:%d", s->unzipped_recvbuf.used);
             g_total_unzipped_bytes += unzipped_size;
         }
         break;
@@ -1523,7 +1522,7 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
 }
 
 void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
-    print("on_data. nread:%d",nread);
+    //    print("on_data. nread:%d",nread);
     if(nread<0) {
         print("read error! st:%d closing..", nread);
         g_done=true;

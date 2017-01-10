@@ -2021,8 +2021,7 @@ Stream::Stream( uv_tcp_t *sk, size_t sendbufsize, size_t recvbufsize, bool compr
     unzipped_recvbuf.ensureMemory(recvbufsize);
 }
 static void on_write_end( uv_write_t *req, int status ) {
-    print("on_write_end! st:%d",status);
-    
+    //    print("on_write_end! st:%d",status);
     if(status<0) {
         print("on_write_end error: status:%d",status);
     }
@@ -2041,23 +2040,23 @@ void Stream::flushSendbuf(size_t unitsize) {
         
         if( use_compression ) {
             size_t headersize = 4+2;
-            print("partsize:%d allocsize:%d", partsize,allocsize);
+            //            print("partsize:%d allocsize:%d", partsize,allocsize);
             int compsz = memCompressSnappy( outbuf+headersize, allocsize-headersize, sendbuf.buf, partsize);
             assert(allocsize>=compsz+headersize);
             set_u32(outbuf+0,compsz+2); // size of funcid
             set_u16(outbuf+4,PACKETTYPE_ZIPPED_RECORDS);
-            print("compress: partsize:%d compd:%d", partsize, compsz);
+            //            print("compress: partsize:%d compd:%d", partsize, compsz);
             write_req->data = outbuf;
             uv_buf_t buf = uv_buf_init(outbuf,4+2+compsz);
             int r = uv_write( write_req, (uv_stream_t*)tcp, &buf, 1, on_write_end );
             if(r) {
                 print("uv_write fail. %d",r);
             } else {
-                print("uv_write ok, partsz:%d used:%d", partsize, sendbuf.used );
+                //                print("uv_write ok, partsz:%d used:%d", partsize, sendbuf.used );
                 sendbuf.shift(partsize);
             }
         } else {
-            print("nocompress used:%d", sendbuf.used );
+            //            print("nocompress used:%d", sendbuf.used );
             memcpy(outbuf,sendbuf.buf,partsize);
             write_req->data = outbuf;
             uv_buf_t buf = uv_buf_init(outbuf,partsize);            
@@ -2065,7 +2064,7 @@ void Stream::flushSendbuf(size_t unitsize) {
             if(r) {
                 print("uv_write fail. %d",r);
             } else {
-                print("uv_write ok, partsz:%d used:%d", partsize, sendbuf.used );
+                //                print("uv_write ok, partsz:%d used:%d", partsize, sendbuf.used );
                 sendbuf.shift(partsize);
             }            
         }
