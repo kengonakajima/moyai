@@ -1380,6 +1380,7 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     switch(pkt) {
     case PACKETTYPE_PING:  return "PACKETTYPE_PING";
     case PACKETTYPE_TIMESTAMP: return "PACKETTYPE_TIMESTAMP";
+    case PACKETTYPE_ZIPPED_RECORDS: return "PACKETTYPE_ZIPPED_RECORDS";
     
     // client to server 
     case PACKETTYPE_C2S_KEYBOARD: return "PACKETTYPE_C2S_KEYBOARD";
@@ -1478,7 +1479,7 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     case PACKETTYPE_S2C_FILE: return "PACKETTYPE_S2C_FILE";
 
     case PACKETTYPE_S2C_WINDOW_SIZE: return "PACKETTYPE_S2C_WINDOW_SIZE";
-
+        
     case PACKETTYPE_ERROR: return "PACKETTYPE_ERROR";
 
     case PACKETTYPE_MAX: return "PACKETTYPE_MAX";
@@ -1917,6 +1918,7 @@ Buffer::~Buffer() {
 }
 
 bool Buffer::push( const char *data, size_t datasz ) {
+    if(datasz==0)return true;
     size_t left = size - used;
     if( left < datasz ) return false;
     memcpy( buf + used, data, datasz );
@@ -2012,10 +2014,11 @@ void BufferArray::shift() {
 
 //////////////////
 int Stream::idgen = 1;
-Stream::Stream( uv_tcp_t *sk, size_t sendbufsize, size_t recvbufsize ) : tcp(sk) {
+Stream::Stream( uv_tcp_t *sk, size_t sendbufsize, size_t recvbufsize, bool compress ) : tcp(sk), use_compression(compress) {
     id = ++idgen;    
     sendbuf.ensureMemory(sendbufsize);
-    recvbuf.ensureMemory(recvbufsize);    
+    recvbuf.ensureMemory(recvbufsize);
+    unzipped_recvbuf.ensureMemory(recvbufsize);
 }
 static void on_write_end( uv_write_t *req, int status ) {
     print("on_write_end! st:%d",status);
@@ -2029,19 +2032,41 @@ static void on_write_end( uv_write_t *req, int status ) {
 
 void Stream::flushSendbuf(size_t unitsize) {
     if(uv_is_writable((uv_stream_t*)tcp) && sendbuf.used > 0 ) {
+        size_t partsize = sendbuf.used;
+        if(partsize>unitsize) partsize = unitsize;
+        
         uv_write_t *write_req = (uv_write_t*)MALLOC(sizeof(uv_write_t));
-        size_t sendsize=sendbuf.used;
-        if(sendsize>unitsize)sendsize = unitsize;
-        char *data = (char*)MALLOC(sendsize); // need this because uv_write delays actual write after shifting sendbuf!
-        memcpy(data,sendbuf.buf,sendsize);
-        write_req->data = data;
-        uv_buf_t buf = uv_buf_init(data,sendsize);
-        int r = uv_write( write_req, (uv_stream_t*)tcp, &buf, 1, on_write_end );
-        if(r) {
-            print("uv_write fail. %d",r);
+        size_t allocsize = use_compression ? partsize*2 : partsize; // Abs max size of snappy worst case size
+        char *outbuf = (char*)MALLOC(allocsize); // need this because uv_write delays actual write after shifting sendbuf!
+        
+        if( use_compression ) {
+            size_t headersize = 4+2;
+            int compsz = memCompressSnappy( outbuf+headersize, allocsize-headersize, sendbuf.buf, partsize);
+            assert(allocsize>=compsz+headersize);
+            set_u32(outbuf+0,compsz+2); // size of funcid
+            set_u16(outbuf+4,PACKETTYPE_ZIPPED_RECORDS);
+            print("compress: partsize:%d compd:%d", partsize, compsz);
+            write_req->data = outbuf;
+            uv_buf_t buf = uv_buf_init(outbuf,4+2+compsz);
+            int r = uv_write( write_req, (uv_stream_t*)tcp, &buf, 1, on_write_end );
+            if(r) {
+                print("uv_write fail. %d",r);
+            } else {
+                print("uv_write ok, partsz:%d used:%d", partsize, sendbuf.used );
+                sendbuf.shift(partsize);
+            }
         } else {
-            print("uv_write ok, sz:%d used:%d", sendsize, sendbuf.used );
-            sendbuf.shift(sendsize);
+            print("nocompress used:%d", sendbuf.used );
+            memcpy(outbuf,sendbuf.buf,partsize);
+            write_req->data = outbuf;
+            uv_buf_t buf = uv_buf_init(outbuf,partsize);            
+            int r = uv_write( write_req, (uv_stream_t*)tcp, &buf, 1, on_write_end );
+            if(r) {
+                print("uv_write fail. %d",r);
+            } else {
+                print("uv_write ok, partsz:%d used:%d", partsize, sendbuf.used );
+                sendbuf.shift(partsize);
+            }            
         }
     }
 }        
@@ -2051,22 +2076,22 @@ void Stream::flushSendbuf(size_t unitsize) {
 
 
 // normal headless client
-Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : Stream(sk,16*1024*1024,8*1024){
+Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : Stream(sk,16*1024*1024,8*1024,true){
     init();
     parent_rh = rh;
 }
 // clients connecting to reproxy
-Client::Client( uv_tcp_t *sk, ReprecationProxy *reproxy ) : Stream(sk,16*1024*1024,8*1024) {
+Client::Client( uv_tcp_t *sk, ReprecationProxy *reproxy ) : Stream(sk,16*1024*1024,8*1024,true) {
     init();
     parent_reproxy = reproxy;
 }
 // reproxies
-Client::Client( uv_tcp_t *sk, Reprecator *repr ) : Stream(sk, 32*1024*1024,32*1024 ){
+Client::Client( uv_tcp_t *sk, Reprecator *repr ) : Stream(sk, 32*1024*1024,32*1024,false){
     init();
     parent_reprecator = repr;
 }
 // creating logical clients in server
-Client::Client( RemoteHead *rh ) : Stream(NULL,0,0){
+Client::Client( RemoteHead *rh ) : Stream(NULL,0,0,false){
     init();
     parent_rh = rh;
 }

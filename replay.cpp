@@ -16,7 +16,7 @@ public:
     double first_stream_accum_time;
     double latest_stream_ts; // Timestamp of next PACKETTYPE_TIMESTAMP
     bool done;
-    ReplayClient( uv_tcp_t *tcp ) : Stream(tcp,16*1024*1024,8*1024), accum_time(0), ofs(0), first_stream_ts(0), first_stream_accum_time(0), latest_stream_ts(0), done(false) {
+    ReplayClient( uv_tcp_t *tcp ) : Stream(tcp,16*1024*1024,8*1024,true), accum_time(0), ofs(0), first_stream_ts(0), first_stream_accum_time(0), latest_stream_ts(0), done(false) {
     }
     void poll(double dt) {
         accum_time += dt;

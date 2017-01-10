@@ -30,7 +30,6 @@ ObjectPool<Sound> g_sound_pool;
 MoyaiClient *g_moyai_client;        
 FileDepo *g_filedepo;
 Stream *g_stream;
-Buffer g_recvbuf;
 GLFWwindow *g_window;
 
 Viewport *g_local_viewport;
@@ -487,6 +486,21 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
     case PACKETTYPE_TIMESTAMP:
         {
             g_timestamp_count++;
+        }
+        break;
+    case PACKETTYPE_ZIPPED_RECORDS:
+        {
+            print("received zipped_records argdatalen:%d", argdatalen );
+            static char unzipout[8*1024*1024];
+            int unzipped_size = memDecompressSnappy( unzipout, sizeof(unzipout), argdata, argdatalen );
+            print("  unzipped_size:%d",unzipped_size);
+            bool pushed = s->unzipped_recvbuf.push(unzipout,unzipped_size);
+            if(!pushed) {
+                print("unzipped_recvbuf full?");
+                break;
+            }
+            print("pushed to unzipped_recvbuf. used:%d", s->unzipped_recvbuf.used);
+            
         }
         break;
 
@@ -1519,11 +1533,12 @@ void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
         saveStreamToBuffer(&g_savebuf, buf->base, nread, g_savepath );
     }
     Stream *stream = (Stream*)s->data;
-    parseRecord( stream, &g_recvbuf, buf->base, nread, on_packet_callback );
+    parseRecord( stream, &stream->recvbuf, buf->base, nread, on_packet_callback );
+    parseRecord( stream, &stream->unzipped_recvbuf, NULL, 0, on_packet_callback );
     
 }
-Stream *createStream(uv_tcp_t *tcp) {
-    Stream *out = new Stream( (uv_tcp_t*) tcp, 8*1024, 16*1024*1024);
+Stream *createStream(uv_tcp_t *tcp, bool compression ) {
+    Stream *out = new Stream( (uv_tcp_t*) tcp, 8*1024, 16*1024*1024,compression);
     tcp->data=out;
     return out;
 }
@@ -1535,8 +1550,7 @@ void on_connect( uv_connect_t *connect, int status ) {
     if(r) {
         print("uv_read_start: fail:%d",r);
     }
-    g_stream = createStream((uv_tcp_t*)connect->handle);
-    g_recvbuf.ensureMemory(1024*1024*16);
+    g_stream = createStream((uv_tcp_t*)connect->handle, false);
 }
 
 

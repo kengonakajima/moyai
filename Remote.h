@@ -113,6 +113,7 @@ typedef enum {
     // generic
     PACKETTYPE_PING = 1,
     PACKETTYPE_TIMESTAMP = 2,
+    PACKETTYPE_ZIPPED_RECORDS = 8, // not used in server-reprecator connection.
     
     // client to server 
     PACKETTYPE_C2S_KEYBOARD = 100,
@@ -213,6 +214,8 @@ typedef enum {
     PACKETTYPE_S2C_FILE = 800, // send file body and path
 
     PACKETTYPE_S2C_WINDOW_SIZE = 900, // u2
+
+
 
     PACKETTYPE_MAX = 1000,
     
@@ -526,8 +529,10 @@ public:
     int id;    
     Buffer sendbuf;    
     Buffer recvbuf;
-    uv_tcp_t *tcp;    
-    Stream( uv_tcp_t *sk, size_t sendbufsize, size_t recvbufsize );
+    Buffer unzipped_recvbuf; // receive zipped_records in recvbuf and then decompress to unzipped_recvbuf and then parseRecord again
+    uv_tcp_t *tcp;
+    bool use_compression;
+    Stream( uv_tcp_t *sk, size_t sendbufsize, size_t recvbufsize, bool compress );
     void flushSendbuf(size_t unitsize);    
 };
 
