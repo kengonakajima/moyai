@@ -555,7 +555,7 @@ public:
     Client( uv_tcp_t *sk, ReprecationProxy *reproxy );
     Client( uv_tcp_t *sk, Reprecator *repr );
     Client( RemoteHead *rh );
-    static Client *createLogicalClient( uv_tcp_t *reprecator_tcp, RemoteHead *rh );
+    static Client *createLogicalClient( Stream *reprecator_stream, RemoteHead *rh );
     void init();
     ~Client();
     void saveStream( const char *data, size_t datalen );

@@ -42,6 +42,7 @@ SoundSystem *g_soundsystem;
 
 uint64_t g_total_read;
 uint64_t g_total_read_count;
+uint64_t g_total_unzipped_bytes;
 uint64_t g_packet_count;
 
 char *g_server_ip_addr = (char*)"127.0.0.1";
@@ -500,7 +501,7 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                 break;
             }
             print("pushed to unzipped_recvbuf. used:%d", s->unzipped_recvbuf.used);
-            
+            g_total_unzipped_bytes += unzipped_size;
         }
         break;
 
@@ -1914,10 +1915,10 @@ int main( int argc, char **argv ) {
                 last_total_read = g_total_read;
                 last_total_read_at = t;
             }
-            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d B/p:%.1f B/r:%.1f sb:%d",
+            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d B/p:%.1f B/r:%.1f sbused:%d comp:%.3f",
                         polled, rendered, kbps, g_last_ping_rtt*1000,g_timestamp_count, g_total_read_count,
                         (float)g_total_read/(float)g_packet_count, (float)g_total_read/(float)g_total_read_count,
-                        g_stream->sendbuf.used );
+                        g_stream->sendbuf.used, (float)g_total_read/(float)g_total_unzipped_bytes );
             updateDebugStat( fmt.buf );
             if(t>g_last_ping_at+1) {
                 g_last_ping_at = t;

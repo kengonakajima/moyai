@@ -1165,7 +1165,7 @@ static void reprecator_on_packet_cb( Stream *s, uint16_t funcid, char *argdata, 
     case PACKETTYPE_R2S_CLIENT_LOGIN:
         {
             int reproxy_cl_id = get_u32(argdata+0);
-            Client *newcl = Client::createLogicalClient((uv_tcp_t*)s,rh);
+            Client *newcl = Client::createLogicalClient(s,rh);
             rep->addLogicalClient(newcl);
             print("received r2s_login. giving a new newclid:%d, reproxy_cl_id:%d",newcl->id, reproxy_cl_id);
             sendUS1UI2(realcl,PACKETTYPE_S2R_NEW_CLIENT_ID, newcl->id, reproxy_cl_id );
@@ -2041,6 +2041,7 @@ void Stream::flushSendbuf(size_t unitsize) {
         
         if( use_compression ) {
             size_t headersize = 4+2;
+            print("partsize:%d allocsize:%d", partsize,allocsize);
             int compsz = memCompressSnappy( outbuf+headersize, allocsize-headersize, sendbuf.buf, partsize);
             assert(allocsize>=compsz+headersize);
             set_u32(outbuf+0,compsz+2); // size of funcid
@@ -2095,10 +2096,9 @@ Client::Client( RemoteHead *rh ) : Stream(NULL,0,0,false){
     init();
     parent_rh = rh;
 }
-Client *Client::createLogicalClient( uv_tcp_t *reprecator_tcp, RemoteHead *rh ) {
-    Client *reprcl = (Client*) reprecator_tcp->data;
+Client *Client::createLogicalClient( Stream *reprecator_stream, RemoteHead *rh ) {
     Client *cl = new Client(rh);
-    cl->reprecator_stream = reprcl;
+    cl->reprecator_stream = reprecator_stream;
     print("createLogicalClient called. newclid:%d",cl->id);
     return cl;
 }
