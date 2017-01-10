@@ -1552,7 +1552,7 @@ void RemoteHead::nearcastUS1UI1F4( Prop2D *p, uint16_t usval, uint32_t uival, fl
         if(cl->canSee(p)==false) continue;
         sendUS1UI1F4( cl, usval, uival, f0, f1, f2, f3 );
     }
-    REPRECATOR_ITER_SEND sendUS1UI1F2( it->second, usval, uival, f0, f1 );
+    REPRECATOR_ITER_SEND sendUS1UI1F4( it->second, usval, uival, f0, f1, f2, f3 );
 }
 void RemoteHead::broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
     CLIENT_ITER_SEND sendUS1UI1F1( it->second, usval, uival, f0 );
