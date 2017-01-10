@@ -627,8 +627,6 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                 float ly = get_f32(argdata+8);
                 float vx = get_f32(argdata+12);
                 float vy = get_f32(argdata+16);                
-                print("LLLLLBLBBBBBVEL:%d %f %f",id, vx,vy);
-                
                 prop->setLoc(lx,ly);
                 prop->remote_vel = Vec2(vx,vy);
             }
