@@ -154,10 +154,10 @@ void Tracker2D::broadcastDiff( bool force ) {
                 }
                 if(to_send) {
                     Vec2 vel = (v1 - v0) / target_prop2d->getParentLayer()->last_dt;
-                    parent_rh->nearcastUS1UI1F4( target_prop2d,
+                    parent_rh->nearcastUS1UI3F2( target_prop2d,
                                                  PACKETTYPE_S2C_PROP2D_LOC_VEL,
                                                  pktbuf[cur_buffer_index].prop_id,
-                                                 pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y,
+                                                 (int)pktbuf[cur_buffer_index].loc.x, (int)pktbuf[cur_buffer_index].loc.y,
                                                  vel.x, vel.y );
                 }
                 //                print("l:%f lss:%f id:%d", l, target_prop2d->loc_sync_score, target_prop2d->id);
@@ -1558,13 +1558,13 @@ void RemoteHead::nearcastUS1UI3( Prop2D *p, uint16_t usval, uint32_t ui0, uint32
     }
     REPRECATOR_ITER_SEND sendUS1UI3( it->second, usval, ui0, ui1, ui2 );
 }
-void RemoteHead::nearcastUS1UI1F4( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 ) {
+void RemoteHead::nearcastUS1UI3F2( Prop2D *p, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, float f0, float f1 ) {
     POOL_SCAN(cl_pool,Client) {
         Client *cl = it->second;
         if(cl->canSee(p)==false) continue;
-        sendUS1UI1F4( cl, usval, uival, f0, f1, f2, f3 );
+        sendUS1UI3F2( cl, usval, ui0, ui1, ui2, f0,f1 );
     }
-    REPRECATOR_ITER_SEND sendUS1UI1F4( it->second, usval, uival, f0, f1, f2, f3 );
+    REPRECATOR_ITER_SEND sendUS1UI3F2( it->second, usval, ui0, ui1, ui2, f0, f1 );
 }
 void RemoteHead::broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
     CLIENT_ITER_SEND sendUS1UI1F1( it->second, usval, uival, f0 );
@@ -1718,6 +1718,17 @@ int sendUS1UI2F2( Stream *s, uint16_t usval, uint32_t uival0, uint32_t uival1, f
     memcpy( sendbuf_work+4+2+4+4, &f0, 4 );
     memcpy( sendbuf_work+4+2+4+4+4, &f1, 4 );
     return PUSH_DATA_TO_STREAM(s);
+}
+int sendUS1UI3F2( Stream *s, uint16_t usval, uint32_t uival0, uint32_t uival1, uint32_t uival2, float f0, float f1 )  {
+    size_t totalsize = 4 + 2 + 4+4+4+4+4;
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, uival0 );
+    set_u32( sendbuf_work+4+2+4, uival1 );
+    set_u32( sendbuf_work+4+2+4+4, uival2 );        
+    memcpy( sendbuf_work+4+2+4+4+4, &f0, 4 );
+    memcpy( sendbuf_work+4+2+4+4+4+4, &f1, 4 );
+    return PUSH_DATA_TO_STREAM(s);
+    
 }
 int sendUS1UI1F4( Stream *s, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 ) {
     size_t totalsize = 4 + 2 + 4+4+4+4+4;

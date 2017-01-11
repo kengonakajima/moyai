@@ -623,8 +623,8 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             uint32_t id = get_u32(argdata+0);
             Prop2D *prop = g_prop2d_pool.get(id);
             if(prop) {
-                float lx = get_f32(argdata+4);
-                float ly = get_f32(argdata+8);
+                int32_t lx = get_u32(argdata+4);
+                int32_t ly = get_u32(argdata+8);
                 float vx = get_f32(argdata+12);
                 float vy = get_f32(argdata+16);                
                 prop->setLoc(lx,ly);

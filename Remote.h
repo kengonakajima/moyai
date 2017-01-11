@@ -320,7 +320,7 @@ public:
 
     void nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1 );
     void nearcastUS1UI3( Prop2D *p, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
-    void nearcastUS1UI1F4( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );
+    void nearcastUS1UI3F2( Prop2D *p, uint16_t usval, uint32_t uival, uint32_t u0, uint32_t u1, float f0, float f1 );
     
     void broadcastTimestamp();
 
@@ -609,6 +609,7 @@ int sendUS1UI5( Stream *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_
 int sendUS1UI1F1( Stream *out, uint16_t usval, uint32_t uival, float f0 );    
 int sendUS1UI1F2( Stream *out, uint16_t usval, uint32_t uival, float f0, float f1 );
 int sendUS1UI2F2( Stream *s, uint16_t usval, uint32_t uival0, uint32_t uival1, float f0, float f1 ) ;
+int sendUS1UI3F2( Stream *s, uint16_t usval, uint32_t uival0, uint32_t uival1, uint32_t uival2, float f0, float f1 ) ;
 int sendUS1UI1F4( Stream *out, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );
 int sendUS1UI1UC1( Stream *out, uint16_t usval, uint32_t uival, uint8_t ucval );
 int sendUS1UI1Str( Stream *out, uint16_t usval, uint32_t uival, const char *cstr );
