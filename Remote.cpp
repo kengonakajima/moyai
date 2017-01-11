@@ -166,16 +166,16 @@ void Tracker2D::broadcastDiff( bool force ) {
                 if( target_prop2d->loc_sync_score < 50 ) {
                     if( !parent_rh->appendChangelist( target_prop2d, &pktbuf[cur_buffer_index] ) ) {
                         // must send if changelist is full
-                        parent_rh->nearcastUS1UI1F2( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,
-                                                     pktbuf[cur_buffer_index].prop_id,
-                                                     pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );                    
+                        parent_rh->nearcastUS1UI3( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,
+                                                   pktbuf[cur_buffer_index].prop_id,
+                                                   (int)pktbuf[cur_buffer_index].loc.x, (int)pktbuf[cur_buffer_index].loc.y );                        
                     }
                 } else {
                     target_prop2d->loc_sync_score=0;
                     // dont use changelist sorting for big changes
-                    parent_rh->nearcastUS1UI1F2( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,
-                                                 pktbuf[cur_buffer_index].prop_id,
-                                                 pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
+                    parent_rh->nearcastUS1UI3( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,
+                                               pktbuf[cur_buffer_index].prop_id,
+                                               (int)pktbuf[cur_buffer_index].loc.x, (int)pktbuf[cur_buffer_index].loc.y );
                 }
             }
         } else if( diff == CHANGED_SCL && (!force) ) {
@@ -193,7 +193,7 @@ void Tracker2D::broadcastDiff( bool force ) {
         } else if( diff == CHANGED_INDEX && (!force) ) {
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_INDEX, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].index );
         } else if( diff == (CHANGED_INDEX | CHANGED_LOC) && (!force) ) {
-            parent_rh->broadcastUS1UI2F2( PACKETTYPE_S2C_PROP2D_INDEX_LOC, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].index, pktbuf[cur_buffer_index].loc.x, pktbuf[cur_buffer_index].loc.y );
+            parent_rh->broadcastUS1UI4( PACKETTYPE_S2C_PROP2D_INDEX_LOC, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].index, (int)pktbuf[cur_buffer_index].loc.x, (int)pktbuf[cur_buffer_index].loc.y );
         } else if( diff == CHANGED_FLIPROTBITS && (!force) ) {
             parent_rh->broadcastUS1UI1UC1( PACKETTYPE_S2C_PROP2D_FLIPROTBITS, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].fliprotbits );
         } else if( diff == CHANGED_OPTBITS && (!force) ) {
@@ -1518,6 +1518,10 @@ void RemoteHead::broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, ui
     CLIENT_ITER_SEND sendUS1UI3( it->second, usval, ui0, ui1, ui2 );
     REPRECATOR_ITER_SEND sendUS1UI3( it->second, usval, ui0, ui1, ui2 );
 }
+void RemoteHead::broadcastUS1UI4( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3 ) {
+    CLIENT_ITER_SEND sendUS1UI4( it->second, usval, ui0, ui1, ui2, ui3 );
+    REPRECATOR_ITER_SEND sendUS1UI4( it->second, usval, ui0, ui1, ui2, ui3 );
+}
 void RemoteHead::broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters ) {
     CLIENT_ITER_SEND sendUS1UI1Wstr( it->second, usval, uival, wstr, wstr_num_letters );
     REPRECATOR_ITER_SEND sendUS1UI1Wstr( it->second, usval, uival, wstr, wstr_num_letters );
@@ -1545,6 +1549,14 @@ void RemoteHead::nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, fl
         sendUS1UI1F2( cl, usval, uival, f0, f1 );
     }
     REPRECATOR_ITER_SEND sendUS1UI1F2( it->second, usval, uival, f0, f1 );
+}
+void RemoteHead::nearcastUS1UI3( Prop2D *p, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
+    POOL_SCAN(cl_pool,Client) {
+        Client *cl = it->second;
+        if(cl->canSee(p)==false) continue;
+        sendUS1UI3( cl, usval, ui0, ui1, ui2 );
+    }
+    REPRECATOR_ITER_SEND sendUS1UI3( it->second, usval, ui0, ui1, ui2 );
 }
 void RemoteHead::nearcastUS1UI1F4( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 ) {
     POOL_SCAN(cl_pool,Client) {
@@ -1581,7 +1593,7 @@ void RemoteHead::broadcastSortedChangelist() {
     for(int i=changelist_used-1;i>=0;i--) { // reverse order: biggest first
         //        print("KKK:%d %f",i, changelist[i].p->loc_sync_score);
         ChangeEntry *e = (ChangeEntry*)tosort[i].ptr;
-        nearcastUS1UI1F2( e->p, PACKETTYPE_S2C_PROP2D_LOC, e->pkt->prop_id, e->pkt->loc.x, e->pkt->loc.y );
+        nearcastUS1UI3( e->p, PACKETTYPE_S2C_PROP2D_LOC, e->pkt->prop_id, (int)e->pkt->loc.x, (int)e->pkt->loc.y );
         e->p->loc_sync_score=0;
         sent_n++;
         if( sent_n >= max_send_num )break;

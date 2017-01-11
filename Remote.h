@@ -310,6 +310,7 @@ public:
     void broadcastUS1UI1( uint16_t usval, uint32_t uival );
     void broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );
     void broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
+    void broadcastUS1UI4( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3 );    
     void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
     void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
     void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
@@ -318,6 +319,7 @@ public:
     void broadcastUS1UI1UC1( uint16_t usval, uint32_t uival, uint8_t ucval );
 
     void nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1 );
+    void nearcastUS1UI3( Prop2D *p, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
     void nearcastUS1UI1F4( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );
     
     void broadcastTimestamp();

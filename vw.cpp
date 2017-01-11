@@ -330,8 +330,8 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
         case PACKETTYPE_S2C_PROP2D_LOC:
             {
                 uint32_t propid = get_u32(argdata+0);
-                float x = get_f32(argdata+4);
-                float y = get_f32(argdata+8);
+                int32_t x = get_u32(argdata+4);
+                int32_t y = get_u32(argdata+8);
                 //                print("step1sw: p2dloc: id:%d loc:%f,%f",propid, x,y);
                 Prop2D *p = g_prop2d_pool.get(propid);
                 if(p) {
@@ -340,7 +340,7 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                         if(cl->canSee(p)==false) {
                             continue;
                         } else {
-                            sendUS1UI1F2( cl, PACKETTYPE_S2C_PROP2D_LOC, propid,x,y);
+                            sendUS1UI3( cl, PACKETTYPE_S2C_PROP2D_LOC, propid,(int)x,(int)y);
                         }                    
                     }
                 }
@@ -350,8 +350,8 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             {
                 uint32_t propid = get_u32(argdata+0);
                 uint32_t index = get_u32(argdata+4);
-                float x = get_f32(argdata+8);
-                float y = get_f32(argdata+12);
+                int32_t x = get_u32(argdata+8);
+                int32_t y = get_u32(argdata+12);
                 Prop2D *p = g_prop2d_pool.get(propid);
                 if(p) {
                     POOL_SCAN(g_reproxy->cl_pool,Client) {
@@ -359,7 +359,7 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                         if(cl->canSee(p)==false) {
                             continue;
                         } else {
-                            sendUS1UI2F2( cl, PACKETTYPE_S2C_PROP2D_INDEX_LOC, propid,index,x,y);
+                            sendUS1UI4( cl, PACKETTYPE_S2C_PROP2D_INDEX_LOC, propid,index,x,y);
                         }                    
                     }
                 }                
@@ -599,8 +599,8 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             uint32_t id = get_u32(argdata+0);
             Prop2D *prop = g_prop2d_pool.get(id);
             if(prop) {
-                float x = get_f32(argdata+4);
-                float y = get_f32(argdata+8);
+                int32_t x = get_u32(argdata+4);
+                int32_t y = get_u32(argdata+8);
                 prop->setLoc(x,y);
             }
         }
@@ -611,8 +611,8 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             uint32_t ind = get_u32(argdata+4);
             Prop2D *prop = g_prop2d_pool.get(id);
             if(prop) {
-                float x = get_f32(argdata+8);
-                float y = get_f32(argdata+12);
+                int32_t x = get_u32(argdata+8);
+                int32_t y = get_u32(argdata+12);
                 prop->setLoc(x,y);
                 prop->setIndex(ind);
             }
