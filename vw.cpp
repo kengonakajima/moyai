@@ -336,12 +336,7 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                 Prop2D *p = g_prop2d_pool.get(propid);
                 if(p) {
                     POOL_SCAN(g_reproxy->cl_pool,Client) {
-                        Client *cl = it->second;
-                        if(cl->canSee(p)==false) {
-                            continue;
-                        } else {
-                            sendUS1UI3( cl, PACKETTYPE_S2C_PROP2D_LOC, propid,(int)x,(int)y);
-                        }                    
+                        if(it->second->canSee(p)) sendUS1UI3( it->second, PACKETTYPE_S2C_PROP2D_LOC, propid,(int)x,(int)y);
                     }
                 }
             }
@@ -349,22 +344,32 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
         case PACKETTYPE_S2C_PROP2D_INDEX_LOC:
             {
                 uint32_t propid = get_u32(argdata+0);
-                uint32_t index = get_u32(argdata+4);
-                int32_t x = get_u32(argdata+8);
-                int32_t y = get_u32(argdata+12);
                 Prop2D *p = g_prop2d_pool.get(propid);
                 if(p) {
+                    uint32_t index = get_u32(argdata+4);
+                    int32_t x = get_u32(argdata+8);
+                    int32_t y = get_u32(argdata+12);                    
                     POOL_SCAN(g_reproxy->cl_pool,Client) {
-                        Client *cl = it->second;
-                        if(cl->canSee(p)==false) {
-                            continue;
-                        } else {
-                            sendUS1UI4( cl, PACKETTYPE_S2C_PROP2D_INDEX_LOC, propid,index,x,y);
-                        }                    
+                        if(it->second->canSee(p) ) sendUS1UI4( it->second, PACKETTYPE_S2C_PROP2D_INDEX_LOC, propid,index,x,y);
                     }
                 }                
             }
-            break;// must go to second step switch.
+            break; // must go to second step switch.
+        case PACKETTYPE_S2C_PROP2D_LOC_VEL:
+            {
+                uint32_t id = get_u32(argdata+0);
+                Prop2D *p = g_prop2d_pool.get(id);
+                if(p) {
+                    int32_t lx = get_u32(argdata+4);
+                    int32_t ly = get_u32(argdata+8);
+                    float vx = get_f32(argdata+12);
+                    float vy = get_f32(argdata+16);
+                    POOL_SCAN(g_reproxy->cl_pool,Client) {
+                        if(it->second->canSee(p)) sendUS1UI3F2( it->second, PACKETTYPE_S2C_PROP2D_LOC_VEL, id, lx, ly, vx, vy );
+                    }
+                }
+            }
+            break; // must go to second step switch.
         case PACKETTYPE_S2R_CAMERA_CREATE:
             {
                 uint32_t gclid = get_u32(argdata+0);
