@@ -531,9 +531,12 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             memcpy(&pkt,argdata+4,sizeof(pkt));
             //            prt("s%d ", pkt.prop_id );
 
-
-            if( pkt.debug ||pkt.prop_id==29) print("packettype_prop2d_create! id:%d layer_id:%d parentprop:%d loc:%f,%f scl:%f,%f index:%d tdid:%d col:%.1f,%.1f,%.1f,%.1f", pkt.prop_id, pkt.layer_id, pkt.parent_prop_id, pkt.loc.x, pkt.loc.y, pkt.scl.x, pkt.scl.y, pkt.index, pkt.tiledeck_id , pkt.color.r,pkt.color.g,pkt.color.b,pkt.color.a);
-
+#if 0
+            print("packettype_prop2d_snapshot. id:%d layer_id:%d parentprop:%d loc:%f,%f scl:%f,%f index:%d tdid:%d col:%x,%x,%x,%x",
+                  pkt.prop_id, pkt.layer_id, pkt.parent_prop_id, pkt.loc.x, pkt.loc.y, pkt.scl.x, pkt.scl.y, pkt.index,
+                  pkt.tiledeck_id , pkt.color.r,pkt.color.g,pkt.color.b,pkt.color.a);
+#endif
+            
             Layer *layer = NULL;
             Prop2D *parent_prop = NULL;
             
@@ -583,7 +586,8 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             prop->setXFlip( getXFlipFromFlipRotBits(pkt.fliprotbits) );
             prop->setYFlip( getYFlipFromFlipRotBits(pkt.fliprotbits) );
             prop->setUVRot( getUVRotFromFlipRotBits(pkt.fliprotbits) );
-            Color col( pkt.color.r, pkt.color.g, pkt.color.b, pkt.color.a );
+            Color col;
+            col.fromRGBA( pkt.color.r, pkt.color.g, pkt.color.b, pkt.color.a );
             prop->setColor(col);
             prop->use_additive_blend = pkt.optbits & PROP2D_OPTBIT_ADDITIVE_BLEND;
             if(pkt.shader_id != 0 ) {
