@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script type="text/javascript" src="moyai.js">  </script>
+  <script type="text/javascript">
+  var moyai = null;
+  function connectButton() {
+    moyai = createMoyaiClient("ws://localhost:8888/");
+    moyai.onPacket = function(pkttype,u8ary) {
+      console.log("onpkt t:",pkttype,u8ary);
+    };  
+  }
+  function disconnectButton() {
+    moyai.close();
+  }
+  </script>    
+
+</head>
+<body>
+  <button onclick="connectButton();">Connect</button>
+  <button onclick="disconnectButton();">Disconnect</button>
+</body>
+</html>
+
+
