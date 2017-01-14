@@ -411,7 +411,16 @@ void Layer::delDynamicCamera( Camera *cam ) {
         return;
     }
     dynamic_cameras.del(cam->id);
-    cam->delTargetLayer(this);
+    print("Layer::delDynamicCamera: deleted cam:%d from layer %d",cam->id,id);
+}
+void Layer::delDynamicViewport( Viewport *vp ) {
+    Viewport *v = dynamic_viewports.get(vp->id);
+    if(!v) {
+        print("delDynamicViewport: warning: vp %d not found", vp->id);
+        return;
+    }
+    dynamic_viewports.del(vp->id);
+    print("Layer::delDynamicViewport: deleted vp:%d from layer %d",vp->id, id );
 }
 void Layer::onTrackDynamicCameras() {
     POOL_SCAN(dynamic_cameras, Camera) {

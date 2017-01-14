@@ -29,8 +29,7 @@ ObjectPool<Sound> g_sound_pool;
 
 MoyaiClient *g_moyai_client;        
 FileDepo *g_filedepo;
-uv_stream_t *g_stream;
-Buffer g_recvbuf;
+Stream *g_stream;
 GLFWwindow *g_window;
 
 Viewport *g_local_viewport;
@@ -43,6 +42,7 @@ SoundSystem *g_soundsystem;
 
 uint64_t g_total_read;
 uint64_t g_total_read_count;
+uint64_t g_total_unzipped_bytes;
 uint64_t g_packet_count;
 
 char *g_server_ip_addr = (char*)"127.0.0.1";
@@ -67,8 +67,10 @@ JPEGCoder *g_jc;
 Prop2D *g_video_prop;
 Texture *g_video_tex;
 
-int g_recv_counts[PACKETTYPE_MAX];
-int g_recv_totalcounts[PACKETTYPE_MAX];
+unsigned int g_recv_counts[PACKETTYPE_MAX];
+unsigned int g_recv_totalcounts[PACKETTYPE_MAX];
+unsigned int g_recv_sizes[PACKETTYPE_MAX];
+unsigned int g_recv_totalsizes[PACKETTYPE_MAX];
 
 ReprecationProxy *g_reproxy;
 
@@ -303,7 +305,7 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
 }
 
 
-void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
+void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     g_packet_count++;
     
     // if(g_enable_reprecation) print("funcid:%d l:%d",funcid, argdatalen);
@@ -311,6 +313,8 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
     if(funcid>=0 && funcid<PACKETTYPE_MAX) {
         g_recv_counts[funcid]++;
         g_recv_totalcounts[funcid]++;
+        g_recv_sizes[funcid]+=argdatalen+2+4;        
+        g_recv_totalsizes[funcid]+=argdatalen+2+4;
     }
 
 
@@ -326,18 +330,42 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
         case PACKETTYPE_S2C_PROP2D_LOC:
             {
                 uint32_t propid = get_u32(argdata+0);
-                float x = get_f32(argdata+4);
-                float y = get_f32(argdata+8);
+                int32_t x = get_u32(argdata+4);
+                int32_t y = get_u32(argdata+8);
                 //                print("step1sw: p2dloc: id:%d loc:%f,%f",propid, x,y);
                 Prop2D *p = g_prop2d_pool.get(propid);
                 if(p) {
                     POOL_SCAN(g_reproxy->cl_pool,Client) {
-                        Client *cl = it->second;
-                        if(cl->canSee(p)==false) {
-                            continue;
-                        } else {
-                            sendUS1UI1F2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_PROP2D_LOC, propid,x,y);
-                        }                    
+                        if(it->second->canSee(p)) sendUS1UI3( it->second, PACKETTYPE_S2C_PROP2D_LOC, propid,(int)x,(int)y);
+                    }
+                }
+            }
+            break; // must go to second step switch.
+        case PACKETTYPE_S2C_PROP2D_INDEX_LOC:
+            {
+                uint32_t propid = get_u32(argdata+0);
+                Prop2D *p = g_prop2d_pool.get(propid);
+                if(p) {
+                    uint32_t index = get_u32(argdata+4);
+                    int32_t x = get_u32(argdata+8);
+                    int32_t y = get_u32(argdata+12);                    
+                    POOL_SCAN(g_reproxy->cl_pool,Client) {
+                        if(it->second->canSee(p) ) sendUS1UI4( it->second, PACKETTYPE_S2C_PROP2D_INDEX_LOC, propid,index,x,y);
+                    }
+                }                
+            }
+            break; // must go to second step switch.
+        case PACKETTYPE_S2C_PROP2D_LOC_VEL:
+            {
+                uint32_t id = get_u32(argdata+0);
+                Prop2D *p = g_prop2d_pool.get(id);
+                if(p) {
+                    int32_t lx = get_u32(argdata+4);
+                    int32_t ly = get_u32(argdata+8);
+                    float vx = get_f32(argdata+12);
+                    float vy = get_f32(argdata+16);
+                    POOL_SCAN(g_reproxy->cl_pool,Client) {
+                        if(it->second->canSee(p)) sendUS1UI3F2( it->second, PACKETTYPE_S2C_PROP2D_LOC_VEL, id, lx, ly, vx, vy );
                     }
                 }
             }
@@ -352,7 +380,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                     Camera *cam = g_camera_pool.ensure(camid);
                     cl->target_camera = cam;
                     print(" sending as s2c_camera_create id:%d",camid);
-                    sendUS1UI1( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_CAMERA_CREATE, camid );
+                    sendUS1UI1( cl, PACKETTYPE_S2C_CAMERA_CREATE, camid );
                 } else {
                     print("  client gcl:%d is not found",gclid );
                 }
@@ -367,7 +395,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 Client *cl = g_reproxy->getClientByGlobalId(gclid);
                 if(cl) {
                     print(" sending as s2c_camera_dynamic_layer");
-                    sendUS1UI2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER, camid, layid );
+                    sendUS1UI2( cl, PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER, camid, layid );
                 } else {
                     print(" client gclid:%d is not found", gclid);
                 }
@@ -379,12 +407,12 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 uint32_t camid=get_u32(argdata+4);
                 float x = get_f32(argdata+4+4);
                 float y = get_f32(argdata+4+4+4);
-                print("received s2r_camera_loc. gclid:%d camid:%d (%f,%f)", gclid, camid, x,y );
+                //                print("received s2r_camera_loc. gclid:%d camid:%d (%f,%f)", gclid, camid, x,y );
                 Client *cl = g_reproxy->getClientByGlobalId(gclid);
                 if(cl) {
                     Camera *cam = g_camera_pool.get(camid);
                     if(cam) cam->setLoc(x,y);
-                    sendUS1UI1F2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_CAMERA_LOC, camid, x,y );
+                    sendUS1UI1F2( cl, PACKETTYPE_S2C_CAMERA_LOC, camid, x,y );
                 } else {
                     print("client gclid:%d not found", gclid);
                 }
@@ -400,7 +428,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                     Viewport *vp = g_viewport_pool.ensure(viewport_id);
                     cl->target_viewport = vp;
                     print("  sending as s2c_viewport_create");
-                    sendUS1UI1( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_VIEWPORT_CREATE, viewport_id);
+                    sendUS1UI1( cl, PACKETTYPE_S2C_VIEWPORT_CREATE, viewport_id);
                     //                    Viewport *vp = g_viewport_pool.ensure(viewport_id);                
                     //                    cl->target_viewport = vp;
                 } else {
@@ -417,7 +445,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 Client *cl = g_reproxy->getClientByGlobalId(gclid);
                 if(cl) {
                     print("  sending as s2c_viewport_dyn_layer");
-                    sendUS1UI2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER, vp_id, layid);
+                    sendUS1UI2( cl, PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER, vp_id, layid);
                 } else {
                     print("  client gclid:%d not found", gclid);
                 }
@@ -435,7 +463,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                     Viewport *vp = g_viewport_pool.get(vpid);
                     if(vp) vp->setScale2D(sx,sy);
                     print("sending as s2c_vp_scale");
-                    sendUS1UI1F2( (uv_stream_t*)cl->tcp, PACKETTYPE_S2C_VIEWPORT_SCALE, vpid, sx,sy);
+                    sendUS1UI1F2( cl, PACKETTYPE_S2C_VIEWPORT_SCALE, vpid, sx,sy);
                 } else {
                     print("client gclid:%d not found",gclid);
                 }
@@ -458,13 +486,26 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             double t = (double)(sec) + (double)(usec)/1000000.0f;
             double dt = now() - t;
             g_last_ping_rtt = dt;
-            print("received ping: %u %u dt:%f", sec, usec, dt );
-
+            //            print("received ping: %u %u dt:%f", sec, usec, dt );
         }
         break;
     case PACKETTYPE_TIMESTAMP:
         {
             g_timestamp_count++;
+        }
+        break;
+    case PACKETTYPE_ZIPPED_RECORDS:
+        {
+            //            print("received zipped_records argdatalen:%d", argdatalen );
+            static char unzipout[8*1024*1024];
+            int unzipped_size = memDecompressSnappy( unzipout, sizeof(unzipout), argdata, argdatalen );
+            bool pushed = s->unzipped_recvbuf.push(unzipout,unzipped_size);
+            if(!pushed) {
+                print("unzipped_recvbuf full?");
+                break;
+            }
+            //            print("pushed to unzipped_recvbuf. used:%d", s->unzipped_recvbuf.used);
+            g_total_unzipped_bytes += unzipped_size;
         }
         break;
 
@@ -490,9 +531,12 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             memcpy(&pkt,argdata+4,sizeof(pkt));
             //            prt("s%d ", pkt.prop_id );
 
-
-            if( pkt.debug ||pkt.prop_id==29) print("packettype_prop2d_create! id:%d layer_id:%d parentprop:%d loc:%f,%f scl:%f,%f index:%d tdid:%d col:%.1f,%.1f,%.1f,%.1f", pkt.prop_id, pkt.layer_id, pkt.parent_prop_id, pkt.loc.x, pkt.loc.y, pkt.scl.x, pkt.scl.y, pkt.index, pkt.tiledeck_id , pkt.color.r,pkt.color.g,pkt.color.b,pkt.color.a);
-
+#if 0
+            print("packettype_prop2d_snapshot. id:%d layer_id:%d parentprop:%d loc:%f,%f scl:%f,%f index:%d tdid:%d col:%x,%x,%x,%x",
+                  pkt.prop_id, pkt.layer_id, pkt.parent_prop_id, pkt.loc.x, pkt.loc.y, pkt.scl.x, pkt.scl.y, pkt.index,
+                  pkt.tiledeck_id , pkt.color.r,pkt.color.g,pkt.color.b,pkt.color.a);
+#endif
+            
             Layer *layer = NULL;
             Prop2D *parent_prop = NULL;
             
@@ -504,7 +548,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 if(!parent_prop) {
                     print("Warning: prop:%d can't find parent prop:%d", pkt.prop_id, pkt.parent_prop_id );
                 } else {
-                    print("PARENT:%d FOUND, chld[0]:%p chn:%d", pkt.parent_prop_id, parent_prop->children[0], parent_prop->children_num);
+                    //                    print("PARENT:%d FOUND, chld[0]:%p chn:%d", pkt.parent_prop_id, parent_prop->children[0], parent_prop->children_num);
                 }
             }
             if( !(layer || parent_prop ) ) {
@@ -539,10 +583,11 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             prop->setScl( Vec2(pkt.scl.x,pkt.scl.y) );
             prop->setLoc( Vec2(pkt.loc.x, pkt.loc.y) );
             prop->setRot( pkt.rot );
-            prop->setXFlip( pkt.xflip );
-            prop->setYFlip( pkt.yflip );
-            prop->setUVRot( pkt.uvrot );
-            Color col( pkt.color.r, pkt.color.g, pkt.color.b, pkt.color.a );
+            prop->setXFlip( getXFlipFromFlipRotBits(pkt.fliprotbits) );
+            prop->setYFlip( getYFlipFromFlipRotBits(pkt.fliprotbits) );
+            prop->setUVRot( getUVRotFromFlipRotBits(pkt.fliprotbits) );
+            Color col;
+            col.fromRGBA( pkt.color.r, pkt.color.g, pkt.color.b, pkt.color.a );
             prop->setColor(col);
             prop->use_additive_blend = pkt.optbits & PROP2D_OPTBIT_ADDITIVE_BLEND;
             if(pkt.shader_id != 0 ) {
@@ -563,9 +608,22 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             uint32_t id = get_u32(argdata+0);
             Prop2D *prop = g_prop2d_pool.get(id);
             if(prop) {
-                float x = get_f32(argdata+4);
-                float y = get_f32(argdata+8);
+                int32_t x = get_u32(argdata+4);
+                int32_t y = get_u32(argdata+8);
                 prop->setLoc(x,y);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_INDEX_LOC:
+        {
+            uint32_t id = get_u32(argdata+0);
+            uint32_t ind = get_u32(argdata+4);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                int32_t x = get_u32(argdata+8);
+                int32_t y = get_u32(argdata+12);
+                prop->setLoc(x,y);
+                prop->setIndex(ind);
             }
         }
         break;
@@ -574,8 +632,8 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             uint32_t id = get_u32(argdata+0);
             Prop2D *prop = g_prop2d_pool.get(id);
             if(prop) {
-                float lx = get_f32(argdata+4);
-                float ly = get_f32(argdata+8);
+                int32_t lx = get_u32(argdata+4);
+                int32_t ly = get_u32(argdata+8);
                 float vx = get_f32(argdata+12);
                 float vy = get_f32(argdata+16);                
                 prop->setLoc(lx,ly);
@@ -627,25 +685,17 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             }
         }
         break;
-    case PACKETTYPE_S2C_PROP2D_XFLIP:
+    case PACKETTYPE_S2C_PROP2D_FLIPROTBITS:
         {
             uint32_t id = get_u32(argdata+0);
+            uint8_t bits = argdata[4];
             Prop2D *prop = g_prop2d_pool.get(id);
             if(prop) {
-                uint32_t xfl = get_u32(argdata+4);
+                bool xfl,yfl,uvr;
+                fromFlipRotBits(bits,&xfl,&yfl,&uvr);
                 prop->setXFlip(xfl);
-                prt("XFL ");
-            }
-        }
-        break;
-    case PACKETTYPE_S2C_PROP2D_YFLIP:
-        {
-            uint32_t id = get_u32(argdata+0);
-            Prop2D *prop = g_prop2d_pool.get(id);
-            if(prop) {
-                uint32_t yfl = get_u32(argdata+4);
                 prop->setYFlip(yfl);
-                prt("YFL ");
+                prop->setUVRot(uvr);
             }
         }
         break;
@@ -737,7 +787,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
             unsigned int camera_id = get_u32(argdata);
             float x = get_f32(argdata+4);
             float y = get_f32(argdata+4+4);
-            print("received s2c_camera_loc. id:%d (%f,%f)", camera_id, x,y );            
+            //            print("received s2c_camera_loc. id:%d (%f,%f)", camera_id, x,y );            
             Camera *cam = g_camera_pool.get(camera_id);
             assert(cam);
             cam->setLoc(x,y);
@@ -1019,10 +1069,7 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
                 assert( (bytes_num % sizeof(PacketColor)) == 0 );
                 for(int i=0;i<n;i++) {
                     Color outcol;
-                    outcol.r = cols[i].r;
-                    outcol.g = cols[i].g;
-                    outcol.b = cols[i].b;
-                    outcol.a = cols[i].a;
+                    copyPacketColorToColor( &outcol, &cols[i] );
                     g->setColorIndex(i,outcol);
                 }
             }
@@ -1482,19 +1529,29 @@ void on_packet_callback( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_
 }
 
 void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
-    if(nread<=0) {
-        print("read error! closing");
+    //    print("on_data. nread:%d",nread);
+    if(nread<0) {
+        print("read error! st:%d closing..", nread);
         g_done=true;
-    }
+        return;
+    } 
     g_total_read_count ++;
     g_total_read += nread;
 
     if(g_savepath[0]) {
         saveStreamToBuffer(&g_savebuf, buf->base, nread, g_savepath );
     }
-    parseRecord( s, &g_recvbuf, buf->base, nread, on_packet_callback );
+    Stream *stream = (Stream*)s->data;
+    parseRecord( stream, &stream->recvbuf, buf->base, nread, on_packet_callback );
+    parseRecord( stream, &stream->unzipped_recvbuf, NULL, 0, on_packet_callback );
     
 }
+Stream *createStream(uv_tcp_t *tcp, bool compression ) {
+    Stream *out = new Stream( (uv_tcp_t*) tcp, 8*1024, 16*1024*1024,compression);
+    tcp->data=out;
+    return out;
+}
+
 void on_connect( uv_connect_t *connect, int status ) {
     print("on_connect status:%d",status);
     
@@ -1502,8 +1559,7 @@ void on_connect( uv_connect_t *connect, int status ) {
     if(r) {
         print("uv_read_start: fail:%d",r);
     }
-    g_stream = connect->handle;
-    g_recvbuf.ensureMemory(1024*1024*16);
+    g_stream = createStream((uv_tcp_t*)connect->handle, false);
 }
 
 
@@ -1515,7 +1571,7 @@ void printStats() {
     int se_ind=0;
     for(int i=0;i<PACKETTYPE_MAX;i++) {
         if( g_recv_totalcounts[i]==0)continue;
-        se[se_ind].val = g_recv_counts[i];
+        se[se_ind].val = g_recv_sizes[i];
         pktinds[i] = i;
         se[se_ind].ptr = (void*) (&pktinds[i]);
         se_ind++;
@@ -1523,10 +1579,12 @@ void printStats() {
     quickSortF(se,0,se_ind-1);
     for(int i=0;i<se_ind;i++){
         int pkttype = *((int*)se[i].ptr);
-        print("%s %d(%d)", RemoteHead::funcidToString((PACKETTYPE)pkttype), g_recv_counts[pkttype], g_recv_totalcounts[pkttype]);
+        print("%s cnt: %d(%d) sz: %d(%d)",
+              RemoteHead::funcidToString((PACKETTYPE)pkttype),
+              g_recv_counts[pkttype], g_recv_totalcounts[pkttype], g_recv_sizes[pkttype], g_recv_totalsizes[pkttype] );
     }
            
-    for(int i=0;i<elementof(g_recv_counts);i++) g_recv_counts[i]=0;
+    for(int i=0;i<elementof(g_recv_counts);i++) g_recv_counts[i]=g_recv_sizes[i]=0;
 }
 
 bool parseProgramArgs( int argc, char **argv ) {
@@ -1604,9 +1662,9 @@ void setupClient( int win_w, int win_h ) {
     setupDebugStat();    
 }
 
-void reproxy_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
+void reproxy_on_packet_cb( Stream *stream, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     if(!g_reproxy)return;
-    Client *cl = (Client*)s->data;
+    Client *cl = (Client*)stream;
 
     switch(funcid) {
     case PACKETTYPE_PING:
@@ -1649,51 +1707,51 @@ void reproxy_on_packet_cb( uv_stream_t *s, uint16_t funcid, char *argdata, uint3
 }
 
 
-void reproxy_on_close_cb( uv_stream_t *s ) {
-    Client *cl = (Client*)s->data;
+void reproxy_on_close_cb( Stream *s ) {
+    Client *cl = (Client*)s;
     print("reproxy_on_close_cb: sending logout to master.. clid:%d gclid:%d",cl->id, cl->global_client_id);
     sendUS1UI1(g_stream, PACKETTYPE_R2S_CLIENT_LOGOUT, cl->global_client_id);
 }
 
-void reproxy_on_accept_cb( uv_stream_t *newsock ) {
+void reproxy_on_accept_cb( Stream *newstream ) {
     print("reproxy_on_accept_cb");
-    sendWindowSize(newsock,g_window_width,g_window_height);
+    sendWindowSize(newstream,g_window_width,g_window_height);
     // scansendallprereqs
     POOL_SCAN(g_viewport_pool,Viewport) {
         print("sending vp id:%d scl:%f,%f", it->second->id, it->second->scl.x, it->second->scl.y );
-        sendViewportCreateScale(newsock,it->second);
+        sendViewportCreateScale(newstream,it->second);
     }
     POOL_SCAN(g_camera_pool,Camera) {
         print("sending cam id:%d pos:%f,%f",it->second->id, it->second->loc.x, it->second->loc.y );
-        sendCameraCreateLoc(newsock,it->second);
+        sendCameraCreateLoc(newstream,it->second);
     }
     POOL_SCAN(g_layer_pool,Layer) {
-        sendLayerSetup(newsock,it->second);
+        sendLayerSetup(newstream,it->second);
     }
     for(int i=0;i<FileDepo::MAX_FILES;i++) {
         File *f = g_filedepo->getByIndex(i);
         if(f) {
-            int r = sendUS1StrBytes(newsock, PACKETTYPE_S2C_FILE, f->path, f->data, f->data_len );
+            int r = sendUS1StrBytes(newstream, PACKETTYPE_S2C_FILE, f->path, f->data, f->data_len );
             assert(r>0);
         }
     }
     POOL_SCAN(g_image_pool,Image) {
-        sendImageSetup(newsock,it->second);
+        sendImageSetup(newstream,it->second);
     }
     POOL_SCAN(g_texture_pool,Texture) {
-        sendTextureCreateWithImage(newsock,it->second);
+        sendTextureCreateWithImage(newstream,it->second);
     }
     POOL_SCAN(g_tiledeck_pool,TileDeck) {
-        sendDeckSetup(newsock,it->second);
+        sendDeckSetup(newstream,it->second);
     }
     POOL_SCAN(g_font_pool,Font) {
-        sendFontSetupWithFile(newsock,it->second);
+        sendFontSetupWithFile(newstream,it->second);
     }
     POOL_SCAN(g_crshader_pool,ColorReplacerShader) {
-        sendColorReplacerShaderSetup(newsock,it->second);
+        sendColorReplacerShaderSetup(newstream,it->second);
     }
     POOL_SCAN(g_sound_pool,Sound) {
-        sendSoundSetup(newsock,it->second);
+        sendSoundSetup(newstream,it->second);
     }
     
     // scansendallprop2dsnapshots ..
@@ -1706,7 +1764,7 @@ void reproxy_on_accept_cb( uv_stream_t *newsock ) {
         if(p->getParentLayer()) {
             makePacketProp2DSnapshot(&out,p,NULL);
             //            print("sending prop2d_snapshot id:%d", out.prop_id);
-            sendUS1Bytes( newsock, PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&out, sizeof(out));            
+            sendUS1Bytes( newstream, PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&out, sizeof(out));            
         } 
 
         // grids, mostly copied from TrackerGrid. TODO:refactor...
@@ -1732,24 +1790,21 @@ void reproxy_on_accept_cb( uv_stream_t *newsock ) {
                     texofs_table[ind].x = texofs.x;
                     texofs_table[ind].y = texofs.y;
                     Color col = g->getColor(x,y);
-                    color_table[ind].r = col.r;
-                    color_table[ind].g = col.g;
-                    color_table[ind].b = col.b;
-                    color_table[ind].a = col.a;                                
+                    copyColorToPacketColor( &color_table[ind], &col );
                 }
             }
-            sendUS1UI3( newsock, PACKETTYPE_S2C_GRID_CREATE, g->id, g->width, g->height );
+            sendUS1UI3( newstream, PACKETTYPE_S2C_GRID_CREATE, g->id, g->width, g->height );
             int dk_id = 0;
             if(g->deck) dk_id = g->deck->id; else if(p->deck) dk_id = p->deck->id;
-            if(dk_id) sendUS1UI2( newsock, PACKETTYPE_S2C_GRID_DECK, g->id, dk_id );
-            sendUS1UI2( newsock, PACKETTYPE_S2C_GRID_PROP2D, g->id, p->id );    
-            sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, g->id,
+            if(dk_id) sendUS1UI2( newstream, PACKETTYPE_S2C_GRID_DECK, g->id, dk_id );
+            sendUS1UI2( newstream, PACKETTYPE_S2C_GRID_PROP2D, g->id, p->id );    
+            sendUS1UI1Bytes( newstream, PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, g->id,
                                          (const char*) index_table, g->getCellNum() * sizeof(int32_t) );
-            sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_GRID_TABLE_FLIP_SNAPSHOT, g->id,
+            sendUS1UI1Bytes( newstream, PACKETTYPE_S2C_GRID_TABLE_FLIP_SNAPSHOT, g->id,
                                          (const char*) flip_table, g->getCellNum() * sizeof(uint8_t) );
-            sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_GRID_TABLE_TEXOFS_SNAPSHOT, g->id,
+            sendUS1UI1Bytes( newstream, PACKETTYPE_S2C_GRID_TABLE_TEXOFS_SNAPSHOT, g->id,
                                          (const char*) texofs_table, g->getCellNum() * sizeof(Vec2) );
-            sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT, g->id,
+            sendUS1UI1Bytes( newstream, PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT, g->id,
                                          (const char*) color_table, g->getCellNum() * sizeof(PacketColor) );
         }
 
@@ -1760,7 +1815,7 @@ void reproxy_on_accept_cb( uv_stream_t *newsock ) {
             for(int i=0;i<p->prim_drawer->prim_num;i++){
                 copyPrimToPacketPrim( &prims[i], p->prim_drawer->prims[i]);
             }
-            sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT, p->id,
+            sendUS1UI1Bytes( newstream, PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT, p->id,
                              (const char*) prims, p->prim_drawer->prim_num * sizeof(PacketPrim) );
             
         }
@@ -1769,29 +1824,25 @@ void reproxy_on_accept_cb( uv_stream_t *newsock ) {
         for(int i=0;i<p->children_num;i++) {
             Prop2D *chp = p->children[i];
             makePacketProp2DSnapshot(&out,chp,p);
-            sendUS1Bytes( newsock, PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&out, sizeof(out));
+            sendUS1Bytes( newstream, PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&out, sizeof(out));
         }
     }
     POOL_SCAN(g_textbox_pool,TextBox) {
         // copied from trackertextbox::broadcastdiff.. TODO:refactor.
         TextBox *target_tb = it->second;
-        sendUS1UI1( newsock, PACKETTYPE_S2C_TEXTBOX_CREATE, target_tb->id );
-        sendUS1UI2( newsock, PACKETTYPE_S2C_TEXTBOX_LAYER, target_tb->id, target_tb->getParentLayer()->id );        
-        sendUS1UI2( newsock, PACKETTYPE_S2C_TEXTBOX_FONT, target_tb->id, target_tb->font->id );
-        sendUS1UI1Wstr( newsock, PACKETTYPE_S2C_TEXTBOX_STRING, target_tb->id, target_tb->str, target_tb->len_str );
-        sendUS1UI1F2( newsock, PACKETTYPE_S2C_TEXTBOX_LOC, target_tb->id, target_tb->loc.x, target_tb->loc.y );
-        sendUS1UI1F2( newsock, PACKETTYPE_S2C_TEXTBOX_SCL, target_tb->id, target_tb->scl.x, target_tb->scl.y );        
+        sendUS1UI1( newstream, PACKETTYPE_S2C_TEXTBOX_CREATE, target_tb->id );
+        sendUS1UI2( newstream, PACKETTYPE_S2C_TEXTBOX_LAYER, target_tb->id, target_tb->getParentLayer()->id );        
+        sendUS1UI2( newstream, PACKETTYPE_S2C_TEXTBOX_FONT, target_tb->id, target_tb->font->id );
+        sendUS1UI1Wstr( newstream, PACKETTYPE_S2C_TEXTBOX_STRING, target_tb->id, target_tb->str, target_tb->len_str );
+        sendUS1UI1F2( newstream, PACKETTYPE_S2C_TEXTBOX_LOC, target_tb->id, target_tb->loc.x, target_tb->loc.y );
+        sendUS1UI1F2( newstream, PACKETTYPE_S2C_TEXTBOX_SCL, target_tb->id, target_tb->scl.x, target_tb->scl.y );        
         PacketColor pc;
-        pc.r = target_tb->color.r;
-        pc.g = target_tb->color.g;
-        pc.b = target_tb->color.b;
-        pc.a = target_tb->color.a;        
-        sendUS1UI1Bytes( newsock, PACKETTYPE_S2C_TEXTBOX_COLOR, target_tb->id, (const char*)&pc, sizeof(pc) );            
+        copyColorToPacketColor(&pc, &target_tb->color );
+        sendUS1UI1Bytes( newstream, PACKETTYPE_S2C_TEXTBOX_COLOR, target_tb->id, (const char*)&pc, sizeof(pc) );            
     }
 
-    Client *cl = (Client*)newsock->data;
     print("sending client_login to master server");
-    sendUS1UI1(g_stream, PACKETTYPE_R2S_CLIENT_LOGIN, cl->id );
+    sendUS1UI1(g_stream, PACKETTYPE_R2S_CLIENT_LOGIN, newstream->id );
 }
 
 int main( int argc, char **argv ) {
@@ -1844,13 +1895,12 @@ int main( int argc, char **argv ) {
     
     g_done = false;
     while( !g_done ) {
-        
         static double last_poll_at = now();
         double t = now();
         double dt = t - last_poll_at;
 
-        uv_run_times(100);
-        
+        uv_run_times(10);
+        if( g_reproxy ) g_reproxy->heartbeat();
         if( g_moyai_client && g_enable_reprecation==false ) {
             if( glfwWindowShouldClose(g_window) ) {
                 g_done = true;
@@ -1873,9 +1923,10 @@ int main( int argc, char **argv ) {
                 last_total_read = g_total_read;
                 last_total_read_at = t;
             }
-            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d bpp:%.1f",
+            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d B/p:%.1f B/r:%.1f sbused:%d comp:%.3f",
                         polled, rendered, kbps, g_last_ping_rtt*1000,g_timestamp_count, g_total_read_count,
-                        (float)g_total_read/(float)g_packet_count );
+                        (float)g_total_read/(float)g_packet_count, (float)g_total_read/(float)g_total_read_count,
+                        g_stream->sendbuf.used, (float)g_total_read/(float)g_total_unzipped_bytes );
             updateDebugStat( fmt.buf );
             if(t>g_last_ping_at+1) {
                 g_last_ping_at = t;
@@ -1887,7 +1938,8 @@ int main( int argc, char **argv ) {
             last_print_stats_at = t;
             printStats();
         }
-        
+
+        if(g_stream) g_stream->flushSendbuf(1024);
         last_poll_at = t;
     }
     if(g_moyai_client) glfwTerminate();

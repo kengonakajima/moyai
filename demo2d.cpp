@@ -295,6 +295,7 @@ public:
         g_pad->getVec(&force);
         v.x = force.x * vel;
         v.y = force.y * vel;
+        if(v.x>0) setXFlip(false); else if( v.x<0) setXFlip(true);
 
         float c = absolute(::sin( accum_time * 2 ) );
         setColor( Color(c,c,c,1));
@@ -632,6 +633,7 @@ void onRemoteMouseCursorCallback( Client *cl, int x, int y ) {
     g_mouse->updateCursorPosition(x,y);
 }
 void gameInit() {
+    print("PacketProp2DSnapshot size:%d",sizeof(PacketProp2DSnapshot));
     qstest();
     optest();
     comptest();
@@ -982,7 +984,7 @@ void gameInit() {
     g_linep = new Prop2D();
     g_narrow_line_prim = g_linep->addLine( Vec2(0,0), Vec2(100,100), Color(1,0,0,1) );
     g_linep->addLine( Vec2(0,0), Vec2(100,-50), Color(0,1,0,1), 5 );
-    g_linep->addRect( Vec2(0,0), Vec2(-150,230), Color(0,0,1,0.5) );
+    g_linep->addRect( Vec2(0,0), Vec2(-150,230), Color(0.2,0,1,0.5) );
     g_linep->setLoc(0,200);
     g_linep->setScl(1.0f);
     g_main_layer->insertProp(g_linep);
@@ -1041,7 +1043,6 @@ void gameFinish() {
 #if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
 int main(int argc, char **argv )
 {
-    
     for(int i=0;;i++) {
         if(!argv[i])break;
         if(strcmp(argv[i], "--headless") == 0 ) g_headless_mode = true;
