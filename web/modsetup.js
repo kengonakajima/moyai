@@ -1,1 +1,1 @@
-var Snappy = require("snappyjs");
+module.exports = require("snappyjs");
