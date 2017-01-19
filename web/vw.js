@@ -1,32 +1,23 @@
 
 var g_ws;
 
-var g_moyai_client = new MoyaiClient();
+var g_moyai_client;
 
 //var g_keyboard = new Keyboard();
 //var g_mouse = new Mouse();
 //var g_pad = new Pad();
 
 
-
-var g_scene = new THREE.Scene();
-var g_renderer = new THREE.WebGLRenderer();
-g_renderer.setPixelRatio( window.devicePixelRatio );
-g_renderer.setSize( window.innerWidth, window.innerHeight );
-g_renderer.autoClear = false;
-
-document.getElementById("screen").appendChild( g_renderer.domElement );
-
 function animate() {
 	requestAnimationFrame( animate );
-	render();
-}
-function render() {
-    console.log("render");
+    if(g_moyai_client) {
+        g_moyai_client.render();
+    }
 }
 
+
 function onWindowResize() {
-    g_renderer.setSize(window.innerWidth, window.innerHeight);
+    g_moyai_client.resize(window.innerWidth, window.innerHeight);
     /*
 	  camera.aspect = width / height;
 	  camera.updateProjectionMatrix();
@@ -79,4 +70,9 @@ function connectButton() {
 function disconnectButton() {
     g_ws.close();
 }
+
+/////////// testing
+
+g_moyai_client = new MoyaiClient(400,400,window.devicePixelRatio);
+document.getElementById("screen").appendChild( g_moyai_client.renderer.domElement );
 
