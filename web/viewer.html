@@ -1,8 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <script type="text/javascript" src="modbundle.js">  </script>  
+  <meta charset="utf-8">  
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+</head>
+<body>  
+  <button onclick="connectButton();">Connect</button>
+  <button onclick="disconnectButton();">Disconnect</button>
+  <div id="screen"></div>
+
+
+  <script type="text/javascript" src="modbundle.js">  </script>
+  <script type="text/javascript" src="three.js"> </script>
   <script type="text/javascript" src="moyai.js">  </script>  
   <script type="text/javascript">
   var moyai = null;
@@ -14,10 +23,7 @@
   }
   </script>    
 
-</head>
-<body>
-  <button onclick="connectButton();">Connect</button>
-  <button onclick="disconnectButton();">Disconnect</button>
+  
 </body>
 </html>
 

@@ -215,3 +215,61 @@ console.log(decompu8);
 
     return ws;
 }
+
+//////////////////////////////////////////////////////////////
+
+function onWindowResize() {
+
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+/*
+	camera.aspect = width / height;
+	camera.updateProjectionMatrix();
+
+	cameraOrtho.left = - width / 2;
+	cameraOrtho.right = width / 2;
+	cameraOrtho.top = height / 2;
+	cameraOrtho.bottom = - height / 2;
+	cameraOrtho.updateProjectionMatrix();
+
+	updateHUDSprites();
+    */
+	renderer.setSize( window.innerWidth, window.innerHeight );
+
+}
+
+
+var scene;
+var renderer;
+
+function init() {
+    var w = window.innerWidth;
+    var h = window.innerHeight;
+    
+    console.log("init() called, ",w,h);
+
+    scene = new THREE.Scene();
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( w, h );
+    renderer.autoClear = false;
+
+    console.log("document",document, document.body);
+//    document.body.appendChild( renderer.domElement );
+    document.getElementById("screen").appendChild( renderer.domElement );
+    window.addEventListener( "resize", onWindowResize, false );
+    
+}
+function animate() {
+	requestAnimationFrame( animate );
+	render();
+}
+function render() {
+    console.log("render");
+}
+
+
+
+init();
+animate();
