@@ -66,23 +66,38 @@ var g_viewport = new Viewport();
 g_viewport.setSize(400,400);
 g_viewport.setScale2D(400,400);
 
-g_main_layer = new Layer();
+var g_main_layer = new Layer();
 g_moyai_client.insertLayer(g_main_layer);
 g_main_layer.setViewport(g_viewport);
 
+var g_hud_layer = new Layer();
+g_moyai_client.insertLayer(g_hud_layer);
+g_hud_layer.setViewport(g_viewport);
+
+var g_camera = new Camera();
+g_camera.setLoc(0,0);
+g_main_layer.setCamera(g_camera);
+
+var g_filedepo = new FileDepo();
+g_filedepo.ensure("base.png",base_png);
+g_filedepo.ensure("blobloblll.wav", blobloblll_wav );
+//g_filedepo.ensure("cinecaption227.ttf", cinecaption227_ttf );
+g_filedepo.ensure("dragon8.png", dragon8_png );
+g_filedepo.ensure("font_only.png", font_only_png );
+//g_filedepo.ensure("gymno1short.wav", gymno1short_wav );
+
+
+
+console.log("PNG",PNG);
+
+var g_base_atlas = new Texture();
+g_base_atlas.loadPNGMem( base_png );
+g_base_deck = new TileDeck();
+g_base_deck.setTexture(g_base_atlas);
+g_base_deck.setSize(32,32,8,8 );
+
+    
 /*
-    
-
-
-
-    g_hud_layer = new Layer();
-    g_moyai_client->insertLayer(g_hud_layer);
-    g_hud_layer->setViewport(g_viewport);
-    g_hud_layer->setCallbackFunc(drawCallback);
-    
-    g_camera = new Camera();
-    g_camera->setLoc(0,0);
-    g_main_layer->setCamera(g_camera);
 
     // atlas
     g_base_atlas = new Texture();

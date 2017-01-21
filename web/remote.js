@@ -187,3 +187,33 @@ function createWSClient(url) {
 }
 
 
+//////////////////
+function File(path,u8adata) {
+    this.path = path;
+    this.data = new Uint8Array(u8adata.length);
+    for(var i in u8adata) this.data[i]=u8adata[i];
+}
+File.prototype.comparePath = function(path) {
+    return (this.path==path);
+}
+function FileDepo() {
+    this.files=[];
+}
+FileDepo.prototype.get = function(path) {
+    for(var i in this.files) {
+        if( this.files[i].comparePath(path) ) {
+            return this.files[i];
+        }
+    }
+    return null;
+}
+FileDepo.prototype.ensure = function(path,u8data) {
+    var found = this.get(path);
+    if(found!=null) return found;
+    var f = new File(path,u8data);
+    this.files.push(f);
+}
+FileDepo.prototype.getByIndex = function(ind) {
+    return this.files[ind];
+}
+
