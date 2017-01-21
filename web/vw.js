@@ -96,59 +96,49 @@ g_base_deck = new TileDeck();
 g_base_deck.setTexture(g_base_atlas);
 g_base_deck.setSize(32,32,8,8 );
 
-    
+var g_bmpfont_atlas = new Texture();
+g_bmpfont_atlas.loadPNGMem(font_only_png);
+g_bmpfont_deck = new TileDeck();
+g_bmpfont_deck.setTexture( g_bmpfont_atlas );
+g_bmpfont_deck.setSize(32,32, 8,8 );
+
+
+var tmplayer = new Layer();
+g_moyai_client.insertLayer(tmplayer);
+tmplayer.setViewport(g_viewport);
+
+var t = new Texture();
+t.loadPNGMem( base_png );
+var t2 = new Texture();
+t2.loadPNGMem( base_png );
+
+var deck = new TileDeck();
+deck.setTexture(t);
+deck.setSize(32,32,8,8);
+var d2 = new TileDeck();
+d2.setTexture(t2);
+d2.setSize(32,32,8,8 );
+
+var sclp = new Prop2D();
+sclp.setDeck(deck);
+sclp.setIndex(1);
+sclp.setScl(16,16);
+sclp.setLoc(-200,0);
+sclp.setRot( Math.PI/8.0 );
+g_main_layer.insertProp(sclp);
+
+var sclprot = new Prop2D();
+sclprot.setDeck(deck);
+sclprot.setIndex(0);
+sclprot.setScl(16,16);
+sclprot.setLoc(-300,0);
+sclprot.setRot( Math.PI/8 );
+sclprot.setUVRot(true);
+g_main_layer.insertProp(sclprot);    
+
+
 /*
 
-    // atlas
-    g_base_atlas = new Texture();
-    g_base_atlas->load("./assets/base.png");
-    g_base_deck = new TileDeck();
-    g_base_deck->setTexture(g_base_atlas);
-    g_base_deck->setSize(32,32,8,8 );
-
-    g_bmpfont_atlas = new Texture();
-    g_bmpfont_atlas->load("./assets/font_only.png");
-    g_bmpfont_deck = new TileDeck();
-    g_bmpfont_deck->setTexture( g_bmpfont_atlas );
-    g_bmpfont_deck->setSize(32,32, 8,8 );
-
-    //    
-    Layer *tmplayer = new Layer();
-    g_moyai_client->insertLayer(tmplayer);
-    tmplayer->setViewport(g_viewport);
-
-    Texture *t = new Texture();
-    t->load( "./assets/base.png" );
-
-    Texture *t2 = new Texture();
-    t2->load( "./assets/base.png" );
-    
-    TileDeck *deck = new TileDeck();
-    deck->setTexture(t);
-    deck->setSize(32,32,8,8);
-    TileDeck *d2 = new TileDeck();
-    d2->setTexture(t2);
-    d2->setSize(32,32,8,8 );
-
-    Prop2D *sclp = new Prop2D();
-    sclp->setDeck(deck);
-    sclp->setIndex(1);
-    sclp->setScl(16,16);
-    sclp->setLoc(-200,0);
-    sclp->seekScl( 128,128, 8);
-    sclp->setRot( M_PI/8 );
-    g_main_layer->insertProp(sclp);
-
-    Prop2D *sclprot = new Prop2D();
-    sclprot->setDeck(deck);
-    sclprot->setIndex(0);
-    sclprot->setScl(16,16);
-    sclprot->setLoc(-300,0);
-    sclprot->seekScl( 128,128, 8);
-    sclprot->setRot( M_PI/8 );
-    sclprot->seekRot( M_PI*2, 4 );
-    sclprot->setUVRot(true);
-    g_main_layer->insertProp(sclprot);    
 
     Prop2D *colp = new Prop2D();
     colp->setColor(1,0,0,1);

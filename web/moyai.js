@@ -71,7 +71,7 @@ function Layer() {
 }
 Layer.prototype.setViewport = function(vp) { this.viewport = vp; }
 Layer.prototype.setCamera = function(cam) { this.camera = cam; }
-
+Layer.prototype.insertProp = function(p) { this.props.push(p); }
 
 /////////////////////
 Image.prototype.id_gen = 1;
@@ -115,6 +115,8 @@ TileDeck.prototype.setSize = function(sprw,sprh,cellw,cellh) {
 TileDeck.prototype.setTexture = function(tex) {
     this.tex = tex;
 }
+
+
 /*
     virtual float getUperCell() { return (float) cell_width / (float) image_width; }
     virtual float getVperCell() { return (float) cell_height / (float) image_height; }    
@@ -140,3 +142,27 @@ TileDeck.prototype.setTexture = function(tex) {
 		*y1 = start_y + cell_height;
 	}
     */
+
+
+
+
+
+//////////////////
+
+Prop2D.prototype.id_gen=1;
+function Prop2D() {
+    this.id=this.id_gen++;
+    this.index = 0;
+    this.scl = new Vec2(16,16);
+    this.loc = new Vec2(0,0);
+    this.rot = 0;
+    this.deck = null;
+    this.uvrot = false;
+}
+Prop2D.prototype.setDeck = function(dk) { this.deck = dk; }
+Prop2D.prototype.setIndex = function(ind) { this.index = ind; }
+Prop2D.prototype.setScl = function(x,y) { this.scl.x=x; this.scl.y=y; }
+Prop2D.prototype.setLoc = function(x,y) { this.loc.x=x; this.loc.y=y; }
+Prop2D.prototype.setRot = function(r) { this.rot=r; }
+Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg;}
+
