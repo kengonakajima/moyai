@@ -153,48 +153,44 @@ statprimp.addLine(Vec2(0,0),Vec2(1,1),Color(1,1,1,1), 3);
 statprimp.setLoc(100,-100);
 g_main_layer.insertProp(statprimp);
 
+// static grids
+var p = new Prop2D();
+p.setDeck(d2);
+p.setScl(24,24);
+p.setLoc(-100,-300);
+var g = new Grid(8,8);
+g.setDeck(d2);
+var iii=1;
+for(var x=0;x<8;x++){
+    for(var y=0;y<8;y++){
+        g.set(x,y,iii % 3);
+        g.setColor( x,y, new Color(range(0.5,1), range(0.5,1), range(0.5,1), range(0.5,1) ));
+        if(x==0) g.setXFlip(x,y,true);
+        if(x==1) g.setYFlip(x,y,true);
+        if(x==2) g.setUVRot(x,y,true);
+        if(x==3) {
+            var ofs = new Vec2(0.5,0.5);
+            g.setTexOffset(x,y,ofs);
+        }
+        iii++;
+    }
+}
+p.addGrid(g);
+g_main_layer.insertProp(p);
+
+var p2 = new Prop2D();
+p2.setColor(1,1,0,0.5);
+p2.setDeck(d2);
+p2.setScl(12,12);
+p2.setLoc(-100,100);
+p2.addGrid(g);
+tmplayer.insertProp(p2);
+    
+
+    
+
 /*
 
-
-
-
-    // static grids
-    {
-        Prop2D *p = new Prop2D();
-        p->setDeck(d2);
-        p->setScl(24,24);
-        p->setLoc(-100,-300);
-        Grid *g = new Grid(8,8);
-        g->setDeck(d2);
-        int iii=1;
-        for(int x=0;x<8;x++){
-            for(int y=0;y<8;y++){
-                g->set(x,y,iii % 3);
-                g->setColor( x,y, Color(range(0.5,1), range(0.5,1), range(0.5,1), range(0.5,1) ));
-                if(x==0) g->setXFlip(x,y,true);
-                if(x==1) g->setYFlip(x,y,true);
-                if(x==2) g->setUVRot(x,y,true);
-                if(x==3) {
-                    Vec2 ofs(0.5,0.5);
-                    g->setTexOffset(x,y,&ofs);
-                }
-                iii++;
-            }
-        }
-        p->addGrid(g);
-        g_main_layer->insertProp(p);
-
-        Prop2D *p2 = new Prop2D();
-        p2->setColor(1,1,0,0.5);
-        p2->setDeck(d2);
-        p2->setScl(12,12);
-        p2->setLoc(-100,100);
-        p2->addGrid(g);
-        tmplayer->insertProp(p2);
-    }
-    
-
-    
 
     int bulletinds[] = { ATLAS_BULLET0, ATLAS_BULLET0+1, ATLAS_BULLET0+2,ATLAS_BULLET0+3};
     g_bullet_anim_curve = new AnimCurve( 0.2, true, bulletinds, elementof(bulletinds));

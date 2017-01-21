@@ -192,6 +192,8 @@ function Prop2D() {
     this.uvrot = false;
     this.color = new Color(1,1,1,1);
     this.prim_drawer = null;
+    this.grids=null;
+    this.visible=true;
 }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; }
@@ -204,4 +206,109 @@ Prop2D.prototype.addLine = function(p0,p1,col,w) {
     if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
     this.prim_drawer.addLine(p0,p1,col,w);
 }
+Prop2D.prototype.addGrid = function(g) {
+    if(!this.grids) this.grids=[];
+    this.grids.push(g);
+}
 
+////////////////////////////
+
+Grid.prototype.id_gen=1;
+function Grid(w,h) {
+    this.id=this.id_gen++;
+    this.width=w;
+    this.height=h;
+    this.index_table=null;
+    this.xflip_table=null;
+    this.yflip_table=null;
+    this.texofs_table=null;
+    this.rot_table=null;
+    this.color_table=null;
+    this.deck=null;
+    this.fragment_shader=null;
+    this.visible=true;
+    this.enfat_epsilon=0;
+    this.parent_prop=null;
+    this.mesh=null;
+}
+Grid.prototype.setDeck =function(dk) { this.deck=dk;}
+Grid.prototype.index = function(x,y) { return x+y*this.width; }
+Grid.prototype.getCellNum = function() { return this.width * this.height; }
+Grid.prototype._fill = function(tbl,val) {
+    for(var y=0;y<this.height;y++) {
+        for(var x=0;x<this.width;x++) {
+            tbl[x+y*this.width] = val;
+        }
+    }
+}
+var GRID_NOT_USED = -1;
+Grid.prototype.set = function(x,y,ind) {
+    if(!this.index_table) this.index_table=[];
+}
+Grid.prototype.get  =function(x,y) {
+    if(!this.index_table) return GRID_NOT_USED;
+    return this.index_table[ this.index(x,y) ];
+}
+Grid.prototype.bulkSetIndex = function(inds) {
+    if(!this.index_table) this.index_table=[];
+    for(var i in this.index_table) this.index_table[i] = inds[i];
+}
+Grid.prototype.setXFlip = function(x,y,flg) {
+    if(!this.xflip_table) this.xflip_table=[];
+    this.xflip_table[this.index(x,y)]=flg;    
+}
+Grid.prototype.getXFlip = function(x,y) {
+    if(!this.xflip_table) return false;
+    return this.xflip_table[this.index(x,y)];
+}
+Grid.prototype.setYFlip = function(x,y,flg) {
+    if(!this.yflip_table) this.yflip_table=[];
+    this.yflip_table[this.index(x,y)]=flg;    
+}
+Grid.prototype.getYFlip = function(x,y) {
+    if(!this.yflip_table) return false;
+    return this.yflip_table[this.index(x,y)];
+}
+Grid.prototype.setTexOffset = function(x,y,uv) {
+    if(!this.texofs_table) this.texofs_table=[];
+    this.texofs_table[this.index(x,y)]=uv;
+}
+Grid.prototype.getTexOffset = function(x,y) {
+    if(!this.texofs_table) return new Vec2(0,0);
+    return this.texofs_table[this.index(x,y)];
+}
+Grid.prototype.setUVRot = function(x,y,flg) {
+    if(!this.rot_table) this.rot_table=[];
+    this.rot_table[this.index(x,y)]=flg;
+}
+Grid.prototype.getUVRot = function(x,y) {
+    if(!this.rot_table) return false;
+    return this.rot_table[this.index(x,y)];
+}
+Grid.prototype.setColor = function(x,y,col) {
+    if(!this.color_table) this.color_table=[];
+    this.color_table[this.index(x,y)]=col;
+}
+Grid.prototype.getColor = function(x,y) {
+    if(!this.color_table) return new Color(1,1,1,1);
+    return this.color_table[this.index(x,y)];
+}
+Grid.prototype.setFragmentShader = function(s) { this.fragment_shader = s; }
+Grid.prototype.setVisible = function(flg) { this.visible=flg; }
+Grid.prototype.getVisible = function() { return this.visible; }
+Grid.prototype.clear = function(x,y) {
+    if(x== (void 0) ) {
+        if(this.index_table) this._fill(this.index_table,GRID_NOT_USED);
+    } else {
+        this.set(x,y,GRID_NOT_USED);
+    }    
+}
+Grid.prototype.fillColor = function(c) {
+    if(this.color_table) {
+        for(var y=0;y<this.height;y++) {
+            for(var x=0;x<this.width;x++) {
+                this.color_table[this.index(x,y)] = new Color(c.r,c.g,c.b,c.a);
+            }
+        }
+    }
+}
