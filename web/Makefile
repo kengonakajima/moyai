@@ -1,8 +1,9 @@
 all:
-	browserify modsetup.js -o modbundle.js --s Snappy
+	browserify modsetup.js -o modbundle.js 
 
 wsf:
 	node node_modules/websockify/websockify.js 8888 localhost:22222
+
 
 toarray:
 	node toarray.js ../assets/base.png > assets/base.png.js
