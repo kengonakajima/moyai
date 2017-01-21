@@ -1,6 +1,14 @@
 // moyai js port
 
-
+function range(a,b) {
+    var small=a,big=b;
+    if(big<small) {
+        var tmp = big;
+        big=small;
+        small=tmp;
+    }
+    return (small + (big-small)*Math.random());
+}
 
 function Vec2(x,y) {                                                                                                  
     this.x = x;                                                                                                       
@@ -144,8 +152,32 @@ TileDeck.prototype.setTexture = function(tex) {
     */
 
 
+///////
 
+var PRIMTYPE_NONE = 0;
+var PRIMTYPE_LINE = 1;
+var PRIMTYPE_RECTANGLE = 2;
 
+Prim.prototype.id_gen=1;
+function Prim(t,a,b,col,lw) {
+    this.id=this.id_gen++;
+    this.type = t;
+    this.a=a;
+    this.b=b;
+    this.color=col;
+    if(!lw) lw=1;
+    this.line_width=lw;    
+}
+
+function PrimDrawer() {
+    this.prims=[];
+}
+PrimDrawer.prototype.addLine = function(a,b,col,w) {
+    this.prims.push( new Prim(PRIMTYPE_LINE,a,b,col,w));
+}
+PrimDrawer.prototype.addRect = function(a,b,col,w) {
+    this.prims.push( new Prim(PRIMTYPE_RECTANGLE,a,b,col,w));    
+}
 
 //////////////////
 
@@ -158,6 +190,8 @@ function Prop2D() {
     this.rot = 0;
     this.deck = null;
     this.uvrot = false;
+    this.color = new Color(1,1,1,1);
+    this.prim_drawer = null;
 }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; }
@@ -165,4 +199,9 @@ Prop2D.prototype.setScl = function(x,y) { this.scl.x=x; this.scl.y=y; }
 Prop2D.prototype.setLoc = function(x,y) { this.loc.x=x; this.loc.y=y; }
 Prop2D.prototype.setRot = function(r) { this.rot=r; }
 Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg;}
+Prop2D.prototype.setColor = function(r,g,b,a) { this.color = new Color(r,g,b,a); }
+Prop2D.prototype.addLine = function(p0,p1,col,w) {
+    if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
+    this.prim_drawer.addLine(p0,p1,col,w);
+}
 

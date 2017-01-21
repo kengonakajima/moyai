@@ -137,24 +137,26 @@ sclprot.setUVRot(true);
 g_main_layer.insertProp(sclprot);    
 
 
+var colp = new Prop2D();
+colp.setColor(1,0,0,1);
+colp.setDeck(d2);
+colp.setIndex(1);
+colp.setScl(24,24);
+colp.setLoc( range(-100,100), range(-100,100));
+g_main_layer.insertProp(colp);
+
+var statprimp = new Prop2D(); // a prop that has a prim with no changes
+statprimp.setDeck(g_base_deck);
+statprimp.setIndex(1);
+statprimp.setColor(0,0,1,1);
+statprimp.addLine(Vec2(0,0),Vec2(1,1),Color(1,1,1,1), 3);
+statprimp.setLoc(100,-100);
+g_main_layer.insertProp(statprimp);
+
 /*
 
 
-    Prop2D *colp = new Prop2D();
-    colp->setColor(1,0,0,1);
-    colp->setDeck(d2);
-    colp->setIndex(1);
-    colp->setScl(24,24);
-    colp->setLoc( range(-100,100), range(-100,100));
-    g_main_layer->insertProp(colp);
 
-    Prop2D *statprimp = new Prop2D(); // a prop that has a prim with no changes
-    statprimp->setDeck(g_base_deck);
-    statprimp->setIndex(1);
-    statprimp->setColor(0,0,1,1);
-    statprimp->addLine(Vec2(0,0),Vec2(1,1),Color(1,1,1,1), 3);
-    statprimp->setLoc(100,-100);
-    g_main_layer->insertProp(statprimp);
 
     // static grids
     {
