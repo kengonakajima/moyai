@@ -59,12 +59,13 @@ animate();
 
 /////////// testing
 
-g_moyai_client = new MoyaiClient(400,400,window.devicePixelRatio);
+var SCRW=700, SCRH=400;
+g_moyai_client = new MoyaiClient(SCRW,SCRH,window.devicePixelRatio);
 document.getElementById("screen").appendChild( g_moyai_client.renderer.domElement );
 
 var g_viewport = new Viewport();
-g_viewport.setSize(400,400);
-g_viewport.setScale2D(400,400);
+g_viewport.setSize(SCRW,SCRH);
+g_viewport.setScale2D(SCRW,SCRH);
 
 var g_main_layer = new Layer();
 g_moyai_client.insertLayer(g_main_layer);
@@ -185,34 +186,28 @@ p2.setScl(12,12);
 p2.setLoc(-100,100);
 p2.addGrid(g);
 tmplayer.insertProp(p2);
-    
 
-    
+
+// alpha
+var dragontex = new Texture();
+dragontex.loadPNGMem( dragon8_png );
+
+for(var j=0;j<2;j++) {
+    for(var i=0;i<6;i++) {
+        var p = new Prop2D();
+        p.setTexture(dragontex);
+        p.setScl(32,32);
+        p.setColor(1,1,1,0.3);
+        p.setLoc(-SCRW/2+50 + i * 10,-SCRH/2+70 + (i%2)*10 + j*80);
+        if(j==0) p.use_additive_blend = true;
+        //p->setLoc(-200,-200);
+        g_main_layer.insertProp(p);
+    }
+}
+        
 
 /*
 
-
-    int bulletinds[] = { ATLAS_BULLET0, ATLAS_BULLET0+1, ATLAS_BULLET0+2,ATLAS_BULLET0+3};
-    g_bullet_anim_curve = new AnimCurve( 0.2, true, bulletinds, elementof(bulletinds));
-    int digitinds[] = { ATLAS_DIGIT0, ATLAS_DIGIT0+1, ATLAS_DIGIT0+2, ATLAS_DIGIT0+3 };
-    g_digit_anim_curve = new AnimCurve( 0.2, false, digitinds, elementof(digitinds));
-    
-
-    Texture *dragontex = new Texture();
-    dragontex->load( "./assets/dragon8.png");
-    for(int j=0;j<2;j++) {
-        for(int i=0;i<6;i++) {
-            Prop2D *p = new Prop2D();
-            p->setTexture(dragontex);
-            p->setScl(32,32);
-            p->setColor(1,1,1,0.3);
-            p->setLoc(-SCRW/2+50 + i * 10,-SCRH/2+70 + (i%2)*10 + j*80);
-            if(j==0) p->use_additive_blend = true;
-            //p->setLoc(-200,-200);
-            g_main_layer->insertProp(p);
-        }
-    }
-        
     ////////////////////
     wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえおぁぃぅぇぉかきくけこがぎぐげごさしすせそざじずぜぞたちつてとだぢづでどなにぬねのはひふへほばびぶべぼぱぴぷぺぽまみむめもやゆよゃゅょらりるれろわをん、。アイウエオァィゥェォカキクケコガギグゲゴサシスセソザジズゼゾタチツテトダヂヅデドナニヌネノハヒフヘホバビブベボパピプペポマミムメモヤユヨャュョラリルレロワヲンーッっ　「」";    
 

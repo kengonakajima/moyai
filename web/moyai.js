@@ -97,6 +97,9 @@ Image.prototype.loadPNGMem = function(u8adata) {
     });
     
 }
+Image.prototype.getSize = function() {
+    return new Vec2(this.width,this.height);
+}
 
 //////////////////////////
 Texture.prototype.id_gen = 1;
@@ -107,7 +110,9 @@ Texture.prototype.loadPNGMem = function(u8adata) {
     this.image = new Image();
     this.image.loadPNGMem(u8adata);
 }
-
+Texture.prototype.getSize = function() {
+    return this.image.getSize();
+}
 
 ///////////////////
 TileDeck.prototype.id_gen = 1;
@@ -194,6 +199,7 @@ function Prop2D() {
     this.prim_drawer = null;
     this.grids=null;
     this.visible=true;
+    this.use_additive_blend = false;
 }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; }
@@ -210,7 +216,14 @@ Prop2D.prototype.addGrid = function(g) {
     if(!this.grids) this.grids=[];
     this.grids.push(g);
 }
-
+Prop2D.prototype.setTexture = function(tex) {
+    var td = new TileDeck();
+    td.setTexture(tex);
+    var sz = tex.getSize();
+    td.setSize(1,1,sz.x,sz.y);
+    this.setDeck(td);
+    this.setIndex(0);    
+}
 ////////////////////////////
 
 Grid.prototype.id_gen=1;
