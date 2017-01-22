@@ -61,7 +61,6 @@ function go() {
 		var y = where;		// baseline
 		for (var n = 0; n < text.length; n++) {
 			var offset = get_bitmap(font, text.charCodeAt(n), sizex, sizey);
-console.log("offset:")                           
 			if (!offset)
 				continue;
 			var width  = get_width();
