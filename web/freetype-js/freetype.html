@@ -4,11 +4,17 @@
 <script type="text/javascript">
 var Module = {
 	preRun:[ function() {
-		Module.FS_createPreloadedFile("/", "Inconsolata.otf",
-								 "Inconsolata.otf", true, false);
+ console.log("prerun..");
+		Module.FS_createPreloadedFile("/", "Inconsolata.otf", "Inconsolata.otf", true, false);
+		Module.FS_createPreloadedFile("/", "OCRA.otf", "OCRA.otf", true, false);
+		Module.FS_createPreloadedFile("/", "OCRB.otf", "OCRB.otf", true, false);
 	} ],
 	postRun:[ function() {
+ console.log("postrun..:", Module.main, Module._main);
+
 		load_font("Inconsolata.otf", "INCONSOLATA", 108);
+		load_font("OCRA.otf", "OCR-A", 108);
+		load_font("OCRB.otf", "OCR-B", 108);
 	} ]
 };
 </script>

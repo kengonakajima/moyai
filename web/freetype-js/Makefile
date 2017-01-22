@@ -5,7 +5,7 @@ SRCS=main.c $(FTDIR)/src/base/ftobjs.c $(FTDIR)/src/base/ftapi.c $(FTDIR)/src/ba
 all: test freetype.js 
 
 freetype.js: Makefile main.c
-	emcc  -DFT2_BUILD_LIBRARY $(INCDIRS) -O2 $(SRCS) -o freetype.js -s EXPORTED_FUNCTIONS="['_load_font','_close_font','_get_bitmap','_get_left','_get_top','_get_width','_get_height','_get_pitch','_get_advance','_monochrome','_find_font']" --memory-init-file 0 
+	emcc  -DFT2_BUILD_LIBRARY $(INCDIRS) -O1 $(SRCS) -o freetype.js -s EXPORTED_FUNCTIONS="['_load_font','_close_font','_get_bitmap','_get_left','_get_top','_get_width','_get_height','_get_pitch','_get_advance','_monochrome','_find_font','_main']"
 
 
 test: main.c Makefile

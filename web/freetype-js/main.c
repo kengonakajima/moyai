@@ -190,6 +190,7 @@ int main() {
 	}
 	names[0] = strdup("OCR-A");
 	names[1] = strdup("OCR-B");
+    printf("main finished\n");
 	return 0;
 }
 
