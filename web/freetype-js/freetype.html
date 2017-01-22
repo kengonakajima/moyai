@@ -8,13 +8,14 @@ var Module = {
 		Module.FS_createPreloadedFile("/", "Inconsolata.otf", "Inconsolata.otf", true, false);
 		Module.FS_createPreloadedFile("/", "OCRA.otf", "OCRA.otf", true, false);
 		Module.FS_createPreloadedFile("/", "OCRB.otf", "OCRB.otf", true, false);
+		Module.FS_createPreloadedFile("/", "cinecaption227.ttf", "cinecaption227.ttf", true, false);
 	} ],
 	postRun:[ function() {
- console.log("postrun..:", Module.main, Module._main);
-
+        console.log("postrun..");
+        Module._main(); // load OCRA,OCRB
 		load_font("Inconsolata.otf", "INCONSOLATA", 108);
-		load_font("OCRA.otf", "OCR-A", 108);
-		load_font("OCRB.otf", "OCR-B", 108);
+		load_font("cinecaption227.ttf", "cinepcation", 108);
+
 	} ]
 };
 </script>
@@ -51,6 +52,7 @@ function go() {
 	render(find_font("OCR-A"), 100);
 	render(find_font("OCR-B"), 200);
 	render(find_font("INCONSOLATA"), 300);
+	render(find_font("cinepcation"), 400);
 
 	ctx.putImageData(id, 0, 0);
 	
@@ -59,6 +61,7 @@ function go() {
 		var y = where;		// baseline
 		for (var n = 0; n < text.length; n++) {
 			var offset = get_bitmap(font, text.charCodeAt(n), sizex, sizey);
+console.log("offset:")                           
 			if (!offset)
 				continue;
 			var width  = get_width();
