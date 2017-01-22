@@ -1,28 +1,39 @@
 <!doctype html>
 <html><head><title>FreeType test</title>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<script type="text/javascript" src="ocrb.otf.js"></script>
 <script type="text/javascript">
 var Module = {
 	preRun:[ function() {
- console.log("prerun..");
+        console.log("prerun..");
 		Module.FS_createPreloadedFile("/", "Inconsolata.otf", "Inconsolata.otf", true, false);
 		Module.FS_createPreloadedFile("/", "OCRA.otf", "OCRA.otf", true, false);
 		Module.FS_createPreloadedFile("/", "OCRB.otf", "OCRB.otf", true, false);
 		Module.FS_createPreloadedFile("/", "cinecaption227.ttf", "cinecaption227.ttf", true, false);
+        var ooo=Module.FS_createDataFile( "/","OCRBMEM.otf", ocrb_otf_u8a, true,true,true);
+        console.log("writefile ret:",ooo);
 	} ],
 	postRun:[ function() {
         console.log("postrun..");
         Module._main(); // load OCRA,OCRB
 		load_font("Inconsolata.otf", "INCONSOLATA", 108);
 		load_font("cinecaption227.ttf", "cinepcation", 108);
+        load_font("OCRBMEM.otf", "ocrbmem",108);
 
-	} ]
+	} ],
+    print: function(msg) {
+        console.log("print:",msg);
+    },
+printError: function(msg) {
+        console.log("print:",msg);
+}
 };
 </script>
 <script type="text/javascript" src="freetype.js"></script>
 <script type="text/javascript">
 var monochrome	= Module.cwrap("monochrome", 'number', ['number']);
 var load_font  = Module.cwrap("load_font", 'number', ['string','string','number']);
+var load_mem_font_c = Module.cwrap("load_mem_font", "number", ['number','number','string','number']);
 var find_font  = Module.cwrap("find_font", 'number', ['string']);
 var get_bitmap = Module.cwrap("get_bitmap", 'number', ['number','number','number','number']);
 var get_width = Module.cwrap("get_width", 'number', []);
@@ -31,6 +42,16 @@ var get_left = Module.cwrap("get_left", 'number', []);
 var get_top = Module.cwrap("get_top", 'number', []);
 var get_advance = Module.cwrap("get_advance", 'number', []);
 
+function load_mem_font(u8a,name,mult) {
+    var nDataBytes = u8a.length;
+    var dataPtr = Module._malloc(nDataBytes);
+    var dataHeap = new Uint8Array(Module.HEAPU8.buffer,dataPtr,nDataBytes);
+    dataHeap.set(new Uint8Array(u8a.buffer));
+    var retval = load_mem_font_c( dataHeap.byteOffset, nDataBytes, name, mult );
+    Module._free(dataHeap.byteOffset);
+    console.log("load_mem_font_c ret:",retval, "debugcode:",Module._get_debug_code());
+    return retval;
+}
 
 function go() {
 
@@ -49,26 +70,32 @@ function go() {
 	// Anti-aliased or monochrome?
 	monochrome(document.getElementById('fontAnti').checked ? 0 : 1);
 
-	render(find_font("OCR-A"), 100);
-	render(find_font("OCR-B"), 200);
-	render(find_font("INCONSOLATA"), 300);
-	render(find_font("cinepcation"), 400);
+//	render(find_font("OCR-A"), 100);
+//	render(find_font("OCR-B"), 200);
+//	render(find_font("INCONSOLATA"), 300);
+	render(find_font("ocrbmem"), 400);
+//	render(find_font("cinepcation"), 500);
 
 	ctx.putImageData(id, 0, 0);
 	
 	function render(font, where) {
+        console.log("render:",font);
 		var x = 10;
 		var y = where;		// baseline
 		for (var n = 0; n < text.length; n++) {
 			var offset = get_bitmap(font, text.charCodeAt(n), sizex, sizey);
-			if (!offset)
+                            console.log("debugcode:", Module._get_debug_code());
+			if (!offset) {
+                console.log("offset is false:",offset, font, sizex, sizey );
 				continue;
+            }
+                            console.log("popopop:",offset);
 			var width  = get_width();
 			var height = get_height();
 			var width4x = cvs.width * 4;
 
 			var buff = Module.HEAPU8.subarray(offset, offset + width * height);
-
+console.log("YYYY",offset);
 			if (n == 0) console.log(text.charAt(n) + ': height=' + height);
 			var l = get_left();
 			var t = get_top();
@@ -104,6 +131,6 @@ function go() {
 			id="fontMono">Monochrome</label>
 </table>
 <br>
-<canvas width=1000 height=500 id="canvas"></canvas>
+<canvas width=1000 height=800 id="canvas"></canvas>
 </body>
 </html>
