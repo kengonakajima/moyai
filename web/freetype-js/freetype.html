@@ -10,16 +10,12 @@ var Module = {
 		Module.FS_createPreloadedFile("/", "OCRA.otf", "OCRA.otf", true, false);
 		Module.FS_createPreloadedFile("/", "OCRB.otf", "OCRB.otf", true, false);
 		Module.FS_createPreloadedFile("/", "cinecaption227.ttf", "cinecaption227.ttf", true, false);
-        var ooo=Module.FS_createDataFile( "/","OCRBMEM.otf", ocrb_otf_u8a, true,true,true);
-        console.log("writefile ret:",ooo);
 	} ],
 	postRun:[ function() {
         console.log("postrun..");
         Module._main(); // load OCRA,OCRB
 		load_font("Inconsolata.otf", "INCONSOLATA", 108);
 		load_font("cinecaption227.ttf", "cinepcation", 108);
-        load_font("OCRBMEM.otf", "ocrbmem",108);
-
 	} ],
     print: function(msg) {
         console.log("print:",msg);
@@ -53,6 +49,15 @@ function load_mem_font(u8a,name,mult) {
     return retval;
 }
 
+function savefontfile() {
+    var ooo=Module.FS_createDataFile( "/","OCRBMEM.otf", ocrb_otf_u8a, true,true,true);
+    console.log("createdatafile ret:",ooo);
+  
+}
+function loadfontfile() {
+    var ooo=load_font("OCRBMEM.otf", "ocrbmem",108);
+    console.log("load_font ret:",ooo);
+}
 function go() {
 
 	var text  = document.getElementById("text").value;
@@ -130,6 +135,9 @@ console.log("YYYY",offset);
 		<label for="fontMono"><input type="radio" name="font" value="M"
 			id="fontMono">Monochrome</label>
 </table>
+<br>
+<button onclick="savefontfile();">savefontfile</button>
+<button onclick="loadfontfile();">loadfontfile</button>
 <br>
 <canvas width=1000 height=800 id="canvas"></canvas>
 </body>
