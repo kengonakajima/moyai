@@ -75,11 +75,11 @@ function go() {
 	// Anti-aliased or monochrome?
 	monochrome(document.getElementById('fontAnti').checked ? 0 : 1);
 
-//	render(find_font("OCR-A"), 100);
-//	render(find_font("OCR-B"), 200);
-//	render(find_font("INCONSOLATA"), 300);
+	render(find_font("OCR-A"), 100);
+	render(find_font("OCR-B"), 200);
+	render(find_font("INCONSOLATA"), 300);
 	render(find_font("ocrbmem"), 400);
-//	render(find_font("cinepcation"), 500);
+	render(find_font("cinepcation"), 500);
 
 	ctx.putImageData(id, 0, 0);
 	
@@ -89,15 +89,14 @@ function go() {
 		var y = where;		// baseline
 		for (var n = 0; n < text.length; n++) {
 			var offset = get_bitmap(font, text.charCodeAt(n), sizex, sizey);
-                            console.log("debugcode:", Module._get_debug_code());
 			if (!offset) {
                 console.log("offset is false:",offset, font, sizex, sizey );
 				continue;
             }
-                            console.log("popopop:",offset);
 			var width  = get_width();
 			var height = get_height();
 			var width4x = cvs.width * 4;
+                            console.log("  w,h:", width,height);
 
 			var buff = Module.HEAPU8.subarray(offset, offset + width * height);
 console.log("YYYY",offset);
@@ -139,6 +138,7 @@ console.log("YYYY",offset);
 <button onclick="savefontfile();">savefontfile</button>
 <button onclick="loadfontfile();">loadfontfile</button>
 <br>
-<canvas width=1000 height=800 id="canvas"></canvas>
+<canvas width=1000 height=1000 id="canvas"></canvas>
+
 </body>
 </html>
