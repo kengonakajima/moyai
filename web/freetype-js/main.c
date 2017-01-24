@@ -94,19 +94,16 @@ int load_mem_font(const char *data, int datalen, const char *name, int mult ) {
 	}
 	if (i == MAX_FACES) {
 		printf("load_mem_font(len:%d,%s): too many fonts!\n", (int)datalen, name);
-        debug_code=111;
 		return -1;
 	}
 
 	error = FT_New_Memory_Face(library, (FT_Byte*)data, datalen, 0, &faces[i]);
 	if (error) {
 		printf("New_Memory_Face(len:%d, %s) Error! %d\n", (int) datalen, name, error);
-        debug_code=112;        
 		return error;
 	}
 	names[i] = strdup(name);
 	mults[i] = mult;
-        debug_code=113;    
 	return 0;
     
 }
@@ -138,8 +135,6 @@ unsigned char* get_bitmap(int font, int ch, int width, int height) {
 	FT_Error	error;
 	FT_Face		face;
 
-    debug_code = 1;
-
 	if (font < 0 || font >= MAX_FACES || !names[font])
 		font = 1;	// Default OCR-B
 
@@ -154,14 +149,13 @@ unsigned char* get_bitmap(int font, int ch, int width, int height) {
 		if (ch >= 'A' && ch <= 'Z')
 			height = (height * 108) / 100;
 	}
-    debug_code = 2;
 	/* 1pt == 1px == 72dpi */
 	error = FT_Set_Char_Size(face, width, height, 72, 0 );
 	if (error) {
 		printf("Set_Char_Size Error! %d\n", error);
 		return 0;
 	}
-    debug_code = 3;
+
 	slot = face->glyph;
 
 	if (face == faces[0] || face == faces[1]) {
@@ -180,24 +174,15 @@ unsigned char* get_bitmap(int font, int ch, int width, int height) {
 		error = FT_Load_Char(face, ch, FT_LOAD_RENDER);
 	if (error) {
 		printf("Load_Char Error! %d\n", error);
-    debug_code = 4;        
 		return 0;
 	}
 
 	if (monomode) {
 		if (mono_unpack(&slot->bitmap) != 0) {
-    debug_code = 5;            
 			return 0;
         }
-    debug_code = 6;        
 		return monomap;
 	}
-    debug_code = 7;
-    if(slot->bitmap.buffer) {
-        debug_code=8;
-    } else {
-        debug_code=9;
-    }
 	return slot->bitmap.buffer;
 }
 
