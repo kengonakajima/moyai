@@ -325,3 +325,59 @@ Grid.prototype.fillColor = function(c) {
         }
     }
 }
+
+/////////////////////
+var FTFuncs={};
+FTFuncs.monochrome	= FTModule.cwrap("monochrome", 'number', ['number']);
+FTFuncs.load_font  = FTModule.cwrap("load_font", 'number', ['string','string','number']);
+FTFuncs.load_mem_font_c = FTModule.cwrap("load_mem_font", "number", ['number','number','string','number']);
+FTFuncs.find_font  = FTModule.cwrap("find_font", 'number', ['string']);
+FTFuncs.get_bitmap = FTModule.cwrap("get_bitmap", 'number', ['number','number','number','number']);
+FTFuncs.get_width = FTModule.cwrap("get_width", 'number', []);
+FTFuncs.get_height = FTModule.cwrap("get_height", 'number', []);
+FTFuncs.get_left = FTModule.cwrap("get_left", 'number', []);
+FTFuncs.get_top = FTModule.cwrap("get_top", 'number', []);
+FTFuncs.get_advance = FTModule.cwrap("get_advance", 'number', []);
+
+
+// freetype-gl's texture_atlas_t
+function TextureAtlas(w,h,depth) {
+    this.width = w;
+    this.height = h;
+    this.depth = depth;
+    this.data = new Uint8Array(w*h*depth);
+    this.tex=null;
+}
+
+Font.prototype.id_gen=1;
+function Font() {
+    this.id=this.id_gen++;
+    this.charcode_table=null;
+    this.font = null;
+	this.atlas = new TextureAtlas( 1024, 1024, 1 );
+    this.charcode_table = [];
+}
+Font.prototype.loadFromMemTTF = function(u8a,codes,pxsz) {
+    if(codes==null) codes = this.charcode_table;
+    this.pixel_size = pxsz;
+
+    this.atlas = new TextureAtlas(1024,1024,1);
+    this.charcode_table=[];
+
+    // savefontして名前をID番号から自動で付けて loadfont する。
+    var fontfile_name = "font_save_"+this.id;
+    var ret = FTModule.FS_createDataFile( "/", fontfile_name, u8a, true,true,true);
+    console.log("saving font id:",this.id, "ret:",ret);
+    var font_name = "font_"+this.id;
+    ret = FTFuncs.load_font( fontfile_name, font_name, 108);
+    console.log("loading font ret:",ret);
+
+
+        
+    // texture_font_load_glyphs( this.font, codes )
+
+    return true;
+    
+}
+
+
