@@ -47,7 +47,7 @@ int load_font(const char* path, const char* name, int mult) {
 	int i;
 
 	// First look for a font with the same name
-	for (i = 2; i < MAX_FACES; i++) {
+	for (i = 0; i < MAX_FACES; i++) {
 		if (names[i] && strcasecmp(names[i], name) == 0) {
 			FT_Done_Face(faces[i]);
 			free(names[i]);
@@ -57,7 +57,7 @@ int load_font(const char* path, const char* name, int mult) {
 		}
 	}
 	if (i == MAX_FACES) {
-		for (i = 2; i < MAX_FACES && names[i]; i++)
+		for (i = 0; i < MAX_FACES && names[i]; i++)
 			;
 	}
 	if (i == MAX_FACES) {
@@ -79,7 +79,7 @@ int load_mem_font(const char *data, int datalen, const char *name, int mult ) {
 	int i;
     
 	// First look for a font with the same name
-	for (i = 2; i < MAX_FACES; i++) {
+	for (i = 0; i < MAX_FACES; i++) {
 		if (names[i] && strcasecmp(names[i], name) == 0) {
 			FT_Done_Face(faces[i]);
 			free(names[i]);
@@ -89,7 +89,7 @@ int load_mem_font(const char *data, int datalen, const char *name, int mult ) {
 		}
 	}
 	if (i == MAX_FACES) {
-		for (i = 2; i < MAX_FACES && names[i]; i++)
+		for (i = 0; i < MAX_FACES && names[i]; i++)
 			;
 	}
 	if (i == MAX_FACES) {
@@ -109,7 +109,7 @@ int load_mem_font(const char *data, int datalen, const char *name, int mult ) {
 }
 
 int close_font(const char* name) {
-	for (int i = 2; i < MAX_FACES; i++) {
+	for (int i = 0; i < MAX_FACES; i++) {
 		if (names[i] && strcasecmp(names[i], name) == 0) {
 			FT_Done_Face(faces[i]);
 			free(names[i]);
@@ -134,9 +134,10 @@ int get_debug_code() { return debug_code; }
 unsigned char* get_bitmap(int font, int ch, int width, int height) {
 	FT_Error	error;
 	FT_Face		face;
-
-	if (font < 0 || font >= MAX_FACES || !names[font])
-		font = 1;	// Default OCR-B
+    debug_code = 1010;
+	if (font < 0 || font >= MAX_FACES || !names[font]) {
+        return 0;
+    }
 
 	face   = faces[font];
 	width  = (width * mults[font] * 64) / 100;
@@ -153,6 +154,7 @@ unsigned char* get_bitmap(int font, int ch, int width, int height) {
 	error = FT_Set_Char_Size(face, width, height, 72, 0 );
 	if (error) {
 		printf("Set_Char_Size Error! %d\n", error);
+        debug_code = 11;
 		return 0;
 	}
 
@@ -174,15 +176,18 @@ unsigned char* get_bitmap(int font, int ch, int width, int height) {
 		error = FT_Load_Char(face, ch, FT_LOAD_RENDER);
 	if (error) {
 		printf("Load_Char Error! %d\n", error);
+        debug_code = 12;        
 		return 0;
 	}
 
 	if (monomode) {
 		if (mono_unpack(&slot->bitmap) != 0) {
+        debug_code = 13;            
 			return 0;
         }
 		return monomap;
 	}
+        debug_code = 14;    
 	return slot->bitmap.buffer;
 }
 
@@ -205,8 +210,18 @@ unsigned get_advance() {
 	return slot->advance.x >> 6;
 }
 
+unsigned init_lib() {
+	FT_Error	  error;
+	error = FT_Init_FreeType(&library);
+	if (error) {
+		printf("Init Error! %d\n", error);
+		return 1;
+	}
+    return 0;
+}
 
 int main() {
+
 	FT_Error	  error;
 
 	error = FT_Init_FreeType(&library);
@@ -214,7 +229,8 @@ int main() {
 		printf("Init Error! %d\n", error);
 		return 1;
 	}
-	error = FT_New_Face(library, "OCRA.otf", 0, &faces[0]);
+    /*
+      error = FT_New_Face(library, "OCRA.otf", 0, &faces[0]);
 	if (error) {
 		printf("New_Face(OCR-A) Error! %d\n", error);
 		return 1;
@@ -227,7 +243,7 @@ int main() {
 	names[0] = strdup("OCR-A");
 	names[1] = strdup("OCR-B");
     printf("main finished\n");
-
+    */
     
 	return 0;
 }

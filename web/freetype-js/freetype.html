@@ -13,9 +13,11 @@ var FTModule = {
 	} ],
 	postRun:[ function() {
         console.log("postrun..");
-        FTModule._main(); // load OCRA,OCRB
-		load_font("Inconsolata.otf", "INCONSOLATA", 108);
-		load_font("cinecaption227.ttf", "cinepcation", 108);
+load_font("OCRA.otf", "OCR-A", 108);
+load_font("OCRB.otf", "OCR-B", 108);
+load_font("Inconsolata.otf", "INCONSOLATA", 108);
+load_font("cinecaption227.ttf", "cinepcation", 108);
+
 	} ],
     print: function(msg) {
         console.log("print:",msg);
@@ -37,6 +39,9 @@ var get_height = FTModule.cwrap("get_height", 'number', []);
 var get_left = FTModule.cwrap("get_left", 'number', []);
 var get_top = FTModule.cwrap("get_top", 'number', []);
 var get_advance = FTModule.cwrap("get_advance", 'number', []);
+
+
+
 
 function load_mem_font(u8a,name,mult) {
     var nDataBytes = u8a.length;
@@ -93,6 +98,7 @@ function go() {
                 console.log("offset is false:",offset, font, sizex, sizey );
 				continue;
             }
+                            console.log("offset:",offset);
 			var width  = get_width();
 			var height = get_height();
 			var width4x = cvs.width * 4;
