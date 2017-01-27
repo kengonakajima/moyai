@@ -338,6 +338,7 @@ FTFuncs.get_height = FTModule.cwrap("get_height", 'number', []);
 FTFuncs.get_left = FTModule.cwrap("get_left", 'number', []);
 FTFuncs.get_top = FTModule.cwrap("get_top", 'number', []);
 FTFuncs.get_advance = FTModule.cwrap("get_advance", 'number', []);
+FTFuncs.get_debug_code = FTModule.cwrap("get_debug_code", 'number', []);
 
 
 // freetype-gl's texture_atlas_t
@@ -363,21 +364,58 @@ Font.prototype.loadFromMemTTF = function(u8a,codes,pxsz) {
 
     this.atlas = new TextureAtlas(1024,1024,1);
     this.charcode_table=[];
-
+    this.font_name = "font_"+this.id;
+    
     // savefontして名前をID番号から自動で付けて loadfont する。
-    var fontfile_name = "font_save_"+this.id;
-    var ret = FTModule.FS_createDataFile( "/", fontfile_name, u8a, true,true,true);
-    console.log("saving font id:",this.id, "ret:",ret);
-    var font_name = "font_"+this.id;
-    ret = FTFuncs.load_font( fontfile_name, font_name, 108);
+    var ret = FTModule.FS_createDataFile( "/", this.font_name, u8a, true,true,true);
+    console.log("saving font:",this.font_name, "ret:",ret);
+    
+    ret = FTFuncs.load_font( this.font_name, this.font_name, 108);
     console.log("loading font ret:",ret);
 
-
-        
-    // texture_font_load_glyphs( this.font, codes )
-
+    this.loadGlyphs(codes);
     return true;
-    
 }
+Font.prototype.loadGlyphs = function(codes) {
+    var horiz_num = parseInt(parseInt(this.atlas.width) / parseInt(this.pixel_size));
+    var vert_num = parseInt(parseInt(this.atlas.height) / parseInt(this.pixel_size));
+    var max_glyph_num = horiz_num * vert_num;
+    console.log("max_glyph_num:",max_glyph_num, "horiz:",horiz_num, "vert:", vert_num );
+    var font = FTFuncs.find_font(this.font_name);
+    console.log("find_font result:",font);
 
+    for(var i=0;i<codes.length;i++) {
+        var ccode = codes.charCodeAt(i);
+        var offset = FTFuncs.get_bitmap(font, ccode, this.pixel_size, this.pixel_size );
+        if(offset==0) {
+            // 空白文字はoffsetが0になる。
+            console.log("  get_bitmap failed for charcode:",ccode, "debug_code:", FTFuncs.get_debug_code(), "i:",i, "char:", codes[i] );
+            continue;
+        }
+        var w = FTFuncs.get_width();
+        var h = FTFuncs.get_height();
+        var buf = FTModule.HEAPU8.subarray(offset,offset+w*h);
+        var start_x = i % horiz_num;
+        var start_y = parseInt(i / horiz_num);
+        console.log("i:",i," charcode w,h:",w,h,buf.length,"offset:",offset, "start:",start_x, start_y );
+
+
+        var l = FTFuncs.get_left();
+        var t = FTFuncs.get_top();
+        for(var ii=0;ii<w;ii++){
+            for(var jj=0;jj<h;jj++) {
+                var val = 255 - buf[jj*w+ii];
+                if(val==255)continue;
+                var w4x = this.atlas.width*4;
+                var ind_in_atlas = (start_y+jj-t)*w4x + (start_x+ii+l)*4;
+                var final_val = Math.min( this.atlas.data[ind_in_atlas],val); 
+                this.atlas.data[ind_in_atlas+0] = val;
+                this.atlas.data[ind_in_atlas+1] = val;
+                this.atlas.data[ind_in_atlas+2] = val;
+                this.atlas.data[ind_in_atlas+3] = 255;
+//                console.log("val:",val, "ii",ii,"jj",jj,"start:",start_x,start_y);
+            }
+        }
+    }
+}
 
