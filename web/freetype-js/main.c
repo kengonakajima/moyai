@@ -210,16 +210,6 @@ unsigned get_advance() {
 	return slot->advance.x >> 6;
 }
 
-unsigned init_lib() {
-	FT_Error	  error;
-	error = FT_Init_FreeType(&library);
-	if (error) {
-		printf("Init Error! %d\n", error);
-		return 1;
-	}
-    return 0;
-}
-
 int main() {
 
 	FT_Error	  error;
@@ -229,22 +219,6 @@ int main() {
 		printf("Init Error! %d\n", error);
 		return 1;
 	}
-    /*
-      error = FT_New_Face(library, "OCRA.otf", 0, &faces[0]);
-	if (error) {
-		printf("New_Face(OCR-A) Error! %d\n", error);
-		return 1;
-	}
-	error = FT_New_Face(library, "OCRB.otf", 0, &faces[1]);
-	if (error) {
-		printf("New_Face(OCR-B) Error! %d\n", error);
-		return 1;
-	}
-	names[0] = strdup("OCR-A");
-	names[1] = strdup("OCR-B");
-    printf("main finished\n");
-    */
-    
 	return 0;
 }
 
