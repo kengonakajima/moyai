@@ -346,24 +346,43 @@ function TextureAtlas(w,h,depth) {
     this.width = w;
     this.height = h;
     this.depth = depth;
-    this.data = new Uint8Array(w*h*depth);
+    this.data = new Uint8Array(w*h*depth); 
     this.tex=null;
+}
+TextureAtlas.prototype.dump = function(w,h) {
+    for(var y=0;y<h;y++) {
+        var line="";
+        for(var x=0;x<w;x++) {
+            var val = this.data[x+y*this.width];
+            if(val>128) line+="*"; else if(val>60) line+="."; else line+=" ";
+        }
+        console.log(y,line);
+    }
+    console.log(this.data);
 }
 
 Font.prototype.id_gen=1;
 function Font() {
     this.id=this.id_gen++;
-    this.charcode_table=null;
     this.font = null;
-	this.atlas = new TextureAtlas( 1024, 1024, 1 );
+	this.atlas = null;
     this.charcode_table = [];
+    this.glyphs={};
+}
+// 0:left-top 1:right-bottom
+function Glyph(u0,v0,u1,v1,charcode) {
+    this.u0 = u0;
+    this.v0 = v0;
+    this.u1 = u1;
+    this.v1 = v1;
+    this.charcode = charcode;
+    console.log("glyph: ",u0,v0,u1,v1,charcode);
 }
 Font.prototype.loadFromMemTTF = function(u8a,codes,pxsz) {
-    if(codes==null) codes = this.charcode_table;
+    if(codes==null) codes = this.charcode_table; else this.charcode_table = codes;
     this.pixel_size = pxsz;
 
-    this.atlas = new TextureAtlas(1024,1024,1);
-    this.charcode_table=[];
+    this.atlas = new TextureAtlas(512,512,1);
     this.font_name = "font_"+this.id;
     
     // savefontして名前をID番号から自動で付けて loadfont する。
@@ -374,13 +393,14 @@ Font.prototype.loadFromMemTTF = function(u8a,codes,pxsz) {
     console.log("loading font ret:",ret);
 
     this.loadGlyphs(codes);
+    this.atlas.dump(80,80);
     return true;
 }
 Font.prototype.loadGlyphs = function(codes) {
     var horiz_num = parseInt(parseInt(this.atlas.width) / parseInt(this.pixel_size));
     var vert_num = parseInt(parseInt(this.atlas.height) / parseInt(this.pixel_size));
     var max_glyph_num = horiz_num * vert_num;
-    console.log("max_glyph_num:",max_glyph_num, "horiz:",horiz_num, "vert:", vert_num );
+    console.log("max_glyph_num:",max_glyph_num, "horiz:",horiz_num, "vert:", vert_num, "pixel_size:",this.pixel_size );
     var font = FTFuncs.find_font(this.font_name);
     console.log("find_font result:",font);
 
@@ -388,34 +408,61 @@ Font.prototype.loadGlyphs = function(codes) {
         var ccode = codes.charCodeAt(i);
         var offset = FTFuncs.get_bitmap(font, ccode, this.pixel_size, this.pixel_size );
         if(offset==0) {
-            // 空白文字はoffsetが0になる。
+            // 空白文字はoffsetが0になる。別途対応が必要
             console.log("  get_bitmap failed for charcode:",ccode, "debug_code:", FTFuncs.get_debug_code(), "i:",i, "char:", codes[i] );
             continue;
         }
         var w = FTFuncs.get_width();
         var h = FTFuncs.get_height();
         var buf = FTModule.HEAPU8.subarray(offset,offset+w*h);
-        var start_x = i % horiz_num;
-        var start_y = parseInt(i / horiz_num);
-        console.log("i:",i," charcode w,h:",w,h,buf.length,"offset:",offset, "start:",start_x, start_y );
-
-
+        var start_x = (i % horiz_num) * this.pixel_size;
+        var start_y = parseInt(i / horiz_num) * this.pixel_size;
         var l = FTFuncs.get_left();
-        var t = FTFuncs.get_top();
+        var t = FTFuncs.get_top();        
+
+        var pixelcnt=0;
         for(var ii=0;ii<w;ii++){
             for(var jj=0;jj<h;jj++) {
-                var val = 255 - buf[jj*w+ii];
-                if(val==255)continue;
-                var w4x = this.atlas.width*4;
-                var ind_in_atlas = (start_y+jj-t)*w4x + (start_x+ii+l)*4;
-                var final_val = Math.min( this.atlas.data[ind_in_atlas],val); 
-                this.atlas.data[ind_in_atlas+0] = val;
-                this.atlas.data[ind_in_atlas+1] = val;
-                this.atlas.data[ind_in_atlas+2] = val;
-                this.atlas.data[ind_in_atlas+3] = 255;
+                var val = buf[jj*w+ii]; // 0~255
+                if(val==0)continue; // 0 for no data
+                pixelcnt++;
+                var ind_in_atlas = (start_y+jj+this.pixel_size-t)*this.atlas.width + (start_x+ii+l);
+//                var final_val = Math.min( this.atlas.data[ind_in_atlas],val); 
+                this.atlas.data[ind_in_atlas] = val;
 //                console.log("val:",val, "ii",ii,"jj",jj,"start:",start_x,start_y);
             }
         }
+        /*
+          (0,0)
+          +-..--------------...-----+
+          |                         |
+          ..   (start_x,start_y)    |
+          |                         |          
+          |    A---------+          |
+          |    | B  k    |          |
+          |    | k k     |          |
+          |    | kk      | h        |
+          |    | k k     |          |  
+          |    | k  C    |          |  
+          |    +---------D          | 
+          |         w               |  
+          |                         |
+          |                         |
+          ...                       |
+          |                         |
+          +-------------------------+ (1,1)
+
+          UVは左上が0
+         */
+
+        console.log("i:",i," charcode:",ccode," w,h:",w,h,buf.length,"offset:",offset, "start:",start_x, start_y, "left:",l,"top:",t, "pixc:",pixelcnt , "firstind:", (start_y+0+this.pixel_size-t)*this.atlas.width+(start_x+0+l));
+        
+        var lt_u = start_x / this.atlas.width;
+        var lt_v = start_y / this.atlas.height;
+        var rb_u = (start_x+w) / this.atlas.width;
+        var rb_v = (start_y+h) / this.atlas.height;
+        var glyph = new Glyph(lt_u,lt_v,rb_u,rb_v,ccode);
+        this.glyphs[ccode] = glyph;
     }
 }
 
