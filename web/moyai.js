@@ -84,7 +84,8 @@ Layer.prototype.insertProp = function(p) { this.props.push(p); }
 /////////////////////
 Image.prototype.id_gen = 1;
 function Image() {
-    this.id = this.id_gen++;    
+    this.id = this.id_gen++;
+    this.data = null;
 }
 Image.prototype.loadPNGMem = function(u8adata) {
     var png = new PNG(u8adata);
@@ -99,6 +100,27 @@ Image.prototype.loadPNGMem = function(u8adata) {
 }
 Image.prototype.getSize = function() {
     return new Vec2(this.width,this.height);
+}
+Image.prototype.getPixelRaw = function(x,y) {
+// int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a ) {
+    var out={};
+    if(x>=0&&y>=0&&x<this.width&&y<this.height){
+        var index = ( x + y * this.width ) * 4;
+        out.r = buffer[index];
+        out.g = buffer[index+1];
+        out.b = buffer[index+2];
+        out.a = buffer[index+3];
+    }
+    return out;
+}
+Image.prototype.setPixelRaw = function(x,y,r,g,b,a) {
+    if(x>=0&&y>=0&&x<this.width&&y<this.height){
+        var index = ( x + y * this.width ) * 4;
+        buffer[index] = r;
+        buffer[index+1] = g;
+        buffer[index+2] = b;
+        buffer[index+3] = a;
+    }    
 }
 
 //////////////////////////

@@ -241,27 +241,26 @@ t5.setLoc(-SCRW/2,-SCRH/2);
 t5.setScl(1);
 g_main_layer.insertProp(t5);
 
+
+// Image manipulation
+var dragonimg = new Image();
+dragonimg.loadPNGMem( dragon8_png );
+for(var y=0;y<8;y++){
+    for(var x=0;x<8;x++) {
+        var pc = dragonimg.getPixelRaw(x,y);
+        if( pc.r == 255 && pc.g == 255 && pc.b == 255 && pc.a == 255 ) {
+            print("setPixelRaw: replacing at: %d,%d",x,y);
+            dragonimg.setPixelRaw( x,y, 255,0,0,255 );
+        }
+    }
+}
+
 /*
 
 
 
     
-    // Image manipulation
-    Image *dragonimg = new Image();
-    dragonimg->loadPNG( "assets/dragon8.png" );
-    assert( dragonimg->width == 8 );
-    assert( dragonimg->height == 8 );
 
-    for(int y=0;y<8;y++){
-        for(int x=0;x<8;x++) {
-            unsigned char r,g,b,a;
-            dragonimg->getPixelRaw( x,y, &r, &g, &b, &a );
-            if( r == 255 && g == 255 && b == 255 && a == 255 ) {
-                print("setPixelRaw: %d,%d",x,y);
-                dragonimg->setPixelRaw( x,y, 255,0,0,255 );
-            }
-        }
-    }
 
     Texture *dragontex0 = new Texture();
     dragontex0->setImage( dragonimg );
