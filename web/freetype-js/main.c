@@ -131,9 +131,12 @@ int find_font(const char* name) {
 	return 1;
 }
 int get_debug_code() { return debug_code; }
+int g_get_bitmap_retcode=0;
+int get_bitmap_opt_retcode() { return g_get_bitmap_retcode;}
 unsigned char* get_bitmap(int font, int ch, int width, int height) {
 	FT_Error	error;
 	FT_Face		face;
+    g_get_bitmap_retcode = 0;
     debug_code = 1010;
 	if (font < 0 || font >= MAX_FACES || !names[font]) {
         return 0;
@@ -187,7 +190,8 @@ unsigned char* get_bitmap(int font, int ch, int width, int height) {
         }
 		return monomap;
 	}
-        debug_code = 14;    
+    debug_code = 14;
+    g_get_bitmap_retcode = 1;
 	return slot->bitmap.buffer;
 }
 

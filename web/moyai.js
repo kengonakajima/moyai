@@ -339,7 +339,7 @@ FTFuncs.get_left = FTModule.cwrap("get_left", 'number', []);
 FTFuncs.get_top = FTModule.cwrap("get_top", 'number', []);
 FTFuncs.get_advance = FTModule.cwrap("get_advance", 'number', []);
 FTFuncs.get_debug_code = FTModule.cwrap("get_debug_code", 'number', []);
-
+FTFuncs.get_bitmap_opt_retcode = FTModule.cwrap("get_bitmap_opt_retcode","number",[]);
 
 // freetype-gl's texture_atlas_t
 function TextureAtlas(w,h,depth) {
@@ -370,12 +370,18 @@ function Font() {
     this.glyphs={};
 }
 // 0:left-top 1:right-bottom
-function Glyph(u0,v0,u1,v1,charcode) {
+function Glyph(l,t,w,h,adv,u0,v0,u1,v1,charcode) {
+    this.left = l;
+    this.top = t;
+    this.width = w;
+    this.height = h;
+    this.advance = adv;
     this.u0 = u0;
     this.v0 = v0;
     this.u1 = u1;
     this.v1 = v1;
     this.charcode = charcode;
+    
 //    console.log("glyph: ",u0,v0,u1,v1,charcode);
 }
 Font.prototype.loadFromMemTTF = function(u8a,codes,pxsz) {
@@ -408,13 +414,18 @@ Font.prototype.loadGlyphs = function(codes) {
         var ccode = codes.charCodeAt(i);
         var offset = FTFuncs.get_bitmap(font, ccode, this.pixel_size, this.pixel_size );
         if(offset==0) {
-            // 空白文字はoffsetが0になる。別途対応が必要
-            console.log("  get_bitmap failed for charcode:",ccode, "debug_code:", FTFuncs.get_debug_code(), "i:",i, "char:", codes[i] );
-            continue;
-        }
+            if( FTFuncs.get_bitmap_opt_retcode()==1) {
+                // space characers doesnt have buffer
+                console.log("space char!:",ccode, FTFuncs.get_width(), FTFuncs.get_advance());
+            } else {
+                console.log("  get_bitmap failed for charcode:",ccode, "debug_code:", FTFuncs.get_debug_code(), "i:",i, "char:", codes[i] );
+                continue;
+            }            
+        } 
+        
         var w = FTFuncs.get_width();
         var h = FTFuncs.get_height();
-        var buf = FTModule.HEAPU8.subarray(offset,offset+w*h);
+        if(offset>0) var buf = FTModule.HEAPU8.subarray(offset,offset+w*h);
         var start_x = (i % horiz_num) * this.pixel_size;
         var start_y = parseInt(i / horiz_num) * this.pixel_size;
         var l = FTFuncs.get_left();
@@ -423,13 +434,16 @@ Font.prototype.loadGlyphs = function(codes) {
         var pixelcnt=0;
         for(var ii=0;ii<w;ii++){
             for(var jj=0;jj<h;jj++) {
-                var val = buf[jj*w+ii]; // 0~255
+                var val = 0;
+                if(offset>0) {
+                    var val = buf[jj*w+ii]; // 0~255
+                }
                 if(val==0)continue; // 0 for no data
                 pixelcnt++;
                 var ind_in_atlas = (start_y+jj+this.pixel_size-t)*this.atlas.width + (start_x+ii+l);
-//                var final_val = Math.min( this.atlas.data[ind_in_atlas],val); 
+                //                var final_val = Math.min( this.atlas.data[ind_in_atlas],val); 
                 this.atlas.data[ind_in_atlas] = val;
-//                console.log("val:",val, "ii",ii,"jj",jj,"start:",start_x,start_y);
+                //                console.log("val:",val, "ii",ii,"jj",jj,"start:",start_x,start_y);
             }
         }
         /*
@@ -455,14 +469,14 @@ Font.prototype.loadGlyphs = function(codes) {
           UVは左上が0
          */
 
-        console.log("i:",i," charcode:",ccode," w,h:",w,h,buf.length,"offset:",offset, "start:",start_x, start_y, "left:",l,"top:",t, "pixc:",pixelcnt , "firstind:", (start_y+0+this.pixel_size-t)*this.atlas.width+(start_x+0+l));
+        console.log("i:",i," charcode:",ccode," w,h:",w,h,"offset:",offset, "start:",start_x, start_y, "left:",l,"top:",t, "pixc:",pixelcnt , "firstind:", (start_y+0+this.pixel_size-t)*this.atlas.width+(start_x+0+l));
         
         var lt_u = start_x / this.atlas.width;
         var lt_v = start_y / this.atlas.height;
         var rb_u = (start_x+w) / this.atlas.width;
         var rb_v = (start_y+h) / this.atlas.height;
-        var glyph = new Glyph(lt_u,lt_v,rb_u,rb_v,ccode);
-        this.glyphs[ccode] = glyph;
+        var adv = FTFuncs.get_advance();
+        this.glyphs[ccode] = new Glyph(l,t,w,h,adv,lt_u,lt_v,rb_u,rb_v,ccode);
     }
 }
 
