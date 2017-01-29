@@ -376,7 +376,7 @@ function Glyph(u0,v0,u1,v1,charcode) {
     this.u1 = u1;
     this.v1 = v1;
     this.charcode = charcode;
-    console.log("glyph: ",u0,v0,u1,v1,charcode);
+//    console.log("glyph: ",u0,v0,u1,v1,charcode);
 }
 Font.prototype.loadFromMemTTF = function(u8a,codes,pxsz) {
     if(codes==null) codes = this.charcode_table; else this.charcode_table = codes;
@@ -393,7 +393,7 @@ Font.prototype.loadFromMemTTF = function(u8a,codes,pxsz) {
     console.log("loading font ret:",ret);
 
     this.loadGlyphs(codes);
-    this.atlas.dump(80,80);
+//    this.atlas.dump(80,80);
     return true;
 }
 Font.prototype.loadGlyphs = function(codes) {
@@ -465,4 +465,18 @@ Font.prototype.loadGlyphs = function(codes) {
         this.glyphs[ccode] = glyph;
     }
 }
+
+
+//////////////////
+function TextBox() {
+    Prop2D.call(this);
+    this.font = null;
+    this.scl = new Vec2(1,1);
+    this.str = null;
+}
+TextBox.prototype = Object.create(Prop2D.prototype);
+TextBox.prototype.constructor = TextBox;
+TextBox.prototype.setFont = function(fnt) { this.font = fnt; }
+TextBox.prototype.setString = function(s) { this.str = s; }
+TextBox.prototype.setScl = function(scl_scalar) { this.scl = new Vec2(scl_scalar,scl_scalar); }
 

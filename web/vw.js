@@ -211,41 +211,43 @@ var charcodes = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\
 var g_font = new Font();
 g_font.loadFromMemTTF( cinecaption227_ttf, charcodes, 12 );
 
+
+var g_tb = new TextBox();
+g_tb.setFont(g_font);
+g_tb.setString("dummy");
+g_tb.setScl(1);
+g_tb.setLoc(22,22);
+g_main_layer.insertProp(g_tb);
+
+
+var t3 = new TextBox();
+t3.setFont(g_font);
+t3.setString( L"ABC012あいうえお\nあいうえお(wchar_t)。" );
+t3.setLoc(-100,-50);
+t3.setScl(1);
+g_main_layer.insertProp(t3);
+
+
+var t4 = new TextBox();
+t4.setFont(g_font);
+t4.setString( "ABC012あいうえお\nあいうえお(mb-utf8)。" );
+t4.setLoc(-100,-90);
+t4.setScl(0.75f);
+g_main_layer.insertProp(t4);
+
+// Check bottom line
+var t5 = new TextBox();
+t5.setFont(g_font);
+t5.setString( L"THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない1ぎょうめ\n"
+              L"THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない2ぎょうめ"
+            );
+t5.setLoc(-SCRW/2,-SCRH/2);
+t5.setScl(1);
+g_main_layer.insertProp(t5);
+
 /*
 
 
-
-    g_tb = new TextBox();
-    g_tb->setFont(g_font);
-    g_tb->setString("dummy");
-    g_tb->setScl(1);
-    g_tb->setLoc(22,22);
-    g_main_layer->insertProp(g_tb);
-
-    TextBox *t3 = new TextBox();
-    t3->setFont(g_font);
-    t3->setString( L"ABC012あいうえお\nあいうえお(wchar_t)。" );
-    t3->setLoc(-100,-50);
-    t3->setScl(1);
-    g_main_layer->insertProp(t3);
-
-
-    TextBox *t4 = new TextBox();
-    t4->setFont(g_font);
-    t4->setString( "ABC012あいうえお\nあいうえお(mb-utf8)。" );
-    t4->setLoc(-100,-90);
-    t4->setScl(0.75f);
-    g_main_layer->insertProp(t4);
-    
-    // Check bottom line
-    TextBox *t5 = new TextBox();
-    t5->setFont(g_font);
-    t5->setString( L"THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない1ぎょうめ\n"
-                   L"THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない2ぎょうめ"
-                   );
-    t5->setLoc(-SCRW/2,-SCRH/2);
-    t5->setScl(1);
-    g_main_layer->insertProp(t5);
 
     
     // Image manipulation
