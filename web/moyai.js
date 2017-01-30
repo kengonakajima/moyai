@@ -14,6 +14,20 @@ function Vec2(x,y) {
     this.x = x;                                                                                                       
     this.y = y;                                                                                                       
 }
+Vec2.prototype.setWith2args = function(x,y) {
+    if(y==undefined) {
+        if( (typeof x) == "number" ) {
+            this.x=x;
+            this.y=x;
+        } else if( x.__proto__ == Vec2.prototype ) {
+            this.x=x.x;
+            this.y=x.y;            
+        }
+    } else {
+        this.x=x;
+        this.y=y;
+    }
+}
 
                                                                                                                       
 // 0 ~ 1                                                                                                              
@@ -227,7 +241,9 @@ function Prop2D() {
 }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; }
-Prop2D.prototype.setScl = function(x,y) { this.scl.x=x; this.scl.y=y; }
+Prop2D.prototype.setScl = function(x,y) {
+    this.scl.setWith2args(x,y);
+}
 Prop2D.prototype.setLoc = function(x,y) { this.loc.x=x; this.loc.y=y; }
 Prop2D.prototype.setRot = function(r) { this.rot=r; }
 Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg;}
@@ -516,5 +532,5 @@ TextBox.prototype = Object.create(Prop2D.prototype);
 TextBox.prototype.constructor = TextBox;
 TextBox.prototype.setFont = function(fnt) { this.font = fnt; }
 TextBox.prototype.setString = function(s) { this.str = s; }
-TextBox.prototype.setScl = function(scl_scalar) { this.scl = new Vec2(scl_scalar,scl_scalar); }
+
 
