@@ -238,6 +238,7 @@ function Prop2D() {
     this.grids=null;
     this.visible=true;
     this.use_additive_blend = false;
+    this.children=[];
 }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; }
@@ -252,6 +253,10 @@ Prop2D.prototype.addLine = function(p0,p1,col,w) {
     if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
     this.prim_drawer.addLine(p0,p1,col,w);
 }
+Prop2D.prototype.addRect = function(p0,p1,col,w) {
+    if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
+    this.prim_drawer.addRect(p0,p1,col,w);
+}
 Prop2D.prototype.addGrid = function(g) {
     if(!this.grids) this.grids=[];
     this.grids.push(g);
@@ -264,6 +269,28 @@ Prop2D.prototype.setTexture = function(tex) {
     this.setDeck(td);
     this.setIndex(0);    
 }
+Prop2D.prototype.addChild = function(chp) {
+    this.children.push(chp);
+}
+Prop2D.prototype.clearChildren = function() {
+    this.children=[];
+}
+Prop2D.prototype.clearChild = function(p) {
+    var keep=[];
+    for(var i in this.children) {
+        if(this.children[i]!=p) keep.push( this.children[i]);
+    }
+    this.children = keep;
+}
+Prop2D.prototype.getChild = function(propid) {
+    for(var i in this.children) {
+        if( this.children[i].id == propid ) {
+            return this.children[i];
+        }
+    }
+    return null;
+}
+
 ////////////////////////////
 
 Grid.prototype.id_gen=1;
