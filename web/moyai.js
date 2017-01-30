@@ -533,4 +533,82 @@ TextBox.prototype.constructor = TextBox;
 TextBox.prototype.setFont = function(fnt) { this.font = fnt; }
 TextBox.prototype.setString = function(s) { this.str = s; }
 
+/////////////////
+function CharGrid() {
+    Grid.call(this);
+    this.ascii_offset = 0;
+}
+CharGrid.prototype = Object.create(Grid.prototype);
+CharGrid.prototype.constructor = CharGrid;
+CharGrid.prototype.setAsciiOffset = function(ofs) { this.ascii_offset = ofs; }
+
+function str_repeat(i, m) {
+    for (var o = []; m > 0; o[--m] = i);
+    return o.join('');
+}
+
+function sprintf() {
+    var i = 0, a, f = arguments[i++], o = [], m, p, c, x, s = '';
+    while (f) {
+        if (m = /^[^\x25]+/.exec(f)) {
+            o.push(m[0]);
+        }
+        else if (m = /^\x25{2}/.exec(f)) {
+            o.push('%');
+        }
+        else if (m = /^\x25(?:(\d+)\$)?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/.exec(f)) {
+            if (((a = arguments[m[1] || i++]) == null) || (a == undefined)) {
+                throw('Too few arguments.');
+            }
+            if (/[^s]/.test(m[7]) && (typeof(a) != 'number')) {
+                throw('Expecting number but found ' + typeof(a));
+            }
+            switch (m[7]) {
+            case 'b': a = a.toString(2); break;
+            case 'c': a = String.fromCharCode(a); break;
+            case 'd': a = parseInt(a); break;
+            case 'e': a = m[6] ? a.toExponential(m[6]) : a.toExponential(); break;
+            case 'f': a = m[6] ? parseFloat(a).toFixed(m[6]) : parseFloat(a); break;
+            case 'o': a = a.toString(8); break;
+            case 's': a = ((a = String(a)) && m[6] ? a.substring(0, m[6]) : a); break;
+            case 'u': a = Math.abs(a); break;
+            case 'x': a = a.toString(16); break;
+            case 'X': a = a.toString(16).toUpperCase(); break;
+            }
+            a = (/[def]/.test(m[7]) && m[2] && a >= 0 ? '+'+ a : a);
+            c = m[3] ? m[3] == '0' ? '0' : m[3].charAt(1) : ' ';
+            x = m[5] - String(a).length - s.length;
+            p = m[5] ? str_repeat(c, x) : '';
+            o.push(s + (m[4] ? a + p : p + a));
+        }
+        else {
+            throw('Huh ?!');
+        }
+        f = f.substring(m[0].length);
+    }
+    return o.join('');
+}
+    
+CharGrid.prototype.printf = function() {
+    var args = Array.prototype.slice.call(arguments);    
+    var x = args[0];
+    var y = args[1];
+    var col = args[2];
+    var printf_args = args.slice(3);
+
+    //void CharGrid::printf( int x, int y, Color c, const char *fmt, ...) 
+
+    var s = sprintf.apply(this, printf_args );
+
+	for(var i=0;i<s.length;i++){
+		var ind = this.ascii_offset + s.charCodeAt(i);
+		if(x+i>=this.width)break;
+		this.set(x+i,y,ind);
+		this.setColor(x+i,y,col);
+	}    
+}
+
+	
+
+
 

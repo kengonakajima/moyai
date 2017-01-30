@@ -285,6 +285,19 @@ dragonp2.setIndex(1);
 g_main_layer.insertProp(dragonp2);
 
 
+// bitmap font
+var scorep = new Prop2D();
+scorep.setLoc( -SCRW/2+32,SCRH/2-100 );
+var scoregrid = new CharGrid(8,8);
+scoregrid.setDeck(g_bmpfont_deck );
+scoregrid.setAsciiOffset(-32);
+scoregrid.printf( 0,0, Color(1,1,1,1), "SCORE: %d",1234 );
+scoregrid.printf( 0,1, Color(1,1,0,1), "$#!?()[%s]", "hoge" );
+scoregrid.setColor( 3,0, Color(0,1,1,1));
+scorep.addGrid(scoregrid);
+g_main_layer.insertProp(scorep);
+
+
 /*
 
     
@@ -292,17 +305,6 @@ g_main_layer.insertProp(dragonp2);
    
     
 
-    // bitmap font
-    Prop2D *scorep = new Prop2D();
-    scorep->setLoc( -SCRW/2+32,SCRH/2-100 );
-    CharGrid *scoregrid = new CharGrid(8,8);
-    scoregrid->setDeck(g_bmpfont_deck );
-    scoregrid->setAsciiOffset(-32);
-    scoregrid->printf( 0,0, Color(1,1,1,1), "SCORE: %d",1234 );
-    scoregrid->printf( 0,1, Color(1,1,0,1), "$#!?()[%s]", "hoge" );
-    scoregrid->setColor( 3,0, Color(0,1,1,1));
-    scorep->addGrid(scoregrid);
-    g_main_layer->insertProp(scorep);
 
     // line prop
     g_linep = new Prop2D();
