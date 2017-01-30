@@ -255,26 +255,21 @@ for(var y=0;y<8;y++){
     }
 }
 
+var dragontex0 = new Texture();
+dragontex0.setImage( dragonimg );
+var dragontex1 = new Texture();
+dragontex1.loadPNGMem( dragon8_png );
+
+
+var dragonp1 = new Prop2D();
+dragonp1.setLoc( SCRW/2-80, 0);
+dragonp1.setTexture(dragontex1);
+dragonp1.setScl(32);
+g_main_layer.insertProp(dragonp1);    
+
+
 /*
 
-
-
-    
-
-
-    Texture *dragontex0 = new Texture();
-    dragontex0->setImage( dragonimg );
-    
-    Texture *dragontex1 = new Texture();
-    dragontex1->load( "assets/dragon8.png" );
-
-#if 1
-    Prop2D *dragonp1 = new Prop2D();
-    dragonp1->setLoc( SCRW/2-80, 0);
-    dragonp1->setTexture(dragontex1);
-    dragonp1->setScl(32);
-    g_main_layer->insertProp(dragonp1);    
-#endif
     
     Prop2D *dragonp0 = new Prop2D();
     dragonp0->setLoc( SCRW/2-40, 0);

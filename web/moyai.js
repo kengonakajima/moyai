@@ -127,6 +127,7 @@ Image.prototype.setPixelRaw = function(x,y,r,g,b,a) {
 Texture.prototype.id_gen = 1;
 function Texture() {
     this.id = this.id_gen++;
+    this.image = null;
 }
 Texture.prototype.loadPNGMem = function(u8adata) {
     this.image = new Image();
@@ -135,6 +136,7 @@ Texture.prototype.loadPNGMem = function(u8adata) {
 Texture.prototype.getSize = function() {
     return this.image.getSize();
 }
+Texture.prototype.setImage = function(img) { this.image = img; }
 
 ///////////////////
 TileDeck.prototype.id_gen = 1;
