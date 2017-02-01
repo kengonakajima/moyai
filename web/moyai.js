@@ -10,9 +10,9 @@ function range(a,b) {
     return (small + (big-small)*Math.random());
 }
 
-function Vec2(x,y) {                                                                                                  
-    this.x = x;                                                                                                       
-    this.y = y;                                                                                                       
+function Vec2(x,y) {
+    this.x = x;
+    this.y = y;
 }
 Vec2.prototype.setWith2args = function(x,y) {
     if(y==undefined) {
@@ -29,15 +29,18 @@ Vec2.prototype.setWith2args = function(x,y) {
     }
 }
 
-                                                                                                                      
-// 0 ~ 1                                                                                                              
-function Color(r,g,b,a) {                                                                                             
-    this.r = r;                                                                                                       
-    this.g = g;                                                                                                       
-    this.b = b;                                                                                                       
-    this.a = a;                                                                                                       
-}
 
+// 0 ~ 1
+function Color(r,g,b,a) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.a = a;
+}
+Color.prototype.toRGBA = function() {
+    return [ parseInt(r*255), parseInt(g*255), parseInt(b*255), parseInt(a*255) ];
+}
+    
 ///////////////
 
 function MoyaiClient(w,h,pixratio){
@@ -83,7 +86,7 @@ function Camera() {
     this.id = this.id_gen++;
     this.loc = new Vec2(0,0);
 }
-Camera.prototype.setLoc = function(x,y) { this.loc.x=x; this.loc.y=y; }
+Camera.prototype.setLoc = function(x,y) { this.loc.setWith2args(x,y); }
 
 ////////////////////
 Layer.prototype.id_gen = 1;
@@ -99,42 +102,50 @@ Layer.prototype.insertProp = function(p) { this.props.push(p); }
 Image.prototype.id_gen = 1;
 function Image() {
     this.id = this.id_gen++;
-    this.data = null;
+    this.data = [];
+    this.png=null;
 }
 Image.prototype.loadPNGMem = function(u8adata) {
-    var png = new PNG(u8adata);
-    console.log("png info:", png.width, png.height );
-    this.width = png.width;
-    this.height = png.height;
-    png.decode( function(pixels) {
-        console.log("png pixels:",pixels.length);
+    this.png = new PNG(u8adata);
+    console.log("png info:", this.png, u8adata );
+    this.width = this.png.width;
+    this.height = this.png.height;    
+    this.png.decode( function(pixels) { // this delays!
         this.data = pixels;
     });
-    
+}
+Image.prototype.setSize = function(w,h) {
+    this.data = new Uint8Array(w*h*4);
 }
 Image.prototype.getSize = function() {
     return new Vec2(this.width,this.height);
 }
 Image.prototype.getPixelRaw = function(x,y) {
 // int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a ) {
+    console.log( "getpixelraw",this.data);
     var out={};
     if(x>=0&&y>=0&&x<this.width&&y<this.height){
         var index = ( x + y * this.width ) * 4;
-        out.r = buffer[index];
-        out.g = buffer[index+1];
-        out.b = buffer[index+2];
-        out.a = buffer[index+3];
+        out.r = this.data[index];
+        out.g = this.data[index+1];
+        out.b = this.data[index+2];
+        out.a = this.data[index+3];
     }
     return out;
 }
 Image.prototype.setPixelRaw = function(x,y,r,g,b,a) {
     if(x>=0&&y>=0&&x<this.width&&y<this.height){
         var index = ( x + y * this.width ) * 4;
-        buffer[index] = r;
-        buffer[index+1] = g;
-        buffer[index+2] = b;
-        buffer[index+3] = a;
+        this.buffer[index] = r;
+        this.buffer[index+1] = g;
+        this.buffer[index+2] = b;
+        this.buffer[index+3] = a;
     }    
+}
+Image.prototype.setPixel = function(x,y,c) {
+    var colary = c.toRGBA();
+    var index = (x+y*this.width)*4;
+    
 }
 
 //////////////////////////
@@ -242,10 +253,8 @@ function Prop2D() {
 }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; }
-Prop2D.prototype.setScl = function(x,y) {
-    this.scl.setWith2args(x,y);
-}
-Prop2D.prototype.setLoc = function(x,y) { this.loc.x=x; this.loc.y=y; }
+Prop2D.prototype.setScl = function(x,y) { this.scl.setWith2args(x,y);}
+Prop2D.prototype.setLoc = function(x,y) { this.loc.setWith2args(x,y);}
 Prop2D.prototype.setRot = function(r) { this.rot=r; }
 Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg;}
 Prop2D.prototype.setColor = function(r,g,b,a) { this.color = new Color(r,g,b,a); }

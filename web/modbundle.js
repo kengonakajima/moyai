@@ -4,9 +4,10 @@ var snappyjs = require("snappyjs");
 global.window.Snappy = snappyjs;
 var PNG = require("png-js");
 global.window.PNG = PNG;
-
+var Buffer = require("buffer").Buffer;
+global.window.Buffer = Buffer;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"png-js":43,"snappyjs":2}],2:[function(require,module,exports){
+},{"buffer":12,"png-js":43,"snappyjs":2}],2:[function(require,module,exports){
 (function (process,Buffer){
 // The MIT License (MIT)
 //

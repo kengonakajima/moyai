@@ -16,21 +16,21 @@ function dump( dv, l) {
     console.log( "dump:", out );
 }
 
-function Buffer(sz) {
+function RecvBuffer(sz) {
   this.buf = new ArrayBuffer(sz);
   this.dv = new DataView( this.buf );
   this.len = sz;
   this.used = 0;
 }
-Buffer.prototype.push = function(dv,len) {
+RecvBuffer.prototype.push = function(dv,len) {
   //console.log( "bufpush:", len, "bytes", "used:", this.used );
-  assert( this.used + len <= this.len, "buffer exceeded. buflen:" + this.len + " used:" + this.used + " add:" + len  );
+  assert( this.used + len <= this.len, "recvbuffer exceeded. buflen:" + this.len + " used:" + this.used + " add:" + len  );
   for(var i=0;i<len;i++) {
     this.dv.setUint8( this.used + i, dv.getUint8(i) );
   }
   this.used += len;
 }
-Buffer.prototype.shift = function(len) {
+RecvBuffer.prototype.shift = function(len) {
     assert( len <= this.used, "bufshift: too long. len:" + len + " used:" + this.used );    
     for(var i=0;i<this.used-len;i++) {
         this.dv.setUint8( i, this.dv.getUint8( len+i) );
@@ -132,8 +132,8 @@ var PACKETTYPE_ERROR = 2000; // error code
 function createWSClient(url) {
     var ws = new WebSocket(url, ["binary"]);
     ws.binaryType = "arraybuffer";
-    ws.rb = new Buffer(8*1024*1024);
-    ws.unzipped_rb = new Buffer(8*1024*1024);
+    ws.rb = new RecvBuffer(8*1024*1024);
+    ws.unzipped_rb = new RecvBuffer(8*1024*1024);
     ws.onopen = function(event) {
         console.log("wsopen");
     };

@@ -316,34 +316,26 @@ g_linep.addChild(childp);
 
 
 
-/*
-
-
-    // dynamic images
-    {
-        g_img = new Image();
-        g_img->setSize(256,256);
-        for(int i=0;i<256;i++){
-            Color c(range(0,1), range(0,1),range(0,1),1);
-            g_img->setPixel( i,i, c );
-        }
-        g_img->writePNG( "dynamic_out.png");
-        g_dyn_texture =  new Texture();
-        g_dyn_texture->load("assets/base.png");
-        g_dyn_texture->setImage(g_img);
-
-
+// dynamic images
+var g_img = new Image();
+g_img.setSize(256,256);
+for(var i=0;i<256;i++){
+    var c = new Color( Math.random(), Math.random(), Math.random(),1 );
+    g_img.setPixel( i,i, c );
+}
+//g_img.writePNG( "dynamic_out.png");
+var g_dyn_texture =  new Texture();
+g_dyn_texture.setImage(g_img);
     
-        Prop2D *p = new Prop2D();
-        TileDeck *d = new TileDeck();
-        d->setTexture(g_dyn_texture);
-        d->setSize( 16,16,16,16);
-        p->setDeck(d);
-        p->setLoc(200,200);
-        p->setScl(128,128);
-        p->setIndex(0);
-        g_main_layer->insertProp(p);
-    }
-    
-    g_pc = createMyShip(0,0);
-    */
+var p = new Prop2D();
+var d = new TileDeck();
+d.setTexture(g_dyn_texture);
+d.setSize( 16,16,16,16);
+p.setDeck(d);
+p.setLoc(200,200);
+p.setScl(128,128);
+p.setIndex(0);
+g_main_layer.insertProp(p);
+
+
+// var g_pc = createMyShip(0,0);
