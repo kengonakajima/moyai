@@ -56,6 +56,16 @@ function MoyaiClient(w,h,pixratio){
 MoyaiClient.prototype.resize = function(w,h) {
     this.renderer.setSize(w,h);
 }
+MoyaiClient.prototype.poll = function(dt) {
+    console.log("poll dt:",dt);
+    var cnt=0;
+    for(var i in this.layers) {
+        console.log("  layer:",i);
+        var layer = this.layers[i];
+        if( layer && (!layer.skip_poll) ) cnt += layer.pollAllProps(dt);
+    }
+    return cnt;   
+}
 MoyaiClient.prototype.render = function() {
     console.log("render");
 }
@@ -97,7 +107,16 @@ function Layer() {
 Layer.prototype.setViewport = function(vp) { this.viewport = vp; }
 Layer.prototype.setCamera = function(cam) { this.camera = cam; }
 Layer.prototype.insertProp = function(p) { this.props.push(p); }
-
+Layer.prototype.pollAllProps = function(dt) {
+    var keep=[];
+    for(var i in this.props) {
+        var prop = this.props[i];
+        var to_keep = prop.basePoll(dt);
+        if(to_keep) keep.push(prop);
+    }
+    this.props = keep;
+    return this.props.length;
+}
 /////////////////////
 Image.prototype.id_gen = 1;
 function Image() {
@@ -250,6 +269,8 @@ function Prop2D() {
     this.visible=true;
     this.use_additive_blend = false;
     this.children=[];
+    this.accum_time=0;
+    this.poll_count=0;
 }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; }
@@ -298,6 +319,17 @@ Prop2D.prototype.getChild = function(propid) {
         }
     }
     return null;
+}
+Prop2D.prototype.basePoll = function(dt) { // return false to clean
+    this.poll_count++;
+    this.accum_time+=dt;    
+    if(this.to_clean) {
+        return false;
+    }
+    if( this.propPoll && this.propPoll(dt) == false ) {
+        return false;
+    }
+    return true;
 }
 
 ////////////////////////////

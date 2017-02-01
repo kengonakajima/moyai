@@ -46,9 +46,14 @@ function disconnectButton() {
 
 
 // loop
+var last_anim_at = new Date().getTime();
 function animate() {
 	requestAnimationFrame( animate );
     if(g_moyai_client) {
+        var now_time = new Date().getTime();
+        var dt = now_time - last_anim_at;
+        last_anim_at = now_time;
+        g_moyai_client.poll(dt/1000.0);
         g_moyai_client.render();
     }
 }
