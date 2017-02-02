@@ -50,6 +50,11 @@ function MoyaiClient(w,h,pixratio){
     this.renderer.setSize(w,h);
     this.renderer.autoClear = false;
 
+    this.camera = new THREE.OrthographicCamera( -w/2, w/2, h/2, -h/2,1,10);
+    this.camera.position.z = 10;
+
+    this.scene = new THREE.Scene();
+    
     this.layers=[];
     
 }
@@ -57,10 +62,8 @@ MoyaiClient.prototype.resize = function(w,h) {
     this.renderer.setSize(w,h);
 }
 MoyaiClient.prototype.poll = function(dt) {
-    console.log("poll dt:",dt);
     var cnt=0;
     for(var i in this.layers) {
-        console.log("  layer:",i);
         var layer = this.layers[i];
         if( layer && (!layer.skip_poll) ) cnt += layer.pollAllProps(dt);
     }
@@ -68,6 +71,52 @@ MoyaiClient.prototype.poll = function(dt) {
 }
 MoyaiClient.prototype.render = function() {
     console.log("render");
+
+/*
+
+  　　描画バッチはどうするかだなぁ
+  three.jsが持ってるのならばおなじことをする必要がない。
+  threeでのスプライト描画はどうやるかというと、moyaiみたいなもん。
+  prop2dがsprite
+  Textureがtextureloaderの返り値
+  moyaiはmaterialという概念がない。
+
+  prop2dがmaterialをもつ。
+  textureがmapをもつ。
+  imageがdatatexであり
+  layer,gridやtiledeckは純粋に論理的なもの。
+  cameraとviewport
+  
+    batch_list.clear();
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+    SorterEntry tosort[128];
+    int sort_n = 0;
+    for(int i=0;i<elementof(groups);i++) {
+        Group *g = groups[i];
+		if( g && g->to_render ) {
+            Layer *l = (Layer*)g;
+            tosort[sort_n].val = l->priority;
+            tosort[sort_n].ptr = l;
+            sort_n++;
+        }
+    }
+    quickSortF( tosort, 0, sort_n-1 );
+        
+	int render_n=0;    
+	for(int i=0;i<sort_n;i++){
+		Layer *l = (Layer*) tosort[i].ptr;
+        render_n += l->render(&batch_list);
+	}
+
+    last_draw_call_count = batch_list.drawAll();    
+	glfwSwapBuffers(window);
+	glFlush();
+	return render_n;
+    */
+    
 }
 MoyaiClient.prototype.insertLayer = function(l) {
     this.layers.push(l);
@@ -126,7 +175,6 @@ function Image() {
 }
 Image.prototype.loadPNGMem = function(u8adata) {
     this.png = new PNG(u8adata);
-    console.log("png info:", this.png, u8adata );
     this.width = this.png.width;
     this.height = this.png.height;    
     this.png.decode( function(pixels) { // this delays!
@@ -141,7 +189,6 @@ Image.prototype.getSize = function() {
 }
 Image.prototype.getPixelRaw = function(x,y) {
 // int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a ) {
-    console.log( "getpixelraw",this.data);
     var out={};
     if(x>=0&&y>=0&&x<this.width&&y<this.height){
         var index = ( x + y * this.width ) * 4;
@@ -577,7 +624,7 @@ Font.prototype.loadGlyphs = function(codes) {
           UVは左上が0
          */
 
-        console.log("i:",i," charcode:",ccode," w,h:",w,h,"offset:",offset, "start:",start_x, start_y, "left:",l,"top:",t, "pixc:",pixelcnt , "firstind:", (start_y+0+this.pixel_size-t)*this.atlas.width+(start_x+0+l));
+//        console.log("i:",i," charcode:",ccode," w,h:",w,h,"offset:",offset, "start:",start_x, start_y, "left:",l,"top:",t, "pixc:",pixelcnt , "firstind:", (start_y+0+this.pixel_size-t)*this.atlas.width+(start_x+0+l));
         
         var lt_u = start_x / this.atlas.width;
         var lt_v = start_y / this.atlas.height;
