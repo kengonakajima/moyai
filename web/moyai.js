@@ -71,24 +71,8 @@ MoyaiClient.prototype.poll = function(dt) {
 }
 MoyaiClient.prototype.render = function() {
     console.log("render");
-
+    
 /*
-
-  　　描画バッチはどうするかだなぁ
-  three.jsが持ってるのならばおなじことをする必要がない。
-  threeでのスプライト描画はどうやるかというと、moyaiみたいなもん。
-  prop2dがsprite
-  Textureがtextureloaderの返り値
-  moyaiはmaterialという概念がない。
-
-  prop2dがmaterialをもつ。
-  textureがmapをもつ。
-  imageがdatatexであり
-  layer,gridやtiledeckは純粋に論理的なもの。
-  cameraとviewport
-  
-    batch_list.clear();
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
@@ -115,6 +99,21 @@ MoyaiClient.prototype.render = function() {
 	glfwSwapBuffers(window);
 	glFlush();
 	return render_n;
+    */    
+    
+/*
+
+
+  prop2dがsprite
+  Textureがtextureloaderの返り値
+  moyaiはmaterialという概念がない。
+
+  prop2dがmaterialをもつ。
+  textureがmapをもつ。
+  imageがdatatexであり
+  layer,gridやtiledeckは純粋に論理的なもの。
+  cameraとviewport
+  
     */
     
 }
@@ -219,10 +218,20 @@ Texture.prototype.id_gen = 1;
 function Texture() {
     this.id = this.id_gen++;
     this.image = null;
+    this.tex = null; // three's texture
+    this.mat = null;
 }
 Texture.prototype.loadPNGMem = function(u8adata) {
     this.image = new Image();
     this.image.loadPNGMem(u8adata);
+    this.tex = new THREE.DataTexture( this.image.data, this.image.width, this.image.height, THREE.RGBAFormat );
+    this.tex.needsUpdate = true;
+    this.mat = new THREE.MeshBasicMaterial({ map: this.tex /*,depthTest:true*/, transparent: true });
+    this.mat.shading = THREE.FlatShading;
+    this.mat.side = THREE.FrontSide;
+    this.mat.alphaTest = 0.5;
+    this.mat.needsUpdate = true;
+    console.log("three tex:",this.tex, this.mat);
 }
 Texture.prototype.getSize = function() {
     return this.image.getSize();
