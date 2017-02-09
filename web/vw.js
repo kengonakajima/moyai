@@ -46,9 +46,13 @@ function disconnectButton() {
 
 
 // loop
+var anim_cnt=0;
 var last_anim_at = new Date().getTime();
 function animate() {
-	requestAnimationFrame( animate );
+    if(anim_cnt<10) {
+        anim_cnt++;
+	    requestAnimationFrame( animate );
+    }
     if(g_moyai_client) {
         var now_time = new Date().getTime();
         var dt = now_time - last_anim_at;
@@ -93,9 +97,6 @@ g_filedepo.ensure("font_only.png", font_only_png );
 //g_filedepo.ensure("gymno1short.wav", gymno1short_wav );
 
 
-
-console.log("PNG",PNG);
-
 var g_base_atlas = new Texture();
 g_base_atlas.loadPNGMem( base_png );
 g_base_deck = new TileDeck();
@@ -107,7 +108,6 @@ g_bmpfont_atlas.loadPNGMem(font_only_png);
 g_bmpfont_deck = new TileDeck();
 g_bmpfont_deck.setTexture( g_bmpfont_atlas );
 g_bmpfont_deck.setSize(32,32, 8,8 );
-
 
 var tmplayer = new Layer();
 g_moyai_client.insertLayer(tmplayer);
@@ -132,6 +132,11 @@ sclp.setScl(16,16);
 sclp.setLoc(-200,0);
 sclp.setRot( Math.PI/8.0 );
 g_main_layer.insertProp(sclp);
+
+/*
+
+
+
 
 var sclprot = new Prop2D();
 sclprot.setDeck(deck);
@@ -344,3 +349,6 @@ g_main_layer.insertProp(p);
 
 
 // var g_pc = createMyShip(0,0);
+
+
+*/

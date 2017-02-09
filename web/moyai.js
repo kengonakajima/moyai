@@ -50,7 +50,7 @@ function MoyaiClient(w,h,pixratio){
     this.renderer.setSize(w,h);
     this.renderer.autoClear = false;
 
-    this.camera = new THREE.OrthographicCamera( -w/2, w/2, h/2, -h/2,1,10);
+    this.camera = new THREE.OrthographicCamera( -w/2, w/2, h/2, -h/2,-1,10);
     this.camera.position.z = 10;
 
     this.scene = new THREE.Scene();
@@ -69,8 +69,27 @@ MoyaiClient.prototype.poll = function(dt) {
     }
     return cnt;   
 }
+
 MoyaiClient.prototype.render = function() {
     console.log("render");
+    for(var i in this.scene.children) {
+        this.scene.remove( this.scene.children[i]);
+    }
+//    this.scene.children.forEach(function(object){ this.scene.remove(object); });    
+    for(var i in this.layers) {
+        var layer = this.layers[i];
+        for(var i in layer.props) {
+            var prop = layer.props[i];
+            prop.ensureMesh();
+            if(prop.mesh) {
+                console.log("adding prop.mesh:",prop);
+                this.scene.add(prop.mesh);
+            }
+        }
+    }
+    this.renderer.clear();
+    this.renderer.clearDepth();
+    this.renderer.render( this.scene, this.camera );
     
 /*
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -175,8 +194,11 @@ function Image() {
 Image.prototype.loadPNGMem = function(u8adata) {
     this.png = new PNG(u8adata);
     this.width = this.png.width;
-    this.height = this.png.height;    
-    this.png.decode( function(pixels) { // this delays!
+    this.height = this.png.height;
+    var data_len = this.width*this.height*4;
+    this.data = new Uint8Array(data_len);
+    for(var i=0;i<data_len;i++) this.data[i] = 0xff; // white image
+    this.png.decode( function(pixels) { // this delays, and 
         this.data = pixels;
     });
 }
@@ -218,20 +240,20 @@ Texture.prototype.id_gen = 1;
 function Texture() {
     this.id = this.id_gen++;
     this.image = null;
-    this.tex = null; // three's texture
+    this.three_tex = null;
     this.mat = null;
 }
 Texture.prototype.loadPNGMem = function(u8adata) {
     this.image = new Image();
     this.image.loadPNGMem(u8adata);
-    this.tex = new THREE.DataTexture( this.image.data, this.image.width, this.image.height, THREE.RGBAFormat );
-    this.tex.needsUpdate = true;
-    this.mat = new THREE.MeshBasicMaterial({ map: this.tex /*,depthTest:true*/, transparent: true });
+    console.log("moyai image::::", this.image);
+    this.three_tex = new THREE.DataTexture( this.image.data, this.image.width, this.image.height, THREE.RGBAFormat );
+    this.three_tex.needsUpdate = true;
+    this.mat = new THREE.MeshBasicMaterial({ map: this.three_tex /*,depthTest:true*/, transparent: true });
     this.mat.shading = THREE.FlatShading;
     this.mat.side = THREE.FrontSide;
     this.mat.alphaTest = 0.5;
     this.mat.needsUpdate = true;
-    console.log("three tex:",this.tex, this.mat);
 }
 Texture.prototype.getSize = function() {
     return this.image.getSize();
@@ -250,35 +272,19 @@ TileDeck.prototype.setSize = function(sprw,sprh,cellw,cellh) {
     this.cell_height = cellh;
 }
 TileDeck.prototype.setTexture = function(tex) {
-    this.tex = tex;
+    this.moyai_tex = tex;
 }
-
-
-/*
-    virtual float getUperCell() { return (float) cell_width / (float) image_width; }
-    virtual float getVperCell() { return (float) cell_height / (float) image_height; }    
-	virtual void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
-        assert( image_width > 0 && image_height > 0 );
-		float uunit = (float) cell_width / (float) image_width;
-		float vunit = (float) cell_height / (float) image_height;
-		int start_x = cell_width * (int)( ind % tile_width );
-		int start_y = cell_height * (int)( ind / tile_width );
-
-		*u0 = (float) start_x / (float) image_width + eps + uofs * uunit; 
-		*v0 = (float) start_y / (float) image_height + eps + vofs * vunit; 
-		*u1 = *u0 + uunit - eps*2;  // *2 because adding eps once for u0 and v0
-		*v1 = *v0 + vunit - eps*2;
-	}
-	// (x0,y0)-(x1,y1) : (0,0)-(16,16) for 16x16 sprite
-	inline void getPixelPosition( int ind, int *x0, int *y0, int *x1, int *y1 ) {
-		int start_x = cell_width * (int)( ind % tile_width );
-		int start_y = cell_height * (int)( ind / tile_width );
-		*x0 = start_x;
-		*y0 = start_y;
-		*x1 = start_x + cell_width;
-		*y1 = start_y + cell_height;
-	}
-    */
+TileDeck.prototype.getUVFromIndex = function(ind,uofs,vofs,eps) {
+	var uunit = this.cell_width / this.moyai_tex.image.width;
+	var vunit = this.cell_height / this.moyai_tex.image.height;
+	var start_x = this.cell_width * parseInt( parseInt(ind) % parseInt(this.tile_width) );
+	var start_y = this.cell_height * parseInt( parseInt(ind) / parseInt(this.tile_width ) );
+    var u0 = start_x / this.moyai_tex.image.width + eps + uofs * uunit;
+    var v0 = start_y / this.moyai_tex.image.height + eps + vofs * vunit;
+    var u1 = u0 + uunit - eps*2;  // *2 because adding eps once for u0 and v0
+	var v1 = v0 + vunit - eps*2;
+    return [u0,v0,u1,v1];
+}
 
 
 ///////
@@ -327,6 +333,7 @@ function Prop2D() {
     this.children=[];
     this.accum_time=0;
     this.poll_count=0;
+    this.mesh=null;
 }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; }
@@ -387,7 +394,60 @@ Prop2D.prototype.basePoll = function(dt) { // return false to clean
     }
     return true;
 }
-
+function createRectGeometry(width,height) {
+    var geometry = new THREE.Geometry();
+    var sizeHalfX = width / 2;
+    var sizeHalfY = height / 2;
+    /*
+      0--1
+      |\ |
+      | \|
+      3--2
+     */
+    geometry.vertices.push(new THREE.Vector3(-sizeHalfX, sizeHalfY, 0)); //0
+    geometry.vertices.push(new THREE.Vector3(sizeHalfX, sizeHalfY, 0)); //1
+    geometry.vertices.push(new THREE.Vector3(sizeHalfX, -sizeHalfY, 0)); //2
+    geometry.vertices.push(new THREE.Vector3(-sizeHalfX, -sizeHalfY, 0)); //3
+    geometry.faces.push(new THREE.Face3(0, 2, 1));
+    geometry.faces.push(new THREE.Face3(0, 3, 2));
+    return geometry;
+}
+Prop2D.prototype.ensureMesh = function() {
+    if(this.mesh==null) {
+        var mat = new THREE.MeshBasicMaterial({ map: this.deck.moyai_tex.three_tex /*,depthTest:true*/, transparent: true });
+        mat.shading = THREE.FlatShading;
+        mat.side = THREE.FrontSide;
+        mat.alphaTest = 0.5;
+        mat.needsUpdate = true;
+        var geom = createRectGeometry(10,10);
+        var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
+        var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
+        console.log("XXX",this.deck, u0,v0,u1,v1);
+        geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v1), new THREE.Vector2(u1,v0), new THREE.Vector2(u1,v1) ]);
+        geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v1), new THREE.Vector2(u0,v0), new THREE.Vector2(u1,v0) ]);
+/*
+    geometry.faceVertexUvs[0].push([
+        new THREE.Vector2((uPos) * cellWidth / width, (vPos) * cellHeight / height),
+        new THREE.Vector2((uPos + 1) * cellWidth / width, (vPos - 1) * cellHeight / height),
+        new THREE.Vector2((uPos + 1) * cellWidth / width, (vPos) * cellHeight / height)
+    ]);
+    geometry.faceVertexUvs[0].push([
+        new THREE.Vector2((uPos) * cellWidth / width, (vPos) * cellHeight / height),
+        new THREE.Vector2((uPos) * cellWidth / width, (vPos - 1) * cellHeight / height),
+        new THREE.Vector2((uPos + 1) * cellWidth / width, (vPos - 1) * cellHeight / height)
+    ]);
+    */
+        
+        geom.verticesNeedUpdate = true;
+//        geom.elementsNeedUpdate = true;
+        geom.uvsNeedUpdate = true;        
+        
+        this.mesh = new THREE.Mesh(geom,mat);
+        this.mesh.scale.x = this.scl.x;
+        this.mesh.scale.y = this.scl.y;
+        console.log("ENSUREMESH:",this.mesh,uvs,this.mesh.scale);
+    }
+}
 ////////////////////////////
 
 Grid.prototype.id_gen=1;
