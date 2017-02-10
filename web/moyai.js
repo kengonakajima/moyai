@@ -419,25 +419,11 @@ Prop2D.prototype.ensureMesh = function() {
         mat.side = THREE.FrontSide;
         mat.alphaTest = 0.5;
         mat.needsUpdate = true;
-        var geom = createRectGeometry(10,10);
+        var geom = createRectGeometry(1,1);
         var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
         var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
-        console.log("XXX",this.deck, u0,v0,u1,v1);
         geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v1), new THREE.Vector2(u1,v0), new THREE.Vector2(u1,v1) ]);
         geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v1), new THREE.Vector2(u0,v0), new THREE.Vector2(u1,v0) ]);
-/*
-    geometry.faceVertexUvs[0].push([
-        new THREE.Vector2((uPos) * cellWidth / width, (vPos) * cellHeight / height),
-        new THREE.Vector2((uPos + 1) * cellWidth / width, (vPos - 1) * cellHeight / height),
-        new THREE.Vector2((uPos + 1) * cellWidth / width, (vPos) * cellHeight / height)
-    ]);
-    geometry.faceVertexUvs[0].push([
-        new THREE.Vector2((uPos) * cellWidth / width, (vPos) * cellHeight / height),
-        new THREE.Vector2((uPos) * cellWidth / width, (vPos - 1) * cellHeight / height),
-        new THREE.Vector2((uPos + 1) * cellWidth / width, (vPos - 1) * cellHeight / height)
-    ]);
-    */
-        
         geom.verticesNeedUpdate = true;
 //        geom.elementsNeedUpdate = true;
         geom.uvsNeedUpdate = true;        
