@@ -808,7 +808,7 @@ void gameInit() {
     colp->setDeck(d2);
     colp->setIndex(1);
     colp->setScl(24,24);
-    colp->setLoc( range(-100,100), range(-100,100));
+    colp->setLoc(50,-20);
     g_main_layer->insertProp(colp);
 
     Prop2D *statprimp = new Prop2D(); // a prop that has a prim with no changes
