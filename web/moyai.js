@@ -42,7 +42,7 @@ Color.prototype.toRGBA = function() {
 }
     
 ///////////////
-
+var g_moyais=[];
 function MoyaiClient(w,h,pixratio){
     this.scene = new THREE.Scene();
     this.renderer = new THREE.WebGLRenderer();
@@ -56,7 +56,7 @@ function MoyaiClient(w,h,pixratio){
     this.scene = new THREE.Scene();
     
     this.layers=[];
-    
+    g_moyais.push(this);
 }
 MoyaiClient.prototype.resize = function(w,h) {
     this.renderer.setSize(w,h);
@@ -139,12 +139,21 @@ MoyaiClient.prototype.render = function() {
 MoyaiClient.prototype.insertLayer = function(l) {
     this.layers.push(l);
 }
-
+MoyaiClient.prototype.updateAllImage = function(image) {
+    for(var i in this.layers) {
+        var layer = this.layers[i];
+        for(var i in layer.props) {
+            var prop = layer.props[i];
+            console.log("updateAllImage prop id:",prop.id, image.id);
+            if(prop.deck.moyai_tex) prop.deck.moyai_tex.updateImage(image);
+        }
+    }
+}
 ///////////////////
 
 Viewport.prototype.id_gen=1;
 function Viewport() {
-    this.id = this.id_gen++;
+    this.id = this.__proto__.id_gen++;
 }
 Viewport.prototype.setSize = function(sw,sh) {
     this.screen_width = sw;
@@ -160,7 +169,7 @@ Viewport.prototype.getMinMax = function() {
 ////////////////////
 Camera.prototype.id_gen=1;
 function Camera() {
-    this.id = this.id_gen++;
+    this.id = this.__proto__.id_gen++;
     this.loc = new Vec2(0,0);
 }
 Camera.prototype.setLoc = function(x,y) { this.loc.setWith2args(x,y); }
@@ -168,7 +177,7 @@ Camera.prototype.setLoc = function(x,y) { this.loc.setWith2args(x,y); }
 ////////////////////
 Layer.prototype.id_gen = 1;
 function Layer() {
-    this.id = this.id_gen++;
+    this.id = this.__proto__.id_gen++;
     this.props=[];
 }
 Layer.prototype.setViewport = function(vp) { this.viewport = vp; }
@@ -187,7 +196,8 @@ Layer.prototype.pollAllProps = function(dt) {
 /////////////////////
 Image.prototype.id_gen = 1;
 function Image() {
-    this.id = this.id_gen++;
+    this.id = this.__proto__.id_gen++;
+    console.log("imgid:", this.id);
     this.data = [];
     this.png=null;
 }
@@ -198,9 +208,13 @@ Image.prototype.loadPNGMem = function(u8adata) {
     var data_len = this.width*this.height*4;
     this.data = new Uint8Array(data_len);
     for(var i=0;i<data_len;i++) this.data[i] = 0xff; // white image
-    this.png.decode( function(pixels) { // this delays, and 
-        this.data = pixels;
-    });
+    var this_image = this;
+    this.decode_callback = function(pixels) {
+        console.log("decode_callback:",pixels, "image.id:", this_image.id );
+        this_image.data = pixels;
+        updateAllImage(this_image);
+    }
+    this.png.decode( this.decode_callback );
 }
 Image.prototype.setSize = function(w,h) {
     this.data = new Uint8Array(w*h*4);
@@ -238,7 +252,7 @@ Image.prototype.setPixel = function(x,y,c) {
 //////////////////////////
 Texture.prototype.id_gen = 1;
 function Texture() {
-    this.id = this.id_gen++;
+    this.id = this.__proto__.id_gen++;
     this.image = null;
     this.three_tex = null;
     this.mat = null;
@@ -246,7 +260,6 @@ function Texture() {
 Texture.prototype.loadPNGMem = function(u8adata) {
     this.image = new Image();
     this.image.loadPNGMem(u8adata);
-    console.log("moyai image::::", this.image);
     this.three_tex = new THREE.DataTexture( this.image.data, this.image.width, this.image.height, THREE.RGBAFormat );
     this.three_tex.needsUpdate = true;
     this.mat = new THREE.MeshBasicMaterial({ map: this.three_tex /*,depthTest:true*/, transparent: true });
@@ -259,11 +272,19 @@ Texture.prototype.getSize = function() {
     return this.image.getSize();
 }
 Texture.prototype.setImage = function(img) { this.image = img; }
-
+Texture.prototype.updateImage = function(img) {
+    if(this.image.id == img.id) {
+        console.log("Texture.updateImage",this.three_tex);
+        this.three_tex.image.data = img.data;
+        this.three_tex.image.width = img.width;
+        this.three_tex.image.height = img.height;
+        this.three_tex.needsUpdate = true;
+    }
+}
 ///////////////////
 TileDeck.prototype.id_gen = 1;
 function TileDeck() {
-    this.id = this.id_gen++;
+    this.id = this.__proto__.id_gen++;
 }
 TileDeck.prototype.setSize = function(sprw,sprh,cellw,cellh) {
     this.tile_width = sprw;
@@ -295,7 +316,7 @@ var PRIMTYPE_RECTANGLE = 2;
 
 Prim.prototype.id_gen=1;
 function Prim(t,a,b,col,lw) {
-    this.id=this.id_gen++;
+    this.id=this.__proto__.id_gen++;
     this.type = t;
     this.a=a;
     this.b=b;
@@ -318,7 +339,7 @@ PrimDrawer.prototype.addRect = function(a,b,col,w) {
 
 Prop2D.prototype.id_gen=1;
 function Prop2D() {
-    this.id=this.id_gen++;
+    this.id=this.__proto__.id_gen++;
     this.index = 0;
     this.scl = new Vec2(16,16);
     this.loc = new Vec2(0,0);
@@ -438,7 +459,7 @@ Prop2D.prototype.ensureMesh = function() {
 
 Grid.prototype.id_gen=1;
 function Grid(w,h) {
-    this.id=this.id_gen++;
+    this.id=this.__proto__.id_gen++;
     this.width=w;
     this.height=h;
     this.index_table=null;
@@ -573,7 +594,7 @@ TextureAtlas.prototype.dump = function(w,h) {
 
 Font.prototype.id_gen=1;
 function Font() {
-    this.id=this.id_gen++;
+    this.id=this.__proto__.id_gen++;
     this.font = null;
 	this.atlas = null;
     this.charcode_table = [];
@@ -779,6 +800,12 @@ CharGrid.prototype.printf = function() {
 }
 
 	
-
+////////////////////
+function updateAllImage(image) {
+    for(var i in g_moyais) {
+        var moyai = g_moyais[i];
+        moyai.updateAllImage(image);
+    }
+}
 
 
