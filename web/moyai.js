@@ -443,8 +443,8 @@ Prop2D.prototype.ensureMesh = function() {
         var geom = createRectGeometry(1,1);
         var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
         var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
-        geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v1), new THREE.Vector2(u1,v0), new THREE.Vector2(u1,v1) ]);
-        geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v1), new THREE.Vector2(u0,v0), new THREE.Vector2(u1,v0) ]);
+        geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v0), new THREE.Vector2(u1,v1), new THREE.Vector2(u1,v0) ]);
+        geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v0), new THREE.Vector2(u0,v1), new THREE.Vector2(u1,v1) ]);
         geom.verticesNeedUpdate = true;
 //        geom.elementsNeedUpdate = true;
         geom.uvsNeedUpdate = true;        
