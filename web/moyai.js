@@ -438,7 +438,7 @@ function createRectGeometry(width,height) {
 }
 Prop2D.prototype.ensureMesh = function() {
     if(this.mesh==null) {
-        var mat = new THREE.MeshBasicMaterial({ map: this.deck.moyai_tex.three_tex /*,depthTest:true*/, transparent: true });
+        var mat = new THREE.MeshBasicMaterial({ map: this.deck.moyai_tex.three_tex /*,depthTest:true*/, transparent: true, vertexColors:THREE.VertexColors });
         mat.shading = THREE.FlatShading;
         mat.side = THREE.FrontSide;
         mat.alphaTest = 0.5;
@@ -451,6 +451,12 @@ Prop2D.prototype.ensureMesh = function() {
         geom.verticesNeedUpdate = true;
 //        geom.elementsNeedUpdate = true;
         geom.uvsNeedUpdate = true;        
+        geom.faces[0].vertexColors[0] = new THREE.Color(0xffffff);
+        geom.faces[0].vertexColors[1] = new THREE.Color(0xffffff);
+        geom.faces[0].vertexColors[2] = new THREE.Color(0xffffff);
+        geom.faces[1].vertexColors[0] = new THREE.Color(0xffffff);
+        geom.faces[1].vertexColors[1] = new THREE.Color(0xffffff);
+        geom.faces[1].vertexColors[2] = new THREE.Color(0xffffff);
         
         this.mesh = new THREE.Mesh(geom,mat);
         this.mesh.scale.x = this.scl.x;
