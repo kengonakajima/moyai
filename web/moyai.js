@@ -83,7 +83,8 @@ MoyaiClient.prototype.render = function() {
             prop.ensureMesh();
             if(prop.mesh) {
                 prop.mesh.position.x = prop.loc.x;
-                prop.mesh.position.y = prop.loc.y;                
+                prop.mesh.position.y = prop.loc.y;
+                prop.mesh.rotation.set(0,0,prop.rot);
                 console.log("adding prop.mesh:",prop);
                 this.scene.add(prop.mesh);
             }

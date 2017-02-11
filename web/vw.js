@@ -68,7 +68,7 @@ animate();
 
 /////////// testing
 
-var SCRW=700, SCRH=400;
+var SCRW=960, SCRH=544;
 g_moyai_client = new MoyaiClient(SCRW,SCRH,window.devicePixelRatio);
 document.getElementById("screen").appendChild( g_moyai_client.renderer.domElement );
 
@@ -133,11 +133,9 @@ sclp.setLoc(-200,0);
 sclp.setRot( Math.PI/8.0 );
 g_main_layer.insertProp(sclp);
 
-/*
 
 
-
-
+  
 var sclprot = new Prop2D();
 sclprot.setDeck(deck);
 sclprot.setIndex(0);
@@ -147,6 +145,7 @@ sclprot.setRot( Math.PI/8 );
 sclprot.setUVRot(true);
 g_main_layer.insertProp(sclprot);    
 
+/*
 
 var colp = new Prop2D();
 colp.setColor(1,0,0,1);
