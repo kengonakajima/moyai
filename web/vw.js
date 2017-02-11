@@ -145,16 +145,18 @@ sclprot.setRot( Math.PI/8 );
 sclprot.setUVRot(true);
 g_main_layer.insertProp(sclprot);    
 
-/*
+
 
 var colp = new Prop2D();
 colp.setColor(1,0,0,1);
 colp.setDeck(d2);
 colp.setIndex(1);
 colp.setScl(24,24);
-colp.setLoc( range(-100,100), range(-100,100));
+colp.setLoc(50,-20);
 g_main_layer.insertProp(colp);
 
+/*
+  
 var statprimp = new Prop2D(); // a prop that has a prim with no changes
 statprimp.setDeck(g_base_deck);
 statprimp.setIndex(1);
