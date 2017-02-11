@@ -82,6 +82,8 @@ MoyaiClient.prototype.render = function() {
             var prop = layer.props[i];
             prop.ensureMesh();
             if(prop.mesh) {
+                prop.mesh.position.x = prop.loc.x;
+                prop.mesh.position.y = prop.loc.y;                
                 console.log("adding prop.mesh:",prop);
                 this.scene.add(prop.mesh);
             }
