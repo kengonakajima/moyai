@@ -93,12 +93,19 @@ MoyaiClient.prototype.render = function() {
             if(prop.prim_drawer) {
                 for(var i in prop.prim_drawer.prims) {
                     var prim = prop.prim_drawer.prims[i];
-                    prim.ensureSclRot(prop.scl,prop.rot);
+                    prim.ensureMesh();
                     prim.mesh.position.x = prop.loc.x;
                     prim.mesh.position.y = prop.loc.y;
-                    
-                    console.log("adding prim:",prim);
+                    prim.mesh.scale.x = prop.scl.x;
+                    prim.mesh.scale.y = prop.scl.y;
+                    prim.mesh.rotation.set(0,0,prop.rot);                    
                     this.scene.add(prim.mesh);
+                }
+            }
+            if(prop.grids) {
+                for(var i in prop.grids) {
+                    var grid = prop.grids[i];
+
                 }
             }
         }
@@ -339,22 +346,12 @@ function Prim(t,a,b,col,lw) {
     this.color=col;
     if(!lw) lw=1;
     this.line_width=lw;
-    this.last_scl=null;
-    this.last_rot=null;
 }
-Prim.prototype.ensureSclRot = function(scl,rot) {
-    if(this.last_scl && this.last_scl.x==scl.x && this.last_scl.y==scl.y && this.last_rot == rot ) {
-        // nothing to do!
-        return;
-    }
-    this.last_scl = new Vec2(scl.x,scl.y);
-    this.last_rot = rot;
-    var sa = new Vec2( this.a.x * scl.x, this.a.y * scl.y);
-    var sb = new Vec2( this.b.x * scl.x, this.b.y * scl.y);
+Prim.prototype.ensureMesh = function() {
     if(this.type==PRIMTYPE_LINE) {
         var geometry = new THREE.Geometry();
-        geometry.vertices.push(new THREE.Vector3(sa.x,sa.y,0));
-        geometry.vertices.push(new THREE.Vector3(sb.x,sb.y,0));
+        geometry.vertices.push(new THREE.Vector3(this.a.x,this.a.y,0));
+        geometry.vertices.push(new THREE.Vector3(this.b.x,this.b.y,0));
         geometry.verticesNeedUpdate=true;
         var material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width});
         this.mesh = new THREE.Line( geometry, material);
@@ -366,10 +363,10 @@ Prim.prototype.ensureSclRot = function(scl,rot) {
           3--2
         */
         var geometry = new THREE.Geometry();
-        geometry.vertices.push(new THREE.Vector3(sa.x,sa.y,0));
-        geometry.vertices.push(new THREE.Vector3(sb.x,sa.y,0));
-        geometry.vertices.push(new THREE.Vector3(sb.x,sb.y,0));
-        geometry.vertices.push(new THREE.Vector3(sa.x,sb.y,0));
+        geometry.vertices.push(new THREE.Vector3(this.a.x,this.a.y,0));
+        geometry.vertices.push(new THREE.Vector3(this.b.x,this.a.y,0));
+        geometry.vertices.push(new THREE.Vector3(this.b.x,this.b.y,0));
+        geometry.vertices.push(new THREE.Vector3(this.a.x,this.b.y,0));
         geometry.verticesNeedUpdate=true;        
         geometry.faces.push(new THREE.Face3(0, 2, 1));
         geometry.faces.push(new THREE.Face3(0, 3, 2));
@@ -382,7 +379,6 @@ Prim.prototype.ensureSclRot = function(scl,rot) {
     } else {
         console.log("invalid prim type",this.type)
     }
-    this.mesh.rotation.set(0,0,rot);
 }
 //////////////////
 function PrimDrawer() {

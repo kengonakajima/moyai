@@ -165,7 +165,7 @@ statprimp.addLine(new Vec2(0,0),new Vec2(1,1),new Color(1,1,1,1), 3);
 statprimp.setLoc(100,-100);
 g_main_layer.insertProp(statprimp);
 
-/*
+
   
 // static grids
 var p = new Prop2D();
@@ -192,6 +192,8 @@ for(var x=0;x<8;x++){
 p.addGrid(g);
 g_main_layer.insertProp(p);
 
+/*
+  
 var p2 = new Prop2D();
 p2.setColor(1,1,0,0.5);
 p2.setDeck(d2);
