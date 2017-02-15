@@ -87,6 +87,8 @@ MoyaiClient.prototype.render = function() {
             if(prop.mesh) {
                 prop.mesh.position.x = prop.loc.x;
                 prop.mesh.position.y = prop.loc.y;
+                prop.mesh.scale.x = prop.scl.x;
+                prop.mesh.scale.y = prop.scl.y;                
                 prop.mesh.rotation.set(0,0,prop.rot);
                 this.scene.add(prop.mesh);
             }
@@ -105,6 +107,8 @@ MoyaiClient.prototype.render = function() {
             if(prop.grids) {
                 for(var i in prop.grids) {
                     var grid = prop.grids[i];
+                    //grid.ensureMesh();
+                    
 
                 }
             }
@@ -512,8 +516,6 @@ Prop2D.prototype.ensureMesh = function() {
         geom.faces[1].vertexColors[2] = new THREE.Color(0xffffff);
         
         this.mesh = new THREE.Mesh(geom,mat);
-        this.mesh.scale.x = this.scl.x;
-        this.mesh.scale.y = this.scl.y;
         console.log("ENSUREMESH:",this.mesh,uvs,this.mesh.scale);
     }
 }
