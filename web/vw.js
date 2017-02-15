@@ -310,14 +310,18 @@ scoregrid.setColor( 3,0, Color(0,1,1,1));
 scorep.addGrid(scoregrid);
 g_main_layer.insertProp(scorep);
 
+*/
+
 // line prop
 var g_linep = new Prop2D();
-var g_narrow_line_prim = g_linep.addLine( Vec2(0,0), Vec2(100,100), Color(1,0,0,1) );
-g_linep.addLine( Vec2(0,0), Vec2(100,-50), Color(0,1,0,1), 5 );
-g_linep.addRect( Vec2(0,0), Vec2(-150,230), Color(0.2,0,1,0.5) );
+var g_narrow_line_prim = g_linep.addLine( new Vec2(0,0), new Vec2(100,100), new Color(1,0,0,1) );
+g_linep.addLine( new Vec2(0,0), new Vec2(100,-50), new Color(0,1,0,1), 5 );
+g_linep.addRect( new Vec2(0,0), new Vec2(-150,230), new Color(0.2,0,1,0.5) );
 g_linep.setLoc(0,200);
 g_linep.setScl(1.0);
 g_main_layer.insertProp(g_linep);
+
+/*
 // add child to line prop
 var childp = new Prop2D();
 childp.setDeck(g_base_deck);

@@ -93,9 +93,10 @@ MoyaiClient.prototype.render = function() {
             if(prop.prim_drawer) {
                 for(var i in prop.prim_drawer.prims) {
                     var prim = prop.prim_drawer.prims[i];
+                    prim.ensureSclRot(prop.scl,prop.rot);
                     prim.mesh.position.x = prop.loc.x;
                     prim.mesh.position.y = prop.loc.y;
-                    prim.mesh.rotation.set(0,0,prop.rot);
+                    
                     console.log("adding prim:",prim);
                     this.scene.add(prim.mesh);
                 }
@@ -160,7 +161,7 @@ MoyaiClient.prototype.updateAllImage = function(image) {
         for(var i in layer.props) {
             var prop = layer.props[i];
             console.log("updateAllImage prop id:",prop.id, image.id);
-            if(prop.deck.moyai_tex) prop.deck.moyai_tex.updateImage(image);
+            if(prop.deck && prop.deck.moyai_tex) prop.deck.moyai_tex.updateImage(image);
         }
     }
 }
@@ -338,15 +339,26 @@ function Prim(t,a,b,col,lw) {
     this.color=col;
     if(!lw) lw=1;
     this.line_width=lw;
-    if(t==PRIMTYPE_LINE) {
+    this.last_scl=null;
+    this.last_rot=null;
+}
+Prim.prototype.ensureSclRot = function(scl,rot) {
+    if(this.last_scl && this.last_scl.x==scl.x && this.last_scl.y==scl.y && this.last_rot == rot ) {
+        // nothing to do!
+        return;
+    }
+    this.last_scl = new Vec2(scl.x,scl.y);
+    this.last_rot = rot;
+    var sa = new Vec2( this.a.x * scl.x, this.a.y * scl.y);
+    var sb = new Vec2( this.b.x * scl.x, this.b.y * scl.y);
+    if(this.type==PRIMTYPE_LINE) {
         var geometry = new THREE.Geometry();
-        geometry.vertices.push(new THREE.Vector3(a.x,a.y,0));
-        geometry.vertices.push(new THREE.Vector3(b.x,b.y,0));
+        geometry.vertices.push(new THREE.Vector3(sa.x,sa.y,0));
+        geometry.vertices.push(new THREE.Vector3(sb.x,sb.y,0));
         geometry.verticesNeedUpdate=true;
-        var material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth:lw});
+        var material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width});
         this.mesh = new THREE.Line( geometry, material);
-        console.log("created line:",this.mesh);
-    } else if(t==PRIMTYPE_RECTANGLE) {
+    } else if(this.type==PRIMTYPE_RECTANGLE) {
         /*
           0--1
           |\ |  0:a 2:b
@@ -354,10 +366,10 @@ function Prim(t,a,b,col,lw) {
           3--2
         */
         var geometry = new THREE.Geometry();
-        geometry.vertices.push(new THREE.Vector3(a.x,a.y,0));
-        geometry.vertices.push(new THREE.Vector3(b.x,a.y,0));
-        geometry.vertices.push(new THREE.Vector3(b.x,b.y,0));
-        geometry.vertices.push(new THREE.Vector3(a.x,b.y,0));
+        geometry.vertices.push(new THREE.Vector3(sa.x,sa.y,0));
+        geometry.vertices.push(new THREE.Vector3(sb.x,sa.y,0));
+        geometry.vertices.push(new THREE.Vector3(sb.x,sb.y,0));
+        geometry.vertices.push(new THREE.Vector3(sa.x,sb.y,0));
         geometry.verticesNeedUpdate=true;        
         geometry.faces.push(new THREE.Face3(0, 2, 1));
         geometry.faces.push(new THREE.Face3(0, 3, 2));
@@ -368,10 +380,11 @@ function Prim(t,a,b,col,lw) {
         material.needsUpdate = true;
         this.mesh = new THREE.Mesh(geometry,material);
     } else {
-        console.log("invalid prim type",t)
+        console.log("invalid prim type",this.type)
     }
+    this.mesh.rotation.set(0,0,rot);
 }
-
+//////////////////
 function PrimDrawer() {
     this.prims=[];
 }
@@ -412,11 +425,11 @@ Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg;}
 Prop2D.prototype.setColor = function(r,g,b,a) { this.color = new Color(r,g,b,a); }
 Prop2D.prototype.addLine = function(p0,p1,col,w) {
     if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
-    this.prim_drawer.addLine(new Vec2(p0.x*this.scl.x,p0.y*this.scl.y),new Vec2(p1.x*this.scl.x,p1.y*this.scl.y),col,w);
+    this.prim_drawer.addLine(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
 }
 Prop2D.prototype.addRect = function(p0,p1,col,w) {
     if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
-    this.prim_drawer.addRect(new Vec2(p0.x*this.scl.x,p0.y*this.scl.y),new Vec2(p1.x*this.scl.x,p1.y*this.scl.y),col,w);
+    this.prim_drawer.addRect(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
 }
 Prop2D.prototype.addGrid = function(g) {
     if(!this.grids) this.grids=[];
@@ -481,7 +494,7 @@ function createRectGeometry(width,height) {
     return geometry;
 }
 Prop2D.prototype.ensureMesh = function() {
-    if(this.mesh==null) {
+    if(this.mesh==null && this.deck ) {
         var mat = new THREE.MeshBasicMaterial({ map: this.deck.moyai_tex.three_tex /*,depthTest:true*/, transparent: true, vertexColors:THREE.VertexColors });
         mat.shading = THREE.FlatShading;
         mat.side = THREE.FrontSide;
