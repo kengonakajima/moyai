@@ -119,7 +119,6 @@ MoyaiClient.prototype.render = function() {
             }
             if(prop.grids) {
                 for(var i in prop.grids) {
-/*                    
                     var grid = prop.grids[i];
                     grid.ensureMesh();
                     grid.mesh.position.x = prop.loc.x;
@@ -128,7 +127,6 @@ MoyaiClient.prototype.render = function() {
                     grid.mesh.scale.y = prop.scl.y;
                     grid.mesh.rotation.set(0,0,prop.rot);                    
                     this.scene.add(grid.mesh);
-                    */                    
                 }
             }
         }
@@ -188,10 +186,19 @@ MoyaiClient.prototype.insertLayer = function(l) {
 MoyaiClient.prototype.updateAllImage = function(image) {
     for(var i in this.layers) {
         var layer = this.layers[i];
-        for(var i in layer.props) {
-            var prop = layer.props[i];
+        for(var j in layer.props) {
+            var prop = layer.props[j];
             console.log("updateAllImage prop id:",prop.id, image.id);
             if(prop.deck && prop.deck.moyai_tex) prop.deck.moyai_tex.updateImage(image);
+            if(prop.grids) {
+                for(var k in prop.grids ) {
+                    var grid = prop.grids[k];
+                    if(grid.deck && grid.deck.moyai_tex) {
+                        console.log("updating grid tex image:",image.id);
+                        grid.deck.moyai_tex.updateImage(image);
+                    }
+                }
+            }
         }
     }
 }
@@ -523,7 +530,6 @@ Prop2D.prototype.ensureMesh = function() {
         geom.faces[1].vertexColors[2] = new THREE.Color(0xffffff);
         
         this.mesh = new THREE.Mesh(geom,mat);
-        console.log("ENSUREMESH:",this.mesh,uvs,this.mesh.scale);
     }
 }
 ////////////////////////////
@@ -559,6 +565,7 @@ Grid.prototype._fill = function(tbl,val) {
 var GRID_NOT_USED = -1;
 Grid.prototype.set = function(x,y,ind) {
     if(!this.index_table) this.index_table=[];
+    this.index_table[this.index(x,y)] = ind;
 }
 Grid.prototype.get  =function(x,y) {
     if(!this.index_table) return GRID_NOT_USED;
@@ -628,8 +635,72 @@ Grid.prototype.fillColor = function(c) {
     }
 }
 Grid.prototype.ensureMesh = function() {
-    if(this.mesh==null && this.deck) {
- //       var mat = new 
+    if(this.mesh==null && this.deck && this.index_table ) {
+        var mat = createMeshBasicMaterial({map: this.deck.moyai_tex.three_tex, transparent:true, vertexColors:THREE.VertexColors });
+        var geom = new THREE.Geometry();
+        var quad_cnt=0;
+        for(var y=0;y<this.height;y++) {
+            for(var x=0;x<this.width;x++) {
+                var ind = x+y*this.width;
+                if( this.index_table[ind] == GRID_NOT_USED )continue;
+
+                /*
+                  0--1
+                  |\ |
+                  | \|
+                  3--2
+
+                  3の位置が(0,0)
+                */
+
+                // 1セルあたり4頂点づつ
+                geom.vertices.push(new THREE.Vector3(x,y+1,0)); //0
+                geom.vertices.push(new THREE.Vector3(x+1,y+1, 0)); //1
+                geom.vertices.push(new THREE.Vector3(x+1,y, 0)); //2
+                geom.vertices.push(new THREE.Vector3(x,y, 0)); //3
+                // 1セルあたり2面づつ
+                var face_start_vert_ind = quad_cnt*4;
+                geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+2, face_start_vert_ind+1));
+                geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+3, face_start_vert_ind+2));
+                
+                var left_bottom, right_top;
+                var uvs = this.deck.getUVFromIndex(this.index_table[ind],0,0,0);
+                var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
+                /*
+                  if(grid->texofs_table) {
+                    float u_per_cell = draw_deck->getUperCell();
+                    float v_per_cell = draw_deck->getVperCell();
+                    u0 += grid->texofs_table[ind].x * u_per_cell;
+                    v0 += grid->texofs_table[ind].y * v_per_cell;
+                    u1 += grid->texofs_table[ind].x * u_per_cell;
+                    v1 += grid->texofs_table[ind].y * v_per_cell;
+                  }
+                */
+                if(this.xflip_table && this.xflip_table[ind]) {
+                    var tmp = u1; u1 = u0; u0 = tmp;
+                }
+                if(this.yflip_table && this.yflip_table[ind]) {
+                    var tmp = v1; v1 = v0; v0 = tmp;
+                }
+                var uv_0 = new THREE.Vector2(u0,v1);
+                var uv_1 = new THREE.Vector2(u1,v1);
+                var uv_2 = new THREE.Vector2(u1,v0);
+                var uv_3 = new THREE.Vector2(u0,v0);
+                console.log( "grid uvs:", ind,this.index_table[ind], uv_0, uv_1, uv_2, uv_3 );
+                geom.faceVertexUvs[0].push([uv_0,uv_2,uv_1]);
+                geom.faceVertexUvs[0].push([uv_0,uv_3,uv_2]);
+                geom.faces[quad_cnt*2+0].vertexColors[0] = new THREE.Color(0xffffff);
+                geom.faces[quad_cnt*2+0].vertexColors[1] = new THREE.Color(0xffffff);
+                geom.faces[quad_cnt*2+0].vertexColors[2] = new THREE.Color(0xffffff);
+                geom.faces[quad_cnt*2+1].vertexColors[0] = new THREE.Color(0xffffff);
+                geom.faces[quad_cnt*2+1].vertexColors[1] = new THREE.Color(0xffffff);
+                geom.faces[quad_cnt*2+1].vertexColors[2] = new THREE.Color(0xffffff);
+                quad_cnt++;
+            }
+        }
+        geom.verticesNeedUpdate = true;
+        geom.uvsNeedUpdate = true;
+        this.mesh = new THREE.Mesh(geom,mat);
     }
 }
 
