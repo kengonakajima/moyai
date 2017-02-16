@@ -56,6 +56,9 @@ Color.prototype.toRGBA = function() {
 Color.prototype.toCode = function() {
     return ( parseInt(this.r * 255) << 16 ) + ( parseInt(this.g * 255) << 8 ) + parseInt(this.b * 255);
 }
+Color.prototype.toTHREEColor = function() {
+    return new THREE.Color(this.toCode());
+}
      
 ///////////////
 var g_moyais=[];
@@ -64,6 +67,7 @@ function MoyaiClient(w,h,pixratio){
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setPixelRatio( pixratio);
     this.renderer.setSize(w,h);
+    this.renderer.setClearColor("#333");
     this.renderer.autoClear = false;
 
     this.camera = new THREE.OrthographicCamera( -w/2, w/2, h/2, -h/2,-1,10);
@@ -521,13 +525,13 @@ Prop2D.prototype.ensureMesh = function() {
         geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v0), new THREE.Vector2(u0,v1), new THREE.Vector2(u1,v1) ]);
         geom.verticesNeedUpdate = true;
 //        geom.elementsNeedUpdate = true;
-        geom.uvsNeedUpdate = true;        
-        geom.faces[0].vertexColors[0] = new THREE.Color(0xffffff);
-        geom.faces[0].vertexColors[1] = new THREE.Color(0xffffff);
-        geom.faces[0].vertexColors[2] = new THREE.Color(0xffffff);
-        geom.faces[1].vertexColors[0] = new THREE.Color(0xffffff);
-        geom.faces[1].vertexColors[1] = new THREE.Color(0xffffff);
-        geom.faces[1].vertexColors[2] = new THREE.Color(0xffffff);
+        geom.uvsNeedUpdate = true;
+        geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
+        geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
+        geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
+        geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
+        geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
+        geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
         
         this.mesh = new THREE.Mesh(geom,mat);
     }
@@ -689,12 +693,14 @@ Grid.prototype.ensureMesh = function() {
                 console.log( "grid uvs:", ind,this.index_table[ind], uv_0, uv_1, uv_2, uv_3 );
                 geom.faceVertexUvs[0].push([uv_0,uv_2,uv_1]);
                 geom.faceVertexUvs[0].push([uv_0,uv_3,uv_2]);
-                geom.faces[quad_cnt*2+0].vertexColors[0] = new THREE.Color(0xffffff);
-                geom.faces[quad_cnt*2+0].vertexColors[1] = new THREE.Color(0xffffff);
-                geom.faces[quad_cnt*2+0].vertexColors[2] = new THREE.Color(0xffffff);
-                geom.faces[quad_cnt*2+1].vertexColors[0] = new THREE.Color(0xffffff);
-                geom.faces[quad_cnt*2+1].vertexColors[1] = new THREE.Color(0xffffff);
-                geom.faces[quad_cnt*2+1].vertexColors[2] = new THREE.Color(0xffffff);
+                var col; 
+                if( this.color_table && this.color_table[ind] ) col = this.color_table[ind].toTHREEColor(); else col = new THREE.Color("#fff");
+                geom.faces[quad_cnt*2+0].vertexColors[0] = col;
+                geom.faces[quad_cnt*2+0].vertexColors[1] = col;
+                geom.faces[quad_cnt*2+0].vertexColors[2] = col;
+                geom.faces[quad_cnt*2+1].vertexColors[0] = col;
+                geom.faces[quad_cnt*2+1].vertexColors[1] = col;
+                geom.faces[quad_cnt*2+1].vertexColors[2] = col;
                 quad_cnt++;
             }
         }
