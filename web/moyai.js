@@ -10,6 +10,19 @@ function range(a,b) {
     return (small + (big-small)*Math.random());
 }
 
+//////////////
+function createMeshBasicMaterial(objarg) {
+    var m = new THREE.MeshBasicMaterial(objarg);
+    m.shading = THREE.FlatShading;
+    m.side = THREE.FrontSide;
+    m.alphaTest = 0.5;
+    m.needsUpdate = true;
+    return m;
+}
+
+
+//////////////
+
 function Vec2(x,y) {
     this.x = x;
     this.y = y;
@@ -106,10 +119,16 @@ MoyaiClient.prototype.render = function() {
             }
             if(prop.grids) {
                 for(var i in prop.grids) {
+/*                    
                     var grid = prop.grids[i];
-                    //grid.ensureMesh();
-                    
-
+                    grid.ensureMesh();
+                    grid.mesh.position.x = prop.loc.x;
+                    grid.mesh.position.y = prop.loc.y;
+                    grid.mesh.scale.x = prop.scl.x;
+                    grid.mesh.scale.y = prop.scl.y;
+                    grid.mesh.rotation.set(0,0,prop.rot);                    
+                    this.scene.add(grid.mesh);
+                    */                    
                 }
             }
         }
@@ -289,11 +308,7 @@ Texture.prototype.loadPNGMem = function(u8adata) {
     this.image.loadPNGMem(u8adata);
     this.three_tex = new THREE.DataTexture( this.image.data, this.image.width, this.image.height, THREE.RGBAFormat );
     this.three_tex.needsUpdate = true;
-    this.mat = new THREE.MeshBasicMaterial({ map: this.three_tex /*,depthTest:true*/, transparent: true });
-    this.mat.shading = THREE.FlatShading;
-    this.mat.side = THREE.FrontSide;
-    this.mat.alphaTest = 0.5;
-    this.mat.needsUpdate = true;
+    this.mat = createMeshBasicMaterial({ map: this.three_tex /*,depthTest:true*/, transparent: true });
 }
 Texture.prototype.getSize = function() {
     return this.image.getSize();
@@ -374,11 +389,7 @@ Prim.prototype.ensureMesh = function() {
         geometry.verticesNeedUpdate=true;        
         geometry.faces.push(new THREE.Face3(0, 2, 1));
         geometry.faces.push(new THREE.Face3(0, 3, 2));
-        var material = new THREE.MeshBasicMaterial({ color: this.color.toCode() /*,depthTest:true, transparent: true*/ });
-        material.shading = THREE.FlatShading;
-        material.side = THREE.FrontSide;
-        material.alphaTest = 0.5;
-        material.needsUpdate = true;
+        var material = createMeshBasicMaterial({ color: this.color.toCode() /*,depthTest:true, transparent: true*/ });
         this.mesh = new THREE.Mesh(geometry,material);
     } else {
         console.log("invalid prim type",this.type)
@@ -495,11 +506,7 @@ function createRectGeometry(width,height) {
 }
 Prop2D.prototype.ensureMesh = function() {
     if(this.mesh==null && this.deck ) {
-        var mat = new THREE.MeshBasicMaterial({ map: this.deck.moyai_tex.three_tex /*,depthTest:true*/, transparent: true, vertexColors:THREE.VertexColors });
-        mat.shading = THREE.FlatShading;
-        mat.side = THREE.FrontSide;
-        mat.alphaTest = 0.5;
-        mat.needsUpdate = true;
+        var mat = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex /*,depthTest:true*/, transparent: true, vertexColors:THREE.VertexColors });
         var geom = createRectGeometry(1,1);
         var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
         var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
@@ -618,6 +625,11 @@ Grid.prototype.fillColor = function(c) {
                 this.color_table[this.index(x,y)] = new Color(c.r,c.g,c.b,c.a);
             }
         }
+    }
+}
+Grid.prototype.ensureMesh = function() {
+    if(this.mesh==null && this.deck) {
+ //       var mat = new 
     }
 }
 
