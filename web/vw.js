@@ -221,7 +221,7 @@ for(var j=0;j<2;j++) {
     }
 }
 
-/*  
+
 
 var charcodes = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえおぁぃぅぇぉかきくけこがぎぐげごさしすせそざじずぜぞたちつてとだぢづでどなにぬねのはひふへほばびぶべぼぱぴぷぺぽまみむめもやゆよゃゅょらりるれろわをん、。アイウエオァィゥェォカキクケコガギグゲゴサシスセソザジズゼゾタチツテトダヂヅデドナニヌネノハヒフヘホバビブベボパピプペポマミムメモヤユヨャュョラリルレロワヲンーッっ　「」";
 
@@ -229,6 +229,8 @@ var g_font = new Font();
 g_font.loadFromMemTTF( cinecaption227_ttf, charcodes, 12 );
 
 
+/*
+  
 var g_tb = new TextBox();
 g_tb.setFont(g_font);
 g_tb.setString("dummy");

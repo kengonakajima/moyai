@@ -130,7 +130,6 @@ MoyaiClient.prototype.render = function() {
             if(prop.grids) {
                 for(var i in prop.grids) {
                     var grid = prop.grids[i];
-                    console.log("EEEE",grid);
                     grid.ensureMesh();
                     grid.mesh.position.x = prop.loc.x;
                     grid.mesh.position.y = prop.loc.y;
@@ -199,13 +198,11 @@ MoyaiClient.prototype.updateAllImage = function(image) {
         var layer = this.layers[i];
         for(var j in layer.props) {
             var prop = layer.props[j];
-            console.log("updateAllImage prop id:",prop.id, image.id);
             if(prop.deck && prop.deck.moyai_tex) prop.deck.moyai_tex.updateImage(image);
             if(prop.grids) {
                 for(var k in prop.grids ) {
                     var grid = prop.grids[k];
                     if(grid.deck && grid.deck.moyai_tex) {
-                        console.log("updating grid tex image:",image.id);
                         grid.deck.moyai_tex.updateImage(image);
                     }
                 }
@@ -261,7 +258,6 @@ Layer.prototype.pollAllProps = function(dt) {
 Image.prototype.id_gen = 1;
 function Image() {
     this.id = this.__proto__.id_gen++;
-    console.log("imgid:", this.id);
     this.data = [];
     this.png=null;
 }
@@ -274,7 +270,6 @@ Image.prototype.loadPNGMem = function(u8adata) {
     for(var i=0;i<data_len;i++) this.data[i] = 0xff; // white image
     var this_image = this;
     this.decode_callback = function(pixels) {
-        console.log("decode_callback:",pixels, "image.id:", this_image.id );
         this_image.data = pixels;
         updateAllImage(this_image);
     }
@@ -334,7 +329,6 @@ Texture.prototype.getSize = function() {
 Texture.prototype.setImage = function(img) { this.image = img; }
 Texture.prototype.updateImage = function(img) {
     if(this.image.id == img.id) {
-        console.log("Texture.updateImage",this.three_tex);
         this.three_tex.image.data = img.data;
         this.three_tex.image.width = img.width;
         this.three_tex.image.height = img.height;
@@ -703,7 +697,6 @@ Grid.prototype.ensureMesh = function() {
                 var uv_1 = new THREE.Vector2(u1,v1);
                 var uv_2 = new THREE.Vector2(u1,v0);
                 var uv_3 = new THREE.Vector2(u0,v0);
-                console.log( "grid uvs:", ind,this.index_table[ind], uv_0, uv_1, uv_2, uv_3 );
                 geom.faceVertexUvs[0].push([uv_0,uv_2,uv_1]);
                 geom.faceVertexUvs[0].push([uv_0,uv_3,uv_2]);
                 var col; 
