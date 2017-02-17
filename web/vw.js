@@ -202,7 +202,7 @@ p2.setLoc(-100,100);
 p2.addGrid(g);
 tmplayer.insertProp(p2);
 
-/*  
+
 
 // alpha
 var dragontex = new Texture();
@@ -220,7 +220,8 @@ for(var j=0;j<2;j++) {
         g_main_layer.insertProp(p);
     }
 }
-        
+
+/*  
 
 var charcodes = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえおぁぃぅぇぉかきくけこがぎぐげごさしすせそざじずぜぞたちつてとだぢづでどなにぬねのはひふへほばびぶべぼぱぴぷぺぽまみむめもやゆよゃゅょらりるれろわをん、。アイウエオァィゥェォカキクケコガギグゲゴサシスセソザジズゼゾタチツテトダヂヅデドナニヌネノハヒフヘホバビブベボパピプペポマミムメモヤユヨャュョラリルレロワヲンーッっ　「」";
 

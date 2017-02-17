@@ -20,6 +20,10 @@ function createMeshBasicMaterial(objarg) {
     return m;
 }
 
+// Three.js material opacity can't render correctly under 0.5
+function workaroundThreeOpacity(opa) {
+    if(opa<0.5) return 0.5; else return opa;
+}
 
 //////////////
 
@@ -107,6 +111,8 @@ MoyaiClient.prototype.render = function() {
                 prop.mesh.scale.x = prop.scl.x;
                 prop.mesh.scale.y = prop.scl.y;                
                 prop.mesh.rotation.set(0,0,prop.rot);
+                prop.material.opacity = workaroundThreeOpacity(prop.color.a);
+                if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
                 this.scene.add(prop.mesh);
             }
             if(prop.prim_drawer) {
@@ -438,6 +444,7 @@ function Prop2D() {
     this.accum_time=0;
     this.poll_count=0;
     this.mesh=null;
+    this.material=null;
 }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; }
@@ -521,7 +528,8 @@ function createRectGeometry(width,height) {
 }
 Prop2D.prototype.ensureMesh = function() {
     if(this.mesh==null && this.deck ) {
-        var mat = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex /*,depthTest:true*/, transparent: true, vertexColors:THREE.VertexColors });
+        this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex /*,depthTest:true*/, transparent: true, vertexColors:THREE.VertexColors        ,blending: THREE.NormalBlending });
+        
         var geom = createRectGeometry(1,1);
         var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
         var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
@@ -530,6 +538,7 @@ Prop2D.prototype.ensureMesh = function() {
         geom.verticesNeedUpdate = true;
 //        geom.elementsNeedUpdate = true;
         geom.uvsNeedUpdate = true;
+
         geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
         geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
         geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
@@ -537,7 +546,7 @@ Prop2D.prototype.ensureMesh = function() {
         geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
         geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
         
-        this.mesh = new THREE.Mesh(geom,mat);
+        this.mesh = new THREE.Mesh(geom,this.material);
     }
 }
 ////////////////////////////
