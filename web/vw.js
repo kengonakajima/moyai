@@ -192,8 +192,8 @@ for(var x=0;x<8;x++){
 p.addGrid(g);
 g_main_layer.insertProp(p);
 
-/*
-  
+
+
 var p2 = new Prop2D();
 p2.setColor(1,1,0,0.5);
 p2.setDeck(d2);
@@ -202,6 +202,7 @@ p2.setLoc(-100,100);
 p2.addGrid(g);
 tmplayer.insertProp(p2);
 
+/*  
 
 // alpha
 var dragontex = new Texture();

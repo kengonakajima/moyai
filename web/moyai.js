@@ -124,6 +124,7 @@ MoyaiClient.prototype.render = function() {
             if(prop.grids) {
                 for(var i in prop.grids) {
                     var grid = prop.grids[i];
+                    console.log("EEEE",grid);
                     grid.ensureMesh();
                     grid.mesh.position.x = prop.loc.x;
                     grid.mesh.position.y = prop.loc.y;
@@ -455,7 +456,10 @@ Prop2D.prototype.addRect = function(p0,p1,col,w) {
 }
 Prop2D.prototype.addGrid = function(g) {
     if(!this.grids) this.grids=[];
-    this.grids.push(g);
+    var newgrid={}; // Duplicate content of g for sharing same grid in other props
+    Object.assign(newgrid,g);
+    newgrid.__proto__ = g.__proto__;
+    this.grids.push(newgrid);
 }
 Prop2D.prototype.setTexture = function(tex) {
     var td = new TileDeck();
