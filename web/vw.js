@@ -251,7 +251,7 @@ t4.setLoc(-100,-90);
 t4.setScl(0.75);
 g_main_layer.insertProp(t4);
 
-/*
+
   
 // Check bottom line
 var t5 = new TextBox();
@@ -264,6 +264,8 @@ t5.setScl(1);
 g_main_layer.insertProp(t5);
 
 
+/*
+  
 // Image manipulation
 var dragonimg = new Image();
 dragonimg.loadPNGMem( dragon8_png );

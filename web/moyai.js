@@ -988,8 +988,6 @@ TextBox.prototype.ensureMesh = function() {
                                                   blending: THREE.NormalBlending });
         this.mesh = new THREE.Mesh(geom,this.material);
     }
-    
-    
 }
 
 /////////////////
