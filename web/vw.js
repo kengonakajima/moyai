@@ -241,8 +241,6 @@ g_tb.setLoc(22,22);
 g_main_layer.insertProp(g_tb);
 
 console.log("Textbox id:", g_tb.id );
-/*
-
 
 
 var t4 = new TextBox();
@@ -253,6 +251,8 @@ t4.setLoc(-100,-90);
 t4.setScl(0.75);
 g_main_layer.insertProp(t4);
 
+/*
+  
 // Check bottom line
 var t5 = new TextBox();
 t5.setFont(g_font);
