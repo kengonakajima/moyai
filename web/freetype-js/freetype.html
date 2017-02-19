@@ -105,10 +105,11 @@ function go() {
                             console.log("  w,h:", width,height);
 
 			var buff = FTModule.HEAPU8.subarray(offset, offset + width * height);
-console.log("YYYY",offset);
+
 			if (n == 0) console.log(text.charAt(n) + ': height=' + height);
 			var l = get_left();
 			var t = get_top();
+console.log("char:", text.charAt(n),  "top:",t, "left:",l, "width:",width, "height:",height );
 			for (var i = 0; i < width; i++) {
 				for (var j = 0; j < height; j++) {
 					var val = 255-buff[j * width + i];

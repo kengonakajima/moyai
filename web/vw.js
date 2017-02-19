@@ -225,20 +225,23 @@ for(var j=0;j<2;j++) {
 
 var charcodes = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえおぁぃぅぇぉかきくけこがぎぐげごさしすせそざじずぜぞたちつてとだぢづでどなにぬねのはひふへほばびぶべぼぱぴぷぺぽまみむめもやゆよゃゅょらりるれろわをん、。アイウエオァィゥェォカキクケコガギグゲゴサシスセソザジズゼゾタチツテトダヂヅデドナニヌネノハヒフヘホバビブベボパピプペポマミムメモヤユヨャュョラリルレロワヲンーッっ　「」";
 
+
+
 var g_font = new Font();
 g_font.loadFromMemTTF( cinecaption227_ttf, charcodes, 12 );
 
 
-/*
+
   
 var g_tb = new TextBox();
 g_tb.setFont(g_font);
-g_tb.setString("dummy");
+g_tb.setString("!\"$%_-#dummy");
 g_tb.setScl(1);
 g_tb.setLoc(22,22);
 g_main_layer.insertProp(g_tb);
 
-
+console.log("Textbox id:", g_tb.id );
+/*
 
 
 

@@ -276,6 +276,8 @@ Image.prototype.loadPNGMem = function(u8adata) {
     this.png.decode( this.decode_callback );
 }
 Image.prototype.setSize = function(w,h) {
+    this.width = w;
+    this.height = h;
     this.data = new Uint8Array(w*h*4);
 }
 Image.prototype.getSize = function() {
@@ -296,10 +298,10 @@ Image.prototype.getPixelRaw = function(x,y) {
 Image.prototype.setPixelRaw = function(x,y,r,g,b,a) {
     if(x>=0&&y>=0&&x<this.width&&y<this.height){
         var index = ( x + y * this.width ) * 4;
-        this.buffer[index] = r;
-        this.buffer[index+1] = g;
-        this.buffer[index+2] = b;
-        this.buffer[index+3] = a;
+        this.data[index] = r;
+        this.data[index+1] = g;
+        this.data[index+2] = b;
+        this.data[index+3] = a;
     }    
 }
 Image.prototype.setPixel = function(x,y,c) {
@@ -319,14 +321,21 @@ function Texture() {
 Texture.prototype.loadPNGMem = function(u8adata) {
     this.image = new Image();
     this.image.loadPNGMem(u8adata);
+    this.update();
+}
+Texture.prototype.update = function() {
     this.three_tex = new THREE.DataTexture( this.image.data, this.image.width, this.image.height, THREE.RGBAFormat );
     this.three_tex.needsUpdate = true;
-    this.mat = createMeshBasicMaterial({ map: this.three_tex /*,depthTest:true*/, transparent: true });
+    this.mat = createMeshBasicMaterial({ map: this.three_tex, transparent: true });
 }
 Texture.prototype.getSize = function() {
     return this.image.getSize();
 }
-Texture.prototype.setImage = function(img) { this.image = img; }
+Texture.prototype.setImage = function(img) {
+    this.image = img;
+    console.log("T.setImage", img);
+    this.update();
+}
 Texture.prototype.updateImage = function(img) {
     if(this.image.id == img.id) {
         this.three_tex.image.data = img.data;
@@ -736,19 +745,32 @@ function TextureAtlas(w,h,depth) {
     this.width = w;
     this.height = h;
     this.depth = depth;
-    this.data = new Uint8Array(w*h*depth); 
-    this.tex=null;
+    this.data = new Uint8Array(w*h*depth);
+    this.image = null;
+    this.moyai_tex=null;
 }
-TextureAtlas.prototype.dump = function(w,h) {
+TextureAtlas.prototype.dump = function(ofsx,ofsy, w,h) {
     for(var y=0;y<h;y++) {
         var line="";
         for(var x=0;x<w;x++) {
-            var val = this.data[x+y*this.width];
+            var val = this.data[(ofsx+x)+(ofsy+y)*this.width];
             if(val>128) line+="*"; else if(val>60) line+="."; else line+=" ";
         }
         console.log(y,line);
     }
     console.log(this.data);
+}
+TextureAtlas.prototype.ensureTexture = function() {
+    this.image = new Image();
+    this.image.setSize(this.width,this.height);
+    for(var y=0;y<this.height;y++) {
+        for(var x=0;x<this.width;x++) {
+            var pixdata = this.data[x+y*this.width]
+            this.image.setPixelRaw(x,y,pixdata,pixdata,pixdata,pixdata);
+        }
+    }
+    this.moyai_tex = new Texture();
+    this.moyai_tex.setImage(this.image);
 }
 
 Font.prototype.id_gen=1;
@@ -760,7 +782,7 @@ function Font() {
     this.glyphs={};
 }
 // 0:left-top 1:right-bottom
-function Glyph(l,t,w,h,adv,u0,v0,u1,v1,charcode) {
+function Glyph(l,t,w,h,adv,u0,v0,u1,v1,charcode,dbg) {
     this.left = l;
     this.top = t;
     this.width = w;
@@ -771,6 +793,7 @@ function Glyph(l,t,w,h,adv,u0,v0,u1,v1,charcode) {
     this.u1 = u1;
     this.v1 = v1;
     this.charcode = charcode;
+    this.debug = dbg;
     
 //    console.log("glyph: ",u0,v0,u1,v1,charcode);
 }
@@ -789,7 +812,7 @@ Font.prototype.loadFromMemTTF = function(u8a,codes,pxsz) {
     console.log("loading font ret:",ret);
 
     this.loadGlyphs(codes);
-//    this.atlas.dump(80,80);
+    this.atlas.dump(/*27*/0,0,100,20);
     return true;
 }
 Font.prototype.loadGlyphs = function(codes) {
@@ -815,11 +838,15 @@ Font.prototype.loadGlyphs = function(codes) {
         
         var w = FTFuncs.get_width();
         var h = FTFuncs.get_height();
-        if(offset>0) var buf = FTModule.HEAPU8.subarray(offset,offset+w*h);
+        if(offset>0) {
+            var buf = FTModule.HEAPU8.subarray(offset,offset+w*h);
+            console.log("BUF:",buf);
+        }
         var start_x = (i % horiz_num) * this.pixel_size;
-        var start_y = parseInt(i / horiz_num) * this.pixel_size;
+        var start_y = parseInt(i / horiz_num) * (this.pixel_size);
+        console.log("i:",i, "start:",start_x,start_y);
         var l = FTFuncs.get_left();
-        var t = FTFuncs.get_top();        
+        var top = FTFuncs.get_top();        
 
         var pixelcnt=0;
         for(var ii=0;ii<w;ii++){
@@ -828,9 +855,11 @@ Font.prototype.loadGlyphs = function(codes) {
                 if(offset>0) {
                     var val = buf[jj*w+ii]; // 0~255
                 }
-                if(val==0)continue; // 0 for no data
+                if(val==0) {
+                    continue; // 0 for no data
+                }
                 pixelcnt++;
-                var ind_in_atlas = (start_y+jj+this.pixel_size-t)*this.atlas.width + (start_x+ii+l);
+                var ind_in_atlas = (start_y+jj+this.pixel_size-top)*this.atlas.width + (start_x+l+ii);
                 //                var final_val = Math.min( this.atlas.data[ind_in_atlas],val); 
                 this.atlas.data[ind_in_atlas] = val;
                 //                console.log("val:",val, "ii",ii,"jj",jj,"start:",start_x,start_y);
@@ -859,17 +888,29 @@ Font.prototype.loadGlyphs = function(codes) {
           UVは左上が0
          */
 
-//        console.log("i:",i," charcode:",ccode," w,h:",w,h,"offset:",offset, "start:",start_x, start_y, "left:",l,"top:",t, "pixc:",pixelcnt , "firstind:", (start_y+0+this.pixel_size-t)*this.atlas.width+(start_x+0+l));
-        
-        var lt_u = start_x / this.atlas.width;
-        var lt_v = start_y / this.atlas.height;
-        var rb_u = (start_x+w) / this.atlas.width;
-        var rb_v = (start_y+h) / this.atlas.height;
-        var adv = FTFuncs.get_advance();
-        this.glyphs[ccode] = new Glyph(l,t,w,h,adv,lt_u,lt_v,rb_u,rb_v,ccode);
-    }
-}
+//        console.log("i:",i," charcode:",ccode," w,h:",w,h,"offset:",offset, "start:",start_x, start_y, "left:",l,"top:",top, "pixc:",pixelcnt , "firstind:", (start_y+0+this.pixel_size-t)*this.atlas.width+(start_x+0+l));
 
+        // http://ncl.sakura.ne.jp/doc/ja/comp/freetype-memo.html
+        // ここまでの結果、 face->glyph->bitmap_left、face->glyph->bitmap_top には現在位置から ビットマップにおける文字の左端と上端までの距離が格納される (現在位置はフォントのベースライン上の左端のことと思われる)。 face->glyph->bitmap (FT_Bitmap型)にビットマップ情報が格納される。
+// ベースラインはstart_y+pixel_sizeなので、それ-top;
+
+        var lt_x = start_x+l;
+        var lt_y = start_y+this.pixel_size-top;
+        var rb_x = start_x+l+w;
+        var rb_y = start_y+this.pixel_size-top+h;
+        
+        var lt_u = lt_x / this.atlas.width;
+        var lt_v = lt_y / this.atlas.height;
+        var rb_u = rb_x / this.atlas.width;
+        var rb_v = rb_y / this.atlas.height;
+        var adv = FTFuncs.get_advance();
+        this.glyphs[ccode] = new Glyph(l,top,w,h,adv,lt_u,lt_v,rb_u,rb_v,ccode, [lt_x,lt_y,rb_x,rb_y].join(","));
+    }
+    this.atlas.ensureTexture();
+}
+Font.prototype.getGlyph = function(code) {
+    return this.glyphs[code];
+}
 
 //////////////////
 function TextBox() {
@@ -882,6 +923,64 @@ TextBox.prototype = Object.create(Prop2D.prototype);
 TextBox.prototype.constructor = TextBox;
 TextBox.prototype.setFont = function(fnt) { this.font = fnt; }
 TextBox.prototype.setString = function(s) { this.str = s; }
+TextBox.prototype.ensureMesh = function() {
+    if(this.mesh==null && this.font ) {
+        var geom = new THREE.Geometry();
+        var cur_x=0,cur_y=0;
+        for(var chind = 0; chind <this.str.length;chind++) {
+            // 1文字あたり4点, 2面,6インデックス
+            // TODO: kerning
+            // TODO: 改行
+            var glyph = this.font.getGlyph( this.str.charCodeAt(chind));
+            // 座標の大きさはピクセルサイズ
+            /*
+              0--1
+              |\ |
+              | \|
+              3--2 3の位置が(0,0) = (cur_x,cur_y)  幅がw,高さがh
+              */
+            // 1セルあたり4頂点づつ
+            var w = glyph.width;
+            var h = glyph.height;
+            var l = glyph.left;
+            var t = glyph.top;
+            geom.vertices.push(new THREE.Vector3(cur_x+l,cur_y+t,0)); //0
+            geom.vertices.push(new THREE.Vector3(cur_x+l+w,cur_y+t,0)); //1
+            geom.vertices.push(new THREE.Vector3(cur_x+l+w,cur_y+t-h,0)); //2
+            geom.vertices.push(new THREE.Vector3(cur_x+l,cur_y+t-h,0)); //3
+            var face_start_vert_ind = chind*4;
+            geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+2, face_start_vert_ind+1));
+            geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+3, face_start_vert_ind+2));
+            // uvは左上が0,右下が1
+            geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),
+                                         new THREE.Vector2(glyph.u1,glyph.v1),
+                                         new THREE.Vector2(glyph.u1,glyph.v0)]);
+            geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),
+                                         new THREE.Vector2(glyph.u0,glyph.v1),
+                                         new THREE.Vector2(glyph.u1,glyph.v1)]);
+
+            geom.faces[chind*2+0].vertexColors[0] = this.color.toTHREEColor();
+            geom.faces[chind*2+0].vertexColors[1] = this.color.toTHREEColor();
+            geom.faces[chind*2+0].vertexColors[2] = this.color.toTHREEColor();
+            geom.faces[chind*2+1].vertexColors[0] = this.color.toTHREEColor();
+            geom.faces[chind*2+1].vertexColors[1] = this.color.toTHREEColor();
+            geom.faces[chind*2+1].vertexColors[2] = this.color.toTHREEColor();
+            console.log("GGGG:",this.str[chind], glyph);
+            cur_x += glyph.advance;
+        }
+        geom.verticesNeedUpdate = true;
+        geom.uvsNeedUpdate = true;
+
+        this.material = createMeshBasicMaterial({ map: this.font.atlas.moyai_tex.three_tex,
+                                                  transparent: true,
+                                                  antialias: true,
+                                                  vertexColors:THREE.VertexColors,
+                                                  blending: THREE.NormalBlending });
+        this.mesh = new THREE.Mesh(geom,this.material);
+    }
+    
+    
+}
 
 /////////////////
 function CharGrid() {
