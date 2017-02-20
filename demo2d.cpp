@@ -941,31 +941,17 @@ void gameInit() {
     Texture *dragontex1 = new Texture();
     dragontex1->load( "assets/dragon8.png" );
 
-#if 1
     Prop2D *dragonp1 = new Prop2D();
     dragonp1->setLoc( SCRW/2-80, 0);
     dragonp1->setTexture(dragontex1);
     dragonp1->setScl(32);
     g_main_layer->insertProp(dragonp1);    
-#endif
     
     Prop2D *dragonp0 = new Prop2D();
     dragonp0->setLoc( SCRW/2-40, 0);
     dragonp0->setTexture( dragontex0 );
     dragonp0->setScl(32);
     g_main_layer->insertProp(dragonp0);
-
-    TileDeck *dragondk = new TileDeck();
-    dragondk->setTexture(dragontex0);
-    dragondk->setSize( 2,2,8,8 );
-    Prop2D *dragonp2 = new Prop2D();
-    dragonp2->setLoc( SCRW/2-120, 0);
-    dragonp2->setDeck( dragondk );
-    dragonp2->setScl(32);
-    dragonp2->setIndex(1);
-    g_main_layer->insertProp(dragonp2);
-
-   
     
 
     // bitmap font
