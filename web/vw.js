@@ -314,7 +314,6 @@ scoregrid.printf( 0,1, new Color(1,1,0,1), "$#!?()[%s]", "hoge" );
 scoregrid.setColor( 3,0, new Color(0,1,1,1));
 scorep.addGrid(scoregrid);
 g_main_layer.insertProp(scorep);
-console.log("scorep:",scorep);
 
 
 // line prop

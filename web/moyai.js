@@ -140,7 +140,6 @@ MoyaiClient.prototype.render = function() {
                 }
             }
             if(prop.children.length>0) {
-                console.log("chprop",prop.id );
                 for(var i in prop.children) {
                     var chp = prop.children[i];
                     chp.ensureMesh();
@@ -363,6 +362,8 @@ TileDeck.prototype.getUVFromIndex = function(ind,uofs,vofs,eps) {
 	var v1 = v0 + vunit - eps*2;
     return [u0,v0,u1,v1];
 }
+TileDeck.prototype.getUperCell = function() { return this.cell_width / this.moyai_tex.image.width; }
+TileDeck.prototype.getVperCell = function() { return this.cell_height / this.moyai_tex.image.height; }    
 
 
 ///////
@@ -680,16 +681,16 @@ Grid.prototype.ensureMesh = function() {
                 var left_bottom, right_top;
                 var uvs = this.deck.getUVFromIndex(this.index_table[ind],0,0,0);
                 var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
-                /*
-                  if(grid->texofs_table) {
-                    float u_per_cell = draw_deck->getUperCell();
-                    float v_per_cell = draw_deck->getVperCell();
-                    u0 += grid->texofs_table[ind].x * u_per_cell;
-                    v0 += grid->texofs_table[ind].y * v_per_cell;
-                    u1 += grid->texofs_table[ind].x * u_per_cell;
-                    v1 += grid->texofs_table[ind].y * v_per_cell;
-                  }
-                */
+
+                if(this.texofs_table && this.texofs_table[ind]) {
+                    var u_per_cell = this.deck.getUperCell();
+                    var v_per_cell = this.deck.getVperCell();
+                    u0 += this.texofs_table[ind].x * u_per_cell;
+                    v0 += this.texofs_table[ind].y * v_per_cell;
+                    u1 += this.texofs_table[ind].x * u_per_cell;
+                    v1 += this.texofs_table[ind].y * v_per_cell;
+                }
+
                 if(this.xflip_table && this.xflip_table[ind]) {
                     var tmp = u1; u1 = u0; u0 = tmp;
                 }
