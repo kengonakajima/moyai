@@ -300,18 +300,8 @@ dragonp0.setTexture( dragontex0 );
 dragonp0.setScl(32);
 g_main_layer.insertProp(dragonp0);
 
+
 /*
-
-var dragondk = new TileDeck();
-dragondk.setTexture(dragontex0);
-dragondk.setSize( 2,2,8,8 );
-var dragonp2 = new Prop2D();
-dragonp2.setLoc( SCRW/2-120, 0);
-dragonp2.setDeck( dragondk );
-dragonp2.setScl(32);
-dragonp2.setIndex(1);
-g_main_layer.insertProp(dragonp2);
-
 
 // bitmap font
 var scorep = new Prop2D();
