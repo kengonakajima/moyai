@@ -115,18 +115,6 @@ MoyaiClient.prototype.render = function() {
                 if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
                 this.scene.add(prop.mesh);
             }
-            if(prop.prim_drawer) {
-                for(var i in prop.prim_drawer.prims) {
-                    var prim = prop.prim_drawer.prims[i];
-                    prim.ensureMesh();
-                    prim.mesh.position.x = prop.loc.x;
-                    prim.mesh.position.y = prop.loc.y;
-                    prim.mesh.scale.x = prop.scl.x;
-                    prim.mesh.scale.y = prop.scl.y;
-                    prim.mesh.rotation.set(0,0,prop.rot);                    
-                    this.scene.add(prim.mesh);
-                }
-            }
             if(prop.grids) {
                 for(var i in prop.grids) {
                     var grid = prop.grids[i];
@@ -155,6 +143,18 @@ MoyaiClient.prototype.render = function() {
                     }
                 }
             }
+            if(prop.prim_drawer) {
+                for(var i in prop.prim_drawer.prims) {
+                    var prim = prop.prim_drawer.prims[i];
+                    prim.ensureMesh();
+                    prim.mesh.position.x = prop.loc.x;
+                    prim.mesh.position.y = prop.loc.y;
+                    prim.mesh.scale.x = prop.scl.x;
+                    prim.mesh.scale.y = prop.scl.y;
+                    prim.mesh.rotation.set(0,0,prop.rot);                    
+                    this.scene.add(prim.mesh);
+                }
+            }            
         }
     }
     this.renderer.clear();
