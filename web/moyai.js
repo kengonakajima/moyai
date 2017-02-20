@@ -139,6 +139,23 @@ MoyaiClient.prototype.render = function() {
                     this.scene.add(grid.mesh);
                 }
             }
+            if(prop.children.length>0) {
+                console.log("chprop",prop.id );
+                for(var i in prop.children) {
+                    var chp = prop.children[i];
+                    chp.ensureMesh();
+                    if( chp.mesh ) {
+                        chp.mesh.position.x = chp.loc.x;
+                        chp.mesh.position.y = chp.loc.y;
+                        chp.mesh.scale.x = chp.scl.x;
+                        chp.mesh.scale.y = chp.scl.y;                
+                        chp.mesh.rotation.set(0,0,chp.rot);
+                        chp.material.opacity = workaroundThreeOpacity(chp.color.a);
+                        if( chp.use_additive_blend ) chp.material.blending = THREE.AdditiveBlending; else chp.material.blending = THREE.NormalBlending;
+                        this.scene.add(chp.mesh);
+                    }
+                }
+            }
         }
     }
     this.renderer.clear();

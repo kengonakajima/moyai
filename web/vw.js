@@ -325,8 +325,6 @@ g_linep.addRect( new Vec2(0,0), new Vec2(-150,230), new Color(0.2,0,1,0.5) );
 g_linep.setLoc(0,200);
 g_linep.setScl(1.0);
 g_main_layer.insertProp(g_linep);
-
-/*
 // add child to line prop
 var childp = new Prop2D();
 childp.setDeck(g_base_deck);
@@ -337,7 +335,8 @@ childp.setLoc(-222,-222);
 g_linep.addChild(childp);
 
 
-
+/*
+  
 // dynamic images
 var g_img = new Image();
 g_img.setSize(256,256);
