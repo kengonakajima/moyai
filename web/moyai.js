@@ -55,7 +55,7 @@ function Color(r,g,b,a) {
     this.a = a;
 }
 Color.prototype.toRGBA = function() {
-    return [ parseInt(r*255), parseInt(g*255), parseInt(b*255), parseInt(a*255) ];
+    return [ parseInt(this.r*255), parseInt(this.g*255), parseInt(this.b*255), parseInt(this.a*255) ];
 }
 Color.prototype.toCode = function() {
     return ( parseInt(this.r * 255) << 16 ) + ( parseInt(this.g * 255) << 8 ) + parseInt(this.b * 255);

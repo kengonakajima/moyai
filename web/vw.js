@@ -335,7 +335,7 @@ childp.setLoc(-222,-222);
 g_linep.addChild(childp);
 
 
-/*
+
   
 // dynamic images
 var g_img = new Image();
@@ -361,5 +361,3 @@ g_main_layer.insertProp(p);
 
 // var g_pc = createMyShip(0,0);
 
-
-*/
