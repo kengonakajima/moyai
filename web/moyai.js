@@ -307,7 +307,7 @@ Image.prototype.setPixelRaw = function(x,y,r,g,b,a) {
 Image.prototype.setPixel = function(x,y,c) {
     var colary = c.toRGBA();
     var index = (x+y*this.width)*4;
-    
+    this.setPixelRaw(x,y,colary[0],colary[1],colary[2],colary[3]);
 }
 
 //////////////////////////
@@ -337,7 +337,8 @@ Texture.prototype.setImage = function(img) {
     this.update();
 }
 Texture.prototype.updateImage = function(img) {
-    if(this.image.id == img.id) {
+    if(this.image.id == img.id ) {
+        console.log("Tex.updateimage id:",img.id );
         this.three_tex.image.data = img.data;
         this.three_tex.image.width = img.width;
         this.three_tex.image.height = img.height;
@@ -812,7 +813,7 @@ Font.prototype.loadFromMemTTF = function(u8a,codes,pxsz) {
     console.log("loading font ret:",ret);
 
     this.loadGlyphs(codes);
-    this.atlas.dump(/*27*/0,0,100,20);
+//    this.atlas.dump(/*27*/0,0,100,20);
     return true;
 }
 Font.prototype.loadGlyphs = function(codes) {
@@ -840,11 +841,11 @@ Font.prototype.loadGlyphs = function(codes) {
         var h = FTFuncs.get_height();
         if(offset>0) {
             var buf = FTModule.HEAPU8.subarray(offset,offset+w*h);
-            console.log("BUF:",buf);
+//            console.log("BUF:",buf);
         }
         var start_x = (i % horiz_num) * this.pixel_size;
         var start_y = parseInt(i / horiz_num) * (this.pixel_size);
-        console.log("i:",i, "start:",start_x,start_y);
+
         var l = FTFuncs.get_left();
         var top = FTFuncs.get_top();        
 

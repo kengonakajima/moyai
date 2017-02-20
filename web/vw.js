@@ -264,7 +264,7 @@ t5.setScl(1);
 g_main_layer.insertProp(t5);
 
 
-/*
+
   
 // Image manipulation
 var dragonimg = new Image();
@@ -273,18 +273,21 @@ for(var y=0;y<8;y++){
     for(var x=0;x<8;x++) {
         var pc = dragonimg.getPixelRaw(x,y);
         if( pc.r == 255 && pc.g == 255 && pc.b == 255 && pc.a == 255 ) {
-            print("setPixelRaw: replacing at: %d,%d",x,y);
+//            console.log("setPixelRaw: replacing at: %d,%d",x,y);
             dragonimg.setPixelRaw( x,y, 255,0,0,255 );
         }
     }
 }
 
+
+  
 var dragontex0 = new Texture();
 dragontex0.setImage( dragonimg );
 var dragontex1 = new Texture();
 dragontex1.loadPNGMem( dragon8_png );
 
 
+//鼻が白い(元の画像)
 var dragonp1 = new Prop2D();
 dragonp1.setLoc( SCRW/2-80, 0);
 dragonp1.setTexture(dragontex1);
@@ -292,11 +295,19 @@ dragonp1.setScl(32);
 g_main_layer.insertProp(dragonp1);    
 
 
+// 鼻が赤い(白い部分を赤に変更した)はず。だが、白のままになる。
+// C++版はsetImageしたときに glTexImage2Dしているが、three版はデコードが遅れるので、その時元画像に上書きしているのではないか？
+// メモリから作った画像は上書きしないようにする必要がある:
+
+console.log("dragonimg: id:", dragonimg.id );
+
 var dragonp0 = new Prop2D();
 dragonp0.setLoc( SCRW/2-40, 0);
 dragonp0.setTexture( dragontex0 );
 dragonp0.setScl(32);
 g_main_layer.insertProp(dragonp0);
+
+/*
 
 var dragondk = new TileDeck();
 dragondk.setTexture(dragontex0);
