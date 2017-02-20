@@ -240,8 +240,6 @@ g_tb.setScl(1);
 g_tb.setLoc(22,22);
 g_main_layer.insertProp(g_tb);
 
-console.log("Textbox id:", g_tb.id );
-
 
 var t4 = new TextBox();
 
@@ -295,12 +293,7 @@ dragonp1.setScl(32);
 g_main_layer.insertProp(dragonp1);    
 
 
-// 鼻が赤い(白い部分を赤に変更した)はず。だが、白のままになる。
-// C++版はsetImageしたときに glTexImage2Dしているが、three版はデコードが遅れるので、その時元画像に上書きしているのではないか？
-// メモリから作った画像は上書きしないようにする必要がある:
-
-console.log("dragonimg: id:", dragonimg.id );
-
+// 鼻が赤い(白い部分を赤に変更した)
 var dragonp0 = new Prop2D();
 dragonp0.setLoc( SCRW/2-40, 0);
 dragonp0.setTexture( dragontex0 );

@@ -1,6 +1,6 @@
 var snappyjs = require("snappyjs");
 global.window.Snappy = snappyjs;
-var PNG = require("png-js");
-global.window.PNG = PNG;
+var pngParse = require("pngparse-sync");
+global.window.pngParse = pngParse;
 var Buffer = require("buffer").Buffer;
 global.window.Buffer = Buffer;

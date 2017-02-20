@@ -193,23 +193,7 @@ MoyaiClient.prototype.render = function() {
 MoyaiClient.prototype.insertLayer = function(l) {
     this.layers.push(l);
 }
-MoyaiClient.prototype.updateAllImage = function(image) {
-    for(var i in this.layers) {
-        var layer = this.layers[i];
-        for(var j in layer.props) {
-            var prop = layer.props[j];
-            if(prop.deck && prop.deck.moyai_tex) prop.deck.moyai_tex.updateImage(image);
-            if(prop.grids) {
-                for(var k in prop.grids ) {
-                    var grid = prop.grids[k];
-                    if(grid.deck && grid.deck.moyai_tex) {
-                        grid.deck.moyai_tex.updateImage(image);
-                    }
-                }
-            }
-        }
-    }
-}
+
 ///////////////////
 
 Viewport.prototype.id_gen=1;
@@ -262,18 +246,11 @@ function Image() {
     this.png=null;
 }
 Image.prototype.loadPNGMem = function(u8adata) {
-    this.png = new PNG(u8adata);
+    var b = new Buffer(u8adata);
+    this.png = pngParse(b);
     this.width = this.png.width;
     this.height = this.png.height;
-    var data_len = this.width*this.height*4;
-    this.data = new Uint8Array(data_len);
-    for(var i=0;i<data_len;i++) this.data[i] = 0xff; // white image
-    var this_image = this;
-    this.decode_callback = function(pixels) {
-        this_image.data = pixels;
-        updateAllImage(this_image);
-    }
-    this.png.decode( this.decode_callback );
+    this.data = this.png.data;
 }
 Image.prototype.setSize = function(w,h) {
     this.width = w;
@@ -333,7 +310,6 @@ Texture.prototype.getSize = function() {
 }
 Texture.prototype.setImage = function(img) {
     this.image = img;
-    console.log("T.setImage", img);
     this.update();
 }
 Texture.prototype.updateImage = function(img) {
@@ -830,7 +806,7 @@ Font.prototype.loadGlyphs = function(codes) {
         if(offset==0) {
             if( FTFuncs.get_bitmap_opt_retcode()==1) {
                 // space characers doesnt have buffer
-                console.log("space char!:",ccode, FTFuncs.get_width(), FTFuncs.get_advance());
+//                console.log("space char!:",ccode, FTFuncs.get_width(), FTFuncs.get_advance());
             } else {
                 console.log("  get_bitmap failed for charcode:",ccode, "debug_code:", FTFuncs.get_debug_code(), "i:",i, "char:", codes[i] );
                 continue;
@@ -1065,14 +1041,4 @@ CharGrid.prototype.printf = function() {
 		this.setColor(x+i,y,col);
 	}    
 }
-
-	
-////////////////////
-function updateAllImage(image) {
-    for(var i in g_moyais) {
-        var moyai = g_moyais[i];
-        moyai.updateAllImage(image);
-    }
-}
-
 
