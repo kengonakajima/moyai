@@ -285,7 +285,7 @@ var dragontex1 = new Texture();
 dragontex1.loadPNGMem( dragon8_png );
 
 
-//鼻が白い(元の画像)
+// white nose
 var dragonp1 = new Prop2D();
 dragonp1.setLoc( SCRW/2-80, 0);
 dragonp1.setTexture(dragontex1);
@@ -293,7 +293,7 @@ dragonp1.setScl(32);
 g_main_layer.insertProp(dragonp1);    
 
 
-// 鼻が赤い(白い部分を赤に変更した)
+// red nose by replacing color
 var dragonp0 = new Prop2D();
 dragonp0.setLoc( SCRW/2-40, 0);
 dragonp0.setTexture( dragontex0 );
@@ -301,7 +301,7 @@ dragonp0.setScl(32);
 g_main_layer.insertProp(dragonp0);
 
 
-/*
+
 
 // bitmap font
 var scorep = new Prop2D();
@@ -309,13 +309,13 @@ scorep.setLoc( -SCRW/2+32,SCRH/2-100 );
 var scoregrid = new CharGrid(8,8);
 scoregrid.setDeck(g_bmpfont_deck );
 scoregrid.setAsciiOffset(-32);
-scoregrid.printf( 0,0, Color(1,1,1,1), "SCORE: %d",1234 );
-scoregrid.printf( 0,1, Color(1,1,0,1), "$#!?()[%s]", "hoge" );
-scoregrid.setColor( 3,0, Color(0,1,1,1));
+scoregrid.printf( 0,0, new Color(1,1,1,1), "SCORE: %d",1234 );
+scoregrid.printf( 0,1, new Color(1,1,0,1), "$#!?()[%s]", "hoge" );
+scoregrid.setColor( 3,0, new Color(0,1,1,1));
 scorep.addGrid(scoregrid);
 g_main_layer.insertProp(scorep);
+console.log("scorep:",scorep);
 
-*/
 
 // line prop
 var g_linep = new Prop2D();

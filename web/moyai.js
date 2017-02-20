@@ -679,10 +679,10 @@ Grid.prototype.ensureMesh = function() {
                 if(this.yflip_table && this.yflip_table[ind]) {
                     var tmp = v1; v1 = v0; v0 = tmp;
                 }
-                var uv_0 = new THREE.Vector2(u0,v1);
-                var uv_1 = new THREE.Vector2(u1,v1);
-                var uv_2 = new THREE.Vector2(u1,v0);
-                var uv_3 = new THREE.Vector2(u0,v0);
+                var uv_0 = new THREE.Vector2(u0,v0);
+                var uv_1 = new THREE.Vector2(u1,v0);
+                var uv_2 = new THREE.Vector2(u1,v1);
+                var uv_3 = new THREE.Vector2(u0,v1);
                 geom.faceVertexUvs[0].push([uv_0,uv_2,uv_1]);
                 geom.faceVertexUvs[0].push([uv_0,uv_3,uv_2]);
                 var col; 
@@ -968,8 +968,8 @@ TextBox.prototype.ensureMesh = function() {
 }
 
 /////////////////
-function CharGrid() {
-    Grid.call(this);
+function CharGrid(w,h) {
+    Grid.call(this,w,h);
     this.ascii_offset = 0;
 }
 CharGrid.prototype = Object.create(Grid.prototype);
