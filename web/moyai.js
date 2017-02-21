@@ -309,6 +309,7 @@ Texture.prototype.loadPNGMem = function(u8adata) {
 Texture.prototype.update = function() {
     this.three_tex = new THREE.DataTexture( this.image.data, this.image.width, this.image.height, THREE.RGBAFormat );
     this.three_tex.needsUpdate = true;
+    this.three_tex.magFilter = THREE.NearestFilter;
     this.mat = createMeshBasicMaterial({ map: this.three_tex, transparent: true });
 }
 Texture.prototype.getSize = function() {
@@ -757,6 +758,7 @@ TextureAtlas.prototype.ensureTexture = function() {
     }
     this.moyai_tex = new Texture();
     this.moyai_tex.setImage(this.image);
+//    this.moyai_tex.three_tex.magFilter = THREE.LinearFilter;
 }
 
 Font.prototype.id_gen=1;
