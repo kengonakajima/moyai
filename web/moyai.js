@@ -74,8 +74,13 @@ function MoyaiClient(w,h,pixratio){
     this.renderer.setClearColor("#333");
     this.renderer.autoClear = false;
 
-    this.camera = new THREE.OrthographicCamera( -w/2, w/2, h/2, -h/2,-1,10);
-    this.camera.position.z = 10;
+    this.z_per_layer = 100000;
+    this.z_per_prop = 1;
+    this.z_per_subprop = 1; // this causes some issue when dense sprites.. but no way to implement correct draw order
+    this.max_z = this.z_per_layer*100; // use z to confirm render order ( renderOrder dont work for line prims..)
+    
+    this.camera = new THREE.OrthographicCamera( -w/2, w/2, h/2, -h/2,-1,this.max_z);
+    this.camera.position.z = this.max_z+this.z_per_layer;
 
     this.scene = new THREE.Scene();
     
@@ -108,19 +113,19 @@ MoyaiClient.prototype.render = function() {
 //    this.scene.children.forEach(function(object){ this.scene.remove(object); });    
     for(var i in this.layers) {
         var layer = this.layers[i];
-        var layer_base_prio = layer.priority * 100000;
         for(var i in layer.props) {
             var prop = layer.props[i];
             prop.ensureMesh();
+            var prop_z = layer.priority * this.z_per_layer + prop.priority * this.z_per_prop;
             if(prop.mesh) {
                 prop.mesh.position.x = prop.loc.x;
                 prop.mesh.position.y = prop.loc.y;
+                prop.mesh.position.z = prop_z;
                 prop.mesh.scale.x = prop.scl.x;
                 prop.mesh.scale.y = prop.scl.y;                
                 prop.mesh.rotation.set(0,0,prop.rot);
                 prop.material.opacity = workaroundThreeOpacity(prop.color.a);
                 if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
-                prop.mesh.renderOrder = layer_base_prio + prop.priority;
                 this.scene.add(prop.mesh);
             }
             if(prop.grids) {
@@ -129,10 +134,10 @@ MoyaiClient.prototype.render = function() {
                     grid.ensureMesh();
                     grid.mesh.position.x = prop.loc.x;
                     grid.mesh.position.y = prop.loc.y;
+                    grid.mesh.position.z = prop_z + (i+1) * this.z_per_subprop;
                     grid.mesh.scale.x = prop.scl.x;
                     grid.mesh.scale.y = prop.scl.y;
                     grid.mesh.rotation.set(0,0,prop.rot);
-                    grid.mesh.renderOrder = layer_base_prio + prop.priority + (i+1)*0.01;
                     this.scene.add(grid.mesh);
                 }
             }
@@ -143,12 +148,12 @@ MoyaiClient.prototype.render = function() {
                     if( chp.mesh ) {
                         chp.mesh.position.x = chp.loc.x;
                         chp.mesh.position.y = chp.loc.y;
+                        chp.mesh.position.z = prop_z + (i+1) * this.z_per_subprop;                        
                         chp.mesh.scale.x = chp.scl.x;
                         chp.mesh.scale.y = chp.scl.y;                
                         chp.mesh.rotation.set(0,0,chp.rot);
                         chp.material.opacity = workaroundThreeOpacity(chp.color.a);
                         if( chp.use_additive_blend ) chp.material.blending = THREE.AdditiveBlending; else chp.material.blending = THREE.NormalBlending;
-                        chp.mesh.renderOrder = layer_base_prio + prop.priority + (i+1)*0.01;                        
                         this.scene.add(chp.mesh);
                     }
                 }
@@ -159,15 +164,10 @@ MoyaiClient.prototype.render = function() {
                     prim.ensureMesh();
                     prim.mesh.position.x = prop.loc.x;
                     prim.mesh.position.y = prop.loc.y;
+                    prim.mesh.position.z = prop_z + (i+1) * this.z_per_subprop;
                     prim.mesh.scale.x = prop.scl.x;
                     prim.mesh.scale.y = prop.scl.y;
-                    prim.mesh.rotation.set(0,0,prop.rot);
-                    prim.mesh.renderOrder = layer_base_prio + prop.priority + (i+1)*0.01;
-                    if( prop.debug) {
-                        console.log("xxxxx:", prim.mesh.renderOrder, prop.mesh.renderOrder );
-                        prim.mesh.renderOrder = 1;
-                        prop.mesh.renderOrder = 0;
-                    }
+                    prim.mesh.rotation.set(0,0,prop.rot);                    
                     this.scene.add(prim.mesh);
                 }
             }            
@@ -378,7 +378,7 @@ Prim.prototype.ensureMesh = function() {
         geometry.vertices.push(new THREE.Vector3(this.a.x,this.a.y,0));
         geometry.vertices.push(new THREE.Vector3(this.b.x,this.b.y,0));
         geometry.verticesNeedUpdate=true;
-        var material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width, depthTest:false });
+        var material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width, depthTest:true });
         this.mesh = new THREE.Line( geometry, material);
     } else if(this.type==PRIMTYPE_RECTANGLE) {
         /*
@@ -395,7 +395,7 @@ Prim.prototype.ensureMesh = function() {
         geometry.verticesNeedUpdate=true;        
         geometry.faces.push(new THREE.Face3(0, 2, 1));
         geometry.faces.push(new THREE.Face3(0, 3, 2));
-        var material = createMeshBasicMaterial({ color: this.color.toCode(),depthTest:false });
+        var material = createMeshBasicMaterial({ color: this.color.toCode(),depthTest:true });
         this.mesh = new THREE.Mesh(geometry,material);
     } else {
         console.log("invalid prim type",this.type)
@@ -517,7 +517,7 @@ function createRectGeometry(width,height) {
 }
 Prop2D.prototype.ensureMesh = function() {
     if(this.mesh==null && this.deck ) {
-        this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:false, transparent: true, vertexColors:THREE.VertexColors        ,blending: THREE.NormalBlending });
+        this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:true, transparent: true, vertexColors:THREE.VertexColors        ,blending: THREE.NormalBlending });
         
         var geom = createRectGeometry(1,1);
         var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
@@ -642,7 +642,7 @@ Grid.prototype.fillColor = function(c) {
 }
 Grid.prototype.ensureMesh = function() {
     if(this.mesh==null && this.deck && this.index_table ) {
-        var mat = createMeshBasicMaterial({map: this.deck.moyai_tex.three_tex, transparent:true, depthTest:false, vertexColors:THREE.VertexColors });
+        var mat = createMeshBasicMaterial({map: this.deck.moyai_tex.three_tex, transparent:true, depthTest:true, vertexColors:THREE.VertexColors });
         var geom = new THREE.Geometry();
         var quad_cnt=0;
         for(var y=0;y<this.height;y++) {
