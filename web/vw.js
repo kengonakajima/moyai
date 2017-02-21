@@ -161,11 +161,27 @@ var statprimp = new Prop2D(); // a prop that has a prim with no changes
 statprimp.setDeck(g_base_deck);
 statprimp.setIndex(1);
 statprimp.setColor(0,0,1,1);
-statprimp.addLine(new Vec2(0,0),new Vec2(1,1),new Color(1,1,1,1), 3);
+statprimp.addLine(new Vec2(-1,1),new Vec2(1,-1),new Color(1,1,1,1), 3);
 statprimp.setLoc(100,-100);
+statprimp.debug = true;
 g_main_layer.insertProp(statprimp);
 
+/*
+   priorityは効いてる
+var hogep = new Prop2D();
+hogep.setDeck(g_base_deck);
+hogep.setIndex(1);
+hogep.setLoc(300,100);
+hogep.priority = 10;
+g_main_layer.insertProp(hogep);
 
+var hogep2 = new Prop2D();
+hogep2.setDeck(g_base_deck);
+hogep2.setIndex(0);
+hogep2.setLoc(315,100);
+hogep2.priority = 2;
+g_main_layer.insertProp(hogep2);
+*/
   
 // static grids
 var p = new Prop2D();

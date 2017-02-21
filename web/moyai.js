@@ -85,6 +85,13 @@ function MoyaiClient(w,h,pixratio){
 MoyaiClient.prototype.resize = function(w,h) {
     this.renderer.setSize(w,h);
 }
+MoyaiClient.prototype.getHighestPriority = function() {
+    var highp=0;
+    for(var i in this.layers) {
+        if(this.layers[i].priority>highp) highp = this.layers[i].priority;
+    }
+    return highp;
+}
 MoyaiClient.prototype.poll = function(dt) {
     var cnt=0;
     for(var i in this.layers) {
@@ -93,7 +100,6 @@ MoyaiClient.prototype.poll = function(dt) {
     }
     return cnt;   
 }
-
 MoyaiClient.prototype.render = function() {
     console.log("render");
     for(var i in this.scene.children) {
@@ -102,6 +108,7 @@ MoyaiClient.prototype.render = function() {
 //    this.scene.children.forEach(function(object){ this.scene.remove(object); });    
     for(var i in this.layers) {
         var layer = this.layers[i];
+        var layer_base_prio = layer.priority * 100000;
         for(var i in layer.props) {
             var prop = layer.props[i];
             prop.ensureMesh();
@@ -113,6 +120,7 @@ MoyaiClient.prototype.render = function() {
                 prop.mesh.rotation.set(0,0,prop.rot);
                 prop.material.opacity = workaroundThreeOpacity(prop.color.a);
                 if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
+                prop.mesh.renderOrder = layer_base_prio + prop.priority;
                 this.scene.add(prop.mesh);
             }
             if(prop.grids) {
@@ -123,7 +131,8 @@ MoyaiClient.prototype.render = function() {
                     grid.mesh.position.y = prop.loc.y;
                     grid.mesh.scale.x = prop.scl.x;
                     grid.mesh.scale.y = prop.scl.y;
-                    grid.mesh.rotation.set(0,0,prop.rot);                    
+                    grid.mesh.rotation.set(0,0,prop.rot);
+                    grid.mesh.renderOrder = layer_base_prio + prop.priority + (i+1)*0.01;
                     this.scene.add(grid.mesh);
                 }
             }
@@ -139,6 +148,7 @@ MoyaiClient.prototype.render = function() {
                         chp.mesh.rotation.set(0,0,chp.rot);
                         chp.material.opacity = workaroundThreeOpacity(chp.color.a);
                         if( chp.use_additive_blend ) chp.material.blending = THREE.AdditiveBlending; else chp.material.blending = THREE.NormalBlending;
+                        chp.mesh.renderOrder = layer_base_prio + prop.priority + (i+1)*0.01;                        
                         this.scene.add(chp.mesh);
                     }
                 }
@@ -151,7 +161,13 @@ MoyaiClient.prototype.render = function() {
                     prim.mesh.position.y = prop.loc.y;
                     prim.mesh.scale.x = prop.scl.x;
                     prim.mesh.scale.y = prop.scl.y;
-                    prim.mesh.rotation.set(0,0,prop.rot);                    
+                    prim.mesh.rotation.set(0,0,prop.rot);
+                    prim.mesh.renderOrder = layer_base_prio + prop.priority + (i+1)*0.01;
+                    if( prop.debug) {
+                        console.log("xxxxx:", prim.mesh.renderOrder, prop.mesh.renderOrder );
+                        prim.mesh.renderOrder = 1;
+                        prop.mesh.renderOrder = 0;
+                    }
                     this.scene.add(prim.mesh);
                 }
             }            
@@ -160,53 +176,13 @@ MoyaiClient.prototype.render = function() {
     this.renderer.clear();
     this.renderer.clearDepth();
     this.renderer.render( this.scene, this.camera );
-    
-/*
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-    SorterEntry tosort[128];
-    int sort_n = 0;
-    for(int i=0;i<elementof(groups);i++) {
-        Group *g = groups[i];
-		if( g && g->to_render ) {
-            Layer *l = (Layer*)g;
-            tosort[sort_n].val = l->priority;
-            tosort[sort_n].ptr = l;
-            sort_n++;
-        }
-    }
-    quickSortF( tosort, 0, sort_n-1 );
-        
-	int render_n=0;    
-	for(int i=0;i<sort_n;i++){
-		Layer *l = (Layer*) tosort[i].ptr;
-        render_n += l->render(&batch_list);
-	}
-
-    last_draw_call_count = batch_list.drawAll();    
-	glfwSwapBuffers(window);
-	glFlush();
-	return render_n;
-    */    
-    
-/*
-
-
-  prop2dがsprite
-  Textureがtextureloaderの返り値
-  moyaiはmaterialという概念がない。
-
-  prop2dがmaterialをもつ。
-  textureがmapをもつ。
-  imageがdatatexであり
-  layer,gridやtiledeckは純粋に論理的なもの。
-  cameraとviewport
-  
-    */
-    
 }
+
 MoyaiClient.prototype.insertLayer = function(l) {
+    if(l.priority==null) {
+        var highp = this.getHighestPriority();
+        l.priority = highp+1;
+    }
     this.layers.push(l);
 }
 
@@ -240,10 +216,17 @@ Layer.prototype.id_gen = 1;
 function Layer() {
     this.id = this.__proto__.id_gen++;
     this.props=[];
+    this.priority=null;// update when insert to moyai
 }
 Layer.prototype.setViewport = function(vp) { this.viewport = vp; }
 Layer.prototype.setCamera = function(cam) { this.camera = cam; }
-Layer.prototype.insertProp = function(p) { this.props.push(p); }
+Layer.prototype.insertProp = function(p) {
+    if(p.priority==null) {
+        var highp = this.getHighestPriority();
+        p.priority = highp+1;
+    }
+    this.props.push(p);
+}
 Layer.prototype.pollAllProps = function(dt) {
     var keep=[];
     for(var i in this.props) {
@@ -253,6 +236,13 @@ Layer.prototype.pollAllProps = function(dt) {
     }
     this.props = keep;
     return this.props.length;
+}
+Layer.prototype.getHighestPriority = function() {
+    var highp=0;
+    for(var i in this.props) {
+        if(this.props[i].priority>highp) highp = this.props[i].priority;
+    }
+    return highp;    
 }
 /////////////////////
 Image.prototype.id_gen = 1;
@@ -388,7 +378,7 @@ Prim.prototype.ensureMesh = function() {
         geometry.vertices.push(new THREE.Vector3(this.a.x,this.a.y,0));
         geometry.vertices.push(new THREE.Vector3(this.b.x,this.b.y,0));
         geometry.verticesNeedUpdate=true;
-        var material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width});
+        var material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width, depthTest:false });
         this.mesh = new THREE.Line( geometry, material);
     } else if(this.type==PRIMTYPE_RECTANGLE) {
         /*
@@ -405,7 +395,7 @@ Prim.prototype.ensureMesh = function() {
         geometry.verticesNeedUpdate=true;        
         geometry.faces.push(new THREE.Face3(0, 2, 1));
         geometry.faces.push(new THREE.Face3(0, 3, 2));
-        var material = createMeshBasicMaterial({ color: this.color.toCode() /*,depthTest:true, transparent: true*/ });
+        var material = createMeshBasicMaterial({ color: this.color.toCode(),depthTest:false });
         this.mesh = new THREE.Mesh(geometry,material);
     } else {
         console.log("invalid prim type",this.type)
@@ -443,6 +433,7 @@ function Prop2D() {
     this.poll_count=0;
     this.mesh=null;
     this.material=null;
+    this.priority = null; // set when insertprop if kept null
 }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; }
@@ -526,7 +517,7 @@ function createRectGeometry(width,height) {
 }
 Prop2D.prototype.ensureMesh = function() {
     if(this.mesh==null && this.deck ) {
-        this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex /*,depthTest:true*/, transparent: true, vertexColors:THREE.VertexColors        ,blending: THREE.NormalBlending });
+        this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:false, transparent: true, vertexColors:THREE.VertexColors        ,blending: THREE.NormalBlending });
         
         var geom = createRectGeometry(1,1);
         var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
@@ -651,7 +642,7 @@ Grid.prototype.fillColor = function(c) {
 }
 Grid.prototype.ensureMesh = function() {
     if(this.mesh==null && this.deck && this.index_table ) {
-        var mat = createMeshBasicMaterial({map: this.deck.moyai_tex.three_tex, transparent:true, vertexColors:THREE.VertexColors });
+        var mat = createMeshBasicMaterial({map: this.deck.moyai_tex.three_tex, transparent:true, depthTest:false, vertexColors:THREE.VertexColors });
         var geom = new THREE.Geometry();
         var quad_cnt=0;
         for(var y=0;y<this.height;y++) {
