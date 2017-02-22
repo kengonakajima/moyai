@@ -45,26 +45,6 @@ function disconnectButton() {
 }
 
 
-// loop
-var anim_cnt=0;
-var last_anim_at = new Date().getTime();
-function animate() {
-    if(anim_cnt<10) {
-        anim_cnt++;
-	    requestAnimationFrame( animate );
-    }
-    if(g_moyai_client) {
-        var now_time = new Date().getTime();
-        var dt = now_time - last_anim_at;
-        last_anim_at = now_time;
-        g_moyai_client.poll(dt/1000.0);
-        g_moyai_client.render();
-    }
-}
-
-    
-animate();
-
 
 /////////// testing
 
@@ -374,5 +354,82 @@ p.setIndex(0);
 g_main_layer.insertProp(p);
 
 
-// var g_pc = createMyShip(0,0);
+////////////////////
 
+var anim_cnt=0;
+var last_anim_at = new Date().getTime();
+function animate() {
+    if(anim_cnt<10) {
+        anim_cnt++;
+	    requestAnimationFrame( animate );
+    }
+    if(!g_moyai_client) return;
+
+
+    g_tb.setString("hoge:"+anim_cnt);
+    
+//    g_linep->loc.y = sin( now() ) * 200;
+
+
+    
+/*
+    if( (total_frame % 500 ) == 0 ) {
+        for(int i=0;i<1000;i++){
+            g_img->setPixel( irange(0,256), irange(0,256), Color( range(0,1), range(0,1), range(0,1),1 ) );
+        }
+    }
+    g_dyn_texture->setImage(g_img);
+    */
+
+
+//    g_replacer_shader->setColor( Color(0xF7E26B), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
+
+
+/*
+    if( g_keyboard->getKey( 'Z' ) ) {
+        g_viewport->setScale2D( g_viewport->scl.x / 1.1f, g_viewport->scl.y / 1.1f );
+    }
+    if( g_keyboard->getKey( 'X' ) ) {
+        g_viewport->setScale2D( g_viewport->scl.x * 1.1f, g_viewport->scl.y * 1.1f );        
+    }
+*/
+    
+/*
+    g_narrow_line_prim->a = Vec2(0,0);
+    g_narrow_line_prim->b = Vec2(100, range(100,150));
+*/    
+
+/*
+    // add/del prims
+    {
+        static int ylcnt=0;
+        ylcnt++;
+        static int yellow_line_prim_id=0;
+        if( ylcnt%100 == 50 ){
+            Prim *yl = g_linep->addLine( Vec2(0,0), Vec2( -30, range(-30,-100)), Color(0,1,1,1), 3 );
+            if(yl) {
+                yellow_line_prim_id = yl->id;
+            }
+        }
+        if( ylcnt%100 == 99 ) {
+            if( yellow_line_prim_id > 0 ) {
+                Prim *yl = g_linep->getPrimById(yellow_line_prim_id);
+                if(yl) {
+                    g_linep->deletePrim(yl->id);
+                }
+            }
+        }
+    }
+*/
+
+    
+    var now_time = new Date().getTime();
+    var dt = now_time - last_anim_at;
+    last_anim_at = now_time;
+    g_moyai_client.poll(dt/1000.0);
+    g_moyai_client.render();
+    
+}
+
+    
+animate();

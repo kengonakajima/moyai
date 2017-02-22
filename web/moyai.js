@@ -910,70 +910,79 @@ function TextBox() {
 TextBox.prototype = Object.create(Prop2D.prototype);
 TextBox.prototype.constructor = TextBox;
 TextBox.prototype.setFont = function(fnt) { this.font = fnt; }
-TextBox.prototype.setString = function(s) { this.str = s; }
-TextBox.prototype.ensureMesh = function() {
-    if(this.mesh==null && this.font ) {
-        var geom = new THREE.Geometry();
-        var cur_x=0,cur_y=0;
-        var used_chind=0;
-        for(var chind = 0; chind <this.str.length;chind++) {
-            // 1文字あたり4点, 2面,6インデックス
-            // TODO: kerning
-            // TODO: 改行
-            var char_code = this.str.charCodeAt(chind);
-            if(char_code==10) { // "\n"
-                cur_y += this.font.pixel_size;
-                cur_x = 0;
-                continue;
-            }
-            var glyph = this.font.getGlyph( char_code );
-            if(!glyph) {
-                console.log("glyph not found for:", char_code, "char:", this.str.charAt(chind) );
-            }
-            // 座標の大きさはピクセルサイズ
-            /*
-              0--1
-              |\ |
-              | \|
-              3--2 3の位置が(0,0) = (cur_x,cur_y)  幅がw,高さがh
-              */
-            // 1セルあたり4頂点づつ
-            var w = glyph.width;
-            var h = glyph.height;
-            var l = glyph.left;
-            var t = glyph.top;
-            geom.vertices.push(new THREE.Vector3(cur_x+l,cur_y+t,0)); //0
-            geom.vertices.push(new THREE.Vector3(cur_x+l+w,cur_y+t,0)); //1
-            geom.vertices.push(new THREE.Vector3(cur_x+l+w,cur_y+t-h,0)); //2
-            geom.vertices.push(new THREE.Vector3(cur_x+l,cur_y+t-h,0)); //3
-            var face_start_vert_ind = used_chind*4;
-            geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+2, face_start_vert_ind+1));
-            geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+3, face_start_vert_ind+2));
-            // uvは左上が0,右下が1
-            geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),
-                                         new THREE.Vector2(glyph.u1,glyph.v1),
-                                         new THREE.Vector2(glyph.u1,glyph.v0)]);
-            geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),
-                                         new THREE.Vector2(glyph.u0,glyph.v1),
-                                         new THREE.Vector2(glyph.u1,glyph.v1)]);
+TextBox.prototype.setString = function(s) {
+    this.str = s;
+    this.updateMesh();
+}
+TextBox.prototype.ensureMesh = function() {} // TextBox updates mesh only on setString. 
+TextBox.prototype.updateMesh = function() {
+    if(!this.font)return;
 
-            geom.faces[used_chind*2+0].vertexColors[0] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+0].vertexColors[1] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+0].vertexColors[2] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+1].vertexColors[0] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+1].vertexColors[1] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+1].vertexColors[2] = this.color.toTHREEColor();
-            cur_x += glyph.advance;
-            used_chind++;
+    var geom = new THREE.Geometry();
+    var cur_x=0,cur_y=0;
+    var used_chind=0;
+    for(var chind = 0; chind <this.str.length;chind++) {
+        // 1文字あたり4点, 2面,6インデックス
+        // TODO: kerning
+        // TODO: 改行
+        var char_code = this.str.charCodeAt(chind);
+        if(char_code==10) { // "\n"
+            cur_y += this.font.pixel_size;
+            cur_x = 0;
+            continue;
         }
-        geom.verticesNeedUpdate = true;
-        geom.uvsNeedUpdate = true;
+        var glyph = this.font.getGlyph( char_code );
+        if(!glyph) {
+            console.log("glyph not found for:", char_code, "char:", this.str.charAt(chind) );
+        }
+        // 座標の大きさはピクセルサイズ
+        /*
+          0--1
+          |\ |
+          | \|
+          3--2 3の位置が(0,0) = (cur_x,cur_y)  幅がw,高さがh
+        */
+        // 1セルあたり4頂点づつ
+        var w = glyph.width;
+        var h = glyph.height;
+        var l = glyph.left;
+        var t = glyph.top;
+        geom.vertices.push(new THREE.Vector3(cur_x+l,cur_y+t,0)); //0
+        geom.vertices.push(new THREE.Vector3(cur_x+l+w,cur_y+t,0)); //1
+        geom.vertices.push(new THREE.Vector3(cur_x+l+w,cur_y+t-h,0)); //2
+        geom.vertices.push(new THREE.Vector3(cur_x+l,cur_y+t-h,0)); //3
+        var face_start_vert_ind = used_chind*4;
+        geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+2, face_start_vert_ind+1));
+        geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+3, face_start_vert_ind+2));
+        // uvは左上が0,右下が1
+        geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),
+                                     new THREE.Vector2(glyph.u1,glyph.v1),
+                                     new THREE.Vector2(glyph.u1,glyph.v0)]);
+        geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),
+                                     new THREE.Vector2(glyph.u0,glyph.v1),
+                                     new THREE.Vector2(glyph.u1,glyph.v1)]);
 
-        this.material = createMeshBasicMaterial({ map: this.font.atlas.moyai_tex.three_tex,
-                                                  transparent: true,
-                                                  // antialias: true, three warns   'antialias' is not a property of this material.
-                                                  vertexColors:THREE.VertexColors,
-                                                  blending: THREE.NormalBlending });
+        geom.faces[used_chind*2+0].vertexColors[0] = this.color.toTHREEColor();
+        geom.faces[used_chind*2+0].vertexColors[1] = this.color.toTHREEColor();
+        geom.faces[used_chind*2+0].vertexColors[2] = this.color.toTHREEColor();
+        geom.faces[used_chind*2+1].vertexColors[0] = this.color.toTHREEColor();
+        geom.faces[used_chind*2+1].vertexColors[1] = this.color.toTHREEColor();
+        geom.faces[used_chind*2+1].vertexColors[2] = this.color.toTHREEColor();
+        cur_x += glyph.advance;
+        used_chind++;
+    }
+    geom.verticesNeedUpdate = true;
+    geom.uvsNeedUpdate = true;
+
+    this.material = createMeshBasicMaterial({ map: this.font.atlas.moyai_tex.three_tex,
+                                              transparent: true,
+                                              // antialias: true, three warns   'antialias' is not a property of this material.
+                                              vertexColors:THREE.VertexColors,
+                                              blending: THREE.NormalBlending });
+    if(this.mesh) {
+        this.mesh.geometry = geom;
+        this.mesh.material = this.material;
+    } else {
         this.mesh = new THREE.Mesh(geom,this.material);
     }
 }
