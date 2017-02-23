@@ -106,7 +106,6 @@ MoyaiClient.prototype.poll = function(dt) {
     return cnt;   
 }
 MoyaiClient.prototype.render = function() {
-    console.log("render");
     for(var i in this.scene.children) {
         this.scene.remove( this.scene.children[i]);
     }
@@ -435,14 +434,15 @@ function Prop2D() {
     this.mesh=null;
     this.material=null;
     this.priority = null; // set when insertprop if kept null
+    this.need_mesh_update=false;
 }
-Prop2D.prototype.setDeck = function(dk) { this.deck = dk; }
-Prop2D.prototype.setIndex = function(ind) { this.index = ind; }
+Prop2D.prototype.setDeck = function(dk) { this.deck = dk; this.need_mesh_update = true; }
+Prop2D.prototype.setIndex = function(ind) { this.index = ind; this.need_mesh_update = true; }
 Prop2D.prototype.setScl = function(x,y) { this.scl.setWith2args(x,y);}
 Prop2D.prototype.setLoc = function(x,y) { this.loc.setWith2args(x,y);}
 Prop2D.prototype.setRot = function(r) { this.rot=r; }
-Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg;}
-Prop2D.prototype.setColor = function(r,g,b,a) { this.color = new Color(r,g,b,a); }
+Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg; this.need_mesh_update = true; }
+Prop2D.prototype.setColor = function(r,g,b,a) { this.color = new Color(r,g,b,a); this.need_mesh_update = true; }
 Prop2D.prototype.addLine = function(p0,p1,col,w) {
     if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
     this.prim_drawer.addLine(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
@@ -517,25 +517,35 @@ function createRectGeometry(width,height) {
     return geometry;
 }
 Prop2D.prototype.ensureMesh = function() {
-    if(this.mesh==null && this.deck ) {
-        this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:true, transparent: true, vertexColors:THREE.VertexColors        ,blending: THREE.NormalBlending });
-        
-        var geom = createRectGeometry(1,1);
-        var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
-        var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
-        geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v0), new THREE.Vector2(u1,v1), new THREE.Vector2(u1,v0) ]);
-        geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v0), new THREE.Vector2(u0,v1), new THREE.Vector2(u1,v1) ]);
-        geom.verticesNeedUpdate = true;
-//        geom.elementsNeedUpdate = true;
-        geom.uvsNeedUpdate = true;
+    if( this.need_mesh_update ) this.updateMesh();
+}
+Prop2D.prototype.updateMesh = function() {
+    if(!this.deck)return;
 
-        geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
-        geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
-        geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
-        geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
-        geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
-        geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
-        
+//    console.log("prop2d updatemesh ind:"+this.index);
+    
+    this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:true, transparent: true, vertexColors:THREE.VertexColors        ,blending: THREE.NormalBlending });
+    
+    var geom = createRectGeometry(1,1);
+    var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
+    var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
+    geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v0), new THREE.Vector2(u1,v1), new THREE.Vector2(u1,v0) ]);
+    geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v0), new THREE.Vector2(u0,v1), new THREE.Vector2(u1,v1) ]);
+    geom.verticesNeedUpdate = true;
+    //        geom.elementsNeedUpdate = true;
+    geom.uvsNeedUpdate = true;
+
+    geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
+    geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
+    geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
+    geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
+    geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
+    geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
+
+    if(this.mesh) {
+        this.mesh.geometry = geom;
+        this.mesh.material = this.material;
+    } else {
         this.mesh = new THREE.Mesh(geom,this.material);
     }
 }

@@ -105,6 +105,7 @@ var d2 = new TileDeck();
 d2.setTexture(t2);
 d2.setSize(32,32,8,8 );
 
+
 var sclp = new Prop2D();
 sclp.setDeck(deck);
 sclp.setIndex(1);
@@ -114,7 +115,7 @@ sclp.setRot( Math.PI/8.0 );
 g_main_layer.insertProp(sclp);
 
 
-
+/*
   
 var sclprot = new Prop2D();
 sclprot.setDeck(deck);
@@ -146,22 +147,7 @@ statprimp.setLoc(100,-100);
 statprimp.debug = true;
 g_main_layer.insertProp(statprimp);
 
-/*
-   priorityは効いてる
-var hogep = new Prop2D();
-hogep.setDeck(g_base_deck);
-hogep.setIndex(1);
-hogep.setLoc(300,100);
-hogep.priority = 10;
-g_main_layer.insertProp(hogep);
 
-var hogep2 = new Prop2D();
-hogep2.setDeck(g_base_deck);
-hogep2.setIndex(0);
-hogep2.setLoc(315,100);
-hogep2.priority = 2;
-g_main_layer.insertProp(hogep2);
-*/
   
 // static grids
 var p = new Prop2D();
@@ -354,19 +340,33 @@ p.setIndex(0);
 g_main_layer.insertProp(p);
 
 
+var g_bullet = new Prop2D();
+g_bullet.setDeck(g_base_deck);
+g_bullet.setIndex(32);
+g_bullet.setScl(32);
+g_bullet.setLoc(0,0);
+g_main_layer.insertProp(g_bullet);
+
+
+*/
+
 ////////////////////
 
 var anim_cnt=0;
 var last_anim_at = new Date().getTime();
 function animate() {
-    if(anim_cnt<10) {
+    if(anim_cnt<40000) {
         anim_cnt++;
 	    requestAnimationFrame( animate );
     }
     if(!g_moyai_client) return;
 
-
+/*
     g_tb.setString("hoge:"+anim_cnt);
+
+    g_bullet.setLoc(0, 100*Math.sin(anim_cnt/10));
+    g_bullet.setIndex(32+(parseInt(anim_cnt/2)%4));
+    */    
     
 //    g_linep->loc.y = sin( now() ) * 200;
 
