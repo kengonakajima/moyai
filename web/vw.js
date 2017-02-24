@@ -43,7 +43,10 @@ function connectButton() {
 function disconnectButton() {
     g_ws.close();
 }
-
+var g_stop_render=false;
+function stopRender() {
+    g_stop_render = true;
+}
 
 
 /////////// testing
@@ -105,15 +108,17 @@ var d2 = new TileDeck();
 d2.setTexture(t2);
 d2.setSize(32,32,8,8 );
 
-
-var sclp = new Prop2D();
-sclp.setDeck(deck);
-sclp.setIndex(1);
-sclp.setScl(16,16);
-sclp.setLoc(-200,0);
-sclp.setRot( Math.PI/8.0 );
-g_main_layer.insertProp(sclp);
-
+var sclpary=[];
+for(var i=0;i<16;i++) {
+    var sclp = new Prop2D();
+    sclp.setDeck(deck);
+    sclp.setIndex(1);
+    sclp.setScl(16,16);
+    sclp.setLoc(-200+20*i,0);
+    sclp.setRot( Math.PI/8.0 );
+    g_main_layer.insertProp(sclp);
+    sclpary.push(sclp);
+}
 
 /*
   
@@ -355,9 +360,9 @@ g_main_layer.insertProp(g_bullet);
 var anim_cnt=0;
 var last_anim_at = new Date().getTime();
 function animate() {
-    if(anim_cnt<40000) {
+    if(anim_cnt<5000) {
         anim_cnt++;
-	    requestAnimationFrame( animate );
+	    if(!g_stop_render) requestAnimationFrame( animate );
     }
     if(!g_moyai_client) return;
 
@@ -421,7 +426,17 @@ function animate() {
         }
     }
 */
-
+    if( anim_cnt % 3==0 ) {
+        if(anim_cnt%2==0) {
+            for(var i in sclpary) sclpary[i].setDeck(g_bmpfont_deck);
+        } else {
+            for(var i in sclpary) sclpary[i].setDeck(g_base_deck);
+        }
+    }
+        
+    for(var i in sclpary) {
+        sclpary[i].setIndex(anim_cnt%4);
+    }
     
     var now_time = new Date().getTime();
     var dt = now_time - last_anim_at;

@@ -109,12 +109,13 @@ MoyaiClient.prototype.render = function() {
     for(var i in this.scene.children) {
         this.scene.remove( this.scene.children[i]);
     }
+    if( this.scene.children.length>0) this.scene.remove( this.scene.children[0] ); // confirm remove all.. (TODO refactor)
 //    this.scene.children.forEach(function(object){ this.scene.remove(object); });    
     for(var i in this.layers) {
         var layer = this.layers[i];
         for(var i in layer.props) {
             var prop = layer.props[i];
-            prop.ensureMesh();
+            prop.updateMesh();
             var prop_z = layer.priority * this.z_per_layer + prop.priority * this.z_per_prop;
             if(prop.mesh) {
                 prop.mesh.position.x = prop.loc.x;
@@ -434,15 +435,17 @@ function Prop2D() {
     this.mesh=null;
     this.material=null;
     this.priority = null; // set when insertprop if kept null
-    this.need_mesh_update=false;
+    this.need_material_update=false;
+    this.need_color_update=false;
+    this.need_uv_update=false;
 }
-Prop2D.prototype.setDeck = function(dk) { this.deck = dk; this.need_mesh_update = true; }
-Prop2D.prototype.setIndex = function(ind) { this.index = ind; this.need_mesh_update = true; }
+Prop2D.prototype.setDeck = function(dk) { this.deck = dk; this.need_material_update = true; }
+Prop2D.prototype.setIndex = function(ind) { this.index = ind; this.need_uv_update = true; }
 Prop2D.prototype.setScl = function(x,y) { this.scl.setWith2args(x,y);}
 Prop2D.prototype.setLoc = function(x,y) { this.loc.setWith2args(x,y);}
 Prop2D.prototype.setRot = function(r) { this.rot=r; }
-Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg; this.need_mesh_update = true; }
-Prop2D.prototype.setColor = function(r,g,b,a) { this.color = new Color(r,g,b,a); this.need_mesh_update = true; }
+Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg; this.need_uv_update = true; }
+Prop2D.prototype.setColor = function(r,g,b,a) { this.color = new Color(r,g,b,a); this.need_color_update = true; }
 Prop2D.prototype.addLine = function(p0,p1,col,w) {
     if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
     this.prim_drawer.addLine(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
@@ -464,7 +467,8 @@ Prop2D.prototype.setTexture = function(tex) {
     var sz = tex.getSize();
     td.setSize(1,1,sz.x,sz.y);
     this.setDeck(td);
-    this.setIndex(0);    
+    this.setIndex(0);
+    this.need_material_update = true;
 }
 Prop2D.prototype.addChild = function(chp) {
     this.children.push(chp);
@@ -516,37 +520,52 @@ function createRectGeometry(width,height) {
     geometry.faces.push(new THREE.Face3(0, 3, 2));
     return geometry;
 }
-Prop2D.prototype.ensureMesh = function() {
-    if( this.need_mesh_update ) this.updateMesh();
-}
 Prop2D.prototype.updateMesh = function() {
     if(!this.deck)return;
+    if( this.need_material_update ) {
+        if(!this.material) {
+            this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:true, transparent: true, vertexColors:THREE.VertexColors, blending: THREE.NormalBlending }); // materialはメモリを消耗しないようだ
+        } else {
+            this.material.map = this.deck.moyai_tex.three_tex;
+        }
+        this.need_material_update = false;
+    }
+    if( this.need_uv_update ) {
+        var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
+        var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
+        if(!this.geom) {
+            this.geom = createRectGeometry(1,1);
+        }
+        var uvs = this.geom.faceVertexUvs[0][0];
+        if(!uvs) {
+            this.geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v0), new THREE.Vector2(u1,v1), new THREE.Vector2(u1,v0) ]);
+            this.geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v0), new THREE.Vector2(u0,v1), new THREE.Vector2(u1,v1) ]);
+        } else {
+            uvs[0].x = u0; uvs[0].y = v0;
+            uvs[1].x = u1; uvs[1].y = v1;
+            uvs[2].x = u1; uvs[2].y = v0;
+            uvs = this.geom.faceVertexUvs[0][1];
+            uvs[0].x = u0; uvs[0].y = v0;
+            uvs[1].x = u0; uvs[1].y = v1;
+            uvs[2].x = u1; uvs[2].y = v1;
+        }
+        
+        this.geom.verticesNeedUpdate = true;
+        this.geom.uvsNeedUpdate = true;
+        this.need_uv_update = false;
+    }
+    if( this.need_color_update ) {
+        geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
+        geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
+        geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
+        geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
+        geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
+        geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
+        this.need_color_update = false;
+    }
 
-//    console.log("prop2d updatemesh ind:"+this.index);
-    
-    this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:true, transparent: true, vertexColors:THREE.VertexColors        ,blending: THREE.NormalBlending });
-    
-    var geom = createRectGeometry(1,1);
-    var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
-    var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
-    geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v0), new THREE.Vector2(u1,v1), new THREE.Vector2(u1,v0) ]);
-    geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v0), new THREE.Vector2(u0,v1), new THREE.Vector2(u1,v1) ]);
-    geom.verticesNeedUpdate = true;
-    //        geom.elementsNeedUpdate = true;
-    geom.uvsNeedUpdate = true;
-
-    geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
-    geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
-    geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
-    geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
-    geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
-    geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
-
-    if(this.mesh) {
-        this.mesh.geometry = geom;
-        this.mesh.material = this.material;
-    } else {
-        this.mesh = new THREE.Mesh(geom,this.material);
+    if(!this.mesh) {
+        this.mesh = new THREE.Mesh(this.geom,this.material);
     }
 }
 ////////////////////////////
