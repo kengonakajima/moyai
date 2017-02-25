@@ -120,6 +120,7 @@ for(var i=0;i<16;i++) {
     sclpary.push(sclp);
 }
 
+
 /*
   
 var sclprot = new Prop2D();
@@ -153,12 +154,13 @@ statprimp.debug = true;
 g_main_layer.insertProp(statprimp);
 
 
-  
+*/
+
 // static grids
-var p = new Prop2D();
-p.setDeck(d2);
-p.setScl(24,24);
-p.setLoc(-100,-300);
+var gridp = new Prop2D();
+gridp.setDeck(d2);
+gridp.setScl(24,24);
+gridp.setLoc(-100,-300);
 var g = new Grid(8,8);
 g.setDeck(d2);
 var iii=1;
@@ -176,10 +178,10 @@ for(var x=0;x<8;x++){
         iii++;
     }
 }
-p.addGrid(g);
-g_main_layer.insertProp(p);
+gridp.addGrid(g);
+g_main_layer.insertProp(gridp);
 
-
+/*
 
 var p2 = new Prop2D();
 p2.setColor(1,1,0,0.5);
@@ -436,6 +438,15 @@ function animate() {
         
     for(var i in sclpary) {
         sclpary[i].setIndex(anim_cnt%4);
+    }
+
+    gridp.grids[0].set(4,4, anim_cnt%4);
+    if(anim_cnt%21==0) {
+        if(anim_cnt%2==0) {
+            gridp.grids[0].setDeck(g_base_deck);
+        } else {
+            gridp.grids[0].setDeck(g_bmpfont_deck);
+        }
     }
     
     var now_time = new Date().getTime();

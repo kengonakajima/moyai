@@ -587,8 +587,11 @@ function Grid(w,h) {
     this.enfat_epsilon=0;
     this.parent_prop=null;
     this.mesh=null;
+    this.material=null;
+    this.geom=null;
+    this.need_material_update=false;
 }
-Grid.prototype.setDeck =function(dk) { this.deck=dk;}
+Grid.prototype.setDeck =function(dk) { this.deck=dk; this.need_material_update=true;}
 Grid.prototype.index = function(x,y) { return x+y*this.width; }
 Grid.prototype.getCellNum = function() { return this.width * this.height; }
 Grid.prototype._fill = function(tbl,val) {
@@ -671,9 +674,23 @@ Grid.prototype.fillColor = function(c) {
     }
 }
 Grid.prototype.ensureMesh = function() {
-    if(this.mesh==null && this.deck && this.index_table ) {
-        var mat = createMeshBasicMaterial({map: this.deck.moyai_tex.three_tex, transparent:true, depthTest:true, vertexColors:THREE.VertexColors });
-        var geom = new THREE.Geometry();
+    if(this.need_material_update) {
+        this.need_material_update=false;
+        if(!this.material) {
+            this.material = createMeshBasicMaterial({map: this.deck.moyai_tex.three_tex, transparent:true, depthTest:true, vertexColors:THREE.VertexColors });
+        } else {
+            this.material.map = this.deck.moyai_tex.three_tex;
+        }
+    }
+    if(!this.geom) {
+        this.geom = new THREE.Geometry();
+    }
+    if(!this.mesh) {
+        this.mesh = new THREE.Mesh(this.geom,this.material);
+    }
+
+    if(this.deck && this.index_table ) {
+        var geom = this.geom;
         var quad_cnt=0;
         for(var y=0;y<this.height;y++) {
             for(var x=0;x<this.width;x++) {
@@ -737,7 +754,6 @@ Grid.prototype.ensureMesh = function() {
         }
         geom.verticesNeedUpdate = true;
         geom.uvsNeedUpdate = true;
-        this.mesh = new THREE.Mesh(geom,mat);
     }
 }
 
