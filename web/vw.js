@@ -437,6 +437,10 @@ function animate() {
         } else {
             for(var i in sclpary) sclpary[i].setDeck(g_base_deck);
         }
+        for(var i in sclpary) {
+            if(i%5==0) sclpary[i].setXFlip(anim_cnt%2);
+            if(i%7==0) sclpary[i].setYFlip(anim_cnt%2);
+        }
     }
         
     for(var i in sclpary) {

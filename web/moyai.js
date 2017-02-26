@@ -438,6 +438,8 @@ function Prop2D() {
     this.need_material_update=false;
     this.need_color_update=false;
     this.need_uv_update=false;
+    this.xflip=false;
+    this.yflip=false;
 }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; this.need_material_update = true; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; this.need_uv_update = true; }
@@ -446,6 +448,8 @@ Prop2D.prototype.setLoc = function(x,y) { this.loc.setWith2args(x,y);}
 Prop2D.prototype.setRot = function(r) { this.rot=r; }
 Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg; this.need_uv_update = true; }
 Prop2D.prototype.setColor = function(r,g,b,a) { this.color = new Color(r,g,b,a); this.need_color_update = true; }
+Prop2D.prototype.setXFlip = function(flg) { this.xflip=flg; this.need_uv_update = true; }
+Prop2D.prototype.setYFlip = function(flg) { this.yflip=flg; this.need_uv_update = true; }
 Prop2D.prototype.addLine = function(p0,p1,col,w) {
     if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
     this.prim_drawer.addLine(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
@@ -533,6 +537,12 @@ Prop2D.prototype.updateMesh = function() {
     if( this.need_uv_update ) {
         var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
         var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
+        if(this.xflip ) {
+            var tmp = u1; u1 = u0; u0 = tmp;
+        }
+        if(this.yflip ) {
+            var tmp = v1; v1 = v0; v0 = tmp;
+        }        
         if(!this.geom) {
             this.geom = createRectGeometry(1,1);
         }
