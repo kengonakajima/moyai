@@ -307,6 +307,7 @@ scoregrid.setColor( 3,0, new Color(0,1,1,1));
 scorep.addGrid(scoregrid);
 g_main_layer.insertProp(scorep);
 
+*/
 
 // line prop
 var g_linep = new Prop2D();
@@ -325,7 +326,7 @@ childp.setIndex(0);
 childp.setLoc(-222,-222);
 g_linep.addChild(childp);
 
-
+/*
 
   
 // dynamic images
@@ -364,6 +365,8 @@ g_main_layer.insertProp(g_bullet);
 
 var anim_cnt=0;
 var last_anim_at = new Date().getTime();
+var g_yellow_line_prim_id;
+
 function animate() {
     if(anim_cnt<50000) {
         anim_cnt++;
@@ -378,7 +381,7 @@ function animate() {
     g_bullet.setIndex(32+(parseInt(anim_cnt/2)%4));
     */    
     
-//    g_linep->loc.y = sin( now() ) * 200;
+    g_linep.loc.y = Math.sin( anim_cnt/50 ) * 200;
 
 
     
@@ -409,28 +412,26 @@ function animate() {
     g_narrow_line_prim->b = Vec2(100, range(100,150));
 */    
 
-/*
+
     // add/del prims
     {
-        static int ylcnt=0;
-        ylcnt++;
-        static int yellow_line_prim_id=0;
-        if( ylcnt%100 == 50 ){
-            Prim *yl = g_linep->addLine( Vec2(0,0), Vec2( -30, range(-30,-100)), Color(0,1,1,1), 3 );
-            if(yl) {
-                yellow_line_prim_id = yl->id;
-            }
+        if( anim_cnt%100 == 50 ){
+            var yl = g_linep.addLine( new Vec2(0,0), new Vec2( -30, -60), new Color(1,1,0,1), 3 );
+            g_yellow_line_prim_id = yl.id;
+            console.log("idid:",yl.id);
         }
-        if( ylcnt%100 == 99 ) {
-            if( yellow_line_prim_id > 0 ) {
-                Prim *yl = g_linep->getPrimById(yellow_line_prim_id);
+        if( anim_cnt%100 == 99 ) {
+            if( g_yellow_line_prim_id ) {
+                var yl = g_linep.getPrimById(g_yellow_line_prim_id);
+                console.log("getbyid",g_yellow_line_prim_id,yl);
                 if(yl) {
-                    g_linep->deletePrim(yl->id);
+                    console.log("tttt");
+                    g_linep.deletePrim(yl.id);
                 }
             }
         }
     }
-*/
+
     if( anim_cnt % 3==0 ) {
         if(anim_cnt%2==0) {
             for(var i in sclpary) sclpary[i].setDeck(g_bmpfont_deck);
