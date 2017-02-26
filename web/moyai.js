@@ -1,5 +1,8 @@
 // moyai js port
 
+function irange(a,b) {
+    return parseInt(range(a,b));
+}
 function range(a,b) {
     var small=a,big=b;
     if(big<small) {
@@ -312,10 +315,13 @@ Texture.prototype.loadPNGMem = function(u8adata) {
     this.update();
 }
 Texture.prototype.update = function() {
-    this.three_tex = new THREE.DataTexture( this.image.data, this.image.width, this.image.height, THREE.RGBAFormat );
+    if(!this.three_tex) {
+        this.three_tex = new THREE.DataTexture( this.image.data, this.image.width, this.image.height, THREE.RGBAFormat );
+        this.three_tex.magFilter = THREE.NearestFilter;
+    } else {
+        this.three_tex.image.data = this.image.data;
+    }
     this.three_tex.needsUpdate = true;
-    this.three_tex.magFilter = THREE.NearestFilter;
-    this.mat = createMeshBasicMaterial({ map: this.three_tex, transparent: true });
 }
 Texture.prototype.getSize = function() {
     return this.image.getSize();

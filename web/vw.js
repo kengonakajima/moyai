@@ -316,7 +316,7 @@ g_main_layer.insertProp(scorep);
 
 */
 
-
+/*
 // line prop
 var g_linep = new Prop2D();
 var g_narrow_line_prim = g_linep.addLine( new Vec2(0,0), new Vec2(100,100), new Color(1,0,0,1) );
@@ -329,7 +329,7 @@ g_linep.addRect( new Vec2(0,0), new Vec2(-150,230), new Color(0.2,0,1,0.5) );
 g_linep.setLoc(0,200);
 g_linep.setScl(1.0);
 g_main_layer.insertProp(g_linep);
-
+*/
 
 /*
 // add child to line prop
@@ -344,7 +344,7 @@ g_linep.addChild(childp);
 }
 */
 
-/*
+
 
   
 // dynamic images
@@ -357,7 +357,8 @@ for(var i=0;i<256;i++){
 //g_img.writePNG( "dynamic_out.png");
 var g_dyn_texture =  new Texture();
 g_dyn_texture.setImage(g_img);
-    
+
+
 var p = new Prop2D();
 var d = new TileDeck();
 d.setTexture(g_dyn_texture);
@@ -368,7 +369,7 @@ p.setScl(128,128);
 p.setIndex(0);
 g_main_layer.insertProp(p);
 
-
+/*
 var g_bullet = new Prop2D();
 g_bullet.setDeck(g_base_deck);
 g_bullet.setIndex(32);
@@ -399,19 +400,19 @@ function animate() {
     g_bullet.setLoc(0, 100*Math.sin(anim_cnt/10));
     g_bullet.setIndex(32+(parseInt(anim_cnt/2)%4));
     */    
-    
-    g_linep.loc.y = Math.sin( anim_cnt/50 ) * 200;
+
+//    g_linep.loc.y = Math.sin( anim_cnt/50 ) * 200;
 
 
     
-/*
-    if( (total_frame % 500 ) == 0 ) {
-        for(int i=0;i<1000;i++){
-            g_img->setPixel( irange(0,256), irange(0,256), Color( range(0,1), range(0,1), range(0,1),1 ) );
+
+    if( (anim_cnt % 100 ) == 0 ) {
+        for(var i=0;i<1000;i++){
+            g_img.setPixel( irange(0,256), irange(0,256), new Color( range(0,1), range(0,1), range(0,1),1 ));
         }
+        g_dyn_texture.setImage(g_img);
     }
-    g_dyn_texture->setImage(g_img);
-    */
+    
 
 
 //    g_replacer_shader->setColor( Color(0xF7E26B), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
@@ -426,14 +427,16 @@ function animate() {
     }
 */
 
-    
+/*
     g_narrow_line_prim.a.x = 0;
     g_narrow_line_prim.a.y = 0;    
     g_narrow_line_prim.b.x = 100;
     g_narrow_line_prim.b.y = range(100,150);
+    */
 
+/*    
     // add/del prims
-    {
+    if(g_linep){
         if( anim_cnt%3 == 0 ){
             var yl = g_linep.addLine( new Vec2(0,0), new Vec2( -30, -60), new Color(1,1,0,1), 3 );
             g_yellow_line_prim_id = yl.id;
@@ -446,7 +449,8 @@ function animate() {
             }
         }
     }
-
+    */
+    
 /*
     if( anim_cnt % 3==0 ) {
         if(anim_cnt%2==0) {
