@@ -166,6 +166,7 @@ g.setDeck(d2);
 var iii=1;
 for(var x=0;x<8;x++){
     for(var y=0;y<8;y++){
+        if(y==6||x==6) continue;
         g.set(x,y,iii % 3);
         g.setColor( x,y, new Color(range(0.5,1), range(0.5,1), range(0.5,1), range(0.5,1) ));
         if(x==0) g.setXFlip(x,y,true);
@@ -210,6 +211,8 @@ for(var j=0;j<2;j++) {
     }
 }
 
+*/
+
 
 
 var charcodes = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえおぁぃぅぇぉかきくけこがぎぐげごさしすせそざじずぜぞたちつてとだぢづでどなにぬねのはひふへほばびぶべぼぱぴぷぺぽまみむめもやゆよゃゅょらりるれろわをん、。アイウエオァィゥェォカキクケコガギグゲゴサシスセソザジズゼゾタチツテトダヂヅデドナニヌネノハヒフヘホバビブベボパピプペポマミムメモヤユヨャュョラリルレロワヲンーッっ　「」";
@@ -229,7 +232,7 @@ g_tb.setScl(1);
 g_tb.setLoc(22,22);
 g_main_layer.insertProp(g_tb);
 
-
+/*
 var t4 = new TextBox();
 
 t4.setFont(g_font);
@@ -362,15 +365,15 @@ g_main_layer.insertProp(g_bullet);
 var anim_cnt=0;
 var last_anim_at = new Date().getTime();
 function animate() {
-    if(anim_cnt<5000) {
+    if(anim_cnt<50000) {
         anim_cnt++;
 	    if(!g_stop_render) requestAnimationFrame( animate );
     }
     if(!g_moyai_client) return;
 
-/*
-    g_tb.setString("hoge:"+anim_cnt);
 
+    g_tb.setString("hoge:"+anim_cnt);
+/*
     g_bullet.setLoc(0, 100*Math.sin(anim_cnt/10));
     g_bullet.setIndex(32+(parseInt(anim_cnt/2)%4));
     */    

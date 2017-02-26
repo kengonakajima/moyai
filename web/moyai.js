@@ -131,7 +131,7 @@ MoyaiClient.prototype.render = function() {
             if(prop.grids) {
                 for(var i in prop.grids) {
                     var grid = prop.grids[i];
-                    grid.ensureMesh();
+                    grid.updateMesh();
                     grid.mesh.position.x = prop.loc.x;
                     grid.mesh.position.y = prop.loc.y;
                     grid.mesh.position.z = prop_z + (i+1) * this.z_per_subprop;
@@ -590,6 +590,7 @@ function Grid(w,h) {
     this.material=null;
     this.geom=null;
     this.need_material_update=false;
+    this.need_geometry_update=false;
 }
 Grid.prototype.setDeck =function(dk) { this.deck=dk; this.need_material_update=true;}
 Grid.prototype.index = function(x,y) { return x+y*this.width; }
@@ -605,6 +606,7 @@ var GRID_NOT_USED = -1;
 Grid.prototype.set = function(x,y,ind) {
     if(!this.index_table) this.index_table=[];
     this.index_table[this.index(x,y)] = ind;
+    this.need_geometry_update = true;
 }
 Grid.prototype.get  =function(x,y) {
     if(!this.index_table) return GRID_NOT_USED;
@@ -616,7 +618,8 @@ Grid.prototype.bulkSetIndex = function(inds) {
 }
 Grid.prototype.setXFlip = function(x,y,flg) {
     if(!this.xflip_table) this.xflip_table=[];
-    this.xflip_table[this.index(x,y)]=flg;    
+    this.xflip_table[this.index(x,y)]=flg;
+    this.need_geometry_update = true;
 }
 Grid.prototype.getXFlip = function(x,y) {
     if(!this.xflip_table) return false;
@@ -625,6 +628,7 @@ Grid.prototype.getXFlip = function(x,y) {
 Grid.prototype.setYFlip = function(x,y,flg) {
     if(!this.yflip_table) this.yflip_table=[];
     this.yflip_table[this.index(x,y)]=flg;    
+    this.need_geometry_update = true;
 }
 Grid.prototype.getYFlip = function(x,y) {
     if(!this.yflip_table) return false;
@@ -633,6 +637,7 @@ Grid.prototype.getYFlip = function(x,y) {
 Grid.prototype.setTexOffset = function(x,y,uv) {
     if(!this.texofs_table) this.texofs_table=[];
     this.texofs_table[this.index(x,y)]=uv;
+    this.need_geometry_update = true;
 }
 Grid.prototype.getTexOffset = function(x,y) {
     if(!this.texofs_table) return new Vec2(0,0);
@@ -641,6 +646,7 @@ Grid.prototype.getTexOffset = function(x,y) {
 Grid.prototype.setUVRot = function(x,y,flg) {
     if(!this.rot_table) this.rot_table=[];
     this.rot_table[this.index(x,y)]=flg;
+    this.need_geometry_update = true;
 }
 Grid.prototype.getUVRot = function(x,y) {
     if(!this.rot_table) return false;
@@ -649,6 +655,7 @@ Grid.prototype.getUVRot = function(x,y) {
 Grid.prototype.setColor = function(x,y,col) {
     if(!this.color_table) this.color_table=[];
     this.color_table[this.index(x,y)]=col;
+    this.need_geometry_update = true;
 }
 Grid.prototype.getColor = function(x,y) {
     if(!this.color_table) return new Color(1,1,1,1);
@@ -672,8 +679,12 @@ Grid.prototype.fillColor = function(c) {
             }
         }
     }
+    this.need_geometry_update = true;
 }
-Grid.prototype.ensureMesh = function() {
+Grid.prototype.updateMesh = function() {
+    if(!this.deck) return;
+    if(!this.index_table) return;
+    
     if(this.need_material_update) {
         this.need_material_update=false;
         if(!this.material) {
@@ -682,14 +693,13 @@ Grid.prototype.ensureMesh = function() {
             this.material.map = this.deck.moyai_tex.three_tex;
         }
     }
-    if(!this.geom) {
+    if(this.need_geometry_update) {
+        this.need_geometry_update = false;
+        if(this.geom) {
+            this.geom.dispose();
+        }
         this.geom = new THREE.Geometry();
-    }
-    if(!this.mesh) {
-        this.mesh = new THREE.Mesh(this.geom,this.material);
-    }
 
-    if(this.deck && this.index_table ) {
         var geom = this.geom;
         var quad_cnt=0;
         for(var y=0;y<this.height;y++) {
@@ -754,7 +764,12 @@ Grid.prototype.ensureMesh = function() {
         }
         geom.verticesNeedUpdate = true;
         geom.uvsNeedUpdate = true;
-    }
+        if(!this.mesh) {
+            this.mesh = new THREE.Mesh(this.geom,this.material);
+        } else {
+            this.mesh.geometry = this.geom;
+        }
+    }    
 }
 
 /////////////////////
@@ -951,19 +966,26 @@ function TextBox() {
     this.font = null;
     this.scl = new Vec2(1,1);
     this.str = null;
+    this.geom=null;
+    this.material=null;
+    this.need_geometry_update=false;
+    this.need_material_update=false;
 }
 TextBox.prototype = Object.create(Prop2D.prototype);
 TextBox.prototype.constructor = TextBox;
-TextBox.prototype.setFont = function(fnt) { this.font = fnt; }
+TextBox.prototype.setFont = function(fnt) { this.font = fnt; this.need_material_update=true; }
 TextBox.prototype.setString = function(s) {
     this.str = s;
-    this.updateMesh();
+    this.need_geometry_update=true;
 }
-TextBox.prototype.ensureMesh = function() {} // TextBox updates mesh only on setString. 
 TextBox.prototype.updateMesh = function() {
     if(!this.font)return;
-
+    if(!this.need_geometry_update)return;
+    this.need_geometry_update = false;
+    
+    if(this.geom) this.geom.dispose();
     var geom = new THREE.Geometry();
+    this.geom = geom;
     var cur_x=0,cur_y=0;
     var used_chind=0;
     for(var chind = 0; chind <this.str.length;chind++) {
@@ -1019,13 +1041,20 @@ TextBox.prototype.updateMesh = function() {
     geom.verticesNeedUpdate = true;
     geom.uvsNeedUpdate = true;
 
-    this.material = createMeshBasicMaterial({ map: this.font.atlas.moyai_tex.three_tex,
-                                              transparent: true,
-                                              // antialias: true, three warns   'antialias' is not a property of this material.
-                                              vertexColors:THREE.VertexColors,
-                                              blending: THREE.NormalBlending });
+    if(this.need_material_update) {
+        this.need_material_update = false;
+        if(!this.material) {
+            this.material = createMeshBasicMaterial({ map: this.font.atlas.moyai_tex.three_tex,
+                                                      transparent: true,
+                                                      // antialias: true, three warns   'antialias' is not a property of this material.
+                                                      vertexColors:THREE.VertexColors,
+                                                      blending: THREE.NormalBlending });
+        } else {
+            this.material.map = this.font.atlas.moyai_tex.three_tex;
+        }
+    }
     if(this.mesh) {
-        this.mesh.geometry = geom;
+        this.mesh.geometry = this.geom;
         this.mesh.material = this.material;
     } else {
         this.mesh = new THREE.Mesh(geom,this.material);
