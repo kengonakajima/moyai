@@ -233,7 +233,11 @@ Layer.prototype.pollAllProps = function(dt) {
     for(var i in this.props) {
         var prop = this.props[i];
         var to_keep = prop.basePoll(dt);
-        if(to_keep) keep.push(prop);
+        if(to_keep) {
+            keep.push(prop);
+        } else {
+            prop.onDelete();
+        }
     }
     this.props = keep;
     return this.props.length;
@@ -384,8 +388,9 @@ Prim.prototype.updateMesh = function() {
         this.geom.vertices.push(new THREE.Vector3(this.a.x,this.a.y,0));
         this.geom.vertices.push(new THREE.Vector3(this.b.x,this.b.y,0));
         this.geom.verticesNeedUpdate=true;
-        if(this.material) this.material.dispose();
-        this.material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width, depthTest:true, transparent:true });
+        if(!this.material) {
+            this.material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width, depthTest:true, transparent:true });
+        }
         if(this.mesh) {
             this.mesh.geometry = this.geom;
             this.mesh.material = this.material;
@@ -408,8 +413,9 @@ Prim.prototype.updateMesh = function() {
         this.geom.verticesNeedUpdate=true;        
         this.geom.faces.push(new THREE.Face3(0, 2, 1));
         this.geom.faces.push(new THREE.Face3(0, 3, 2));
-        if(this.material) this.material.dispose();
-        this.material = createMeshBasicMaterial({ color: this.color.toCode(),depthTest:true, transparent:true });
+        if(!this.material) {
+            this.material = createMeshBasicMaterial({ color: this.color.toCode(),depthTest:true, transparent:true });
+        }
         if(this.mesh) {
             this.mesh.geometry = this.geom;
             this.mesh.material = this.material;
@@ -482,6 +488,11 @@ function Prop2D() {
     this.need_uv_update=false;
     this.xflip=false;
     this.yflip=false;
+}
+Prop2D.prototype.onDelete = function() {
+    console.log("prp2d disposing ", this.id);
+    this.mesh.geometry.dispose();
+    this.mesh.material.dispose();
 }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; this.need_material_update = true; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; this.need_uv_update = true; }

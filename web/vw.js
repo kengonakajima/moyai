@@ -108,6 +108,7 @@ var d2 = new TileDeck();
 d2.setTexture(t2);
 d2.setSize(32,32,8,8 );
 
+/*
 var sclpary=[];
 for(var i=0;i<16;i++) {
     var sclp = new Prop2D();
@@ -119,7 +120,7 @@ for(var i=0;i<16;i++) {
     g_main_layer.insertProp(sclp);
     sclpary.push(sclp);
 }
-
+*/
 
 /*
   
@@ -156,6 +157,7 @@ g_main_layer.insertProp(statprimp);
 
 */
 
+/*
 // static grids
 var gridp = new Prop2D();
 gridp.setDeck(d2);
@@ -181,6 +183,9 @@ for(var x=0;x<8;x++){
 }
 gridp.addGrid(g);
 g_main_layer.insertProp(gridp);
+
+*/
+
 
 /*
 
@@ -213,7 +218,7 @@ for(var j=0;j<2;j++) {
 
 */
 
-
+/*
 
 var charcodes = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえおぁぃぅぇぉかきくけこがぎぐげごさしすせそざじずぜぞたちつてとだぢづでどなにぬねのはひふへほばびぶべぼぱぴぷぺぽまみむめもやゆよゃゅょらりるれろわをん、。アイウエオァィゥェォカキクケコガギグゲゴサシスセソザジズゼゾタチツテトダヂヅデドナニヌネノハヒフヘホバビブベボパピプペポマミムメモヤユヨャュョラリルレロワヲンーッっ　「」";
 
@@ -231,6 +236,8 @@ g_tb.setString("!\"$%_-#dummy");
 g_tb.setScl(1);
 g_tb.setLoc(22,22);
 g_main_layer.insertProp(g_tb);
+
+*/
 
 /*
 var t4 = new TextBox();
@@ -309,22 +316,33 @@ g_main_layer.insertProp(scorep);
 
 */
 
+
 // line prop
 var g_linep = new Prop2D();
 var g_narrow_line_prim = g_linep.addLine( new Vec2(0,0), new Vec2(100,100), new Color(1,0,0,1) );
-g_linep.addLine( new Vec2(0,0), new Vec2(100,-50), new Color(0,1,0,1), 5 );
+//g_linep.addLine( new Vec2(0,0), new Vec2(range(-100,100),range(-50,50)), new Color(range(0,1),range(0,1),range(0,1),1), 5 );
+g_linep.addLine( new Vec2(0,0), new Vec2(100,-50), new Color(0,1,1,1), 5 );
 g_linep.addRect( new Vec2(0,0), new Vec2(-150,230), new Color(0.2,0,1,0.5) );
+//for(var i=0;i<60;i++){
+//   g_linep.addRect( new Vec2(0,0), new Vec2(range(-150,100),range(-200,230)), new Color(0.2,range(0,1),1,0.5) );
+//}
 g_linep.setLoc(0,200);
 g_linep.setScl(1.0);
 g_main_layer.insertProp(g_linep);
+
+
+/*
 // add child to line prop
+for(var i=0;i<35;i++) {
 var childp = new Prop2D();
 childp.setDeck(g_base_deck);
 childp.setScl(16,44);
 childp.setRot( Math.PI * 0.25 );
 childp.setIndex(0);
-childp.setLoc(-222,-222);
+    childp.setLoc(-322+10*i,-222);
 g_linep.addChild(childp);
+}
+*/
 
 /*
 
@@ -375,7 +393,8 @@ function animate() {
     if(!g_moyai_client) return;
 
 
-    g_tb.setString("hoge:"+anim_cnt);
+//    g_tb.setString("hoge:"+anim_cnt);
+    
 /*
     g_bullet.setLoc(0, 100*Math.sin(anim_cnt/10));
     g_bullet.setIndex(32+(parseInt(anim_cnt/2)%4));
@@ -406,32 +425,29 @@ function animate() {
         g_viewport->setScale2D( g_viewport->scl.x * 1.1f, g_viewport->scl.y * 1.1f );        
     }
 */
-    
-/*
-    g_narrow_line_prim->a = Vec2(0,0);
-    g_narrow_line_prim->b = Vec2(100, range(100,150));
-*/    
 
+    
+    g_narrow_line_prim.a.x = 0;
+    g_narrow_line_prim.a.y = 0;    
+    g_narrow_line_prim.b.x = 100;
+    g_narrow_line_prim.b.y = range(100,150);
 
     // add/del prims
     {
-        if( anim_cnt%100 == 50 ){
+        if( anim_cnt%3 == 0 ){
             var yl = g_linep.addLine( new Vec2(0,0), new Vec2( -30, -60), new Color(1,1,0,1), 3 );
             g_yellow_line_prim_id = yl.id;
-            console.log("idid:",yl.id);
-        }
-        if( anim_cnt%100 == 99 ) {
+        }else if( anim_cnt%3 == 1 ) {
             if( g_yellow_line_prim_id ) {
                 var yl = g_linep.getPrimById(g_yellow_line_prim_id);
-                console.log("getbyid",g_yellow_line_prim_id,yl);
                 if(yl) {
-                    console.log("tttt");
                     g_linep.deletePrim(yl.id);
                 }
             }
         }
     }
 
+/*
     if( anim_cnt % 3==0 ) {
         if(anim_cnt%2==0) {
             for(var i in sclpary) sclpary[i].setDeck(g_bmpfont_deck);
@@ -456,7 +472,20 @@ function animate() {
             gridp.grids[0].setDeck(g_bmpfont_deck);
         }
     }
+    */
     
+/*
+    if(anim_cnt%1==0) {
+        var pp = new Prop2D();
+        pp.setDeck(g_base_deck);
+        pp.setIndex( parseInt(range(0,4)));
+        pp.setLoc(range(-300,300),range(-300,300));;
+        pp.propPoll = function(dt) {
+            if(pp.accum_time>3) return false; else return true;
+        }
+        g_main_layer.insertProp(pp);                     
+    }
+    */  
     var now_time = new Date().getTime();
     var dt = now_time - last_anim_at;
     last_anim_at = now_time;
