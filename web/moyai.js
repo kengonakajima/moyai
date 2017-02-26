@@ -167,7 +167,8 @@ MoyaiClient.prototype.render = function() {
                     prim.mesh.position.z = prop_z + (i+1) * this.z_per_subprop;
                     prim.mesh.scale.x = prop.scl.x;
                     prim.mesh.scale.y = prop.scl.y;
-                    prim.mesh.rotation.set(0,0,prop.rot);                    
+                    prim.mesh.rotation.set(0,0,prop.rot);
+                    prim.material.opacity = workaroundThreeOpacity(prim.color.a);                    
                     this.scene.add(prim.mesh);
                 }
             }            
@@ -384,7 +385,7 @@ Prim.prototype.updateMesh = function() {
         this.geom.vertices.push(new THREE.Vector3(this.b.x,this.b.y,0));
         this.geom.verticesNeedUpdate=true;
         if(this.material) this.material.dispose();
-        this.material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width, depthTest:true });
+        this.material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width, depthTest:true, transparent:true });
         if(this.mesh) {
             this.mesh.geometry = this.geom;
             this.mesh.material = this.material;
@@ -408,7 +409,7 @@ Prim.prototype.updateMesh = function() {
         this.geom.faces.push(new THREE.Face3(0, 2, 1));
         this.geom.faces.push(new THREE.Face3(0, 3, 2));
         if(this.material) this.material.dispose();
-        this.material = createMeshBasicMaterial({ color: this.color.toCode(),depthTest:true });
+        this.material = createMeshBasicMaterial({ color: this.color.toCode(),depthTest:true, transparent:true });
         if(this.mesh) {
             this.mesh.geometry = this.geom;
             this.mesh.material = this.material;
