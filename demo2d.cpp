@@ -464,7 +464,7 @@ void gameUpdate(void) {
         ylcnt++;
         static int yellow_line_prim_id=0;
         if( ylcnt%100 == 50 ){
-            Prim *yl = g_linep->addLine( Vec2(0,0), Vec2( -30, range(-30,-100)), Color(0,1,1,1), 3 );
+            Prim *yl = g_linep->addLine( Vec2(0,0), Vec2( -30, range(-30,-100)), Color(1,1,0,1), 3 );
             if(yl) {
                 yellow_line_prim_id = yl->id;
             }
