@@ -161,7 +161,7 @@ MoyaiClient.prototype.render = function() {
             if(prop.prim_drawer) {
                 for(var i in prop.prim_drawer.prims) {
                     var prim = prop.prim_drawer.prims[i];
-                    prim.ensureMesh();
+                    prim.updateMesh();
                     prim.mesh.position.x = prop.loc.x;
                     prim.mesh.position.y = prop.loc.y;
                     prim.mesh.position.z = prop_z + (i+1) * this.z_per_subprop;
@@ -372,15 +372,25 @@ function Prim(t,a,b,col,lw) {
     this.color=col;
     if(!lw) lw=1;
     this.line_width=lw;
+    this.geom=null;
+    this.material=null;
+    this.mesh=null;
 }
-Prim.prototype.ensureMesh = function() {
+Prim.prototype.updateMesh = function() {
     if(this.type==PRIMTYPE_LINE) {
-        var geometry = new THREE.Geometry();
-        geometry.vertices.push(new THREE.Vector3(this.a.x,this.a.y,0));
-        geometry.vertices.push(new THREE.Vector3(this.b.x,this.b.y,0));
-        geometry.verticesNeedUpdate=true;
-        var material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width, depthTest:true });
-        this.mesh = new THREE.Line( geometry, material);
+        if(this.geom) this.geom.dispose();
+        this.geom = new THREE.Geometry();
+        this.geom.vertices.push(new THREE.Vector3(this.a.x,this.a.y,0));
+        this.geom.vertices.push(new THREE.Vector3(this.b.x,this.b.y,0));
+        this.geom.verticesNeedUpdate=true;
+        if(this.material) this.material.dispose();
+        this.material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width, depthTest:true });
+        if(this.mesh) {
+            this.mesh.geometry = this.geom;
+            this.mesh.material = this.material;
+        } else {
+            this.mesh = new THREE.Line( this.geom, this.material);
+        }        
     } else if(this.type==PRIMTYPE_RECTANGLE) {
         /*
           0--1
@@ -388,16 +398,23 @@ Prim.prototype.ensureMesh = function() {
           | \|
           3--2
         */
-        var geometry = new THREE.Geometry();
-        geometry.vertices.push(new THREE.Vector3(this.a.x,this.a.y,0));
-        geometry.vertices.push(new THREE.Vector3(this.b.x,this.a.y,0));
-        geometry.vertices.push(new THREE.Vector3(this.b.x,this.b.y,0));
-        geometry.vertices.push(new THREE.Vector3(this.a.x,this.b.y,0));
-        geometry.verticesNeedUpdate=true;        
-        geometry.faces.push(new THREE.Face3(0, 2, 1));
-        geometry.faces.push(new THREE.Face3(0, 3, 2));
-        var material = createMeshBasicMaterial({ color: this.color.toCode(),depthTest:true });
-        this.mesh = new THREE.Mesh(geometry,material);
+        if(this.geom) this.geom.dispose();
+        this.geom = new THREE.Geometry();
+        this.geom.vertices.push(new THREE.Vector3(this.a.x,this.a.y,0));
+        this.geom.vertices.push(new THREE.Vector3(this.b.x,this.a.y,0));
+        this.geom.vertices.push(new THREE.Vector3(this.b.x,this.b.y,0));
+        this.geom.vertices.push(new THREE.Vector3(this.a.x,this.b.y,0));
+        this.geom.verticesNeedUpdate=true;        
+        this.geom.faces.push(new THREE.Face3(0, 2, 1));
+        this.geom.faces.push(new THREE.Face3(0, 3, 2));
+        if(this.material) this.material.dispose();
+        this.material = createMeshBasicMaterial({ color: this.color.toCode(),depthTest:true });
+        if(this.mesh) {
+            this.mesh.geometry = this.geom;
+            this.mesh.material = this.material;
+        } else {
+            this.mesh = new THREE.Mesh(this.geom,this.material);
+        }        
     } else {
         console.log("invalid prim type",this.type)
     }
