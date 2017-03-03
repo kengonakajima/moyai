@@ -380,6 +380,16 @@ g_main_layer.insertProp(g_bullet);
 
 */
 
+
+var g_replacer_shader = new ColorReplacerShader();
+var g_shader_prop = new Prop2D();
+g_shader_prop.setFragmentShader(g_replacer_shader);
+g_shader_prop.setDeck(g_base_deck);
+g_shader_prop.setIndex(0);
+g_shader_prop.setLoc(0,0);
+g_main_layer.insertProp(g_shader_prop);
+
+
 ////////////////////
 
 var anim_cnt=0;
@@ -415,7 +425,7 @@ function animate() {
     
 
 
-//    g_replacer_shader->setColor( Color(0xF7E26B), Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
+    g_replacer_shader.setColor( new Color(0xF7E26B), new Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
 
 
 /*

@@ -52,10 +52,18 @@ Vec2.prototype.setWith2args = function(x,y) {
 
 // 0 ~ 1
 function Color(r,g,b,a) {
-    this.r = r;
-    this.g = g;
-    this.b = b;
-    this.a = a;
+    if(!g) {
+        var code = r; // color code
+        this.r = ((code & 0xff0000)>>16)/255;
+        this.g = ((code & 0xff00)>>8)/255;
+        this.b = (code & 0xff)/255;
+        this.a = 1.0;        
+    } else {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+    }
 }
 Color.prototype.toRGBA = function() {
     return [ parseInt(this.r*255), parseInt(this.g*255), parseInt(this.b*255), parseInt(this.a*255) ];
@@ -494,6 +502,7 @@ function Prop2D() {
     this.need_uv_update=false;
     this.xflip=false;
     this.yflip=false;
+    this.fragment_shader=null;
 }
 Prop2D.prototype.onDelete = function() {
     console.log("prp2d disposing ", this.id);
@@ -561,6 +570,7 @@ Prop2D.prototype.getChild = function(propid) {
     }
     return null;
 }
+Prop2D.prototype.setFragmentShader = function(s) { this.fragment_shader = s; }
 Prop2D.prototype.basePoll = function(dt) { // return false to clean
     this.poll_count++;
     this.accum_time+=dt;    
@@ -594,12 +604,17 @@ Prop2D.prototype.updateMesh = function() {
     if(!this.deck)return;
     if( this.need_material_update ) {
         if(!this.material) {
-            this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:true, transparent: true, vertexColors:THREE.VertexColors, blending: THREE.NormalBlending }); // materialはメモリを消耗しないようだ
+            if(this.fragment_shader) {
+                this.fragment_shader.updateUniforms(this.deck.moyai_tex.three_tex);
+                this.material = this.fragment_shader.material;
+            } else {
+                this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:true, transparent: true, vertexColors:THREE.VertexColors, blending: THREE.NormalBlending }); // materialはメモリを消耗しないようだ
+            }
         } else {
             this.material.map = this.deck.moyai_tex.three_tex;
         }
         this.need_material_update = false;
-    }
+    }  
     if( this.need_uv_update ) {
         var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
         var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
@@ -658,7 +673,6 @@ function Grid(w,h) {
     this.rot_table=null;
     this.color_table=null;
     this.deck=null;
-    this.fragment_shader=null;
     this.visible=true;
     this.enfat_epsilon=0;
     this.parent_prop=null;
@@ -737,7 +751,6 @@ Grid.prototype.getColor = function(x,y) {
     if(!this.color_table) return new Color(1,1,1,1);
     return this.color_table[this.index(x,y)];
 }
-Grid.prototype.setFragmentShader = function(s) { this.fragment_shader = s; }
 Grid.prototype.setVisible = function(flg) { this.visible=flg; }
 Grid.prototype.getVisible = function() { return this.visible; }
 Grid.prototype.clear = function(x,y) {
@@ -1212,3 +1225,89 @@ CharGrid.prototype.printf = function() {
 	}    
 }
 
+/////////////////////////////
+var vertex_uv_color_glsl =
+    "varying vec2 vUv;\n"+
+    "varying vec4 vColor;\n"+
+    "attribute vec3 color;\n"+
+    "void main()\n"+
+    "{\n"+
+    "  vUv = uv;\n"+
+    "  vColor = vec4(color,1);\n"+
+    "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n"+
+    "  gl_Position = projectionMatrix * mvPosition;\n"+
+    "}\n";
+
+var fragment_replacer_glsl = 
+	"uniform sampler2D texture;\n"+
+    "varying vec2 vUv;\n"+
+	"varying vec4 vColor;\n"+
+	"uniform vec3 color1;\n"+    
+	"uniform vec3 replace1;\n"+
+	"uniform float eps;\n"+
+	"void main() {\n"+
+	"	vec4 pixel = texture2D(texture, vUv); \n"+
+	"	if( pixel.r > color1.r - eps && pixel.r < color1.r + eps && pixel.g > color1.g - eps && pixel.g < color1.g + eps && pixel.b > color1.b - eps && pixel.b < color1.b + eps ){\n"+
+	"		pixel = vec4(replace1, pixel.a );\n"+
+	"    }\n"+
+	"   pixel.r = vColor.r * pixel.r;\n"+
+	"   pixel.g = vColor.g * pixel.g;\n"+
+	"   pixel.b = vColor.b * pixel.b;\n"+
+	"   pixel.a = vColor.a * pixel.a;\n" +   
+	"	gl_FragColor = pixel;\n"+
+	"}\n";
+
+FragmentShader.prototype.id_gen=1;
+function FragmentShader() {
+    this.id=this.__proto__.id_gen++;
+    this.uniforms=null;
+    this.material=null;
+    this.vsh_src=vertex_uv_color_glsl; 
+    this.fsh_src=null;
+}
+FragmentShader.prototype.updateMaterial = function() {
+    if(!this.material) {
+        this.material = new THREE.ShaderMaterial( {
+            uniforms : this.uniforms,
+            vertexShader : this.vsh_src,
+            fragmentShader : this.fsh_src,
+            blending : THREE.NormalBlending,
+            transparent: true
+        });
+    } else {
+        this.material.uniforms = this.uniforms;
+        this.material.needsUpdate = true;
+    }
+}
+ColorReplacerShader.prototype = Object.create(FragmentShader.prototype);
+ColorReplacerShader.prototype.constructor = ColorReplacerShader;
+function ColorReplacerShader() {
+    FragmentShader.call(this);
+    this.fsh_src = fragment_replacer_glsl;
+    this.setColor(new THREE.Vector3(0,0,0),new THREE.Vector3(0,1,0),0.01);
+}
+// updateUniforms(tex) called when render
+ColorReplacerShader.prototype.updateUniforms = function(texture) {
+    if(this.uniforms) {
+        if(texture) this.uniforms["texture"]["value"] = texture;
+        if(texture)        console.log("uu:",texture);
+        this.uniforms["color1"]["value"] = this.from_color;
+        this.uniforms["replace1"]["value"] = this.to_color;
+        this.uniforms["eps"]["value"] = this.epsilon;
+    } else {
+        this.uniforms = {
+            "texture" : { type: "t", value: texture },        
+            "color1" : { type: "v3", value: this.from_color },
+            "replace1" : { type: "v3", value: this.to_color },
+            "eps" : { type: "f", value: this.epsilon }
+        }
+    }
+//    console.log("colrep: updated uniforms. tex:", texture, this.from_color, this.to_color );    
+    this.updateMaterial();    
+}
+ColorReplacerShader.prototype.setColor = function(from,to,eps) {
+    this.epsilon = eps;
+    this.from_color = new THREE.Vector3(from.r,from.g,from.b);
+    this.to_color = new THREE.Vector3(to.r,to.g,to.b);
+    this.updateUniforms();
+}
