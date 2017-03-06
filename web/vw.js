@@ -157,7 +157,7 @@ g_main_layer.insertProp(statprimp);
 
 */
 
-/*
+
 // static grids
 var gridp = new Prop2D();
 gridp.setDeck(d2);
@@ -184,7 +184,7 @@ for(var x=0;x<8;x++){
 gridp.addGrid(g);
 g_main_layer.insertProp(gridp);
 
-*/
+
 
 
 /*
@@ -428,12 +428,17 @@ function animate() {
     g_replacer_shader.setColor( new Color(0xF7E26B), new Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
 
 
+    if( parseInt(anim_cnt/30)%2==0){
+        g_viewport.setScale2D( g_viewport.scl.x / 1.05, g_viewport.scl.y / 1.05 );
+    } else {
+        g_viewport.setScale2D( g_viewport.scl.x * 1.05, g_viewport.scl.y * 1.05 );
+    }
 /*
     if( g_keyboard->getKey( 'Z' ) ) {
-        g_viewport->setScale2D( g_viewport->scl.x / 1.1f, g_viewport->scl.y / 1.1f );
+        g_viewport->setScale2D( g_viewport->scl.x / 1.05f, g_viewport->scl.y / 1.05f );
     }
     if( g_keyboard->getKey( 'X' ) ) {
-        g_viewport->setScale2D( g_viewport->scl.x * 1.1f, g_viewport->scl.y * 1.1f );        
+        g_viewport->setScale2D( g_viewport->scl.x * 1.05f, g_viewport->scl.y * 1.05f );        
     }
 */
 
