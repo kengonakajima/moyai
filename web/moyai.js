@@ -857,12 +857,19 @@ Grid.prototype.updateMesh = function() {
                 if(this.yflip_table && this.yflip_table[ind]) {
                     var tmp = v1; v1 = v0; v0 = tmp;
                 }
-                var uv_0 = new THREE.Vector2(u0,v0);
-                var uv_1 = new THREE.Vector2(u1,v0);
-                var uv_2 = new THREE.Vector2(u1,v1);
-                var uv_3 = new THREE.Vector2(u0,v1);
-                geom.faceVertexUvs[0].push([uv_0,uv_2,uv_1]);
-                geom.faceVertexUvs[0].push([uv_0,uv_3,uv_2]);
+                var uv_p = new THREE.Vector2(u0,v1);
+                var uv_q = new THREE.Vector2(u0,v0);
+                var uv_r = new THREE.Vector2(u1,v0);
+                var uv_s = new THREE.Vector2(u1,v1);
+                if(this.rot_table && this.rot_table[ind]) {
+                    var tmp = uv_p;
+                    uv_p = uv_s;
+                    uv_s = uv_r;
+                    uv_r = uv_q;
+                    uv_q = tmp;
+                }                
+                geom.faceVertexUvs[0].push([uv_q,uv_s,uv_r]);
+                geom.faceVertexUvs[0].push([uv_q,uv_p,uv_s]);
                 var col; 
                 if( this.color_table && this.color_table[ind] ) col = this.color_table[ind].toTHREEColor(); else col = new THREE.Color("#fff");
                 geom.faces[quad_cnt*2+0].vertexColors[0] = col;

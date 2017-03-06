@@ -181,6 +181,7 @@ for(var x=0;x<8;x++){
         iii++;
     }
 }
+g.setUVRot(7,7,true);
 gridp.addGrid(g);
 g_main_layer.insertProp(gridp);
 
