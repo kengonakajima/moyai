@@ -387,6 +387,7 @@ g_shader_prop.setFragmentShader(g_replacer_shader);
 g_shader_prop.setDeck(g_base_deck);
 g_shader_prop.setIndex(0);
 g_shader_prop.setLoc(0,0);
+g_shader_prop.setUVRot(true);
 g_main_layer.insertProp(g_shader_prop);
 
 

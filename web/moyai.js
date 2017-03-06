@@ -630,22 +630,38 @@ Prop2D.prototype.updateMesh = function() {
         }
         if(this.yflip ) {
             var tmp = v1; v1 = v0; v0 = tmp;
-        }        
+        }
+        var uv_p = new THREE.Vector2(u0,v1);
+        var uv_q = new THREE.Vector2(u0,v0);
+        var uv_r = new THREE.Vector2(u1,v0);
+        var uv_s = new THREE.Vector2(u1,v1);
+        // Q (u0,v0) - R (u1,v0)      top-bottom upside down.
+        //      |           |
+        //      |           |                        
+        // P (u0,v1) - S (u1,v1)        
+        if(this.uvrot) {
+            var tmp = uv_p;
+            uv_p = uv_s;
+            uv_s = uv_r;
+            uv_r = uv_q;
+            uv_q = tmp;
+        }
+        
         if(!this.geom) {
             this.geom = createRectGeometry(1,1);
         }
         var uvs = this.geom.faceVertexUvs[0][0];
         if(!uvs) {
-            this.geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v0), new THREE.Vector2(u1,v1), new THREE.Vector2(u1,v0) ]);
-            this.geom.faceVertexUvs[0].push([ new THREE.Vector2(u0,v0), new THREE.Vector2(u0,v1), new THREE.Vector2(u1,v1) ]);
+            this.geom.faceVertexUvs[0].push([uv_q,uv_s,uv_r]);
+            this.geom.faceVertexUvs[0].push([uv_q,uv_p,uv_s]);
         } else {
-            uvs[0].x = u0; uvs[0].y = v0;
-            uvs[1].x = u1; uvs[1].y = v1;
-            uvs[2].x = u1; uvs[2].y = v0;
+            uvs[0].x = uv_q.x; uvs[0].y = uv_q.y;
+            uvs[1].x = uv_s.x; uvs[1].y = uv_s.y;
+            uvs[2].x = uv_r.x; uvs[2].y = uv_r.y;
             uvs = this.geom.faceVertexUvs[0][1];
-            uvs[0].x = u0; uvs[0].y = v0;
-            uvs[1].x = u0; uvs[1].y = v1;
-            uvs[2].x = u1; uvs[2].y = v1;
+            uvs[0].x = uv_q.x; uvs[0].y = uv_q.y;
+            uvs[1].x = uv_p.x; uvs[1].y = uv_p.y;
+            uvs[2].x = uv_s.x; uvs[2].y = uv_s.y;
         }
         
         this.geom.verticesNeedUpdate = true;
