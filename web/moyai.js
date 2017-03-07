@@ -1361,3 +1361,15 @@ Keyboard.prototype.readBrowserEvent = function(e,pressed) {
     if(e.key=="Alt") this.mod_alt = pressed;
     console.log(e,this);
 }
+Keyboard.prototype.setupBrowser = function(w) {
+    w.addEventListener("keydown", function(e) {
+        e.preventDefault();
+        g_keyboard.readBrowserEvent(e,true);
+    }, false);
+    w.addEventListener("keyup", function(e) {
+        e.preventDefault();
+        g_keyboard.readBrowserEvent(e,false);    
+    });
+}
+
+

@@ -4,18 +4,10 @@ var g_ws;
 var g_moyai_client;
 
 var g_keyboard = new Keyboard();
-window.addEventListener("keydown", function(e) {
-    e.preventDefault();
-    g_keyboard.readBrowserEvent(e,true);
-}, false);
-window.addEventListener("keyup", function(e) {
-    e.preventDefault();
-    g_keyboard.readBrowserEvent(e,false);    
-})
-
+g_keyboard.setupBrowser(window);
 
 //var g_mouse = new Mouse();
-//var g_pad = new Pad();
+
 
 // events
 
