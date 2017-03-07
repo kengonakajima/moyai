@@ -1340,3 +1340,24 @@ ColorReplacerShader.prototype.setColor = function(from,to,eps) {
     this.to_color = new THREE.Vector3(to.r,to.g,to.b);
     this.updateUniforms();
 }
+
+//////////////////////
+function Keyboard() {
+    this.keys={};
+    this.mod_shift=false;
+    this.mod_ctrl=false;
+    this.mod_alt=false;
+}
+Keyboard.prototype.setKey = function(keycode,pressed) {
+    this.keys[keycode] = pressed;
+}
+Keyboard.prototype.getKey = function(keycode) {
+    return this.keys[keycode];
+}
+Keyboard.prototype.readBrowserEvent = function(e,pressed) {
+    this.setKey(e.key,pressed);
+    if(e.key=="Control") this.mod_ctrl = pressed;
+    if(e.key=="Shift") this.mod_shift = pressed;
+    if(e.key=="Alt") this.mod_alt = pressed;
+    console.log(e,this);
+}

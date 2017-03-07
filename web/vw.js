@@ -3,10 +3,23 @@ var g_ws;
 
 var g_moyai_client;
 
-//var g_keyboard = new Keyboard();
+var g_keyboard = new Keyboard();
+window.addEventListener("keydown", function(e) {
+    e.preventDefault();
+    g_keyboard.readBrowserEvent(e,true);
+}, false);
+window.addEventListener("keyup", function(e) {
+    e.preventDefault();
+    g_keyboard.readBrowserEvent(e,false);    
+})
+
+
 //var g_mouse = new Mouse();
 //var g_pad = new Pad();
 
+// events
+
+    
 
 
 function onPacket(ws,pkttype,argdata) {
@@ -484,8 +497,10 @@ function animate() {
     for(var i in sclpary) {
         sclpary[i].setIndex(anim_cnt%4);
     }
-
+    */
+    
     gridp.grids[0].set(4,4, anim_cnt%4);
+/*    
     if(anim_cnt%21==0) {
         if(anim_cnt%2==0) {
             gridp.grids[0].setDeck(g_base_deck);
@@ -493,7 +508,7 @@ function animate() {
             gridp.grids[0].setDeck(g_bmpfont_deck);
         }
     }
-    */
+    */    
     
 /*
     if(anim_cnt%1==0) {
