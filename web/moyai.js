@@ -1373,3 +1373,48 @@ Keyboard.prototype.setupBrowser = function(w) {
 }
 
 
+/////////////////////
+function Mouse() {
+    this.cursor_pos=new Vec2(0,0);
+    this.buttons={};
+    this.toggled={};
+    this.mod_shift=false;
+    this.mod_ctrl=false;
+    this.mod_alt=false;
+}
+Mouse.prototype.setupBrowser = function(w) {
+    var _this = this;
+    w.addEventListener("mousedown", function(e) {
+        e.preventDefault();
+        _this.readButtonEvent(e,true);
+    },false);
+    w.addEventListener("mouseup", function(e)  {
+        e.preventDefault();
+        _this.readButtonEvent(e,false);        
+    },false);
+    w.addEventListener("mousemove", function(e)  {
+        e.preventDefault();
+        _this.readPosEvent(e);
+    },false);    
+}
+Mouse.prototype.readButtonEvent = function(e,pressed) {
+    this.buttons[e.button] = pressed;
+    if(pressed) {
+        if(!this.buttons[e.button]) this.toggled[e.button] = true;
+    }
+    this.mod_shift = e.shiftKey;
+    this.mod_alt = e.altKey;
+    this.mod_ctrl = e.ctrlKey;
+}
+Mouse.prototype.getButton = function(btn_ind) {
+    return this.buttons[btn_ind];
+}
+Mouse.prototype.getToggled = function(btn_ind) {
+    return this.toggled[btn_ind];
+}
+Mouse.prototype.clearToggled = function(btn_ind) {
+    this.toggled[btn_ind] = false;        
+}
+Mouse.prototype.readPosEvent = function(e) {
+    this.cursor_pos = new Vec2(e.offsetX,e.offsetY);
+}

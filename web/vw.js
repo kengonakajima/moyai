@@ -3,16 +3,6 @@ var g_ws;
 
 var g_moyai_client;
 
-var g_keyboard = new Keyboard();
-g_keyboard.setupBrowser(window);
-
-//var g_mouse = new Mouse();
-
-
-// events
-
-    
-
 
 function onPacket(ws,pkttype,argdata) {
     switch(pkttype) {
@@ -58,7 +48,14 @@ function stopRender() {
 
 var SCRW=960, SCRH=544;
 g_moyai_client = new MoyaiClient(SCRW,SCRH,window.devicePixelRatio);
-document.getElementById("screen").appendChild( g_moyai_client.renderer.domElement );
+var screen = document.getElementById("screen");
+screen.appendChild( g_moyai_client.renderer.domElement );
+
+var g_keyboard = new Keyboard();
+g_keyboard.setupBrowser(screen);
+var g_mouse = new Mouse();
+g_mouse.setupBrowser(screen);
+
 
 var g_viewport = new Viewport();
 g_viewport.setSize(SCRW,SCRH);
