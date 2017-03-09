@@ -52,7 +52,7 @@ Vec2.prototype.setWith2args = function(x,y) {
 
 // 0 ~ 1
 function Color(r,g,b,a) {
-    if(!g) {
+    if(g==undefined || g==null) {
         var code = r; // color code
         this.r = ((code & 0xff0000)>>16)/255;
         this.g = ((code & 0xff00)>>8)/255;
@@ -669,12 +669,12 @@ Prop2D.prototype.updateMesh = function() {
         this.need_uv_update = false;
     }
     if( this.need_color_update ) {
-        geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
-        geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
-        geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
-        geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
-        geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
-        geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
+        this.geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
+        this.geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
+        this.geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
+        this.geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
+        this.geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
+        this.geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
         this.need_color_update = false;
     }
 
@@ -1408,7 +1408,6 @@ Mouse.prototype.setupBrowser = function(w,dom) {
         var rect = dom.getBoundingClientRect();
         var x = parseInt(e.clientX - rect.left);
         var y = parseInt(e.clientY - rect.top);
-        console.log(x,y);
         e.preventDefault();
         _this.cursor_pos = new Vec2(x,y);
     },false);    
