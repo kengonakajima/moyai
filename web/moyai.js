@@ -1344,31 +1344,43 @@ ColorReplacerShader.prototype.setColor = function(from,to,eps) {
 //////////////////////
 function Keyboard() {
     this.keys={};
+    this.toggled={};
     this.mod_shift=false;
     this.mod_ctrl=false;
     this.mod_alt=false;
 }
 Keyboard.prototype.setKey = function(keycode,pressed) {
     this.keys[keycode] = pressed;
+    if(pressed &&  (!this.toggled[keycode]) ) {
+        this.toggled[keycode]=true;
+    } else {
+        this.toggled[keycode]=false;
+    }
 }
 Keyboard.prototype.getKey = function(keycode) {
     return this.keys[keycode];
+}
+Keyboard.prototype.getToggled = function(keycode) {
+    return this.toggled[keycode];
+}
+Keyboard.prototype.clearToggled = function(keycode) {
+    this.toggled[keycode]=false;
 }
 Keyboard.prototype.readBrowserEvent = function(e,pressed) {
     this.setKey(e.key,pressed);
     if(e.key=="Control") this.mod_ctrl = pressed;
     if(e.key=="Shift") this.mod_shift = pressed;
     if(e.key=="Alt") this.mod_alt = pressed;
-    console.log(e,this);
 }
 Keyboard.prototype.setupBrowser = function(w) {
+    var _this = this;
     w.addEventListener("keydown", function(e) {
         e.preventDefault();
-        g_keyboard.readBrowserEvent(e,true);
+        _this.readBrowserEvent(e,true);
     }, false);
     w.addEventListener("keyup", function(e) {
         e.preventDefault();
-        g_keyboard.readBrowserEvent(e,false);    
+        _this.readBrowserEvent(e,false);    
     });
 }
 
@@ -1382,7 +1394,7 @@ function Mouse() {
     this.mod_ctrl=false;
     this.mod_alt=false;
 }
-Mouse.prototype.setupBrowser = function(w) {
+Mouse.prototype.setupBrowser = function(w,dom) {
     var _this = this;
     w.addEventListener("mousedown", function(e) {
         e.preventDefault();
@@ -1393,8 +1405,12 @@ Mouse.prototype.setupBrowser = function(w) {
         _this.readButtonEvent(e,false);        
     },false);
     w.addEventListener("mousemove", function(e)  {
+        var rect = dom.getBoundingClientRect();
+        var x = parseInt(e.clientX - rect.left);
+        var y = parseInt(e.clientY - rect.top);
+        console.log(x,y);
         e.preventDefault();
-        _this.readPosEvent(e);
+        _this.cursor_pos = new Vec2(x,y);
     },false);    
 }
 Mouse.prototype.readButtonEvent = function(e,pressed) {
@@ -1415,6 +1431,67 @@ Mouse.prototype.getToggled = function(btn_ind) {
 Mouse.prototype.clearToggled = function(btn_ind) {
     this.toggled[btn_ind] = false;        
 }
-Mouse.prototype.readPosEvent = function(e) {
-    this.cursor_pos = new Vec2(e.offsetX,e.offsetY);
+
+
+/////////////////////////
+
+function SoundSystem() {
+    this.sounds={};
+    this.context = new AudioContext();
 }
+// type: "wav" or "float", 
+SoundSystem.prototype.newBGMFromMemory = function(data,type) {
+    var snd = this.createSound(data,true,type);
+    this.sounds[snd.id] = snd;
+    return snd;
+}
+SoundSystem.prototype.newSoundFromMemory = function(data,type) {
+    var snd = this.createSound(data,false,type);
+    this.sounds[snd.id] = snd;
+    return snd;
+}
+SoundSystem.prototype.createSound = function(data,loop,type) {
+    var snd = new Sound();
+    snd.context=this.context;
+    snd.setLoop(loop);
+    snd.setData(data,type);
+    return snd;
+}
+
+Sound.prototype.id_gen=1;
+function Sound(data,loop,type) {
+    this.id = this.__proto__.id_gen++;
+    this.type=null;
+    this.data=null;
+    this.loop=false;
+    this.audiobuffer=null;
+    this.context=null;
+}
+Sound.prototype.setLoop = function(loop) { this.loop=loop; }
+Sound.prototype.isReady = function() { return this.audiobuffer; }
+Sound.prototype.setData = function(data,type) {
+    if(type=="float") {
+        this.audiobuffer = this.context.createBuffer( 1, data.length, this.context.sampleRate );
+        var b = this.audiobuffer.getChannelData(0); // channel 0
+        for (var i = 0; i < data.length; i++) {
+            b[i] = data[i];
+        }
+    } else {
+        var _this = this;
+        this.context.decodeAudioData(data.buffer, function(decoded) {
+            _this.audiobuffer = decoded;
+        })
+    }
+}
+Sound.prototype.play = function() {
+    if(this.audiobuffer) {
+        var source = this.context.createBufferSource();
+        console.log("setting audiobuf:",this.audiobuffer);
+        source.buffer = this.audiobuffer;
+        source.connect(this.context.destination);
+        source.start(0);
+    } else {
+        console.log("Sound.play: audiobuffer is not ready");
+    }
+}
+

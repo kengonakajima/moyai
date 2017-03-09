@@ -52,9 +52,9 @@ var screen = document.getElementById("screen");
 screen.appendChild( g_moyai_client.renderer.domElement );
 
 var g_keyboard = new Keyboard();
-g_keyboard.setupBrowser(screen);
+g_keyboard.setupBrowser(window);
 var g_mouse = new Mouse();
-g_mouse.setupBrowser(screen);
+g_mouse.setupBrowser(window,screen);
 
 
 var g_viewport = new Viewport();
@@ -394,6 +394,16 @@ g_shader_prop.setUVRot(true);
 g_main_layer.insertProp(g_shader_prop);
 
 
+
+
+var g_sound_system = new SoundSystem();
+var g_explosion_sound = g_sound_system.newSoundFromMemory(blobloblll_wav,"wav");
+var g_bgm_sound = g_sound_system.newBGMFromMemory(gymno1short_wav,"wav");
+var samples = new Array(44100/4);
+for(var i=0;i<samples.length;i++) samples[i] = Math.cos(i/20.0);
+var g_mem_sound = g_sound_system.newSoundFromMemory(samples,"float");
+
+
 ////////////////////
 
 var anim_cnt=0;
@@ -437,15 +447,17 @@ function animate() {
     } else {
         g_viewport.setScale2D( g_viewport.scl.x * 1.05, g_viewport.scl.y * 1.05 );
     }
-/*
-    if( g_keyboard->getKey( 'Z' ) ) {
-        g_viewport->setScale2D( g_viewport->scl.x / 1.05f, g_viewport->scl.y / 1.05f );
-    }
-    if( g_keyboard->getKey( 'X' ) ) {
-        g_viewport->setScale2D( g_viewport->scl.x * 1.05f, g_viewport->scl.y * 1.05f );        
-    }
-*/
 
+    if( g_keyboard.getToggled( 'u' ) ) {
+        g_keyboard.clearToggled('u');
+        g_mem_sound.play();
+    }
+    if( g_keyboard.getKey( 't' ) ) {    
+        g_bgm_sound.play();
+    }
+    if( g_keyboard.getKey( 'y' ) ) {
+        g_explosion_sound.play();
+    }
 /*
     g_narrow_line_prim.a.x = 0;
     g_narrow_line_prim.a.y = 0;    
