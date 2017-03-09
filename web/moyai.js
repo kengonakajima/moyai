@@ -1486,7 +1486,6 @@ Sound.prototype.setData = function(data,type) {
 Sound.prototype.play = function() {
     if(this.audiobuffer) {
         var source = this.context.createBufferSource();
-        console.log("setting audiobuf:",this.audiobuffer);
         source.buffer = this.audiobuffer;
         source.connect(this.context.destination);
         source.start(0);

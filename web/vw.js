@@ -452,10 +452,12 @@ function animate() {
         g_keyboard.clearToggled('u');
         g_mem_sound.play();
     }
-    if( g_keyboard.getKey( 't' ) ) {    
+    if( g_keyboard.getToggled( 't' ) ) {
+        g_keyboard.clearToggled('t');        
         g_bgm_sound.play();
     }
-    if( g_keyboard.getKey( 'y' ) ) {
+    if( g_keyboard.getToggled( 'y' ) ) {
+        g_keyboard.clearToggled('y');
         g_explosion_sound.play();
     }
 /*
