@@ -125,14 +125,20 @@ MoyaiClient.prototype.render = function() {
     for(var i in this.layers) {
         var layer = this.layers[i];
         var relscl = new Vec2(1,1);
+        var camloc;
+        if(layer.camera) {
+            camloc = layer.camera.loc;
+        } else {
+            camloc = new Vec2(0,0);
+        }
         if(layer.viewport) relscl = layer.viewport.getRelativeScale();        
         for(var i in layer.props) {                    
             var prop = layer.props[i];
             prop.updateMesh();
             var prop_z = layer.priority * this.z_per_layer + prop.priority * this.z_per_prop;
             if(prop.mesh) {
-                prop.mesh.position.x = prop.loc.x * relscl.x;
-                prop.mesh.position.y = prop.loc.y * relscl.y;
+                prop.mesh.position.x = prop.loc.x * relscl.x + camloc.x;
+                prop.mesh.position.y = prop.loc.y * relscl.y + camloc.y;
                 prop.mesh.position.z = prop_z;
                 prop.mesh.scale.x = prop.scl.x * relscl.x;
                 prop.mesh.scale.y = prop.scl.y * relscl.y;
@@ -145,8 +151,8 @@ MoyaiClient.prototype.render = function() {
                 for(var i in prop.grids) {
                     var grid = prop.grids[i];
                     grid.updateMesh();
-                    grid.mesh.position.x = prop.loc.x * relscl.x;
-                    grid.mesh.position.y = prop.loc.y * relscl.y;
+                    grid.mesh.position.x = prop.loc.x * relscl.x + camloc.x;
+                    grid.mesh.position.y = prop.loc.y * relscl.y + camloc.y;
                     grid.mesh.position.z = prop_z + (i+1) * this.z_per_subprop;
                     grid.mesh.scale.x = prop.scl.x * relscl.x;
                     grid.mesh.scale.y = prop.scl.y * relscl.y;
@@ -159,8 +165,8 @@ MoyaiClient.prototype.render = function() {
                     var chp = prop.children[i];
                     chp.updateMesh();
                     if( chp.mesh ) {
-                        chp.mesh.position.x = chp.loc.x * relscl.x;
-                        chp.mesh.position.y = chp.loc.y * relscl.y;
+                        chp.mesh.position.x = chp.loc.x * relscl.x + camloc.x;
+                        chp.mesh.position.y = chp.loc.y * relscl.y + camloc.y;
                         chp.mesh.position.z = prop_z + (i+1) * this.z_per_subprop;                        
                         chp.mesh.scale.x = chp.scl.x * relscl.x;
                         chp.mesh.scale.y = chp.scl.y * relscl.y;
@@ -175,8 +181,8 @@ MoyaiClient.prototype.render = function() {
                 for(var i in prop.prim_drawer.prims) {
                     var prim = prop.prim_drawer.prims[i];
                     prim.updateMesh();
-                    prim.mesh.position.x = prop.loc.x * relscl.x;
-                    prim.mesh.position.y = prop.loc.y * relscl.y;
+                    prim.mesh.position.x = prop.loc.x * relscl.x + camloc.x;
+                    prim.mesh.position.y = prop.loc.y * relscl.y + camloc.y;
                     prim.mesh.position.z = prop_z + (i+1) * this.z_per_subprop;
                     prim.mesh.scale.x = prop.scl.x * relscl.x;
                     prim.mesh.scale.y = prop.scl.y * relscl.y;
