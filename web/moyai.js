@@ -518,7 +518,6 @@ function Prop2D() {
     this.fragment_shader=null;
 }
 Prop2D.prototype.onDelete = function() {
-    console.log("prp2d disposing ", this.id);
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();
 }

@@ -450,20 +450,20 @@ function animate() {
         g_keyboard.clearToggled('y');
         g_explosion_sound.play();
     }
-/*
+
     g_narrow_line_prim.a.x = 0;
     g_narrow_line_prim.a.y = 0;    
     g_narrow_line_prim.b.x = 100;
     g_narrow_line_prim.b.y = range(100,150);
-    */
 
-/*    
+
+
     // add/del prims
     if(g_linep){
-        if( anim_cnt%3 == 0 ){
+        if( anim_cnt/10%3 == 0 ){
             var yl = g_linep.addLine( new Vec2(0,0), new Vec2( -30, -60), new Color(1,1,0,1), 3 );
             g_yellow_line_prim_id = yl.id;
-        }else if( anim_cnt%3 == 1 ) {
+        }else if( anim_cnt/10%3 == 1 ) {
             if( g_yellow_line_prim_id ) {
                 var yl = g_linep.getPrimById(g_yellow_line_prim_id);
                 if(yl) {
@@ -472,9 +472,9 @@ function animate() {
             }
         }
     }
-    */
+
     
-/*
+
     if( anim_cnt % 3==0 ) {
         if(anim_cnt%2==0) {
             for(var i in sclpary) sclpary[i].setDeck(g_bmpfont_deck);
@@ -490,10 +490,10 @@ function animate() {
     for(var i in sclpary) {
         sclpary[i].setIndex(anim_cnt%4);
     }
-    */
+
     
     gridp.grids[0].set(4,4, anim_cnt%4);
-/*    
+
     if(anim_cnt%21==0) {
         if(anim_cnt%2==0) {
             gridp.grids[0].setDeck(g_base_deck);
@@ -501,20 +501,19 @@ function animate() {
             gridp.grids[0].setDeck(g_bmpfont_deck);
         }
     }
-    */    
-    
-/*
-    if(anim_cnt%1==0) {
+
+    if(anim_cnt%9==0) {
         var pp = new Prop2D();
         pp.setDeck(g_base_deck);
         pp.setIndex( parseInt(range(0,4)));
+        pp.setScl(8,8);
         pp.setLoc(range(-300,300),range(-300,300));;
         pp.propPoll = function(dt) {
             if(pp.accum_time>3) return false; else return true;
         }
         g_main_layer.insertProp(pp);                     
     }
-    */  
+
     var now_time = new Date().getTime();
     var dt = now_time - last_anim_at;
     last_anim_at = now_time;
