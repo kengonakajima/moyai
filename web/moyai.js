@@ -702,6 +702,7 @@ function Grid(w,h) {
     this.geom=null;
     this.need_material_update=false;
     this.need_geometry_update=false;
+    // this.fragment_shader  TODO:currently each vertex color alpha is not supported, because of three.js only have vec3 attribute color
 }
 Grid.prototype.setDeck =function(dk) { this.deck=dk; this.need_material_update=true;}
 Grid.prototype.index = function(x,y) { return x+y*this.width; }
