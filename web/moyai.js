@@ -506,7 +506,7 @@ function Prop2D() {
     this.priority = null; // set when insertprop if kept null
     this.need_material_update=false;
     this.need_color_update=false;
-    this.need_uv_update=false;
+    this.need_uv_update=true;
     this.xflip=false;
     this.yflip=false;
     this.fragment_shader=null;
