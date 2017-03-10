@@ -140,7 +140,7 @@ function createWSClient(url) {
 
     ws.onmessage = function(ev) {
         var dv = new DataView(ev.data);
-        console.log("onmessage:", ev.data.byteLength);
+//        console.log("onmessage:", ev.data.byteLength);
         if(ws.log)dump( dv, ev.data.byteLength );
         ws.rb.push( dv, ev.data.byteLength );
         for(;;){
@@ -168,7 +168,7 @@ function createWSClient(url) {
     ws.parseDispatch = function(recvbuf) {
         if( recvbuf.used < 4 ) return false;
         var pkt_len = recvbuf.dv.getUint32(0,true);
-        console.log("pkt_len:",pkt_len);
+//        console.log("pkt_len:",pkt_len);
         if( recvbuf.used <4+pkt_len) return false;
         var argdata_len = pkt_len-2;
         var pkttype = recvbuf.dv.getUint16(4,true);
