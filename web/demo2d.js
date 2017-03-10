@@ -160,7 +160,7 @@ for(var x=0;x<8;x++){
     for(var y=0;y<8;y++){
         if(y==6||x==6) continue;
         g.set(x,y,iii % 3);
-        g.setColor( x,y, new Color(range(0.5,1), range(0.5,1), range(0.5,1), range(0.5,1) ));
+        g.setColor( x,y, new Color(range(0.5,1), range(0.5,1), range(0.5,1), range(0.2,1) ));
         if(x==0) g.setXFlip(x,y,true);
         if(x==1) g.setYFlip(x,y,true);
         if(x==2) g.setUVRot(x,y,true);

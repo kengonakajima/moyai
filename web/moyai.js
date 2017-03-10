@@ -23,10 +23,6 @@ function createMeshBasicMaterial(objarg) {
     return m;
 }
 
-// Three.js material opacity can't render correctly under 0.5
-function workaroundThreeOpacity(opa) {
-    if(opa<0.5) return 0.5; else return opa;
-}
 
 //////////////
 
@@ -143,7 +139,6 @@ MoyaiClient.prototype.render = function() {
                 prop.mesh.scale.x = prop.scl.x * relscl.x;
                 prop.mesh.scale.y = prop.scl.y * relscl.y;
                 prop.mesh.rotation.set(0,0,prop.rot);
-                prop.material.opacity = workaroundThreeOpacity(prop.color.a);
                 if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
                 this.scene.add(prop.mesh);
             }
@@ -171,7 +166,6 @@ MoyaiClient.prototype.render = function() {
                         chp.mesh.scale.x = chp.scl.x * relscl.x;
                         chp.mesh.scale.y = chp.scl.y * relscl.y;
                         chp.mesh.rotation.set(0,0,chp.rot);
-                        chp.material.opacity = workaroundThreeOpacity(chp.color.a);
                         if( chp.use_additive_blend ) chp.material.blending = THREE.AdditiveBlending; else chp.material.blending = THREE.NormalBlending;
                         this.scene.add(chp.mesh);
                     }
@@ -187,7 +181,6 @@ MoyaiClient.prototype.render = function() {
                     prim.mesh.scale.x = prop.scl.x * relscl.x;
                     prim.mesh.scale.y = prop.scl.y * relscl.y;
                     prim.mesh.rotation.set(0,0,prop.rot);
-                    prim.material.opacity = workaroundThreeOpacity(prim.color.a);                    
                     this.scene.add(prim.mesh);
                 }
             }            
@@ -515,7 +508,7 @@ function Prop2D() {
     this.need_uv_update=true;
     this.xflip=false;
     this.yflip=false;
-    this.fragment_shader=null;
+    this.fragment_shader= new DefaultColorShader();
 }
 Prop2D.prototype.onDelete = function() {
     this.mesh.geometry.dispose();
@@ -617,10 +610,10 @@ Prop2D.prototype.updateMesh = function() {
     if( this.need_material_update ) {
         if(!this.material) {
             if(this.fragment_shader) {
-                this.fragment_shader.updateUniforms(this.deck.moyai_tex.three_tex);
+                this.fragment_shader.updateUniforms(this.deck.moyai_tex.three_tex,this.color);
                 this.material = this.fragment_shader.material;
             } else {
-                this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:true, transparent: true, vertexColors:THREE.VertexColors, blending: THREE.NormalBlending }); // materialはメモリを消耗しないようだ
+                this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:true, transparent: true, vertexColors:THREE.VertexColors, blending: THREE.NormalBlending });
             }
         } else {
             this.material.map = this.deck.moyai_tex.three_tex;
@@ -1273,6 +1266,17 @@ var vertex_uv_color_glsl =
     "  gl_Position = projectionMatrix * mvPosition;\n"+
     "}\n";
 
+var fragment_uv_color_glsl =
+    "uniform sampler2D texture;\n"+
+    "uniform vec4 meshcolor;\n"+
+    "varying vec2 vUv;\n"+
+    "varying vec4 vColor;\n"+    
+    "void main()\n"+
+    "{\n"+
+    "  vec4 tc = texture2D(texture,vUv);\n"+
+    "  gl_FragColor = vec4( tc.r * meshcolor.r, tc.g * meshcolor.g, tc.b * meshcolor.b, tc.a * meshcolor.a );\n"+
+    "}\n";
+
 var fragment_replacer_glsl = 
 	"uniform sampler2D texture;\n"+
     "varying vec2 vUv;\n"+
@@ -1322,7 +1326,7 @@ function ColorReplacerShader() {
     this.setColor(new THREE.Vector3(0,0,0),new THREE.Vector3(0,1,0),0.01);
 }
 // updateUniforms(tex) called when render
-ColorReplacerShader.prototype.updateUniforms = function(texture) {
+ColorReplacerShader.prototype.updateUniforms = function(texture,moyaicolor) {
     if(this.uniforms) {
         if(texture) this.uniforms["texture"]["value"] = texture;
         this.uniforms["color1"]["value"] = this.from_color;
@@ -1345,7 +1349,24 @@ ColorReplacerShader.prototype.setColor = function(from,to,eps) {
     this.to_color = new THREE.Vector3(to.r,to.g,to.b);
     this.updateUniforms();
 }
-
+DefaultColorShader.prototype = Object.create(FragmentShader.prototype);
+DefaultColorShader.prototype.constructor = DefaultColorShader;
+function DefaultColorShader() {
+    FragmentShader.call(this);
+    this.fsh_src = fragment_uv_color_glsl;
+}
+DefaultColorShader.prototype.updateUniforms = function(texture,moyaicolor) {
+    if(this.uniforms) {
+        if(texture) this.uniforms["texture"]["value"] = texture;
+        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a );
+    } else {
+        this.uniforms = {
+            "texture" : { type: "t", value: texture },
+            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a ) }
+        };
+    }
+    this.updateMaterial();
+}
 //////////////////////
 function Keyboard() {
     this.keys={};
