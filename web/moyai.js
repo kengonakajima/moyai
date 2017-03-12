@@ -74,6 +74,8 @@ Color.prototype.toTHREEColor = function() {
 ///////////////
 var g_moyais=[];
 function MoyaiClient(w,h,pixratio){
+    this.width=w;
+    this.height=h;
     this.scene = new THREE.Scene();
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setPixelRatio( pixratio);
