@@ -2,6 +2,7 @@ var g_ws;
 var g_moyai_client;
 var g_viewport_pool={};
 var g_camera_pool={};
+var g_layer_pool={};
 
 function onPacket(ws,pkttype,argdata) {
     if(pkttype==PACKETTYPE_ZIPPED_RECORDS) {
@@ -55,6 +56,7 @@ function onPacket(ws,pkttype,argdata) {
             var id = dv.getUint32(0,true);
             console.log("received cam creat:",id);
             var cam = new Camera();
+            cam.id=id;
             g_camera_pool[id]=cam;            
         }
         break;
@@ -68,7 +70,45 @@ function onPacket(ws,pkttype,argdata) {
             if(!cam) { console.log("cam not found"); return;}
             cam.setLoc(x,y);
         }
-        break;        
+        break;
+
+    case PACKETTYPE_S2C_LAYER_CREATE:
+        {
+            var id = dv.getUint32(0,true);
+            console.log("received layer creat",id);
+            var l = new Layer();
+            l.id=id;
+            g_layer_pool[id]=l;            
+        }
+        break;
+    case PACKETTYPE_S2C_LAYER_VIEWPORT:
+        {
+            var lid = dv.getUint32(0,true);
+            var vid = dv.getUint32(4,true);
+            console.log("received layer vp",lid,vid);
+            var ly = g_layer_pool[lid]
+            var vp = g_viewport_pool[vid];
+            if(ly && vp) {
+                ly.setViewport(vp);
+            } else {
+                console.log("vp or ly not found:",lid,vid);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_LAYER_CAMERA:
+        {
+            var lid = dv.getUint32(0,true);
+            var cid = dv.getUint32(4,true);
+            console.log("received layer cam",lid,cid);
+            var ly = g_layer_pool[lid]
+            var cam = g_camera_pool[cid];
+            if(ly && cam) {
+                ly.setCamera(cam);
+            } else {
+                console.log("cam or ly not found:",lid,vid);
+            }
+        }
+        break;
         
 /*
     PACKETTYPE_S2C_PROP2D_SNAPSHOT = 200, 
@@ -86,9 +126,7 @@ function onPacket(ws,pkttype,argdata) {
     PACKETTYPE_S2C_PROP2D_LOC_VEL = 250,
     PACKETTYPE_S2C_PROP2D_INDEX_LOC = 251,    
     
-    PACKETTYPE_S2C_LAYER_CREATE = 300,
-    PACKETTYPE_S2C_LAYER_VIEWPORT = 301,
-    PACKETTYPE_S2C_LAYER_CAMERA = 302,
+
     PACKETTYPE_S2C_VIEWPORT_CREATE = 330,
     //    PACKETTYPE_S2C_VIEWPORT_SIZE = 331,  not used now
     PACKETTYPE_S2C_VIEWPORT_SCALE = 332,
