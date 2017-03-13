@@ -1522,3 +1522,14 @@ Sound.prototype.play = function() {
     }
 }
 
+///////////////////////
+
+function FileDepo() {
+    this.files = {};
+}
+FileDepo.prototype.get = function(path) {
+    return this.files[path];
+}
+FileDepo.prototype.ensure = function(path,data) {
+    return this.files[path] = data;
+}

@@ -3,7 +3,17 @@ var g_moyai_client;
 var g_viewport_pool={};
 var g_camera_pool={};
 var g_layer_pool={};
+var g_filedepo = new FileDepo();
+var g_image_pool={};
 
+function getString8FromDataView(dv,ofs) {
+    var len = dv.getUint8(ofs);
+    var u8a=new Uint8Array(len);
+    for(var i=0;i<len;i++) {
+        u8a[i]=dv.getUint8(ofs+1+i);
+    }
+    return String.fromCharCode.apply(null,u8a);
+}
 function onPacket(ws,pkttype,argdata) {
     if(pkttype==PACKETTYPE_ZIPPED_RECORDS) {
         //            console.log("zipped records:",argdata);
@@ -106,6 +116,54 @@ function onPacket(ws,pkttype,argdata) {
                 ly.setCamera(cam);
             } else {
                 console.log("cam or ly not found:",lid,vid);
+            }
+        }
+        break;
+
+    case PACKETTYPE_S2C_FILE:
+        {
+            var pathstr = getString8FromDataView(dv,0);
+            var data_len = dv.getUint32(1+pathstr.length,true);
+            var data_u8a=new Uint8Array(data_len);
+            for(var i=0;i<data_len;i++) {
+                data_u8a[i] = dv.getUint8(1+pathstr.length+4+i);
+            }
+
+            console.log("received file. path:",pathstr, "data:",data_u8a );
+            g_filedepo.ensure(pathstr,data_u8a);
+        }
+        break;
+    case PACKETTYPE_S2C_IMAGE_CREATE:
+        {
+            var id = dv.getUint32(0,true);
+            var img = new Image();
+            img.id=id;
+            console.log("received image creat:",id);
+            g_image_pool[id]=img;
+        }
+        break;
+    case PACKETTYPE_S2C_IMAGE_LOAD_PNG:
+        {
+            var id = dv.getUint32(0,true);
+            var pathstr = getString8FromDataView(dv,4);
+            console.log("received image loadpng", id, pathstr);
+            var u8a = g_filedepo.get(pathstr);
+            var img = g_image_pool[id];
+            if(img && u8a) {
+                img.loadPNGMem(u8a);
+                console.log("loadpng done");
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_IMAGE_ENSURE_SIZE:
+        {
+            var id = dv.getUint32(0,true);
+            var w = dv.getUint32(4,true);
+            var h = dv.getUint32(8,true);
+            var img = g_image_pool[id];
+            console.log("received image ensure size",id,w,h,img);
+            if(img) {
+                img.setSize(w,h);
             }
         }
         break;
