@@ -1467,7 +1467,7 @@ function SoundSystem() {
     this.sounds={};
     this.context = new AudioContext();
 }
-// type: "wav" or "float", 
+// type: "float" or other, "wav", "mp3"..
 SoundSystem.prototype.newBGMFromMemory = function(data,type) {
     var snd = this.createSound(data,true,type);
     this.sounds[snd.id] = snd;
@@ -1494,9 +1494,11 @@ function Sound(data,loop,type) {
     this.loop=false;
     this.audiobuffer=null;
     this.context=null;
+    this.default_volume=1;
 }
 Sound.prototype.setLoop = function(loop) { this.loop=loop; }
 Sound.prototype.isReady = function() { return this.audiobuffer; }
+Sound.prototype.setDefaultVolume = function(v) { this.default_volume=v;}
 Sound.prototype.setData = function(data,type) {
     if(type=="float") {
         this.audiobuffer = this.context.createBuffer( 1, data.length, this.context.sampleRate );
@@ -1511,11 +1513,15 @@ Sound.prototype.setData = function(data,type) {
         })
     }
 }
-Sound.prototype.play = function() {
+Sound.prototype.play = function(vol) {
+    if(vol==undefined)vol=1;
     if(this.audiobuffer) {
         var source = this.context.createBufferSource();
         source.buffer = this.audiobuffer;
-        source.connect(this.context.destination);
+        var gain_node = this.context.createGain();
+        source.connect(gain_node);
+        gain_node.connect(this.context.destination);
+        gain_node.gain.value = this.default_volume * vol;
         source.start(0);
     } else {
         console.log("Sound.play: audiobuffer is not ready");
