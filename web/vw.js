@@ -5,6 +5,10 @@ var g_camera_pool={};
 var g_layer_pool={};
 var g_filedepo = new FileDepo();
 var g_image_pool={};
+var g_texture_pool={};
+var g_tiledeck_pool={};
+var g_sound_system = new SoundSystem();
+var g_sound_pool={};
 
 function getString8FromDataView(dv,ofs) {
     var len = dv.getUint8(ofs);
@@ -167,6 +171,85 @@ function onPacket(ws,pkttype,argdata) {
             }
         }
         break;
+    case PACKETTYPE_S2C_TEXTURE_CREATE:
+        {
+            var id = dv.getUint32(0,true);
+            console.log("received texture create",id);
+            var t = new Texture();
+            t.id=id;
+            g_texture_pool[id]=t;
+        }
+        break;
+    case PACKETTYPE_S2C_TEXTURE_IMAGE:
+        {
+            var tex_id = dv.getUint32(0,true);
+            var img_id = dv.getUint32(4,true);
+            console.log("received teximage", tex_id,img_id);
+            var tex = g_texture_pool[tex_id];
+            var img = g_image_pool[img_id];
+            if(tex&&img) {
+                tex.setImage(img);
+            } else {
+                console.log("tex or img not found?", tex,img);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_TILEDECK_CREATE:
+        {
+            var id = dv.getUint32(0,true);
+            console.log("received tiledeck creat",id);
+            var td = new TileDeck();
+            td.id=id;
+            g_tiledeck_pool[id]=td;
+        }
+        break;
+    case PACKETTYPE_S2C_TILEDECK_TEXTURE:
+        {
+            var td_id = dv.getUint32(0,true);
+            var tex_id = dv.getUint32(4,true);
+            console.log("received td tex", td_id, tex_id);
+            var td = g_tiledeck_pool[td_id];
+            var tex = g_texture_pool[tex_id];
+            if(td&&tex) {
+                td.setTexture(tex);
+            } else {
+                console.log("td or tex not found", td,tex);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_TILEDECK_SIZE:
+        {
+            var td_id = dv.getUint32(0,true);
+            var sprw = dv.getUint32(4,true);
+            var sprh = dv.getUint32(8,true)
+            var cellw = dv.getUint32(12,true)
+            var cellh = dv.getUint32(16,true)
+            console.log("received tiledeck_size.",td_id,sprw,sprh,cellw,cellh);
+            var dk = g_tiledeck_pool[td_id];
+            dk.setSize( sprw, sprh, cellw, cellh );            
+        }
+        break;
+    case PACKETTYPE_S2C_SOUND_CREATE_FROM_FILE:
+        {
+            var id = dv.getUint32(0,true);
+            var path = getString8FromDataView(dv,4);
+            console.log("received sound create from file:",id,path);
+            var data_u8a = g_filedepo.get(path);
+            var snd = g_sound_system.newSoundFromMemory(data_u8a, "file");
+            snd.id=id;
+            g_sound_pool[id]=snd;            
+        }
+        break;
+    case PACKETTYPE_S2C_SOUND_DEFAULT_VOLUME:
+        {
+            var id = dv.getUint32(0,true);
+            var vol = dv.getFloat32(4,true);
+            var snd = g_sound_pool[id];
+            console.log("received sound default volume",id,vol);
+            snd.setDefaultVolume(vol);            
+        }
+        break;
+        
         
 /*
     PACKETTYPE_S2C_PROP2D_SNAPSHOT = 200, 

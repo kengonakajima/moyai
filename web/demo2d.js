@@ -442,6 +442,10 @@ function animate() {
         g_keyboard.clearToggled('u');
         g_mem_sound.play();
     }
+    if( g_keyboard.getToggled( 'r' ) ) {
+        g_keyboard.clearToggled('r');
+        g_mem_sound.play(0.2);
+    }    
     if( g_keyboard.getToggled( 't' ) ) {
         g_keyboard.clearToggled('t');        
         g_bgm_sound.play();
