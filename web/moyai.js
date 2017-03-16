@@ -1498,6 +1498,7 @@ function Sound(data,loop,type) {
     this.context=null;
     this.default_volume=1;
     this.source=null;
+    this.play_volume=null;
 }
 Sound.prototype.setLoop = function(loop) { this.loop=loop; }
 Sound.prototype.isReady = function() { return this.audiobuffer; }
@@ -1516,22 +1517,34 @@ Sound.prototype.setData = function(data,type) {
         })
     }
 }
+Sound.prototype.prepareSource = function(vol) {
+    this.source = this.context.createBufferSource();
+    this.source.buffer = this.audiobuffer;
+    this.gain_node = this.context.createGain();
+    this.source.connect(this.gain_node);
+    this.gain_node.connect(this.context.destination);
+    this.gain_node.gain.value = this.default_volume * vol;    
+}
 Sound.prototype.play = function(vol) {
     if(vol==undefined)vol=1;
     if(this.audiobuffer) {
-        this.source = this.context.createBufferSource();
-        this.source.buffer = this.audiobuffer;
-        this.gain_node = this.context.createGain();
-        this.source.connect(this.gain_node);
-        this.gain_node.connect(this.context.destination);
-        this.gain_node.gain.value = this.default_volume * vol;
+        this.prepareSource(vol);
         this.source.start(0);
+        this.play_volume=vol;
     } else {
         console.log("Sound.play: audiobuffer is not ready");
     }
 }
 Sound.prototype.setTimePositionSec = function( pos_sec ) {
-    console.log("Sound.setTimePositionSec is not implemented");
+    if(this.source) {
+        if(this.paused) {
+            return;
+        } else {
+            this.source.stop();
+            this.prepareSource(this.play_volume);
+            this.source.start(0,pos_sec);
+        }
+    }
 }
 
 ///////////////////////
