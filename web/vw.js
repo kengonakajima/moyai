@@ -249,7 +249,19 @@ function onPacket(ws,pkttype,argdata) {
             snd.setDefaultVolume(vol);            
         }
         break;
-        
+    case PACKETTYPE_S2C_SOUND_POSITION:
+        {
+            var id = dv.getUint32(0,true);
+            var pos_sec = dv.getFloat32(4);
+            var last_play_vol = dv.getFloat32(8);
+            var snd = g_sound_pool[id];
+            console.log("received sound_position:",id,pos_sec,last_play_vol,snd);
+            if(snd) {
+                if(snd.isPlaying() == false ) snd.play(last_play_vol);
+                snd.setTimePositionSec( pos_sec );
+            }
+        }
+        break;
         
 /*
     PACKETTYPE_S2C_PROP2D_SNAPSHOT = 200, 
@@ -313,6 +325,7 @@ function onPacket(ws,pkttype,argdata) {
     PACKETTYPE_S2C_SOUND_CREATE_FROM_SAMPLES = 651,
     PACKETTYPE_S2C_SOUND_DEFAULT_VOLUME = 653,
     PACKETTYPE_S2C_SOUND_PLAY = 660,
+    PACKETTYPE_S2C_SOUND_POSITION = 662,    
     PACKETTYPE_S2C_SOUND_STOP = 661,    
     PACKETTYPE_S2C_SOUND_POSITION = 662,
 

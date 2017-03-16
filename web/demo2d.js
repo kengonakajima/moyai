@@ -449,6 +449,7 @@ function animate() {
     if( g_keyboard.getToggled( 't' ) ) {
         g_keyboard.clearToggled('t');        
         g_bgm_sound.play();
+        g_bgm_sound.setTimePositionSec(3);
     }
     if( g_keyboard.getToggled( 'y' ) ) {
         g_keyboard.clearToggled('y');

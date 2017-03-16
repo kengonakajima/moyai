@@ -513,8 +513,10 @@ function Prop2D() {
     this.fragment_shader= new DefaultColorShader();
 }
 Prop2D.prototype.onDelete = function() {
-    this.mesh.geometry.dispose();
-    this.mesh.material.dispose();
+    if(this.mesh){
+        if(this.mesh.geometry) this.mesh.geometry.dispose();
+        if(this.mesh.material) this.mesh.material.dispose();
+    }
 }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; this.need_material_update = true; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; this.need_uv_update = true; }
@@ -1495,6 +1497,7 @@ function Sound(data,loop,type) {
     this.audiobuffer=null;
     this.context=null;
     this.default_volume=1;
+    this.source=null;
 }
 Sound.prototype.setLoop = function(loop) { this.loop=loop; }
 Sound.prototype.isReady = function() { return this.audiobuffer; }
@@ -1516,16 +1519,19 @@ Sound.prototype.setData = function(data,type) {
 Sound.prototype.play = function(vol) {
     if(vol==undefined)vol=1;
     if(this.audiobuffer) {
-        var source = this.context.createBufferSource();
-        source.buffer = this.audiobuffer;
-        var gain_node = this.context.createGain();
-        source.connect(gain_node);
-        gain_node.connect(this.context.destination);
-        gain_node.gain.value = this.default_volume * vol;
-        source.start(0);
+        this.source = this.context.createBufferSource();
+        this.source.buffer = this.audiobuffer;
+        this.gain_node = this.context.createGain();
+        this.source.connect(this.gain_node);
+        this.gain_node.connect(this.context.destination);
+        this.gain_node.gain.value = this.default_volume * vol;
+        this.source.start(0);
     } else {
         console.log("Sound.play: audiobuffer is not ready");
     }
+}
+Sound.prototype.setTimePositionSec = function( pos_sec ) {
+    console.log("Sound.setTimePositionSec is not implemented");
 }
 
 ///////////////////////
