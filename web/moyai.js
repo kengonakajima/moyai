@@ -1537,7 +1537,7 @@ Sound.prototype.play = function(vol) {
 }
 Sound.prototype.setTimePositionSec = function( pos_sec ) {
     if(this.source) {
-        if(this.paused) {
+        if(this.source.paused) {
             return;
         } else {
             this.source.stop();
@@ -1545,6 +1545,13 @@ Sound.prototype.setTimePositionSec = function( pos_sec ) {
             this.source.start(0,pos_sec);
         }
     }
+}
+Sound.prototype.isPlaying = function() {
+    if(this.source) {
+        return !this.source.paused;
+    } else {
+        return false;
+    }        
 }
 
 ///////////////////////
