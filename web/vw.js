@@ -9,6 +9,11 @@ var g_texture_pool={};
 var g_tiledeck_pool={};
 var g_sound_system = new SoundSystem();
 var g_sound_pool={};
+var g_prop2d_pool={};
+var g_crshader_pool={};
+
+var g_window_width=null;
+var g_window_height=null;
 
 function getString8FromDataView(dv,ofs) {
     var len = dv.getUint8(ofs);
@@ -18,6 +23,59 @@ function getString8FromDataView(dv,ofs) {
     }
     return String.fromCharCode.apply(null,u8a);
 }
+function getPacketColor(dv,ofs) {
+    var r = dv.getUint8(ofs);
+    var g = dv.getUint8(ofs+1);
+    var b = dv.getUint8(ofs+2);
+    var a = dv.getUint8(ofs+3);
+    return new Color( r/255.0, g/255.0, b/255.0,a/255.0)
+}
+function getProp2DSnapshot(dv) {
+    var out={};
+    var sz = dv.getUint32(0,true);
+    out.prop_id = dv.getUint32(4,true);
+    out.layer_id = dv.getUint32(8,true);
+    out.parent_prop_id = dv.getUint32(12,true);
+    out.loc = new Vec2( dv.getFloat32(16,true), dv.getFloat32(20,true));
+    out.scl = new Vec2( dv.getFloat32(24,true), dv.getFloat32(28,true));
+    out.index = dv.getInt32(32,true);
+    out.tiledeck_id = dv.getUint32(36,true);
+    out.debug = dv.getInt32(40,true);
+    out.rot = dv.getFloat32(44,true);
+    out.color = getPacketColor(dv,48);
+    out.shader_id = dv.getUint32(52,true);
+    out.optbits = dv.getUint32(56,true);
+    out.priority = dv.getInt32(60,true);
+    out.fliprotbits = dv.getUint8(64);
+    return out;
+}
+function getXFlipFromFlipRotBits(bits) { return bits & 0x01; }
+function getYFlipFromFlipRotBits(bits) { return bits & 0x02; }
+function getUVRotFromFlipRotBits(bits) { return bits & 0x04; }
+    
+var PROP2D_OPTBIT_ADDITIVE_BLEND = 0x00000001;
+    
+    
+    /*
+      typedef struct  {
+      uint32_t prop_id; // non-zero
+      uint32_t layer_id; // non-zero for layer, zero for child props
+      uint32_t parent_prop_id; // non-zero for child props, zero for layer props
+      PacketVec2 loc;
+      PacketVec2 scl;
+      int32_t index;
+      uint32_t tiledeck_id; // non-zero
+      int32_t debug;
+      float rot;
+      PacketColor color;
+      uint32_t shader_id;
+      uint32_t optbits;
+      int32_t priority;
+      uint8_t fliprotbits;
+      } PacketProp2DSnapshot;
+    */
+
+
 function onPacket(ws,pkttype,argdata) {
     if(pkttype==PACKETTYPE_ZIPPED_RECORDS) {
         //            console.log("zipped records:",argdata);
@@ -32,10 +90,15 @@ function onPacket(ws,pkttype,argdata) {
     var dv = new DataView(argdata.buffer);
     
     switch(pkttype) {
+    case PACKETTYPE_TIMESTAMP:
+        {
+        }
+        break;
+        
     case PACKETTYPE_S2C_WINDOW_SIZE:
         {
-            var w = dv.getUint32(0,true);
-            var h = dv.getUint32(4,true);
+            var w = g_window_width = dv.getUint32(0,true);
+            var h = g_window_height = dv.getUint32(4,true);
             console.log("received window_size:",w,h,argdata);
             if(!g_moyai_client) {
                 g_moyai_client = new MoyaiClient(w,h,window.devicePixelRatio);
@@ -62,6 +125,7 @@ function onPacket(ws,pkttype,argdata) {
             var vp = g_viewport_pool[id];
             if(!vp) { console.log("vp not found"); return; }
             vp.setScale2D(sclx,scly);
+            vp.setSize(g_window_width,g_window_height);
         }
         break;
 
@@ -92,7 +156,8 @@ function onPacket(ws,pkttype,argdata) {
             console.log("received layer creat",id);
             var l = new Layer();
             l.id=id;
-            g_layer_pool[id]=l;            
+            g_layer_pool[id]=l;
+            if(g_moyai_client) g_moyai_client.insertLayer(l);
         }
         break;
     case PACKETTYPE_S2C_LAYER_VIEWPORT:
@@ -155,7 +220,7 @@ function onPacket(ws,pkttype,argdata) {
             var img = g_image_pool[id];
             if(img && u8a) {
                 img.loadPNGMem(u8a);
-                console.log("loadpng done");
+//                console.log("loadpng done:", img,u8a);
             }
         }
         break;
@@ -262,7 +327,68 @@ function onPacket(ws,pkttype,argdata) {
             }
         }
         break;
-        
+
+    case PACKETTYPE_S2C_PROP2D_SNAPSHOT:
+        {
+            var pkt = getProp2DSnapshot(dv);
+//            console.log( "received prop2d pkt", dv,pkt);
+            var layer;            
+            if( pkt.layer_id > 0 ) {
+                layer = g_layer_pool[pkt.layer_id];
+            } else if( pkt.parent_prop_id > 0 ) {
+                var parent_prop = g_prop2d_pool[pkt.parent_prop_id];
+                if(!parent_prop) {
+                    console.log("Warning: can't find parent prop", pkt.prop_id, pkt.parent_prop_id );
+                } 
+            }
+            if( !(layer || parent_prop ) ) {
+                console.log("no layer nor parent", pkt.prop_id, pkt.layer_id, pkt.parent_prop_id );
+                break;
+            }
+
+            var dk = g_tiledeck_pool[pkt.tiledeck_id]; // deck can be null (may have grid,textbox)
+            if(!dk && pkt.tiledeck_id!=0) {
+                console.log("TileDeck is not initialized yet! td:",pkt.tiledeck_id);
+                break;
+            }
+            var prop = g_prop2d_pool[pkt.prop_id];
+            if(!prop) {
+                prop = new Prop2D();
+                prop.id=pkt.prop_id;
+                g_prop2d_pool[prop.id]=prop;
+                if(layer) {
+                    layer.insertProp(prop);
+                } else if(parent_prop) {
+                    var found_prop = prop.getChild( pkt.prop_id );
+                    if(!found_prop) {
+                        console.log("  adding a child to a prop", pkt.prop_id, pkt.parent_prop_id );
+                        parent_prop.addChild(prop);
+                    }
+                } else {
+                    console.log("Warning: this prop has no parent?",pkt.prop_id, pkt.layer_id );
+                }
+            }
+            if(dk) prop.setDeck(dk);
+            prop.setIndex(pkt.index);
+            prop.setScl(pkt.scl.x,pkt.scl.y);
+            prop.setLoc(pkt.loc.x, pkt.loc.y);
+            prop.setRot( pkt.rot );
+            prop.setXFlip( getXFlipFromFlipRotBits(pkt.fliprotbits) );
+            prop.setYFlip( getYFlipFromFlipRotBits(pkt.fliprotbits) );
+            prop.setUVRot( getUVRotFromFlipRotBits(pkt.fliprotbits) );
+            prop.setColor(pkt.color);
+            prop.use_additive_blend = pkt.optbits & PROP2D_OPTBIT_ADDITIVE_BLEND;
+            if(pkt.shader_id != 0 ) {
+                var crs = g_crshader_pool[pkt.shader_id];
+                if(crs) {
+                    prop.setFragmentShader(crs);
+                } else {
+                    console.log("  colorreplacershader not found", pkt.shader_id);
+                }
+            }
+            prop.priority = pkt.priority;
+        }
+        break;
 /*
     PACKETTYPE_S2C_PROP2D_SNAPSHOT = 200, 
     PACKETTYPE_S2C_PROP2D_LOC = 201,
@@ -345,7 +471,12 @@ function onPacket(ws,pkttype,argdata) {
 }
 
 
-
+var g_keyboard = new Keyboard();
+g_keyboard.setupBrowser(window);
+var g_mouse = new Mouse();
+var screen = document.getElementById("screen");
+g_mouse.setupBrowser(window,screen);
+                
 
 // button funcs
 function connectButton() {
@@ -363,14 +494,15 @@ function stopRender() {
 
 ////////////////////
 
-var anim_cnt=0;
 var last_anim_at = new Date().getTime();
 
 function animate() {
-    if(anim_cnt<50000) {
-        anim_cnt++;
-	    if(!g_stop_render) requestAnimationFrame( animate );
-    }
+	if(!g_stop_render) requestAnimationFrame( animate );
+    if(!g_moyai_client)return;
+    var now_time = new Date().getTime();
+    var dt = now_time - last_anim_at;        
+    g_moyai_client.poll(dt/1000.0);
+    g_moyai_client.render();
 }
 
     

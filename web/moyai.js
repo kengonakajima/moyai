@@ -129,9 +129,9 @@ MoyaiClient.prototype.render = function() {
         } else {
             camloc = new Vec2(0,0);
         }
-        if(layer.viewport) relscl = layer.viewport.getRelativeScale();        
+        if(layer.viewport) relscl = layer.viewport.getRelativeScale();
         for(var i in layer.props) {                    
-            var prop = layer.props[i];
+            var prop = layer.props[i];            
             prop.updateMesh();
             var prop_z = layer.priority * this.z_per_layer + prop.priority * this.z_per_prop;
             if(prop.mesh) {
@@ -142,6 +142,7 @@ MoyaiClient.prototype.render = function() {
                 prop.mesh.scale.y = prop.scl.y * relscl.y;
                 prop.mesh.rotation.set(0,0,prop.rot);
                 if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
+ //               console.log("adding ", prop.mesh, layer.camera, this.camera );
                 this.scene.add(prop.mesh);
             }
             if(prop.grids) {
@@ -206,6 +207,8 @@ MoyaiClient.prototype.insertLayer = function(l) {
 Viewport.prototype.id_gen=1;
 function Viewport() {
     this.id = this.__proto__.id_gen++;
+    this.screen_width = null;
+    this.screen_height = null;   
 }
 Viewport.prototype.setSize = function(sw,sh) {
     this.screen_width = sw;
@@ -227,7 +230,9 @@ function Camera() {
     this.id = this.__proto__.id_gen++;
     this.loc = new Vec2(0,0);
 }
-Camera.prototype.setLoc = function(x,y) { this.loc.setWith2args(x,y); }
+Camera.prototype.setLoc = function(x,y) {
+    this.loc.setWith2args(x,y);
+}
 
 ////////////////////
 Layer.prototype.id_gen = 1;
@@ -285,7 +290,9 @@ Image.prototype.loadPNGMem = function(u8adata) {
 Image.prototype.setSize = function(w,h) {
     this.width = w;
     this.height = h;
-    this.data = new Uint8Array(w*h*4);
+    if(!this.data) {
+        this.data = new Uint8Array(w*h*4);
+    }
 }
 Image.prototype.getSize = function() {
     return new Vec2(this.width,this.height);
@@ -524,7 +531,14 @@ Prop2D.prototype.setScl = function(x,y) { this.scl.setWith2args(x,y);}
 Prop2D.prototype.setLoc = function(x,y) { this.loc.setWith2args(x,y);}
 Prop2D.prototype.setRot = function(r) { this.rot=r; }
 Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg; this.need_uv_update = true; }
-Prop2D.prototype.setColor = function(r,g,b,a) { this.color = new Color(r,g,b,a); this.need_color_update = true; }
+Prop2D.prototype.setColor = function(r,g,b,a) {
+    if(typeof r == 'object' ) {
+        this.color = r ;
+    } else {
+        this.color = new Color(r,g,b,a); 
+    }
+    this.need_color_update = true;
+}
 Prop2D.prototype.setXFlip = function(flg) { this.xflip=flg; this.need_uv_update = true; }
 Prop2D.prototype.setYFlip = function(flg) { this.yflip=flg; this.need_uv_update = true; }
 Prop2D.prototype.addLine = function(p0,p1,col,w) {
