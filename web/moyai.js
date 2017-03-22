@@ -70,7 +70,10 @@ Color.prototype.toCode = function() {
 Color.prototype.toTHREEColor = function() {
     return new THREE.Color(this.toCode());
 }
-     
+Color.prototype.equals = function(r,g,b,a) {
+    return (this.r==r && this.g==g && this.b==b && this.a==a);
+}
+
 ///////////////
 var g_moyais=[];
 function MoyaiClient(w,h,pixratio){
@@ -532,12 +535,15 @@ Prop2D.prototype.setLoc = function(x,y) { this.loc.setWith2args(x,y);}
 Prop2D.prototype.setRot = function(r) { this.rot=r; }
 Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg; this.need_uv_update = true; }
 Prop2D.prototype.setColor = function(r,g,b,a) {
+    if(this.color.equals(r,g,b,a)==false) {
+        this.need_color_update = true;
+        if(this.fragment_shader) this.need_material_update = true;
+    }
     if(typeof r == 'object' ) {
         this.color = r ;
     } else {
         this.color = new Color(r,g,b,a); 
     }
-    this.need_color_update = true;
 }
 Prop2D.prototype.setXFlip = function(flg) { this.xflip=flg; this.need_uv_update = true; }
 Prop2D.prototype.setYFlip = function(flg) { this.yflip=flg; this.need_uv_update = true; }
@@ -635,6 +641,9 @@ Prop2D.prototype.updateMesh = function() {
             }
         } else {
             this.material.map = this.deck.moyai_tex.three_tex;
+            if(this.fragment_shader) {
+                this.fragment_shader.updateUniforms(this.deck.moyai_tex.three_tex,this.color);
+            }
         }
         this.need_material_update = false;
     }  
@@ -685,6 +694,8 @@ Prop2D.prototype.updateMesh = function() {
         this.need_uv_update = false;
     }
     if( this.need_color_update ) {
+        console.log("nnnnn", this.color);
+        this.color.r = this.color.g = this.color.b = this.color.a = 1;
         this.geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
         this.geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
         this.geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
