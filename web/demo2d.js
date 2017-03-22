@@ -4,30 +4,6 @@ var g_ws;
 var g_moyai_client;
 
 
-function onPacket(ws,pkttype,argdata) {
-    switch(pkttype) {
-    case PACKETTYPE_ZIPPED_RECORDS:
-        {
-            //                console.log("zipped records:",argdata);
-            var uncompressed = Snappy.uncompress(argdata.buffer);
-            console.log(uncompressed);
-            var dv = new DataView(uncompressed);
-            ws.unzipped_rb.push(dv,uncompressed.byteLength);
-            console.log("unzipped_rb:",ws.unzipped_rb);
-        }
-        break;
-    case PACKETTYPE_S2C_WINDOW_SIZE:
-        {
-            var dv = new DataView(argdata.buffer);
-            var w = dv.getUint32(0);
-            var h = dv.getUint32(4);
-            console.log("received window_size:",w,h);
-        }
-        break;
-    }
-}
-
-
 
 
 // button funcs
