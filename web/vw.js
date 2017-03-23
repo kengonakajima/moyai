@@ -470,12 +470,7 @@ function onPacket(ws,pkttype,argdata) {
     }
 }
 
-
-var g_keyboard = new Keyboard();
-g_keyboard.setupBrowser(window);
-var g_mouse = new Mouse();
 var screen = document.getElementById("screen");
-g_mouse.setupBrowser(window,screen);
                 
 
 // button funcs
