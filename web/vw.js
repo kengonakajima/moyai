@@ -15,6 +15,11 @@ var g_crshader_pool={};
 var g_window_width=null;
 var g_window_height=null;
 
+
+
+
+////////////////
+
 function getString8FromDataView(dv,ofs) {
     var len = dv.getUint8(ofs);
     var u8a=new Uint8Array(len);
@@ -485,6 +490,32 @@ var g_stop_render=false;
 function stopRender() {
     g_stop_render = true;
 }
+
+
+
+////////////////////
+var MODKEY_BIT_SHIFT = 0x01;
+var MODKEY_BIT_CONTROL =0x02;
+var MODKEY_BIT_ALT = 0x04;
+
+function sendKeyboardEvent(e,action) {
+    if(g_ws) {
+        var bits = 0;
+        if(e.ctrlKey) bits |= MODKEY_BIT_CONTROL;
+        if(e.altKey) bits |= MODKEY_BIT_ALT;
+        if(e.shiftKey) bits |= MODKEY_BIT_SHIFT;
+        g_ws.sendUS1UI3( PACKETTYPE_C2S_KEYBOARD, e.keyCode, action, bits );
+    }
+}
+
+window.addEventListener("keydown", function(e) {
+    e.preventDefault();
+    sendKeyboardEvent(e,1);
+}, false);
+window.addEventListener("keyup", function(e) {
+    e.preventDefault();
+    sendKeyboardEvent(e,0);    
+}, false);
 
 
 ////////////////////

@@ -183,6 +183,16 @@ function createWSClient(url) {
     ws.onPacket = function(ws,pkttype,argdata) {
         console.log("onPacket not overwritten? pkttype:",pkttype,argdata.length);
     }
+    ws.sendUS1UI3 = function(usval,ui0,ui1,ui2) {
+        var totalsize = 4 + 2 + 4+4+4;
+        var dv = new DataView(new ArrayBuffer(totalsize));
+        dv.setUint32(0,totalsize-4,true);
+        dv.setUint16(4,usval,true);
+        dv.setUint32(6,ui0,true);
+        dv.setUint32(10,ui1,true);
+        dv.setUint32(14,ui2,true);
+        ws.send(dv.buffer);
+    }
     return ws;
 }
 
