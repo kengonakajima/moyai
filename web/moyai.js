@@ -224,7 +224,7 @@ Viewport.prototype.getMinMax = function() {
     return [ new Vec2(-this.scl.x/2,-this.scl.y/2), new Vec2(this.scl.x/2,this.scl.y/2) ];
 }
 Viewport.prototype.getRelativeScale = function() {
-    return new Vec2(this.scl.x/this.screen_width,this.scl.y/this.screen_height);
+    return new Vec2(this.screen_width/this.scl.x,this.screen_height/this.scl.y);
 }
 
 ////////////////////
