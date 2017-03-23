@@ -694,7 +694,6 @@ Prop2D.prototype.updateMesh = function() {
         this.need_uv_update = false;
     }
     if( this.need_color_update ) {
-        console.log("nnnnn", this.color);
         this.color.r = this.color.g = this.color.b = this.color.a = 1;
         this.geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
         this.geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
