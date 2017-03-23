@@ -1125,7 +1125,6 @@ void TrackerViewport::broadcastDiff( bool force ) {
 void TrackerViewport::unicastDiff( Client *dest, bool force ) {
     if( checkDiff() || force ) {
         if(dest->isLogical()) {
-            print("XXXXXXXXXX:%f %f", sclbuf[cur_buffer_index].x, sclbuf[cur_buffer_index].y );
             sendUS1UI2F2( dest->getStream(), PACKETTYPE_S2R_VIEWPORT_SCALE, dest->id, target_viewport->id, sclbuf[cur_buffer_index].x, sclbuf[cur_buffer_index].y );
         } else {
             sendUS1UI1F2( dest, PACKETTYPE_S2C_VIEWPORT_SCALE, target_viewport->id, sclbuf[cur_buffer_index].x, sclbuf[cur_buffer_index].y );
