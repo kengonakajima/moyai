@@ -517,6 +517,38 @@ window.addEventListener("keyup", function(e) {
     sendKeyboardEvent(e,0);    
 }, false);
 
+function sendMouseButtonEvent(e,action) {
+    if(g_ws) {
+        var bits = 0;
+        if(e.ctrlKey) bits |= MODKEY_BIT_CONTROL;
+        if(e.altKey) bits |= MODKEY_BIT_ALT;
+        if(e.shiftKey) bits |= MODKEY_BIT_SHIFT;
+        g_ws.sendUS1UI3( PACKETTYPE_C2S_MOUSE_BUTTON, e.button, action, bits );
+    }
+}
+window.addEventListener("mousedown", function(e) {
+    e.preventDefault();
+    sendMouseButtonEvent(e,1);
+},false);
+window.addEventListener("mouseup", function(e)  {
+    e.preventDefault();
+    sendMouseButtonEvent(e,0);
+},false);
+function sendMousePosEvent(x,y) {
+    if(g_ws) {
+        g_ws.sendUS1F2( PACKETTYPE_C2S_CURSOR_POS, x,y);
+    }
+}
+window.addEventListener("mousemove", function(e)  {
+    var screen = document.getElementById("screen");    
+    var rect = screen.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    e.preventDefault();
+    sendMousePosEvent(x,y);
+},false);    
+
+
 
 ////////////////////
 

@@ -193,6 +193,15 @@ function createWSClient(url) {
         dv.setUint32(14,ui2,true);
         ws.send(dv.buffer);
     }
+    ws.sendUS1F2 = function(usval,f0,f1) {
+        var totalsize = 4+2 + 4+4;
+        var dv = new DataView(new ArrayBuffer(totalsize));
+        dv.setUint32(0,totalsize-4,true);
+        dv.setUint16(4,usval,true);
+        dv.setFloat32(6,f0,true);
+        dv.setFloat32(10,f1,true);
+        ws.send(dv.buffer);
+    }
     return ws;
 }
 
