@@ -326,6 +326,27 @@ Image.prototype.setPixel = function(x,y,c) {
     var index = (x+y*this.width)*4;
     this.setPixelRaw(x,y,colary[0],colary[1],colary[2],colary[3]);
 }
+Image.prototype.getBufferSize = function() { return this.width * this.height * 4; }
+Image.prototype.setAreaRaw = function(x0,y0,w,h, data_u8a, insz ) {
+    var reqsize = w*h*4;
+    if( insz < reqsize ) {
+        console.log("image.prototype.setAreaRaw input size too small required:",reqsize, "got:",insz);
+        return;
+    }
+    for(var dy=0;dy<h;dy++) {
+        for(var dx=0;dx<w;dx++) {
+            var x = x0+dx;
+            var y = y0+dy;
+            if(x<0||y<0||x>=this.width||y>=this.height)continue;            
+            var out_index = ( x + y * this.width ) * 4;
+            var in_index = ( dx + dy * w ) * 4;
+            this.data[out_index] = data_u8a[in_index]; // r
+            this.data[out_index+1] = data_u8a[in_index+1]; // g
+            this.data[out_index+2] = data_u8a[in_index+2]; // b
+            this.data[out_index+3] = data_u8a[in_index+3]; // a            
+        }
+    }      
+}
 
 //////////////////////////
 Texture.prototype.id_gen = 1;

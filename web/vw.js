@@ -241,6 +241,27 @@ function onPacket(ws,pkttype,argdata) {
             }
         }
         break;
+    case PACKETTYPE_S2C_IMAGE_RAW:
+        {
+//        sendUS1UI1Bytes( outstream, PACKETTYPE_S2C_IMAGE_RAW, img->id, (const char*) img->buffer, img->getBufferSize() );                
+            var id = dv.getUint32(0,true);
+            var data_len = dv.getUint32(4,true);
+            var data_u8a=new Uint8Array(data_len);
+            for(var i=0;i<data_len;i++) {
+                data_u8a[i] = dv.getUint8(8+i);
+            }
+            var img = g_image_pool[id];
+            console.log("received image_raw. ",id,data_len,data_u8a);
+            if(img) {
+                if( img.getBufferSize() != data_len ) {
+                    console.log("warning: image_raw different buffer size. expect:",img.getBufferSize(), " got:", data_len );
+                }
+                img.setAreaRaw(0,0,img.width, img.height, data_u8a, img.getBufferSize() );
+            } else {
+                console.log("image_raw img not found:",id);
+            }
+        }
+        break;
     case PACKETTYPE_S2C_TEXTURE_CREATE:
         {
             var id = dv.getUint32(0,true);
@@ -315,8 +336,12 @@ function onPacket(ws,pkttype,argdata) {
             var id = dv.getUint32(0,true);
             var vol = dv.getFloat32(4,true);
             var snd = g_sound_pool[id];
-            console.log("received sound default volume",id,vol);
-            snd.setDefaultVolume(vol);            
+            console.log("received sound default volume",id,vol,snd);
+            if(snd) {
+                snd.setDefaultVolume(vol);
+            } else {
+                console.log("snd_def_vol: snd not found. id:",id);
+            }
         }
         break;
     case PACKETTYPE_S2C_SOUND_POSITION:
