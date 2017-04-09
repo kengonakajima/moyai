@@ -12,6 +12,7 @@ var g_sound_pool={};
 var g_prop2d_pool={};
 var g_crshader_pool={};
 var g_font_pool={};
+var g_grid_pool={};
 
 var g_window_width=null;
 var g_window_height=null;
@@ -20,7 +21,6 @@ var g_window_height=null;
 
 
 ////////////////
-
 function getString8FromDataView(dv,ofs) {
     var len = dv.getUint8(ofs);
     var u8a=new Uint8Array(len);
@@ -35,6 +35,11 @@ function getPacketColor(dv,ofs) {
     var b = dv.getUint8(ofs+2);
     var a = dv.getUint8(ofs+3);
     return new Color( r/255.0, g/255.0, b/255.0,a/255.0)
+}
+function getPacketVec2(dv,ofs) {
+    var x = dv.getFloat32(ofs,true);
+    var y = dv.getFloat32(ofs+4,true);
+    return new Vec2(x,y);
 }
 function getProp2DSnapshot(dv) {
     var out={};
@@ -117,9 +122,12 @@ function onPacket(ws,pkttype,argdata) {
         {
             var id = dv.getUint32(0,true);
             console.log("received vp creat:", id);
-            var vp = new Viewport();
-            vp.id = id;
-            g_viewport_pool[id]=vp;
+            var vp = g_viewport_pool[id];
+            if(!vp ) {
+                vp = new Viewport();
+                vp.id = id;
+                g_viewport_pool[id]=vp;
+            }
         }
         break;
     case PACKETTYPE_S2C_VIEWPORT_SCALE:
@@ -139,9 +147,12 @@ function onPacket(ws,pkttype,argdata) {
         {
             var id = dv.getUint32(0,true);
             console.log("received cam creat:",id);
-            var cam = new Camera();
-            cam.id=id;
-            g_camera_pool[id]=cam;            
+            var cam = g_camera_pool[id];
+            if(!cam) {
+                cam = new Camera();
+                cam.id=id;
+                g_camera_pool[id]=cam;
+            }
         }
         break;
     case PACKETTYPE_S2C_CAMERA_LOC:
@@ -159,11 +170,16 @@ function onPacket(ws,pkttype,argdata) {
     case PACKETTYPE_S2C_LAYER_CREATE:
         {
             var id = dv.getUint32(0,true);
+            var prio = dv.getUint32(4,true);
             console.log("received layer creat",id);
-            var l = new Layer();
-            l.id=id;
-            g_layer_pool[id]=l;
-            if(g_moyai_client) g_moyai_client.insertLayer(l);
+            var l = g_layer_pool[id];
+            if(!l) {
+                l = new Layer();
+                l.id=id;
+                l.priority = prio;
+                g_layer_pool[id]=l;
+                if(g_moyai_client) g_moyai_client.insertLayer(l);
+            }
         }
         break;
     case PACKETTYPE_S2C_LAYER_VIEWPORT:
@@ -211,10 +227,13 @@ function onPacket(ws,pkttype,argdata) {
     case PACKETTYPE_S2C_IMAGE_CREATE:
         {
             var id = dv.getUint32(0,true);
-            var img = new Image();
-            img.id=id;
-            console.log("received image creat:",id);
-            g_image_pool[id]=img;
+            var img = g_image_pool[id];
+            if(!img) {
+                img = new Image();
+                img.id=id;
+                console.log("received image creat:",id);
+                g_image_pool[id]=img;
+            }
         }
         break;
     case PACKETTYPE_S2C_IMAGE_LOAD_PNG:
@@ -267,9 +286,12 @@ function onPacket(ws,pkttype,argdata) {
         {
             var id = dv.getUint32(0,true);
             console.log("received texture create",id);
-            var t = new Texture();
-            t.id=id;
-            g_texture_pool[id]=t;
+            var t = g_texture_pool[id];
+            if(!t) {
+                t = new Texture();
+                t.id=id;
+                g_texture_pool[id]=t;
+            }
         }
         break;
     case PACKETTYPE_S2C_TEXTURE_IMAGE:
@@ -290,9 +312,12 @@ function onPacket(ws,pkttype,argdata) {
         {
             var id = dv.getUint32(0,true);
             console.log("received tiledeck creat",id);
-            var td = new TileDeck();
-            td.id=id;
-            g_tiledeck_pool[id]=td;
+            var td = g_tiledeck_pool[id];
+            if(!td) {
+                td = new TileDeck();
+                td.id=id;
+                g_tiledeck_pool[id]=td;
+            }
         }
         break;
     case PACKETTYPE_S2C_TILEDECK_TEXTURE:
@@ -327,9 +352,12 @@ function onPacket(ws,pkttype,argdata) {
             var path = getString8FromDataView(dv,4);
             console.log("received sound create from file:",id,path);
             var data_u8a = g_filedepo.get(path);
-            var snd = g_sound_system.newSoundFromMemory(data_u8a, "file");
-            snd.id=id;
-            g_sound_pool[id]=snd;            
+            var snd = g_sound_pool[id];
+            if(!snd) {
+                snd = g_sound_system.newSoundFromMemory(data_u8a, "file");
+                snd.id=id;
+                g_sound_pool[id]=snd;
+            }
         }
         break;
     case PACKETTYPE_S2C_SOUND_CREATE_FROM_SAMPLES:
@@ -337,14 +365,17 @@ function onPacket(ws,pkttype,argdata) {
             var snd_id = dv.getUint32(0,true);
             var data_len = dv.getUint32(4,true);
             var sample_num = data_len / 4;
-            var data_float=new Array(sample_num);
+            var data_float = new Array(sample_num);
             for(var i=0;i<sample_num;i++) {
                 data_float[i] = dv.getFloat32(8+i*4,true);
             }
-            var snd = g_sound_system.newSoundFromMemory(data_float,"float");
-            console.log("received sound_create_from_samples:",snd_id,snd,data_len,data_float);
-            snd.id =snd_id;
-            g_sound_pool[snd_id]=snd;
+            var snd = g_sound_pool[snd_id];
+            if(!snd ) {
+                snd = g_sound_system.newSoundFromMemory(data_float,"float");
+                console.log("received sound_create_from_samples:",snd_id,snd,data_len,data_float);
+                snd.id =snd_id;
+                g_sound_pool[snd_id]=snd;
+            }
         }
         break;
     case PACKETTYPE_S2C_SOUND_DEFAULT_VOLUME:
@@ -440,11 +471,12 @@ function onPacket(ws,pkttype,argdata) {
         {
             var id = dv.getUint32(0,true);
             console.log("received font_create. id:",id);
-            var font = new Font();
-//var g_font = new Font();
-//g_font.loadFromMemTTF( cinecaption227_ttf, charcodes, 12 );
-            font.id=id;
-            g_font_pool[id]=font;
+            var font = g_font_pool[id];
+            if(!font) {
+                font = new Font();
+                font.id=id;
+                g_font_pool[id]=font;
+            }
         }
         break;
     case PACKETTYPE_S2C_FONT_CHARCODES: // fontid; utf8str
@@ -474,27 +506,136 @@ function onPacket(ws,pkttype,argdata) {
             var font = g_font_pool[font_id];
             console.log("received font_loadttf loadpng", font_id, pathstr, u8a,font);
             font.loadFromMemTTF(u8a,null,pixel_size);
-            
-/*            
-            uint32_t font_id = get_u32(argdata+0);
-            uint32_t pixel_size = get_u32(argdata+4);
-            uint8_t cstrlen = get_u8(argdata+4+4);
-            char *path = argdata+4+4+1;
-            char pathbuf[256+1];
-            memcpy( pathbuf, path, cstrlen );
-            pathbuf[cstrlen] = '\0';
-            print("font_loadttf id:%d ps:%d path:'%s'", font_id, pixel_size, pathbuf );
-            Font *f = g_font_pool.get(font_id);
-            if(!f) {
-                print("font %d not found", font_id);
-                break;
-            }
-            // freetype-gl can only read TTF from file, not from memory
-            File *file = g_filedepo->get(pathbuf);
-            if(!file) {
-            */          
         }
         break;        
+
+    case PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT:
+        {
+            console.log("received colorreplacershader_snapshot, NOT IMPLEMENTED yet");
+        }
+        break;
+
+    case PACKETTYPE_S2C_GRID_CREATE:
+        {
+            var grid_id = dv.getUint32(0,true);
+            var w = dv.getUint32(4,true);
+            var h = dv.getUint32(8,true);
+            var g = g_grid_pool[grid_id];
+            if(!g) {
+                g = new Grid(w,h);
+                g.debug_id = 1234;
+                console.log("received grid_create", grid_id,w,h,g);
+                g.id = grid_id;
+                g_grid_pool[grid_id] = g;
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_DECK:
+        {
+            var grid_id = dv.getUint32(0,true);
+            var deck_id = dv.getUint32(4,true);
+            var g = g_grid_pool[grid_id];
+            var d = g_tiledeck_pool[deck_id];
+            console.log("received grid_deck", grid_id, deck_id, g,d );
+            if( g && d ) {
+                g.setDeck(d);
+            } else {
+                console.log("grid or deck not found");
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_PROP2D:
+        {
+            var grid_id = dv.getUint32(0,true);
+            var prop_id = dv.getUint32(4,true);
+            var g = g_grid_pool[grid_id];
+            var p = g_prop2d_pool[prop_id];
+            console.log("received grid_prop2d",grid_id,prop_id,g,p);
+            if( g && p ) {
+                p.setGrid(g);
+            } else {
+                console.log( "grid or prop not found");
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT:  // index table, array of int32_t
+        {
+            var grid_id = dv.getUint32(0,true);
+            var data_len = dv.getUint32(4,true);
+            var ind_len = data_len / 4;
+            var inds=[];
+            for(var i=0;i<ind_len;i++) {
+                inds[i] = dv.getInt32(8+i*4,true);
+            }
+            var g = g_grid_pool[grid_id];
+            console.log("received grid_table_index_snapshot", grid_id,data_len, g, inds );
+            if(g) {
+                g.bulkSetIndex(inds);
+            } else {
+                console.log("grid not found");
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_TABLE_FLIP_SNAPSHOT: // xfl|yfl|uvrot bitfield in array of uint8_t
+        {
+            var grid_id = dv.getUint32(0,true);
+            var data_len = dv.getUint32(4,true);
+            var bits_ary=[];
+            for(var i=0;i<data_len;i++) {
+                bits_ary[i] = dv.getUint8(8+i);
+            }
+            var g = g_grid_pool[grid_id];
+            console.log("received grid_table_flip_snapshot", grid_id,data_len,bits_ary,g);
+            if(g) {
+                g.bulkSetFlipBits(bits_ary);
+            } else {
+                console.log("grid not found");                
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_TABLE_TEXOFS_SNAPSHOT: //  array of Vec2
+        {
+            var grid_id = dv.getUint32(0,true);
+            var data_len = dv.getUint32(4,true);
+            var val_num = data_len / 8;
+            var vec2_ary=[];
+            for(var i=0;i<val_num;i++) {
+                vec2_ary[i] = getPacketVec2(dv,8+i*8);
+            }
+            var g = g_grid_pool[grid_id];
+            console.log("received grid_table_texofs_snapshot", grid_id, data_len, vec2_ary,g);
+            if(g) {
+                g.bulkSetTexofs(vec2_ary);
+            } else {
+                console.log("grid not found");
+            }            
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT: // color table, array of PacketColor: 4 * float32
+        {
+            var grid_id = dv.getUint32(0,true);
+            var data_len = dv.getUint32(4,true);
+            var val_num = data_len / 4; // r,g,b,a
+            var cols_ary=[];
+            for(var i=0;i<val_num;i++) {
+                cols_ary[i] = getPacketColor(dv,8+i*4);
+            }
+            var g = g_grid_pool[grid_id];
+            console.log("received grid_table_color_snapshot", grid_id, data_len, cols_ary,g );
+            if(g) {
+                g.bulkSetColor(cols_ary);
+            } else {
+                console.log("grid not found");
+            }            
+        }
+        break;
+    case PACKETTYPE_S2C_GRID_DELETE:
+        {
+            var grid_id = dv.getUint32(0,true);
+            console.log("received grid_delete",grid_id);
+            delete g_grid_pool[grid_id];
+        }
+        break;
         
 /*
     PACKETTYPE_S2C_PROP2D_SNAPSHOT = 200, 

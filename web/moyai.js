@@ -134,7 +134,7 @@ MoyaiClient.prototype.render = function() {
         }
         if(layer.viewport) relscl = layer.viewport.getRelativeScale();
         for(var i in layer.props) {                    
-            var prop = layer.props[i];            
+            var prop = layer.props[i];
             prop.updateMesh();
             var prop_z = layer.priority * this.z_per_layer + prop.priority * this.z_per_prop;
             if(prop.mesh) {
@@ -585,10 +585,18 @@ Prop2D.prototype.deletePrim = function(id) {
 }
 Prop2D.prototype.addGrid = function(g) {
     if(!this.grids) this.grids=[];
-    var newgrid={}; // Duplicate content of g for sharing same grid in other props
-    Object.assign(newgrid,g);
-    newgrid.__proto__ = g.__proto__;
-    this.grids.push(newgrid);
+    this.grids.push(g);
+}
+Prop2D.prototype.setGrid = function(g) {
+    if(this.grids) {
+        for(var i=0;i<this.grids.length;i++) {
+            if(this.grids[i].id==g.id) {
+                return;
+            }
+        }
+    }
+    console.log("setgrid:adding grid:",g);
+    this.addGrid(g);
 }
 Prop2D.prototype.setTexture = function(tex) {
     var td = new TileDeck();
@@ -733,6 +741,7 @@ Prop2D.prototype.updateMesh = function() {
 
 Grid.prototype.id_gen=1;
 function Grid(w,h) {
+    console.log("Grid new called!");
     this.id=this.__proto__.id_gen++;
     this.width=w;
     this.height=h;
@@ -775,7 +784,55 @@ Grid.prototype.get  =function(x,y) {
 }
 Grid.prototype.bulkSetIndex = function(inds) {
     if(!this.index_table) this.index_table=[];
-    for(var i in this.index_table) this.index_table[i] = inds[i];
+    var expect_len = this.width * this.height;
+    if(inds.length < expect_len) {
+        console.log("bulksetindex: data not enough. expect:",expect_len, "got:",inds.length);
+    } else {
+        for(var i=0;i<expect_len;i++) this.index_table[i] = inds[i];
+    }
+}
+Grid.prototype.bulkSetFlipBits = function(bits) {
+    var expect_len = this.width * this.height;
+    if(bits.length<expect_len){
+        console.log("bulksetflipbits: data not enough. expect:",expect_len, "got:",bits.length);
+    } else {
+        var ind=0;
+        for(var y=0;y<this.height;y++) {
+            for(var x=0;x<this.width;x++) {
+                this.setXFlip(x,y,bits[ind]);
+                ind++;
+            }
+        }
+    }
+}
+Grid.prototype.bulkSetTexofs = function(ofsary) {
+    var expect_len = this.width * this.height;
+    if(ofsary.length < expect_len ) {
+        console.log("bulksettexofs: data not enough. expect:", expect_len, "got:", ofsary.length );
+    } else {
+        var ind=0;
+        for(var y=0;y<this.height;y++) {
+            for(var x=0;x<this.width;x++) {
+                this.setTexOffset(x,y,ofsary[ind]);
+                ind++;
+            }
+        }
+        
+    }
+}
+Grid.prototype.bulkSetColor = function(colsary) {
+    var expect_len = this.width * this.height;
+    if(colsary.length < expect_len ) {
+        console.log("bulksetcolor: data not enough. expect:", expect_len, "got:", colsary.length );
+    } else {
+        var ind=0;
+        for(var y=0;y<this.height;y++) {
+            for(var x=0;x<this.width;x++) {
+                this.setColor(x,y,colsary[ind]);
+                ind++;
+            }
+        }        
+    }
 }
 Grid.prototype.setXFlip = function(x,y,flg) {
     if(!this.xflip_table) this.xflip_table=[];
@@ -842,8 +899,14 @@ Grid.prototype.fillColor = function(c) {
     this.need_geometry_update = true;
 }
 Grid.prototype.updateMesh = function() {
-    if(!this.deck) return;
-    if(!this.index_table) return;
+    if(!this.deck) {
+        console.log("grid.updateMesh: deck is null?", this.deck, this.id );
+        return;
+    }
+    if(!this.index_table) {
+        console.log("grid.updateMesh: index_table is null?", this, "grid_id:",this.id );
+        return;
+    }
     
     if(this.need_material_update) {
         this.need_material_update=false;
