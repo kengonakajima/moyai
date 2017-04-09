@@ -11,6 +11,7 @@ var g_sound_system = new SoundSystem();
 var g_sound_pool={};
 var g_prop2d_pool={};
 var g_crshader_pool={};
+var g_font_pool={};
 
 var g_window_width=null;
 var g_window_height=null;
@@ -331,6 +332,21 @@ function onPacket(ws,pkttype,argdata) {
             g_sound_pool[id]=snd;            
         }
         break;
+    case PACKETTYPE_S2C_SOUND_CREATE_FROM_SAMPLES:
+        {
+            var snd_id = dv.getUint32(0,true);
+            var data_len = dv.getUint32(4,true);
+            var sample_num = data_len / 4;
+            var data_float=new Array(sample_num);
+            for(var i=0;i<sample_num;i++) {
+                data_float[i] = dv.getFloat32(8+i*4,true);
+            }
+            var snd = g_sound_system.newSoundFromMemory(data_float,"float");
+            console.log("received sound_create_from_samples:",snd_id,snd,data_len,data_float);
+            snd.id =snd_id;
+            g_sound_pool[snd_id]=snd;
+        }
+        break;
     case PACKETTYPE_S2C_SOUND_DEFAULT_VOLUME:
         {
             var id = dv.getUint32(0,true);
@@ -419,6 +435,67 @@ function onPacket(ws,pkttype,argdata) {
             prop.priority = pkt.priority;
         }
         break;
+
+    case PACKETTYPE_S2C_FONT_CREATE: // fontid; utf8 string array
+        {
+            var id = dv.getUint32(0,true);
+            console.log("received font_create. id:",id);
+            var font = new Font();
+//var g_font = new Font();
+//g_font.loadFromMemTTF( cinecaption227_ttf, charcodes, 12 );
+            font.id=id;
+            g_font_pool[id]=font;
+        }
+        break;
+    case PACKETTYPE_S2C_FONT_CHARCODES: // fontid; utf8str
+        {
+            var font_id = dv.getUint32(0,true);
+            var data_len = dv.getUint32(4,true);
+            var data_u8a=new Uint8Array(data_len);
+            for(var i=0;i<data_len;i++) {
+                data_u8a[i] = dv.getUint8(8+i);
+            }
+            var str = new TextDecoder().decode(data_u8a);
+            console.log("received font_charcodes ", font_id, data_len, data_u8a, str );
+            var font = g_font_pool[font_id];
+            if(font) {
+                font.setCharCodes(str);
+            } else {
+                console.log("warning: font_charcodes: no font found:", font_id);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_FONT_LOADTTF: // fontid; filepath
+        {
+            var font_id = dv.getUint32(0,true);
+            var pixel_size = dv.getUint32(4,true);
+            var pathstr = getString8FromDataView(dv,8);
+            var u8a = g_filedepo.get(pathstr);
+            var font = g_font_pool[font_id];
+            console.log("received font_loadttf loadpng", font_id, pathstr, u8a,font);
+            font.loadFromMemTTF(u8a,null,pixel_size);
+            
+/*            
+            uint32_t font_id = get_u32(argdata+0);
+            uint32_t pixel_size = get_u32(argdata+4);
+            uint8_t cstrlen = get_u8(argdata+4+4);
+            char *path = argdata+4+4+1;
+            char pathbuf[256+1];
+            memcpy( pathbuf, path, cstrlen );
+            pathbuf[cstrlen] = '\0';
+            print("font_loadttf id:%d ps:%d path:'%s'", font_id, pixel_size, pathbuf );
+            Font *f = g_font_pool.get(font_id);
+            if(!f) {
+                print("font %d not found", font_id);
+                break;
+            }
+            // freetype-gl can only read TTF from file, not from memory
+            File *file = g_filedepo->get(pathbuf);
+            if(!file) {
+            */          
+        }
+        break;        
+        
 /*
     PACKETTYPE_S2C_PROP2D_SNAPSHOT = 200, 
     PACKETTYPE_S2C_PROP2D_LOC = 201,
@@ -493,7 +570,7 @@ function onPacket(ws,pkttype,argdata) {
 
 
 
-    */        
+    */
     default:
         console.log("onPacket type:",pkttype);
         break;

@@ -1012,6 +1012,7 @@ function Glyph(l,t,w,h,adv,u0,v0,u1,v1,charcode,dbg) {
     
 //    console.log("glyph: ",u0,v0,u1,v1,charcode);
 }
+Font.prototype.setCharCodes = function(codes_str) { this.charcode_table = codes_str; }
 Font.prototype.loadFromMemTTF = function(u8a,codes,pxsz) {
     if(codes==null) codes = this.charcode_table; else this.charcode_table = codes;
     this.pixel_size = pxsz;
@@ -1549,6 +1550,8 @@ Sound.prototype.setLoop = function(loop) { this.loop=loop; }
 Sound.prototype.isReady = function() { return this.audiobuffer; }
 Sound.prototype.setDefaultVolume = function(v) { this.default_volume=v;}
 Sound.prototype.setData = function(data,type) {
+    this.type = type;
+    this.data = data;
     if(type=="float") {
         this.audiobuffer = this.context.createBuffer( 1, data.length, this.context.sampleRate );
         var b = this.audiobuffer.getChannelData(0); // channel 0
