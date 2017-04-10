@@ -136,29 +136,21 @@ MoyaiClient.prototype.render = function() {
         for(var i in layer.props) {                    
             var prop = layer.props[i];
             prop.updateMesh();
+            var z_inside_prop=0;
+            
             var prop_z = layer.priority * this.z_per_layer + prop.priority * this.z_per_prop;
-            if(prop.mesh) {
-                prop.mesh.position.x = prop.loc.x * relscl.x + camloc.x;
-                prop.mesh.position.y = prop.loc.y * relscl.y + camloc.y;
-                prop.mesh.position.z = prop_z;
-                prop.mesh.scale.x = prop.scl.x * relscl.x;
-                prop.mesh.scale.y = prop.scl.y * relscl.y;
-                prop.mesh.rotation.set(0,0,prop.rot);
-                if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
- //               console.log("adding ", prop.mesh, layer.camera, this.camera );
-                this.scene.add(prop.mesh);
-            }
             if(prop.grids) {
                 for(var i in prop.grids) {
                     var grid = prop.grids[i];
                     grid.updateMesh();
                     grid.mesh.position.x = prop.loc.x * relscl.x + camloc.x;
                     grid.mesh.position.y = prop.loc.y * relscl.y + camloc.y;
-                    grid.mesh.position.z = prop_z + (i+1) * this.z_per_subprop;
+                    grid.mesh.position.z = prop_z + z_inside_prop;
                     grid.mesh.scale.x = prop.scl.x * relscl.x;
                     grid.mesh.scale.y = prop.scl.y * relscl.y;
                     grid.mesh.rotation.set(0,0,prop.rot);
                     this.scene.add(grid.mesh);
+                    z_inside_prop += this.z_per_subprop;
                 }
             }
             if(prop.children.length>0) {
@@ -168,26 +160,40 @@ MoyaiClient.prototype.render = function() {
                     if( chp.mesh ) {
                         chp.mesh.position.x = chp.loc.x * relscl.x + camloc.x;
                         chp.mesh.position.y = chp.loc.y * relscl.y + camloc.y;
-                        chp.mesh.position.z = prop_z + (i+1) * this.z_per_subprop;                        
+                        chp.mesh.position.z = prop_z + z_inside_prop;
                         chp.mesh.scale.x = chp.scl.x * relscl.x;
                         chp.mesh.scale.y = chp.scl.y * relscl.y;
                         chp.mesh.rotation.set(0,0,chp.rot);
                         if( chp.use_additive_blend ) chp.material.blending = THREE.AdditiveBlending; else chp.material.blending = THREE.NormalBlending;
                         this.scene.add(chp.mesh);
+                        z_inside_prop += this.z_per_subprop;
                     }
                 }
             }
+            if(prop.mesh) {
+                prop.mesh.position.x = prop.loc.x * relscl.x + camloc.x;
+                prop.mesh.position.y = prop.loc.y * relscl.y + camloc.y;
+                prop.mesh.position.z = prop_z + z_inside_prop;
+                prop.mesh.scale.x = prop.scl.x * relscl.x;
+                prop.mesh.scale.y = prop.scl.y * relscl.y;
+                prop.mesh.rotation.set(0,0,prop.rot);
+                if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
+ //               console.log("adding ", prop.mesh, layer.camera, this.camera );
+                this.scene.add(prop.mesh);
+                z_inside_prop += this.z_per_subprop;
+            }            
             if(prop.prim_drawer) {
                 for(var i in prop.prim_drawer.prims) {
                     var prim = prop.prim_drawer.prims[i];
                     prim.updateMesh();
                     prim.mesh.position.x = prop.loc.x * relscl.x + camloc.x;
                     prim.mesh.position.y = prop.loc.y * relscl.y + camloc.y;
-                    prim.mesh.position.z = prop_z + (i+1) * this.z_per_subprop;
+                    prim.mesh.position.z = prop_z + z_inside_prop;
                     prim.mesh.scale.x = prop.scl.x * relscl.x;
                     prim.mesh.scale.y = prop.scl.y * relscl.y;
                     prim.mesh.rotation.set(0,0,prop.rot);
                     this.scene.add(prim.mesh);
+                    z_inside_prop += this.z_per_subprop;
                 }
             }            
         }
@@ -280,7 +286,7 @@ Layer.prototype.getHighestPriority = function() {
 Image.prototype.id_gen = 1;
 function Image() {
     this.id = this.__proto__.id_gen++;
-    this.data = [];
+    this.data = null;
     this.png=null;
 }
 Image.prototype.loadPNGMem = function(u8adata) {
@@ -363,6 +369,7 @@ Texture.prototype.loadPNGMem = function(u8adata) {
 }
 Texture.prototype.update = function() {
     if(!this.three_tex) {
+        console.log("texture.update: creating datatexture from image:", this.image,this );
         this.three_tex = new THREE.DataTexture( this.image.data, this.image.width, this.image.height, THREE.RGBAFormat );
         this.three_tex.magFilter = THREE.NearestFilter;
     } else {
@@ -1040,6 +1047,7 @@ TextureAtlas.prototype.dump = function(ofsx,ofsy, w,h) {
 TextureAtlas.prototype.ensureTexture = function() {
     this.image = new Image();
     this.image.setSize(this.width,this.height);
+    console.log("T-A.ensureTexture image:", this.image );
     for(var y=0;y<this.height;y++) {
         for(var x=0;x<this.width;x++) {
             var pixdata = this.data[x+y*this.width]

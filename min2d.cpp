@@ -159,6 +159,7 @@ int main(int argc, char **argv )
     p->setScl(64,64);
     p->setLoc(0,0);
     l->insertProp(p);
+
 #if 0
     // with prim
     pp = new Prop2D();
@@ -168,8 +169,9 @@ int main(int argc, char **argv )
     pp->addLine( Vec2(0,0), Vec2(100,100), Color(1,0,0,1) );
     pp->addLine( Vec2(0,0), Vec2(100,-100), Color(0,1,0,1), 5 );
     l->insertProp(pp);
-   
+#endif   
 
+#if 1    
     // grid
     g = new Grid(4,4);
     for(int x=0;x<4;x++) {
