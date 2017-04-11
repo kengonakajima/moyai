@@ -403,8 +403,8 @@ function onPacket(ws,pkttype,argdata) {
     case PACKETTYPE_S2C_SOUND_POSITION:
         {
             var id = dv.getUint32(0,true);
-            var pos_sec = dv.getFloat32(4);
-            var last_play_vol = dv.getFloat32(8);
+            var pos_sec = dv.getFloat32(4,true);
+            var last_play_vol = dv.getFloat32(8,true);
             var snd = g_sound_pool[id];
             console.log("received sound_position:",id,pos_sec,last_play_vol,snd);
             if(snd) {
@@ -475,6 +475,42 @@ function onPacket(ws,pkttype,argdata) {
             prop.priority = pkt.priority;
         }
         break;
+    case PACKETTYPE_S2C_PROP2D_LOC:
+        {
+            var prop_id = dv.getUint32(0,true);
+            var x = dv.getInt32(4,true);            // get integer loc
+            var y = dv.getInt32(8,true);
+            console.log("received prop2d_loc", prop_id, x,y);
+            var p = g_prop2d_pool[prop_id];
+            if(p) p.setLoc(x,y);
+        }
+        break;        
+    case PACKETTYPE_S2C_PROP2D_COLOR:
+        {
+            var prop_id = dv.getUint32(0,true);
+            var bsz = dv.getUint32(4,true);
+            var col = getPacketColor(dv,8);
+            console.log("received prop2d_color ", prop_id, col );
+            var p = g_prop2d_pool[prop_id];
+            if(p) p.setColor(col);
+        }
+        break;
+
+//    case PACKETTYPE_S2C_PROP2D_OPTBITS:
+//    PACKETTYPE_S2C_PROP2D_PRIORITY = 210,
+
+//    PACKETTYPE_S2C_PROP2D_CLEAR_CHILD = 240,
+//    PACKETTYPE_S2C_PROP2D_LOC_VEL = 250,
+//    PACKETTYPE_S2C_PROP2D_INDEX_LOC = 251,    
+
+    case PACKETTYPE_S2C_PROP2D_DELETE:
+        {
+            var prop_id = dv.getUint32(0,true);
+            var p = g_prop2d_pool[prop_id];
+            console.log("received prop2d_delete",prop_id);
+            if(p) p.to_clean = true;
+        }
+        break;        
 
     case PACKETTYPE_S2C_FONT_CREATE: // fontid; utf8 string array
         {
@@ -788,7 +824,6 @@ function onPacket(ws,pkttype,argdata) {
     PACKETTYPE_S2C_SOUND_PLAY = 660,
     PACKETTYPE_S2C_SOUND_POSITION = 662,    
     PACKETTYPE_S2C_SOUND_STOP = 661,    
-    PACKETTYPE_S2C_SOUND_POSITION = 662,
 
     PACKETTYPE_S2C_JPEG_DECODER_CREATE = 700,
     PACKETTYPE_S2C_CAPTURED_FRAME = 701,
