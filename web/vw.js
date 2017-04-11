@@ -400,6 +400,17 @@ function onPacket(ws,pkttype,argdata) {
             }
         }
         break;
+    case PACKETTYPE_S2C_SOUND_PLAY:
+        {
+            var id = dv.getUint32(0,true);
+            var vol = dv.getFloat32(4,true);
+            var snd = g_sound_pool[id];
+            console.log("received sound_play ", id,vol);
+            if(snd) {
+                snd.play(vol);
+            }
+        }
+        break;
     case PACKETTYPE_S2C_SOUND_POSITION:
         {
             var id = dv.getUint32(0,true);
