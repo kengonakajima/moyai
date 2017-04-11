@@ -496,12 +496,45 @@ function onPacket(ws,pkttype,argdata) {
         }
         break;
 
+    case PACKETTYPE_S2C_PROP2D_INDEX:
+        {
+            var prop_id = dv.getUint32(0,true);
+            var ind = dv.getInt32(4,true);
+            var p = g_prop2d_pool[prop_id];
+            console.log("received prop2d_index",prop_id,ind);
+            if(p) p.setIndex(ind);
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_SCALE:
+        {
+            var prop_id = dv.getUint32(0,true);
+            var scl_x = dv.getFloat32(4,true);
+            var scl_y = dv.getFloat32(8,true);
+            var p = g_prop2d_pool[prop_id];
+            console.log("received prop2d_scale",prop_id,scl_x,scl_y);
+            if(p) p.setScl(scl_x,scl_y);
+        }
+        break;
+        
 //    case PACKETTYPE_S2C_PROP2D_OPTBITS:
 //    PACKETTYPE_S2C_PROP2D_PRIORITY = 210,
 
 //    PACKETTYPE_S2C_PROP2D_CLEAR_CHILD = 240,
 //    PACKETTYPE_S2C_PROP2D_LOC_VEL = 250,
-//    PACKETTYPE_S2C_PROP2D_INDEX_LOC = 251,    
+    case PACKETTYPE_S2C_PROP2D_INDEX_LOC:
+        {
+            var prop_id = dv.getUint32(0,true);
+            var ind = dv.getInt32(4,true);
+            var x = dv.getInt32(8,true);            // get integer loc
+            var y = dv.getInt32(12,true);
+            console.log("received prop2d_index_loc", prop_id, ind,x,y);
+            var p = g_prop2d_pool[prop_id];
+            if(p) {
+                p.setLoc(x,y);
+                p.setIndex(ind);
+            }
+        }
+        break;
 
     case PACKETTYPE_S2C_PROP2D_DELETE:
         {
