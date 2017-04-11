@@ -13,6 +13,7 @@ var g_prop2d_pool={};
 var g_crshader_pool={};
 var g_font_pool={};
 var g_grid_pool={};
+var g_textbox_pool={};
 
 var g_window_width=null;
 var g_window_height=null;
@@ -28,6 +29,14 @@ function getString8FromDataView(dv,ofs) {
         u8a[i]=dv.getUint8(ofs+1+i);
     }
     return String.fromCharCode.apply(null,u8a);
+}
+function getUTF8StringFromDataView(dv,ofs) {
+    var data_len = dv.getUint32(ofs+0,true);
+    var data_u8a=new Uint8Array(data_len);
+    for(var i=0;i<data_len;i++) {
+        data_u8a[i] = dv.getUint8(ofs+4+i);
+    }
+    return new TextDecoder().decode(data_u8a);
 }
 function getPacketColor(dv,ofs) {
     var r = dv.getUint8(ofs);
@@ -482,13 +491,8 @@ function onPacket(ws,pkttype,argdata) {
     case PACKETTYPE_S2C_FONT_CHARCODES: // fontid; utf8str
         {
             var font_id = dv.getUint32(0,true);
-            var data_len = dv.getUint32(4,true);
-            var data_u8a=new Uint8Array(data_len);
-            for(var i=0;i<data_len;i++) {
-                data_u8a[i] = dv.getUint8(8+i);
-            }
-            var str = new TextDecoder().decode(data_u8a);
-            console.log("received font_charcodes ", font_id, data_len, data_u8a, str );
+            var str = getUTF8StringFromDataView(dv,4);
+            console.log("received font_charcodes ", font_id, str );
             var font = g_font_pool[font_id];
             if(font) {
                 font.setCharCodes(str);
@@ -636,6 +640,89 @@ function onPacket(ws,pkttype,argdata) {
             delete g_grid_pool[grid_id];
         }
         break;
+
+    case PACKETTYPE_S2C_TEXTBOX_CREATE: // tb_id, uint32_t
+        {
+            var tb_id = dv.getUint32(0,true);
+            var tb = g_textbox_pool[tb_id];
+            console.log("received textbox_create", tb_id, tb );
+            if(!tb) {
+                tb = new TextBox();
+                tb.id = tb_id;
+                g_textbox_pool[tb_id]=tb;
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_TEXTBOX_FONT:    // tb_id, font_id
+        {
+            var tb_id = dv.getUint32(0,true);
+            var font_id = dv.getUint32(4,true);
+            var tb = g_textbox_pool[tb_id];
+            var font = g_font_pool[font_id];
+            console.log("received tb_font", tb_id, font_id, tb, font );
+            if(tb&&font) {
+                tb.setFont(font);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_TEXTBOX_STRING:    // tb_id, utf8str
+        {
+            var tb_id = dv.getUint32(0,true);
+            var str = getUTF8StringFromDataView(dv,4);
+            console.log("received tb_str",tb_id,str);
+            var tb = g_textbox_pool[tb_id];
+            if(tb) {
+                tb.setString(str);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_TEXTBOX_LOC:    // tb_id, x,y
+        {
+            var tb_id = dv.getUint32(0,true);
+            var x = dv.getFloat32(4,true);
+            var y = dv.getFloat32(8,true);
+            var tb = g_textbox_pool[tb_id];
+            console.log("received tb_loc",tb_id,x,y);
+            if(tb) tb.setLoc(x,y);
+        }
+        break;
+    case PACKETTYPE_S2C_TEXTBOX_SCL:    // tb_id, x,y
+        {
+            var tb_id = dv.getUint32(0,true);
+            var x = dv.getFloat32(4,true);
+            var y = dv.getFloat32(8,true);
+            var tb = g_textbox_pool[tb_id];
+            console.log("received tb_scl",tb_id,x,y);
+            if(tb) tb.setScl(x,y);
+        }
+        break;
+    case PACKETTYPE_S2C_TEXTBOX_COLOR:    // tb_id, PacketColor
+        {
+            var tb_id = dv.getUint32(0,true);
+            var col_len = dv.getUint32(4,true);
+            var col = getPacketColor(dv,8);            
+            var tb = g_textbox_pool[tb_id];
+            console.log("received tb_col",tb_id,col,argdata);
+            if(tb) tb.setColor(col);
+        }
+        break;
+    case PACKETTYPE_S2C_TEXTBOX_LAYER:    // tb_id, l_id
+        {
+            var tb_id = dv.getUint32(0,true);
+            var l_id = dv.getUint32(4,true);
+            var tb = g_textbox_pool[tb_id];
+            var l = g_layer_pool[l_id];
+            console.log("received tb_layer", tb_id, l_id,tb,l);
+            if(tb&&l) {
+                if(l.getPropById(tb_id)==null) {
+                    // Layerに2回insertしたらまずいので
+                    console.log("inserting tb to layer");
+                    l.insertProp(tb);
+                }                
+            }
+        }
+        break;
+        
         
 /*
     PACKETTYPE_S2C_PROP2D_SNAPSHOT = 200, 

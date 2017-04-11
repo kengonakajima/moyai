@@ -282,6 +282,12 @@ Layer.prototype.getHighestPriority = function() {
     }
     return highp;    
 }
+Layer.prototype.getPropById = function(id) {
+    for(var i in this.props) {
+        if( this.props[i].id == id ) return this.props[i];
+    }
+    return null;
+}
 /////////////////////
 Image.prototype.id_gen = 1;
 function Image() {

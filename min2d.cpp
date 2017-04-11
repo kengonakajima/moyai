@@ -171,7 +171,7 @@ int main(int argc, char **argv )
     l->insertProp(pp);
 #endif   
 
-#if 1    
+#if 0    
     // grid
     g = new Grid(4,4);
     for(int x=0;x<4;x++) {
@@ -245,7 +245,7 @@ int main(int argc, char **argv )
     l->insertProp(chp);
 #endif    
 
-#if 0
+#if 1
     // text
     wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえお";
     
@@ -266,7 +266,9 @@ int main(int argc, char **argv )
     movtb->setScl(3);
     movtb->setLoc(0,-150);
     l->insertProp(movtb);
-
+#endif
+    
+#if 0
     // multiple viewport and layer
     Viewport *vp2 = new Viewport(); // testing multiple viewport scaling
     vp2->setSize(SCRW*retina,SCRH*retina); 
