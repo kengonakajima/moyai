@@ -526,6 +526,15 @@ function onPacket(ws,pkttype,argdata) {
             if(p) p.setScl(scl_x,scl_y);
         }
         break;
+    case PACKETTYPE_S2C_PROP2D_ROT:
+        {
+            var prop_id = dv.getUint32(0,true);
+            var r = dv.getFloat32(4,true);
+            var p = g_prop2d_pool[prop_id];
+            console.log("received prop2d_rot",prop_id,r);
+            if(p) p.setRot(r);            
+        }
+        break;
         
 //    case PACKETTYPE_S2C_PROP2D_OPTBITS:
 //    PACKETTYPE_S2C_PROP2D_PRIORITY = 210,
@@ -807,7 +816,6 @@ function onPacket(ws,pkttype,argdata) {
 /*
   のこり
   
-    PACKETTYPE_S2C_PROP2D_ROT = 205,
     PACKETTYPE_S2C_PROP2D_FLIPROTBITS = 206,
 
     PACKETTYPE_S2C_PROP2D_OPTBITS = 209,
