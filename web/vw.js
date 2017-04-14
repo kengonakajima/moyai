@@ -50,6 +50,18 @@ function getPacketVec2(dv,ofs) {
     var y = dv.getFloat32(ofs+4,true);
     return new Vec2(x,y);
 }
+function getPacketPrim(dv,ofs) {
+    var prim_id = dv.getUint32(ofs,true);
+    var prim_type = dv.getUint32(ofs+4,true);
+    var v_a = getPacketVec2(dv,ofs+8);
+    var v_b = getPacketVec2(dv,ofs+16);
+    var col = getPacketColor(dv,ofs+24);
+    var line_width = dv.getFloat32(ofs+28,true);
+    var prim = new Prim( prim_type, v_a, v_b, col, line_width );
+    prim.id = prim_id;
+    return prim;    
+} 
+
 function getProp2DSnapshot(dv) {
     var out={};
     var sz = dv.getUint32(0,true);
@@ -531,7 +543,7 @@ function onPacket(ws,pkttype,argdata) {
             var prop_id = dv.getUint32(0,true);
             var r = dv.getFloat32(4,true);
             var p = g_prop2d_pool[prop_id];
-            console.log("received prop2d_rot",prop_id,r);
+//            console.log("received prop2d_rot",prop_id,r);
             if(p) p.setRot(r);            
         }
         break;
@@ -812,7 +824,53 @@ function onPacket(ws,pkttype,argdata) {
         }
         break;
         
-        
+
+    case PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT:  // array of PacketPrim
+        {
+            var prop_id = dv.getUint32(0,true);
+            var pktsize = dv.getUint32(4,true);
+            var pktprim_size=32;
+            var pktnum = pktsize / pktprim_size;
+            if( pktsize % pktprim_size != 0 ) {
+                console.log("prim packet size: expect:", pktprim_size, "got:", pktsize );
+                break;
+            }
+            var prop = g_prop2d_pool[prop_id];
+            if(!prop) {
+                console.log("prop2d not found");
+                break;
+            }
+            prop.ensurePrimDrawer();
+                
+            //            print("prim bulk. pktsize:%d num:%d",pktsize, pktnum );
+            var remote_prim_ids=[];
+            for(var i=0;i<pktnum;i++){
+                var prim = getPacketPrim(dv,8+i*pktprim_size);
+                console.log("prim_bulk i:",i,prim)
+                prop.prim_drawer.ensurePrim(prim);
+                remote_prim_ids[i]=prim.id;
+            }
+
+            // check for deleted prims
+            if( prop.prim_drawer.prims.length > pktnum ) {
+                //                print( "primitive deleted? pkt:%d local:%d", pktnum, prop->prim_drawer->prim_num );
+                for( var i in prop.prim_drawer.prims.length ) {
+                    var prim = prop.prim_drawer.prims[i];
+                    var found = false;
+                    for(var j=0;j<pktnum;j++) {
+                        if( prim.id == remote_prim_ids[j] ) {
+                            found=true;
+                            break;
+                        }
+                    }
+                    if(!found) {
+                        console.log("  local prim", prim.id, " is not found in packet. delete");
+                        prop.prim_drawer.deletePrim(prim.id);
+                    }
+                }
+            }            
+        }
+        break;
 /*
   のこり
   
@@ -830,7 +888,7 @@ function onPacket(ws,pkttype,argdata) {
     PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER = 342, // cam id, layer id: camera belongs to the layer's dynamic_cameras
 
 
-    PACKETTYPE_S2C_PRIM_BULK_SNAPSHOT = 610, // array of PacketPrim
+
 
     PACKETTYPE_S2C_SOUND_STOP = 661,    
 

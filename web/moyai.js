@@ -192,6 +192,7 @@ MoyaiClient.prototype.render = function() {
                     prim.mesh.scale.x = prop.scl.x * relscl.x;
                     prim.mesh.scale.y = prop.scl.y * relscl.y;
                     prim.mesh.rotation.set(0,0,prop.rot);
+//                    console.log("adding prim:", prim, prim.a, prim.b, prim.mesh.position );
                     this.scene.add(prim.mesh);
                     z_inside_prop += this.z_per_subprop;
                 }
@@ -476,11 +477,16 @@ Prim.prototype.updateMesh = function() {
         this.geom.vertices.push(new THREE.Vector3(this.b.x,this.a.y,0));
         this.geom.vertices.push(new THREE.Vector3(this.b.x,this.b.y,0));
         this.geom.vertices.push(new THREE.Vector3(this.a.x,this.b.y,0));
-        this.geom.verticesNeedUpdate=true;        
-        this.geom.faces.push(new THREE.Face3(0, 2, 1));
-        this.geom.faces.push(new THREE.Face3(0, 3, 2));
+        this.geom.verticesNeedUpdate=true;
+        if( (this.a.x<this.b.x && this.a.y<this.b.y) || (this.a.x>this.b.x && this.a.y>this.b.y) ) {
+            this.geom.faces.push(new THREE.Face3(0, 1, 2));
+            this.geom.faces.push(new THREE.Face3(0, 2, 3));
+        } else {
+            this.geom.faces.push(new THREE.Face3(0, 2, 1));
+            this.geom.faces.push(new THREE.Face3(0, 3, 2));
+        }
         if(!this.material) {
-            this.material = createMeshBasicMaterial({ color: this.color.toCode(),depthTest:true, transparent:true });
+            this.material = createMeshBasicMaterial({ color: this.color.toCode(),depthTest:true, transparent:true, side: THREE.DoubleSide });
         }
         if(this.mesh) {
             this.mesh.geometry = this.geom;
@@ -504,11 +510,13 @@ function PrimDrawer() {
 PrimDrawer.prototype.addLine = function(a,b,col,w) {
     var newprim = new Prim(PRIMTYPE_LINE,a,b,col,w);
     this.prims.push(newprim);
+    console.log("PRIMDR addline:",newprim);    
     return newprim;
 }
 PrimDrawer.prototype.addRect = function(a,b,col,w) {
     var newprim = new Prim(PRIMTYPE_RECTANGLE,a,b,col,w);
     this.prims.push(newprim);
+    console.log("PRIMDR addrect:",newprim);
     return newprim;
 }
 PrimDrawer.prototype.getPrimById = function(id) {
@@ -520,10 +528,32 @@ PrimDrawer.prototype.getPrimById = function(id) {
 PrimDrawer.prototype.deletePrim = function(id) {
     for(var i in  this.prims) {
         if(this.prims[i].id == id ) {
+            console.log("deletePrim:id:",id);
             this.prims[i].onDelete();
             this.prims.splice(i,1);
             return;
         }
+    }
+}
+PrimDrawer.prototype.ensurePrim = function(p) {
+    var existing = this.getPrimById(p.id);
+    if(existing){
+        console.log("ensureprim existing",p, existing);
+        existing.type = p.type;
+        existing.a=new Vec2(p.a.x,p.a.y);
+        existing.b=new Vec2(p.b.x,p.b.y);
+        existing.color=p.color;
+        existing.line_width=p.line_width;
+        existing.updateMesh();
+    } else {
+        console.log("ensureprim new ",p);        
+        if(p.type==PRIMTYPE_LINE) {
+            var newprim = this.addLine(p.a,p.b,p.color,p.line_width);
+            newprim.id=p.id;
+        } else if(p.type == PRIMTYPE_RECTANGLE) {
+            var newprim = this.addRect(p.a,p.b,p.color,p.line_width);
+            newprim.id=p.id;
+        }        
     }
 }
 
@@ -581,12 +611,15 @@ Prop2D.prototype.setColor = function(r,g,b,a) {
 }
 Prop2D.prototype.setXFlip = function(flg) { this.xflip=flg; this.need_uv_update = true; }
 Prop2D.prototype.setYFlip = function(flg) { this.yflip=flg; this.need_uv_update = true; }
-Prop2D.prototype.addLine = function(p0,p1,col,w) {
+Prop2D.prototype.ensurePrimDrawer = function() {
     if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
+}
+Prop2D.prototype.addLine = function(p0,p1,col,w) {
+    this.ensurePrimDrawer();
     return this.prim_drawer.addLine(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
 }
 Prop2D.prototype.addRect = function(p0,p1,col,w) {
-    if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
+    this.ensurePrimDrawer();
     return this.prim_drawer.addRect(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
 }
 Prop2D.prototype.getPrimById = function(id) {

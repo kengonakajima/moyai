@@ -287,11 +287,14 @@ if(1) {
     var g_linep = new Prop2D();
     var g_narrow_line_prim = g_linep.addLine( new Vec2(0,0), new Vec2(100,100), new Color(1,0,0,1) );
     //g_linep.addLine( new Vec2(0,0), new Vec2(range(-100,100),range(-50,50)), new Color(range(0,1),range(0,1),range(0,1),1), 5 );
+    g_linep.addRect( new Vec2(-100,-100), new Vec2(0,0), new Color(1,1,1,1));
+    g_linep.addRect( new Vec2(-100,100), new Vec2(0,0), new Color(1,0,1,1));
+    g_linep.addRect( new Vec2(100,-100), new Vec2(0,0), new Color(0,1,1,1));    
+    g_linep.addRect( new Vec2(100,100), new Vec2(0,0), new Color(1,1,0,1));
     g_linep.addLine( new Vec2(0,0), new Vec2(100,-50), new Color(0,1,1,1), 5 );
-    g_linep.addRect( new Vec2(0,0), new Vec2(-150,230), new Color(0.2,0,1,0.5) );
-    //for(var i=0;i<60;i++){
-    //   g_linep.addRect( new Vec2(0,0), new Vec2(range(-150,100),range(-200,230)), new Color(0.2,range(0,1),1,0.5) );
-    //}
+//    for(var i=0;i<60;i++){
+//       g_linep.addRect( new Vec2(0,0), new Vec2(range(-150,100),range(-200,230)), new Color(0.2,range(0,1),1,0.5) );
+//    }
     g_linep.setLoc(0,200);
     g_linep.setScl(1.0);
     g_main_layer.insertProp(g_linep);
