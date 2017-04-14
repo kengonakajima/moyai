@@ -81,6 +81,15 @@ function getProp2DSnapshot(dv) {
     out.fliprotbits = dv.getUint8(64);
     return out;
 }
+function getPacketColorReplacerShaderSnapshot(dv,ofs) {
+    var out={}
+    out.shader_id = dv.getUint32(ofs,true);
+    out.epsilon = dv.getFloat32(ofs+4,true);
+    out.from_color = getPacketColor(dv,ofs+8);
+    out.to_color = getPacketColor(dv,ofs+12);
+    return out;
+}
+
 function getXFlipFromFlipRotBits(bits) { return bits & 0x01; }
 function getYFlipFromFlipRotBits(bits) { return bits & 0x02; }
 function getUVRotFromFlipRotBits(bits) { return bits & 0x04; }
@@ -623,7 +632,16 @@ function onPacket(ws,pkttype,argdata) {
 
     case PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT:
         {
-            console.log("received colorreplacershader_snapshot, NOT IMPLEMENTED yet");
+            var pktsize = dv.getUint32(0,true);
+            var pkt = getPacketColorReplacerShaderSnapshot(dv,4);
+//            console.log("received colorreplacershader_snapshot", pkt.shader_id );            
+            var s = g_crshader_pool[pkt.shader_id];
+            if(!s) {
+                s = new ColorReplacerShader();
+                s.id = pkt.shader_id;
+                g_crshader_pool[pkt.shader_id] = s;
+            }
+            s.setColor( pkt.from_color, pkt.to_color, pkt.epsilon );
         }
         break;
 
