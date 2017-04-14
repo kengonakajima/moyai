@@ -842,7 +842,8 @@ function onPacket(ws,pkttype,argdata) {
             }
             prop.ensurePrimDrawer();
                 
-            //            print("prim bulk. pktsize:%d num:%d",pktsize, pktnum );
+            console.log("received prim_bulk num:",pktnum );
+            
             var remote_prim_ids=[];
             for(var i=0;i<pktnum;i++){
                 var prim = getPacketPrim(dv,8+i*pktprim_size);
@@ -853,8 +854,8 @@ function onPacket(ws,pkttype,argdata) {
 
             // check for deleted prims
             if( prop.prim_drawer.prims.length > pktnum ) {
-                //                print( "primitive deleted? pkt:%d local:%d", pktnum, prop->prim_drawer->prim_num );
-                for( var i in prop.prim_drawer.prims.length ) {
+//                console.log( "primitive deleted? pkt:",pktnum, "local:", prop.prim_drawer.prims, remote_prim_ids );
+                for( var i in prop.prim_drawer.prims ) {
                     var prim = prop.prim_drawer.prims[i];
                     var found = false;
                     for(var j=0;j<pktnum;j++) {
@@ -864,7 +865,7 @@ function onPacket(ws,pkttype,argdata) {
                         }
                     }
                     if(!found) {
-                        console.log("  local prim", prim.id, " is not found in packet. delete");
+//                        console.log("  local prim", prim.id, " is not found in packet. delete");
                         prop.prim_drawer.deletePrim(prim.id);
                     }
                 }
