@@ -397,6 +397,11 @@ int main(int argc, char **argv )
             if(cg) cg->printf(0,4, Color(1,1,1,1), Format( "CNT:%d", loop_counter).buf);
         }
 
+        if(p) {
+            if( g_keyboard->getKey('7')) {
+                p->use_additive_blend = !p->use_additive_blend;
+            }
+        }
         if(pp) {
             if( g_keyboard->getKey('8')  ) {
                 pp->deletePrim(2);
