@@ -603,7 +603,14 @@ function onPacket(ws,pkttype,argdata) {
             }
         }
         break;
-        
+    case PACKETTYPE_S2C_PROP2D_PRIORITY:
+        {
+            var prop_id = dv.getUint32(0,true);
+            var prio = dv.getInt32(4,true); //int32_t via uint32
+            var p = g_prop2d_pool[prop_id];
+            if(p) p.priority = prio;
+        }
+        break;
     case PACKETTYPE_S2C_FONT_CREATE: // fontid; utf8 string array
         {
             var id = dv.getUint32(0,true);
@@ -906,10 +913,8 @@ function onPacket(ws,pkttype,argdata) {
         }
         break;
 /*
-  のこり
+  TODO:
 
-    PACKETTYPE_S2C_PROP2D_PRIORITY = 210,
-    PACKETTYPE_S2C_PROP2D_CLEAR_CHILD = 240,
     PACKETTYPE_S2C_PROP2D_LOC_VEL = 250,
 
 
