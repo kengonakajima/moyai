@@ -376,7 +376,7 @@ Texture.prototype.loadPNGMem = function(u8adata) {
 }
 Texture.prototype.update = function() {
     if(!this.three_tex) {
-        console.log("texture.update: creating datatexture from image:", this.image,this );
+//        console.log("texture.update: creating datatexture from image:", this.image,this );
         this.three_tex = new THREE.DataTexture( this.image.data, this.image.width, this.image.height, THREE.RGBAFormat );
         this.three_tex.magFilter = THREE.NearestFilter;
     } else {
@@ -510,13 +510,11 @@ function PrimDrawer() {
 PrimDrawer.prototype.addLine = function(a,b,col,w) {
     var newprim = new Prim(PRIMTYPE_LINE,a,b,col,w);
     this.prims.push(newprim);
-    console.log("PRIMDR addline:",newprim);    
     return newprim;
 }
 PrimDrawer.prototype.addRect = function(a,b,col,w) {
     var newprim = new Prim(PRIMTYPE_RECTANGLE,a,b,col,w);
     this.prims.push(newprim);
-    console.log("PRIMDR addrect:",newprim);
     return newprim;
 }
 PrimDrawer.prototype.getPrimById = function(id) {
@@ -528,7 +526,6 @@ PrimDrawer.prototype.getPrimById = function(id) {
 PrimDrawer.prototype.deletePrim = function(id) {
     for(var i in  this.prims) {
         if(this.prims[i].id == id ) {
-            console.log("deletePrim:id:",id);
             this.prims[i].onDelete();
             this.prims.splice(i,1);
             return;
@@ -538,7 +535,6 @@ PrimDrawer.prototype.deletePrim = function(id) {
 PrimDrawer.prototype.ensurePrim = function(p) {
     var existing = this.getPrimById(p.id);
     if(existing){
-        console.log("ensureprim existing",p, existing);
         existing.type = p.type;
         existing.a=new Vec2(p.a.x,p.a.y);
         existing.b=new Vec2(p.b.x,p.b.y);
@@ -546,7 +542,6 @@ PrimDrawer.prototype.ensurePrim = function(p) {
         existing.line_width=p.line_width;
         existing.updateMesh();
     } else {
-        console.log("ensureprim new ",p);        
         if(p.type==PRIMTYPE_LINE) {
             var newprim = this.addLine(p.a,p.b,p.color,p.line_width);
             newprim.id=p.id;
@@ -641,7 +636,6 @@ Prop2D.prototype.setGrid = function(g) {
             }
         }
     }
-    console.log("setgrid:adding grid:",g);
     this.addGrid(g);
 }
 Prop2D.prototype.setTexture = function(tex) {
@@ -787,7 +781,6 @@ Prop2D.prototype.updateMesh = function() {
 
 Grid.prototype.id_gen=1;
 function Grid(w,h) {
-    console.log("Grid new called!");
     this.id=this.__proto__.id_gen++;
     this.width=w;
     this.height=h;
@@ -1086,7 +1079,6 @@ TextureAtlas.prototype.dump = function(ofsx,ofsy, w,h) {
 TextureAtlas.prototype.ensureTexture = function() {
     this.image = new Image();
     this.image.setSize(this.width,this.height);
-    console.log("T-A.ensureTexture image:", this.image );
     for(var y=0;y<this.height;y++) {
         for(var x=0;x<this.width;x++) {
             var pixdata = this.data[x+y*this.width]

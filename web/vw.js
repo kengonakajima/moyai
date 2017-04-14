@@ -181,7 +181,7 @@ function onPacket(ws,pkttype,argdata) {
             var id = dv.getUint32(0,true);
             var x = dv.getFloat32(4,true);
             var y = dv.getFloat32(8,true);
-            console.log("received cam loc:",id,x,y);
+//            console.log("received cam loc:",id,x,y);
             var cam = g_camera_pool[id];
             if(!cam) { console.log("cam not found"); return;}
             cam.setLoc(x,y);
@@ -241,7 +241,7 @@ function onPacket(ws,pkttype,argdata) {
                 data_u8a[i] = dv.getUint8(1+pathstr.length+4+i);
             }
 
-            console.log("received file. path:",pathstr, "data:",data_u8a );
+            console.log("received file. path:",pathstr );
             g_filedepo.ensure(pathstr,data_u8a);
         }
         break;
@@ -276,7 +276,7 @@ function onPacket(ws,pkttype,argdata) {
             var w = dv.getUint32(4,true);
             var h = dv.getUint32(8,true);
             var img = g_image_pool[id];
-            console.log("received image ensure size",id,w,h,img);
+            console.log("received image ensure size",id,w,h);
             if(img) {
                 img.setSize(w,h);
             }
@@ -292,7 +292,7 @@ function onPacket(ws,pkttype,argdata) {
                 data_u8a[i] = dv.getUint8(8+i);
             }
             var img = g_image_pool[id];
-            console.log("received image_raw. ",id,data_len,data_u8a);
+            console.log("received image_raw. ",id,data_len);
             if(img) {
                 if( img.getBufferSize() != data_len ) {
                     console.log("warning: image_raw different buffer size. expect:",img.getBufferSize(), " got:", data_len );
@@ -393,7 +393,7 @@ function onPacket(ws,pkttype,argdata) {
             var snd = g_sound_pool[snd_id];
             if(!snd ) {
                 snd = g_sound_system.newSoundFromMemory(data_float,"float");
-                console.log("received sound_create_from_samples:",snd_id,snd,data_len,data_float);
+                console.log("received sound_create_from_samples:",snd_id,data_len);
                 snd.id =snd_id;
                 g_sound_pool[snd_id]=snd;
             }
@@ -404,7 +404,7 @@ function onPacket(ws,pkttype,argdata) {
             var id = dv.getUint32(0,true);
             var vol = dv.getFloat32(4,true);
             var snd = g_sound_pool[id];
-            console.log("received sound default volume",id,vol,snd);
+            console.log("received sound default volume",id,vol);
             if(snd) {
                 snd.setDefaultVolume(vol);
             } else {
@@ -429,7 +429,7 @@ function onPacket(ws,pkttype,argdata) {
             var pos_sec = dv.getFloat32(4,true);
             var last_play_vol = dv.getFloat32(8,true);
             var snd = g_sound_pool[id];
-            console.log("received sound_position:",id,pos_sec,last_play_vol,snd);
+            console.log("received sound_position:",id,pos_sec,last_play_vol);
             if(snd) {
                 if(snd.isPlaying() == false ) snd.play(last_play_vol);
                 snd.setTimePositionSec( pos_sec );
@@ -470,7 +470,7 @@ function onPacket(ws,pkttype,argdata) {
                 } else if(parent_prop) {
                     var found_prop = prop.getChild( pkt.prop_id );
                     if(!found_prop) {
-                        console.log("  adding a child to a prop", pkt.prop_id, pkt.parent_prop_id );
+//                        console.log("  adding a child to a prop", pkt.prop_id, pkt.parent_prop_id );
                         parent_prop.addChild(prop);
                     }
                 } else {
@@ -492,7 +492,7 @@ function onPacket(ws,pkttype,argdata) {
                 if(crs) {
                     prop.setFragmentShader(crs);
                 } else {
-                    console.log("  colorreplacershader not found", pkt.shader_id);
+                    console.log("prop2d_snapshot: colorreplacershader not found", pkt.shader_id);
                 }
             }
             prop.priority = pkt.priority;
@@ -503,7 +503,7 @@ function onPacket(ws,pkttype,argdata) {
             var prop_id = dv.getUint32(0,true);
             var x = dv.getInt32(4,true);            // get integer loc
             var y = dv.getInt32(8,true);
-            console.log("received prop2d_loc", prop_id, x,y);
+//            console.log("received prop2d_loc", prop_id, x,y);
             var p = g_prop2d_pool[prop_id];
             if(p) p.setLoc(x,y);
         }
@@ -513,7 +513,7 @@ function onPacket(ws,pkttype,argdata) {
             var prop_id = dv.getUint32(0,true);
             var bsz = dv.getUint32(4,true);
             var col = getPacketColor(dv,8);
-            console.log("received prop2d_color ", prop_id, col );
+//            console.log("received prop2d_color ", prop_id, col );
             var p = g_prop2d_pool[prop_id];
             if(p) p.setColor(col);
         }
@@ -524,7 +524,7 @@ function onPacket(ws,pkttype,argdata) {
             var prop_id = dv.getUint32(0,true);
             var ind = dv.getInt32(4,true);
             var p = g_prop2d_pool[prop_id];
-            console.log("received prop2d_index",prop_id,ind);
+//            console.log("received prop2d_index",prop_id,ind);
             if(p) p.setIndex(ind);
         }
         break;
@@ -534,7 +534,7 @@ function onPacket(ws,pkttype,argdata) {
             var scl_x = dv.getFloat32(4,true);
             var scl_y = dv.getFloat32(8,true);
             var p = g_prop2d_pool[prop_id];
-            console.log("received prop2d_scale",prop_id,scl_x,scl_y);
+//            console.log("received prop2d_scale",prop_id,scl_x,scl_y);
             if(p) p.setScl(scl_x,scl_y);
         }
         break;
@@ -547,8 +547,15 @@ function onPacket(ws,pkttype,argdata) {
             if(p) p.setRot(r);            
         }
         break;
-        
-//    case PACKETTYPE_S2C_PROP2D_OPTBITS:
+    case PACKETTYPE_S2C_PROP2D_OPTBITS:
+        {
+            var prop_id = dv.getUint32(0,true);
+            var bits = dv.getUint32(4,true);
+//            console.log("received prop2d_optbits", prop_id,bits );
+            var p = g_prop2d_pool[prop_id];
+            if(p) p.use_additive_blend = bits & PROP2D_OPTBIT_ADDITIVE_BLEND;            
+        }
+        break;
 //    PACKETTYPE_S2C_PROP2D_PRIORITY = 210,
 
 //    PACKETTYPE_S2C_PROP2D_CLEAR_CHILD = 240,
@@ -559,7 +566,7 @@ function onPacket(ws,pkttype,argdata) {
             var ind = dv.getInt32(4,true);
             var x = dv.getInt32(8,true);            // get integer loc
             var y = dv.getInt32(12,true);
-            console.log("received prop2d_index_loc", prop_id, ind,x,y);
+//            console.log("received prop2d_index_loc", prop_id, ind,x,y);
             var p = g_prop2d_pool[prop_id];
             if(p) {
                 p.setLoc(x,y);
@@ -572,7 +579,7 @@ function onPacket(ws,pkttype,argdata) {
         {
             var prop_id = dv.getUint32(0,true);
             var p = g_prop2d_pool[prop_id];
-            console.log("received prop2d_delete",prop_id);
+//            console.log("received prop2d_delete",prop_id);
             if(p) p.to_clean = true;
         }
         break;        
@@ -609,7 +616,7 @@ function onPacket(ws,pkttype,argdata) {
             var pathstr = getString8FromDataView(dv,8);
             var u8a = g_filedepo.get(pathstr);
             var font = g_font_pool[font_id];
-            console.log("received font_loadttf loadpng", font_id, pathstr, u8a,font);
+            console.log("received font_loadttf loadpng", font_id, pathstr);
             font.loadFromMemTTF(u8a,null,pixel_size);
         }
         break;        
@@ -629,7 +636,7 @@ function onPacket(ws,pkttype,argdata) {
             if(!g) {
                 g = new Grid(w,h);
                 g.debug_id = 1234;
-                console.log("received grid_create", grid_id,w,h,g);
+//                console.log("received grid_create", grid_id,w,h);
                 g.id = grid_id;
                 g_grid_pool[grid_id] = g;
             }
@@ -641,7 +648,7 @@ function onPacket(ws,pkttype,argdata) {
             var deck_id = dv.getUint32(4,true);
             var g = g_grid_pool[grid_id];
             var d = g_tiledeck_pool[deck_id];
-            console.log("received grid_deck", grid_id, deck_id, g,d );
+//            console.log("received grid_deck", grid_id, deck_id, g,d );
             if( g && d ) {
                 g.setDeck(d);
             } else {
@@ -655,7 +662,7 @@ function onPacket(ws,pkttype,argdata) {
             var prop_id = dv.getUint32(4,true);
             var g = g_grid_pool[grid_id];
             var p = g_prop2d_pool[prop_id];
-            console.log("received grid_prop2d",grid_id,prop_id,g,p);
+//            console.log("received grid_prop2d",grid_id,prop_id,g,p);
             if( g && p ) {
                 p.setGrid(g);
             } else {
@@ -673,7 +680,7 @@ function onPacket(ws,pkttype,argdata) {
                 inds[i] = dv.getInt32(8+i*4,true);
             }
             var g = g_grid_pool[grid_id];
-            console.log("received grid_table_index_snapshot", grid_id,data_len, g, inds );
+//            console.log("received grid_table_index_snapshot", grid_id,data_len, g, inds );
             if(g) {
                 g.bulkSetIndex(inds);
             } else {
@@ -690,7 +697,7 @@ function onPacket(ws,pkttype,argdata) {
                 bits_ary[i] = dv.getUint8(8+i);
             }
             var g = g_grid_pool[grid_id];
-            console.log("received grid_table_flip_snapshot", grid_id,data_len,bits_ary,g);
+//            console.log("received grid_table_flip_snapshot", grid_id,data_len,bits_ary,g);
             if(g) {
                 g.bulkSetFlipBits(bits_ary);
             } else {
@@ -708,7 +715,7 @@ function onPacket(ws,pkttype,argdata) {
                 vec2_ary[i] = getPacketVec2(dv,8+i*8);
             }
             var g = g_grid_pool[grid_id];
-            console.log("received grid_table_texofs_snapshot", grid_id, data_len, vec2_ary,g);
+//            console.log("received grid_table_texofs_snapshot", grid_id, data_len, vec2_ary,g);
             if(g) {
                 g.bulkSetTexofs(vec2_ary);
             } else {
@@ -726,7 +733,7 @@ function onPacket(ws,pkttype,argdata) {
                 cols_ary[i] = getPacketColor(dv,8+i*4);
             }
             var g = g_grid_pool[grid_id];
-            console.log("received grid_table_color_snapshot", grid_id, data_len, cols_ary,g );
+//            console.log("received grid_table_color_snapshot", grid_id, data_len, cols_ary,g );
             if(g) {
                 g.bulkSetColor(cols_ary);
             } else {
@@ -737,7 +744,7 @@ function onPacket(ws,pkttype,argdata) {
     case PACKETTYPE_S2C_GRID_DELETE:
         {
             var grid_id = dv.getUint32(0,true);
-            console.log("received grid_delete",grid_id);
+//            console.log("received grid_delete",grid_id);
             delete g_grid_pool[grid_id];
         }
         break;
@@ -746,7 +753,7 @@ function onPacket(ws,pkttype,argdata) {
         {
             var tb_id = dv.getUint32(0,true);
             var tb = g_textbox_pool[tb_id];
-            console.log("received textbox_create", tb_id, tb );
+//            console.log("received textbox_create", tb_id, tb );
             if(!tb) {
                 tb = new TextBox();
                 tb.id = tb_id;
@@ -760,7 +767,7 @@ function onPacket(ws,pkttype,argdata) {
             var font_id = dv.getUint32(4,true);
             var tb = g_textbox_pool[tb_id];
             var font = g_font_pool[font_id];
-            console.log("received tb_font", tb_id, font_id, tb, font );
+//            console.log("received tb_font", tb_id, font_id );
             if(tb&&font) {
                 tb.setFont(font);
             }
@@ -770,7 +777,7 @@ function onPacket(ws,pkttype,argdata) {
         {
             var tb_id = dv.getUint32(0,true);
             var str = getUTF8StringFromDataView(dv,4);
-            console.log("received tb_str",tb_id,str);
+//            console.log("received tb_str",tb_id,str);
             var tb = g_textbox_pool[tb_id];
             if(tb) {
                 tb.setString(str);
@@ -783,7 +790,7 @@ function onPacket(ws,pkttype,argdata) {
             var x = dv.getFloat32(4,true);
             var y = dv.getFloat32(8,true);
             var tb = g_textbox_pool[tb_id];
-            console.log("received tb_loc",tb_id,x,y);
+//            console.log("received tb_loc",tb_id,x,y);
             if(tb) tb.setLoc(x,y);
         }
         break;
@@ -793,7 +800,7 @@ function onPacket(ws,pkttype,argdata) {
             var x = dv.getFloat32(4,true);
             var y = dv.getFloat32(8,true);
             var tb = g_textbox_pool[tb_id];
-            console.log("received tb_scl",tb_id,x,y);
+//            console.log("received tb_scl",tb_id,x,y);
             if(tb) tb.setScl(x,y);
         }
         break;
@@ -803,7 +810,7 @@ function onPacket(ws,pkttype,argdata) {
             var col_len = dv.getUint32(4,true);
             var col = getPacketColor(dv,8);            
             var tb = g_textbox_pool[tb_id];
-            console.log("received tb_col",tb_id,col,argdata);
+//            console.log("received tb_col",tb_id,col,argdata);
             if(tb) tb.setColor(col);
         }
         break;
@@ -813,11 +820,9 @@ function onPacket(ws,pkttype,argdata) {
             var l_id = dv.getUint32(4,true);
             var tb = g_textbox_pool[tb_id];
             var l = g_layer_pool[l_id];
-            console.log("received tb_layer", tb_id, l_id,tb,l);
+//            console.log("received tb_layer", tb_id, l_id );
             if(tb&&l) {
                 if(l.getPropById(tb_id)==null) {
-                    // Layerに2回insertしたらまずいので
-                    console.log("inserting tb to layer");
                     l.insertProp(tb);
                 }                
             }
@@ -842,12 +847,11 @@ function onPacket(ws,pkttype,argdata) {
             }
             prop.ensurePrimDrawer();
                 
-            console.log("received prim_bulk num:",pktnum );
+//            console.log("received prim_bulk num:",pktnum );
             
             var remote_prim_ids=[];
             for(var i=0;i<pktnum;i++){
                 var prim = getPacketPrim(dv,8+i*pktprim_size);
-                console.log("prim_bulk i:",i,prim)
                 prop.prim_drawer.ensurePrim(prim);
                 remote_prim_ids[i]=prim.id;
             }
