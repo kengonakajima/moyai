@@ -160,7 +160,7 @@ int main(int argc, char **argv )
     p->setLoc(0,0);
     l->insertProp(p);
 
-#if 0
+#if 1
     // with prim
     pp = new Prop2D();
     pp->setScl(1.0f);
@@ -245,7 +245,7 @@ int main(int argc, char **argv )
     l->insertProp(chp);
 #endif    
 
-#if 1
+#if 0
     // text
     wchar_t charcodes[] = L" !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえお";
     
@@ -395,6 +395,15 @@ int main(int argc, char **argv )
         }
         if( g_keyboard->getKey( '2' ) ) {
             if(cg) cg->printf(0,4, Color(1,1,1,1), Format( "CNT:%d", loop_counter).buf);
+        }
+
+        if(pp) {
+            if( g_keyboard->getKey('8')  ) {
+                pp->deletePrim(2);
+            }
+            if( g_keyboard->getKey('9') ) {
+                pp->addRect( Vec2(0,0), Vec2(100,-100), Color(1,0,0,0.5) );                    
+            }
         }
 #if 0        
         if( loop_counter % 25 == 0 ) {
