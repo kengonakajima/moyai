@@ -1305,7 +1305,7 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                     Prim *prim = prop->prim_drawer->prims[i];
                     bool found = false;
                     for(int j=0;j<pktnum;j++) {                        
-                        PacketPrim *pkt = & ((PacketPrim*)(argdata+8))[i];
+                        PacketPrim *pkt = & ((PacketPrim*)(argdata+8))[j];
                         if( pkt->prim_id == prim->id ) {
                             found = true;
                         }
