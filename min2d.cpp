@@ -220,7 +220,9 @@ int main(int argc, char **argv )
     cgp->setScl(16);
     cgp->setLoc(50,-100);
     l->insertProp(cgp);
+#endif
 
+#if 1    
     // children
     Prop2D *chp = new Prop2D();
     chp->setLoc(-200,-200);
@@ -410,7 +412,7 @@ int main(int argc, char **argv )
                 pp->addRect( Vec2(0,0), Vec2(100,-100), Color(1,0,0,0.5) );                    
             }
         }
-#if 0        
+#if 1        
         if( loop_counter % 25 == 0 ) {
             if( dynchp ) {
                 bool res = chp->clearChild(dynchp);

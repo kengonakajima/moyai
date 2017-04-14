@@ -565,10 +565,6 @@ function onPacket(ws,pkttype,argdata) {
             if(p) p.use_additive_blend = bits & PROP2D_OPTBIT_ADDITIVE_BLEND;            
         }
         break;
-//    PACKETTYPE_S2C_PROP2D_PRIORITY = 210,
-
-//    PACKETTYPE_S2C_PROP2D_CLEAR_CHILD = 240,
-//    PACKETTYPE_S2C_PROP2D_LOC_VEL = 250,
     case PACKETTYPE_S2C_PROP2D_INDEX_LOC:
         {
             var prop_id = dv.getUint32(0,true);
@@ -593,6 +589,20 @@ function onPacket(ws,pkttype,argdata) {
         }
         break;        
 
+    case PACKETTYPE_S2C_PROP2D_CLEAR_CHILD:
+        {
+            var prop_id = dv.getUint32(0,true);
+            var child_id = dv.getUint32(4,true);
+            var p = g_prop2d_pool[prop_id];
+            if(p) {
+                var chp = p.getChild(child_id);
+                if(chp) {
+                    p.clearChild(chp);
+                }
+            }
+        }
+        break;
+        
     case PACKETTYPE_S2C_FONT_CREATE: // fontid; utf8 string array
         {
             var id = dv.getUint32(0,true);
@@ -896,12 +906,16 @@ function onPacket(ws,pkttype,argdata) {
         break;
 /*
   のこり
-  
+
+    PACKETTYPE_S2C_PROP2D_PRIORITY = 210,
+    PACKETTYPE_S2C_PROP2D_CLEAR_CHILD = 240,
+    PACKETTYPE_S2C_PROP2D_LOC_VEL = 250,
+
+
     PACKETTYPE_S2C_PROP2D_FLIPROTBITS = 206,
 
     PACKETTYPE_S2C_PROP2D_OPTBITS = 209,
     PACKETTYPE_S2C_PROP2D_PRIORITY = 210,
-    PACKETTYPE_S2C_PROP2D_CLEAR_CHILD = 240,
     PACKETTYPE_S2C_PROP2D_LOC_VEL = 250,
 
 
