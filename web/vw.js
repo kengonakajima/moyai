@@ -871,7 +871,7 @@ var MODKEY_BIT_CONTROL =0x02;
 var MODKEY_BIT_ALT = 0x04;
 
 function sendKeyboardEvent(e,action) {
-    if(g_ws) {
+    if(g_ws && g_ws.readyState==1) {
         var bits = 0;
         if(e.ctrlKey) bits |= MODKEY_BIT_CONTROL;
         if(e.altKey) bits |= MODKEY_BIT_ALT;
@@ -890,7 +890,7 @@ window.addEventListener("keyup", function(e) {
 }, false);
 
 function sendMouseButtonEvent(e,action) {
-    if(g_ws) {
+    if(g_ws && g_ws.readyState==1) {
         var bits = 0;
         if(e.ctrlKey) bits |= MODKEY_BIT_CONTROL;
         if(e.altKey) bits |= MODKEY_BIT_ALT;
@@ -907,7 +907,7 @@ window.addEventListener("mouseup", function(e)  {
     sendMouseButtonEvent(e,0);
 },false);
 function sendMousePosEvent(x,y) {
-    if(g_ws) {
+    if(g_ws && g_ws.readyState == 1 ) {
         g_ws.sendUS1F2( PACKETTYPE_C2S_CURSOR_POS, x,y);
     }
 }
