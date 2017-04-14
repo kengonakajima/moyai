@@ -76,7 +76,7 @@ inline void copyPacketColorToColor( Color *dest, PacketColor *src ) {
 
 typedef struct {
     uint32_t prim_id;
-    uint8_t prim_type; // from PRIMTYPE
+    uint32_t prim_type; // from PRIMTYPE
     PacketVec2 a;
     PacketVec2 b;
     PacketColor color;
