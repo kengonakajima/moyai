@@ -593,6 +593,7 @@ function onPacket(ws,pkttype,argdata) {
         {
             var prop_id = dv.getUint32(0,true);
             var child_id = dv.getUint32(4,true);
+            console.log("received prop2d_clear_child",prop_id, child_id);
             var p = g_prop2d_pool[prop_id];
             if(p) {
                 var chp = p.getChild(child_id);
