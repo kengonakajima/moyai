@@ -580,6 +580,7 @@ function Prop2D() {
     this.xflip=false;
     this.yflip=false;
     this.fragment_shader= new DefaultColorShader();
+    this.remote_vel=null; 
 }
 Prop2D.prototype.onDelete = function() {
     if(this.mesh){

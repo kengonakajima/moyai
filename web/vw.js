@@ -611,6 +611,33 @@ function onPacket(ws,pkttype,argdata) {
             if(p) p.priority = prio;
         }
         break;
+    case PACKETTYPE_S2C_PROP2D_FLIPROTBITS:
+        {
+            var prop_id = dv.getUint32(0,true);
+            var bits = dv.getUint8(4);
+            var prop = g_prop2d_pool[prop_id];
+            if(prop) {
+                prop.setXFlip( getXFlipFromFlipRotBits(bits));
+                prop.setYFlip( getYFlipFromFlipRotBits(bits));
+                prop.setUVRot( getUVRotFromFlipRotBits(bits));
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_LOC_VEL:
+        {
+            var prop_id = dv.getUint32(0,true);
+            var lx = dv.getInt3232(4,true);
+            var ly = dv.getInt32(8,true);
+            var vx = dv.getFloat32(12,true);
+            var vy = dv.getFloat32(16,true);
+            var p = g_prop2d_pool[prop_id];
+            console.log("received prop2d_loc_vel", prop_id, lx,ly,vx,vy);
+            if(p) {
+                p.setLoc(lx,ly);
+                p.remote_vel = new Vec2(vx,vy);
+            } 
+        }
+        break;
     case PACKETTYPE_S2C_FONT_CREATE: // fontid; utf8 string array
         {
             var id = dv.getUint32(0,true);
@@ -915,14 +942,7 @@ function onPacket(ws,pkttype,argdata) {
 /*
   TODO:
 
-    PACKETTYPE_S2C_PROP2D_LOC_VEL = 250,
 
-
-    PACKETTYPE_S2C_PROP2D_FLIPROTBITS = 206,
-
-    PACKETTYPE_S2C_PROP2D_OPTBITS = 209,
-    PACKETTYPE_S2C_PROP2D_PRIORITY = 210,
-    PACKETTYPE_S2C_PROP2D_LOC_VEL = 250,
 
 
     //    PACKETTYPE_S2C_VIEWPORT_SIZE = 331,  not used now
