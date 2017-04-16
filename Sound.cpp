@@ -7,6 +7,7 @@
 #ifdef USE_OPENAL
 #include "ALSound.h" // Thin wrapper of OpenAL
 #endif
+bool Sound::g_no_real_sound = false;
 
 Sound::Sound( SoundSystem *s) : parent(s), sound(0), ch(0), default_volume(1), external_id(0), last_samples(0), last_samples_num(0), last_play_volume(0) {
     last_load_file_path[0] = '\0';
@@ -17,24 +18,26 @@ void Sound::play(){
 
 void Sound::play(float vol){
 	if(vol==0)return;
+    if(!g_no_real_sound) {
 #ifdef USE_FMOD    
-	FMOD_RESULT r;
-	if( !this->ch ){
-		r = FMOD_System_PlaySound( parent->sys, FMOD_CHANNEL_FREE, sound, 0, & this->ch );
-	} else {
-		r = FMOD_System_PlaySound( parent->sys, FMOD_CHANNEL_REUSE, sound, 0, & this->ch );            
-	}
-	FMOD_ERRCHECK(r);
-	FMOD_Channel_SetVolume(ch, default_volume * vol );
+        FMOD_RESULT r;
+        if( !this->ch ){
+            r = FMOD_System_PlaySound( parent->sys, FMOD_CHANNEL_FREE, sound, 0, & this->ch );
+        } else {
+            r = FMOD_System_PlaySound( parent->sys, FMOD_CHANNEL_REUSE, sound, 0, & this->ch );            
+        }
+        FMOD_ERRCHECK(r);
+        FMOD_Channel_SetVolume(ch, default_volume * vol );
 #endif
 #ifdef USE_UNTZ
-    sound->play();
-    sound->setVolume(vol);
+        sound->play();
+        sound->setVolume(vol);
 #endif
 #ifdef USE_OPENAL
-    sound->play();
-    sound->setVolume(vol);
-#endif    
+        sound->play();
+        sound->setVolume(vol);
+#endif
+    }
     last_play_volume = default_volume * vol;    
     if(parent->remote_head) parent->remote_head->notifySoundPlay( this, last_play_volume );
 }

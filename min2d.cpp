@@ -59,6 +59,7 @@ int main(int argc, char **argv )
     for(int i=0;;i++) {
         if(!argv[i])break;
         if(strcmp(argv[i], "--headless") == 0 ) headless_mode = true;
+        if(strcmp(argv[i], "--norealsound") == 0 ) Sound::g_no_real_sound=true;
     }
 
     print("program start");
@@ -399,7 +400,10 @@ int main(int argc, char **argv )
             if(cg) cg->printf(0,4, Color(1,1,1,1), Format( "CNT:%d", loop_counter).buf);
         }
         if(bgm) {
-            if( g_keyboard->getKey('6')) {
+            if( g_keyboard->getKey('5')  ) {
+                bgm->play();
+            }
+            if( g_keyboard->getKey('6')  ) {
                 print("stopping bgm");
                 bgm->stop();
             }
