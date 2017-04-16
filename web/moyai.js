@@ -1669,12 +1669,15 @@ Sound.prototype.setData = function(data,type) {
     }
 }
 Sound.prototype.prepareSource = function(vol) {
+    if(this.source) {
+        this.source.stop();
+    }
     this.source = this.context.createBufferSource();
     this.source.buffer = this.audiobuffer;
     this.gain_node = this.context.createGain();
     this.source.connect(this.gain_node);
     this.gain_node.connect(this.context.destination);
-    this.gain_node.gain.value = this.default_volume * vol;    
+    this.gain_node.gain.value = this.default_volume * vol;
 }
 Sound.prototype.play = function(vol) {
     if(vol==undefined)vol=1;
@@ -1705,8 +1708,10 @@ Sound.prototype.isPlaying = function() {
     }        
 }
 Sound.prototype.stop = function() {
+    console.log("popopopo",this.source);
     if(this.source) {
-        this.source.stop();
+        console.log("stopping..", this.source);
+        this.source.stop(0);
     } 
 }
 ///////////////////////

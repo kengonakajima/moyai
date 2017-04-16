@@ -436,6 +436,7 @@ function onPacket(ws,pkttype,argdata) {
         {
             var id = dv.getUint32(0,true);
             var snd = g_sound_pool[id];
+            console.log("received sound_stop", id, snd );
             if(snd)snd.stop();
         }
         break;
@@ -600,7 +601,7 @@ function onPacket(ws,pkttype,argdata) {
         {
             var prop_id = dv.getUint32(0,true);
             var child_id = dv.getUint32(4,true);
-            console.log("received prop2d_clear_child",prop_id, child_id);
+//            console.log("received prop2d_clear_child",prop_id, child_id);
             var p = g_prop2d_pool[prop_id];
             if(p) {
                 var chp = p.getChild(child_id);
@@ -951,8 +952,6 @@ function onPacket(ws,pkttype,argdata) {
 
     PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER = 333,    
     PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER = 342, // cam id, layer id: camera belongs to the layer's dynamic_cameras
-
-    PACKETTYPE_S2C_SOUND_STOP = 661,    
 
     PACKETTYPE_S2C_JPEG_DECODER_CREATE = 700,
     PACKETTYPE_S2C_CAPTURED_FRAME = 701,
