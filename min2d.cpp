@@ -398,7 +398,12 @@ int main(int argc, char **argv )
         if( g_keyboard->getKey( '2' ) ) {
             if(cg) cg->printf(0,4, Color(1,1,1,1), Format( "CNT:%d", loop_counter).buf);
         }
-
+        if(bgm) {
+            if( g_keyboard->getKey('6')) {
+                print("stopping bgm");
+                bgm->stop();
+            }
+        }
         if(p) {
             if( g_keyboard->getKey('7')) {
                 p->use_additive_blend = !p->use_additive_blend;

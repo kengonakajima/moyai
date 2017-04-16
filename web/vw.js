@@ -432,6 +432,13 @@ function onPacket(ws,pkttype,argdata) {
             }
         }
         break;
+    case PACKETTYPE_S2C_SOUND_STOP:
+        {
+            var id = dv.getUint32(0,true);
+            var snd = g_sound_pool[id];
+            if(snd)snd.stop();
+        }
+        break;
     case PACKETTYPE_S2C_SOUND_POSITION:
         {
             var id = dv.getUint32(0,true);
@@ -942,16 +949,8 @@ function onPacket(ws,pkttype,argdata) {
 /*
   TODO:
 
-
-
-
-    //    PACKETTYPE_S2C_VIEWPORT_SIZE = 331,  not used now
-
     PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER = 333,    
     PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER = 342, // cam id, layer id: camera belongs to the layer's dynamic_cameras
-
-
-
 
     PACKETTYPE_S2C_SOUND_STOP = 661,    
 

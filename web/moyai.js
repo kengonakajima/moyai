@@ -1704,7 +1704,11 @@ Sound.prototype.isPlaying = function() {
         return false;
     }        
 }
-
+Sound.prototype.stop = function() {
+    if(this.source) {
+        this.source.stop();
+    } 
+}
 ///////////////////////
 
 function FileDepo() {
