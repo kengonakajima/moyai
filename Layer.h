@@ -52,6 +52,7 @@ public:
     void addDynamicCamera( Camera *cam );
     void delDynamicCamera( Camera *cam );
     void addDynamicViewport( Viewport *vp);
+    void delDynamicViewport( Viewport *vp);
     void onTrackDynamicCameras();
     void onTrackDynamicViewports();    
     bool hasDynamicCameras() {

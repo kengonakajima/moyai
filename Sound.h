@@ -36,6 +36,8 @@ public:
     float *last_samples;  // for headless
     int last_samples_num; // for headless, number of floats
     float last_play_volume; // for headless
+
+    static bool g_no_real_sound;
     
 	Sound( SoundSystem *s);
 	void setLoop( bool flag );

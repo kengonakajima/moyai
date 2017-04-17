@@ -281,6 +281,7 @@ public:
                       ::interpolate( b, c.b, rate ),
                       ::interpolate( a, c.a, rate ) );
     }
+    // we can't decide alpha bits in fixed way: upper bits or lower bits..?
     inline unsigned int toCode() {
         return  ( (int)(r * 255) << 16 ) + ( (int)(g * 255) << 8 ) + (int)( b * 255);
     }
@@ -289,6 +290,18 @@ public:
         *r = (code >> 16) & 0xff;
         *g = (code >> 8) & 0xff;
         *b = (code) & 0xff;
+    }
+    inline void toRGBA(unsigned char *outr, unsigned char *outg, unsigned char *outb,unsigned char *outa ) {
+        *outr = (int)(r*255);
+        *outg = (int)(g*255);
+        *outb = (int)(b*255);
+        *outa = (int)(a*255);
+    }
+    inline void fromRGBA(unsigned char inr, unsigned char ing, unsigned char inb,unsigned char ina ) {
+        r = ((float)inr)/255.0f;
+        g = ((float)ing)/255.0f;
+        b = ((float)inb)/255.0f;
+        a = ((float)ina)/255.0f;
     }
     inline Color operator*(float f) { return Color( r*f, g*f, b*f, a*f ); }
     inline Color operator+( Color c ) { return Color(r+c.r, g+c.g, b+c.b, a+c.a); }

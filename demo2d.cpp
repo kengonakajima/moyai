@@ -295,6 +295,7 @@ public:
         g_pad->getVec(&force);
         v.x = force.x * vel;
         v.y = force.y * vel;
+        if(v.x>0) setXFlip(false); else if( v.x<0) setXFlip(true);
 
         float c = absolute(::sin( accum_time * 2 ) );
         setColor( Color(c,c,c,1));
@@ -463,7 +464,7 @@ void gameUpdate(void) {
         ylcnt++;
         static int yellow_line_prim_id=0;
         if( ylcnt%100 == 50 ){
-            Prim *yl = g_linep->addLine( Vec2(0,0), Vec2( -30, range(-30,-100)), Color(0,1,1,1), 3 );
+            Prim *yl = g_linep->addLine( Vec2(0,0), Vec2( -30, range(-30,-100)), Color(1,1,0,1), 3 );
             if(yl) {
                 yellow_line_prim_id = yl->id;
             }
@@ -632,6 +633,7 @@ void onRemoteMouseCursorCallback( Client *cl, int x, int y ) {
     g_mouse->updateCursorPosition(x,y);
 }
 void gameInit() {
+    print("PacketProp2DSnapshot size:%d",sizeof(PacketProp2DSnapshot));
     qstest();
     optest();
     comptest();
@@ -806,7 +808,7 @@ void gameInit() {
     colp->setDeck(d2);
     colp->setIndex(1);
     colp->setScl(24,24);
-    colp->setLoc( range(-100,100), range(-100,100));
+    colp->setLoc(50,-20);
     g_main_layer->insertProp(colp);
 
     Prop2D *statprimp = new Prop2D(); // a prop that has a prim with no changes
@@ -939,31 +941,17 @@ void gameInit() {
     Texture *dragontex1 = new Texture();
     dragontex1->load( "assets/dragon8.png" );
 
-#if 1
     Prop2D *dragonp1 = new Prop2D();
     dragonp1->setLoc( SCRW/2-80, 0);
     dragonp1->setTexture(dragontex1);
     dragonp1->setScl(32);
     g_main_layer->insertProp(dragonp1);    
-#endif
     
     Prop2D *dragonp0 = new Prop2D();
     dragonp0->setLoc( SCRW/2-40, 0);
     dragonp0->setTexture( dragontex0 );
     dragonp0->setScl(32);
     g_main_layer->insertProp(dragonp0);
-
-    TileDeck *dragondk = new TileDeck();
-    dragondk->setTexture(dragontex0);
-    dragondk->setSize( 2,2,8,8 );
-    Prop2D *dragonp2 = new Prop2D();
-    dragonp2->setLoc( SCRW/2-120, 0);
-    dragonp2->setDeck( dragondk );
-    dragonp2->setScl(32);
-    dragonp2->setIndex(1);
-    g_main_layer->insertProp(dragonp2);
-
-   
     
 
     // bitmap font
@@ -982,7 +970,7 @@ void gameInit() {
     g_linep = new Prop2D();
     g_narrow_line_prim = g_linep->addLine( Vec2(0,0), Vec2(100,100), Color(1,0,0,1) );
     g_linep->addLine( Vec2(0,0), Vec2(100,-50), Color(0,1,0,1), 5 );
-    g_linep->addRect( Vec2(0,0), Vec2(-150,230), Color(0,0,1,0.5) );
+    g_linep->addRect( Vec2(0,0), Vec2(-150,230), Color(0.2,0,1,0.5) );
     g_linep->setLoc(0,200);
     g_linep->setScl(1.0f);
     g_main_layer->insertProp(g_linep);
@@ -1041,7 +1029,6 @@ void gameFinish() {
 #if !(TARGET_IPHONE_SIMULATOR ||TARGET_OS_IPHONE)        
 int main(int argc, char **argv )
 {
-    
     for(int i=0;;i++) {
         if(!argv[i])break;
         if(strcmp(argv[i], "--headless") == 0 ) g_headless_mode = true;

@@ -59,6 +59,7 @@ int main(int argc, char **argv )
     for(int i=0;;i++) {
         if(!argv[i])break;
         if(strcmp(argv[i], "--headless") == 0 ) headless_mode = true;
+        if(strcmp(argv[i], "--norealsound") == 0 ) Sound::g_no_real_sound=true;
     }
 
     print("program start");
@@ -159,7 +160,8 @@ int main(int argc, char **argv )
     p->setScl(64,64);
     p->setLoc(0,0);
     l->insertProp(p);
-#if 0
+
+#if 1
     // with prim
     pp = new Prop2D();
     pp->setScl(1.0f);
@@ -168,8 +170,9 @@ int main(int argc, char **argv )
     pp->addLine( Vec2(0,0), Vec2(100,100), Color(1,0,0,1) );
     pp->addLine( Vec2(0,0), Vec2(100,-100), Color(0,1,0,1), 5 );
     l->insertProp(pp);
-   
+#endif   
 
+#if 0    
     // grid
     g = new Grid(4,4);
     for(int x=0;x<4;x++) {
@@ -218,7 +221,9 @@ int main(int argc, char **argv )
     cgp->setScl(16);
     cgp->setLoc(50,-100);
     l->insertProp(cgp);
+#endif
 
+#if 1    
     // children
     Prop2D *chp = new Prop2D();
     chp->setLoc(-200,-200);
@@ -264,7 +269,9 @@ int main(int argc, char **argv )
     movtb->setScl(3);
     movtb->setLoc(0,-150);
     l->insertProp(movtb);
-
+#endif
+    
+#if 0
     // multiple viewport and layer
     Viewport *vp2 = new Viewport(); // testing multiple viewport scaling
     vp2->setSize(SCRW*retina,SCRH*retina); 
@@ -392,7 +399,29 @@ int main(int argc, char **argv )
         if( g_keyboard->getKey( '2' ) ) {
             if(cg) cg->printf(0,4, Color(1,1,1,1), Format( "CNT:%d", loop_counter).buf);
         }
-#if 0        
+        if(bgm) {
+            if( g_keyboard->getKey('5')  ) {
+                bgm->play();
+            }
+            if( g_keyboard->getKey('6')  ) {
+                print("stopping bgm");
+                bgm->stop();
+            }
+        }
+        if(p) {
+            if( g_keyboard->getKey('7')) {
+                p->use_additive_blend = !p->use_additive_blend;
+            }
+        }
+        if(pp) {
+            if( g_keyboard->getKey('8')  ) {
+                pp->deletePrim(2);
+            }
+            if( g_keyboard->getKey('9') ) {
+                pp->addRect( Vec2(0,0), Vec2(100,-100), Color(1,0,0,0.5) );                    
+            }
+        }
+#if 1        
         if( loop_counter % 25 == 0 ) {
             if( dynchp ) {
                 bool res = chp->clearChild(dynchp);
