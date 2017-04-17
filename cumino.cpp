@@ -379,6 +379,13 @@ bool deleteFile( const char *path ) {
     int err = ::remove(path);
     return (err==0);    
 }
+int bytesum(const char *s, size_t l ) {
+    int total=0;
+    for(size_t i=0;i<l;i++){
+        total+=s[i];
+    }
+    return total;
+}
 void dump(const char*s, size_t l) {
     for(size_t i=0;i<l;i++){
         prt( "%02x ", s[i] & 0xff );
