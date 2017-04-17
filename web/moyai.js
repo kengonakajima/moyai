@@ -628,6 +628,7 @@ Prop2D.prototype.deletePrim = function(id) {
 Prop2D.prototype.addGrid = function(g) {
     if(!this.grids) this.grids=[];
     this.grids.push(g);
+//    console.log("addGrid: grid id:",g.id,g.width, g.height, "propid:",this.id, "grids:",this.grids);
 }
 Prop2D.prototype.setGrid = function(g) {
     if(this.grids) {
@@ -829,6 +830,7 @@ Grid.prototype.bulkSetIndex = function(inds) {
         console.log("bulksetindex: data not enough. expect:",expect_len, "got:",inds.length);
     } else {
         for(var i=0;i<expect_len;i++) this.index_table[i] = inds[i];
+        this.need_geometry_update = true;
     }
 }
 Grid.prototype.bulkSetFlipBits = function(bits) {
