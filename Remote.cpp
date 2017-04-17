@@ -2056,7 +2056,7 @@ void Stream::flushSendbuf(size_t unitsize) {
         if(partsize>unitsize) partsize = unitsize;
         
         uv_write_t *write_req = (uv_write_t*)MALLOC(sizeof(uv_write_t));
-        size_t allocsize = use_compression ? partsize*2 : partsize; // Abs max size of snappy worst case size
+        size_t allocsize = use_compression ? partsize*2+64 : partsize; // Abs max size of snappy worst case size
         char *outbuf = (char*)MALLOC(allocsize); // need this because uv_write delays actual write after shifting sendbuf!
         
         if( use_compression ) {
