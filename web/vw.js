@@ -426,7 +426,7 @@ function onPacket(ws,pkttype,argdata) {
             var id = dv.getUint32(0,true);
             var vol = dv.getFloat32(4,true);
             var snd = g_sound_pool[id];
-            console.log("received sound_play ", id,vol);
+//            console.log("received sound_play ", id,vol);
             if(snd) {
                 snd.play(vol);
             }
