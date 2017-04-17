@@ -153,7 +153,7 @@ void Tracker2D::broadcastDiff( bool force ) {
             // only location changed!
             if( target_prop2d->locsync_mode == LOCSYNCMODE_LINEAR ) {
                 bool to_send = true;                
-                if(target_prop2d->loc_sync_score>40 ) {
+                if(target_prop2d->loc_sync_score > parent_rh->linear_sync_score_thres ) {
                     target_prop2d->loc_sync_score=0;
                 } else if( target_prop2d->poll_count>2 ){
                     to_send = false;
@@ -169,7 +169,7 @@ void Tracker2D::broadcastDiff( bool force ) {
                 //                print("l:%f lss:%f id:%d", l, target_prop2d->loc_sync_score, target_prop2d->id);
             } else {
                 target_prop2d->loc_sync_score+=1; // avoid missing syncing stopped props
-                if( target_prop2d->loc_sync_score < 50 ) {
+                if( target_prop2d->loc_sync_score < parent_rh->nonlinear_sync_score_thres ) {
                     if( !parent_rh->appendChangelist( target_prop2d, &pktbuf[cur_buffer_index] ) ) {
                         // must send if changelist is full
                         parent_rh->nearcastUS1UI1F2( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,

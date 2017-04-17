@@ -266,7 +266,7 @@ public:
     void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
     void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_spritestream(0), enable_videostream(0), jc(NULL), audio_buf_ary(0), reprecator(NULL), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0), changelist_used(0), sort_sync_thres(50) {
+    RemoteHead() : target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_spritestream(0), enable_videostream(0), jc(NULL), audio_buf_ary(0), reprecator(NULL), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0), changelist_used(0), sort_sync_thres(50), linear_sync_score_thres(50), nonlinear_sync_score_thres(50) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
@@ -314,11 +314,15 @@ public:
     ChangeEntry changelist[4096];
     int changelist_used;
     int sort_sync_thres;
+    float linear_sync_score_thres;
+    float nonlinear_sync_score_thres;
     
     void clearChangelist() { changelist_used=0; }
     bool appendChangelist(Prop2D *p, PacketProp2DSnapshot *pkt);
     void broadcastSortedChangelist();
     void setSortSyncThres(int thres) { sort_sync_thres = thres; }
+    void setLinearSyncScoreThres(float thres) { linear_sync_score_thres = thres; }
+    void setNonLinearSyncScoreThres(float thres) { nonlinear_sync_score_thres = thres; }
 };
 
 
