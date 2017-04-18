@@ -247,7 +247,7 @@ int RemoteHead::getClientCount() {
 }
 // Assume all props in all layers are Prop2Ds.
 void RemoteHead::track2D() {
-    broadcastTimestamp();
+    if(enable_timestamp) broadcastTimestamp();
     clearChangelist();
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
         Layer *layer = (Layer*) target_moyai->getGroupByIndex(i);

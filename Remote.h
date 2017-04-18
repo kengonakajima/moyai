@@ -260,6 +260,7 @@ public:
     int window_width, window_height;
     bool enable_spritestream;
     bool enable_videostream;
+    bool enable_timestamp;
     JPEGCoder *jc;
     BufferArray *audio_buf_ary;
 
@@ -268,6 +269,7 @@ public:
     void enableSpriteStream() { enable_spritestream = true; };
     void enableVideoStream( int w, int h, int pixel_skip );
     void enableReprecation(int portnum);
+    void disableTimestamp() { enable_timestamp = false; }
     
     void (*on_connect_cb)(RemoteHead*rh,Client *cl);
     void (*on_disconnect_cb)(RemoteHead*rh, Client *cl);
@@ -275,7 +277,7 @@ public:
     void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
     void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_spritestream(0), enable_videostream(0), jc(NULL), audio_buf_ary(0), reprecator(NULL), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0), changelist_used(0), sort_sync_thres(50), linear_sync_score_thres(50), nonlinear_sync_score_thres(50) {
+    RemoteHead() : target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_spritestream(0), enable_videostream(0), enable_timestamp(true), jc(NULL), audio_buf_ary(0), reprecator(NULL), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0), changelist_used(0), sort_sync_thres(50), linear_sync_score_thres(50), nonlinear_sync_score_thres(50) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
