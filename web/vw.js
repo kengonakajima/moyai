@@ -706,7 +706,7 @@ function onPacket(ws,pkttype,argdata) {
             if(!g) {
                 g = new Grid(w,h);
                 g.debug_id = 1234;
-                console.log("received grid_create", grid_id,w,h);
+//                console.log("received grid_create", grid_id,w,h);
                 g.id = grid_id;
                 g_grid_pool[grid_id] = g;
             }
@@ -718,7 +718,7 @@ function onPacket(ws,pkttype,argdata) {
             var deck_id = dv.getUint32(4,true);
             var g = g_grid_pool[grid_id];
             var d = g_tiledeck_pool[deck_id];
-            console.log("received grid_deck", grid_id, deck_id, g,d );
+//            console.log("received grid_deck", grid_id, deck_id, g,d );
             if( g && d ) {
                 g.setDeck(d);
             } else {
@@ -732,7 +732,7 @@ function onPacket(ws,pkttype,argdata) {
             var prop_id = dv.getUint32(4,true);
             var g = g_grid_pool[grid_id];
             var p = g_prop2d_pool[prop_id];
-            console.log("received grid_prop2d",grid_id,prop_id,g,p);
+//            console.log("received grid_prop2d",grid_id,prop_id,g,p);
             if( g && p ) {
                 p.setGrid(g);
             } else {
@@ -750,7 +750,7 @@ function onPacket(ws,pkttype,argdata) {
                 inds[i] = dv.getInt32(8+i*4,true);
             }
             var g = g_grid_pool[grid_id];
-            console.log("received grid_table_index_snapshot", grid_id,data_len, g, inds );
+//            console.log("received grid_table_index_snapshot", grid_id,data_len, g, inds );
             if(g) {
                 g.bulkSetIndex(inds);
             } else {
