@@ -129,7 +129,6 @@ function onPacket(ws,pkttype,argdata) {
     }
 
     var dv = new DataView(argdata.buffer);
-    
     switch(pkttype) {
     case PACKETTYPE_TIMESTAMP:
         {
@@ -707,7 +706,7 @@ function onPacket(ws,pkttype,argdata) {
             if(!g) {
                 g = new Grid(w,h);
                 g.debug_id = 1234;
-//                console.log("received grid_create", grid_id,w,h);
+                console.log("received grid_create", grid_id,w,h);
                 g.id = grid_id;
                 g_grid_pool[grid_id] = g;
             }
@@ -719,7 +718,7 @@ function onPacket(ws,pkttype,argdata) {
             var deck_id = dv.getUint32(4,true);
             var g = g_grid_pool[grid_id];
             var d = g_tiledeck_pool[deck_id];
-//            console.log("received grid_deck", grid_id, deck_id, g,d );
+            console.log("received grid_deck", grid_id, deck_id, g,d );
             if( g && d ) {
                 g.setDeck(d);
             } else {
@@ -733,7 +732,7 @@ function onPacket(ws,pkttype,argdata) {
             var prop_id = dv.getUint32(4,true);
             var g = g_grid_pool[grid_id];
             var p = g_prop2d_pool[prop_id];
-//            console.log("received grid_prop2d",grid_id,prop_id,g,p);
+            console.log("received grid_prop2d",grid_id,prop_id,g,p);
             if( g && p ) {
                 p.setGrid(g);
             } else {
@@ -751,7 +750,7 @@ function onPacket(ws,pkttype,argdata) {
                 inds[i] = dv.getInt32(8+i*4,true);
             }
             var g = g_grid_pool[grid_id];
-//            console.log("received grid_table_index_snapshot", grid_id,data_len, g, inds );
+            console.log("received grid_table_index_snapshot", grid_id,data_len, g, inds );
             if(g) {
                 g.bulkSetIndex(inds);
             } else {
@@ -947,19 +946,42 @@ function onPacket(ws,pkttype,argdata) {
             }            
         }
         break;
+
+    case PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER:
+        if(true)        {
+            var vp_id = dv.getUint32(0,true);
+            var layer_id = dv.getUint32(4,true);
+            console.log("received vp_dyn_layer",vp_id, layer_id );
+            var vp = g_viewport_pool[vp_id];
+            var l = g_layer_pool[layer_id];
+            if(vp && l ) {
+                l.setViewport(vp);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER:  // cam id, layer id: camera belongs to the layer's dynamic_cameras
+        if(true)        {
+            
+            var camera_id = dv.getUint32(0,true);
+            var layer_id = dv.getUint32(4,true);
+            var cam = g_camera_pool[camera_id];
+            var l = g_layer_pool[layer_id];
+            console.log("received s2c_camera_dynamic_layer",camera_id,layer_id,cam,l);
+            if(cam && l) {
+                l.setCamera(cam);
+            }
+        }
+        break;
 /*
   TODO:
 
-    PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER = 333,    
-    PACKETTYPE_S2C_CAMERA_DYNAMIC_LAYER = 342, // cam id, layer id: camera belongs to the layer's dynamic_cameras
-
     PACKETTYPE_S2C_JPEG_DECODER_CREATE = 700,
     PACKETTYPE_S2C_CAPTURED_FRAME = 701,
-    PACKETTYPE_S2C_CAPTURED_AUDIO = 710,
- 
+    PACKETTYPE_S2C_CAPTURED_AUDIO = 710, 
 
 
     */
+
     default:
         console.log("onPacket type:",pkttype);
         break;
