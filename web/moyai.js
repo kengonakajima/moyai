@@ -143,8 +143,8 @@ MoyaiClient.prototype.render = function() {
                 for(var i in prop.grids) {
                     var grid = prop.grids[i];
                     grid.updateMesh();
-                    grid.mesh.position.x = prop.loc.x * relscl.x + camloc.x;
-                    grid.mesh.position.y = prop.loc.y * relscl.y + camloc.y;
+                    grid.mesh.position.x = prop.loc.x * relscl.x - camloc.x;
+                    grid.mesh.position.y = prop.loc.y * relscl.y - camloc.y;
                     grid.mesh.position.z = prop_z + z_inside_prop;
                     grid.mesh.scale.x = prop.scl.x * relscl.x;
                     grid.mesh.scale.y = prop.scl.y * relscl.y;
@@ -158,8 +158,8 @@ MoyaiClient.prototype.render = function() {
                     var chp = prop.children[i];
                     chp.updateMesh();
                     if( chp.mesh ) {
-                        chp.mesh.position.x = chp.loc.x * relscl.x + camloc.x;
-                        chp.mesh.position.y = chp.loc.y * relscl.y + camloc.y;
+                        chp.mesh.position.x = chp.loc.x * relscl.x - camloc.x;
+                        chp.mesh.position.y = chp.loc.y * relscl.y - camloc.y;
                         chp.mesh.position.z = prop_z + z_inside_prop;
                         chp.mesh.scale.x = chp.scl.x * relscl.x;
                         chp.mesh.scale.y = chp.scl.y * relscl.y;
@@ -171,14 +171,14 @@ MoyaiClient.prototype.render = function() {
                 }
             }
             if(prop.mesh) {
-                prop.mesh.position.x = prop.loc.x * relscl.x + camloc.x;
-                prop.mesh.position.y = prop.loc.y * relscl.y + camloc.y;
+                prop.mesh.position.x = prop.loc.x * relscl.x - camloc.x;
+                prop.mesh.position.y = prop.loc.y * relscl.y - camloc.y;
                 prop.mesh.position.z = prop_z + z_inside_prop;
                 prop.mesh.scale.x = prop.scl.x * relscl.x;
                 prop.mesh.scale.y = prop.scl.y * relscl.y;
                 prop.mesh.rotation.set(0,0,prop.rot);
                 if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
- //               console.log("adding ", prop.mesh, layer.camera, this.camera );
+//               console.log("adding ", prop.mesh, layer.camera, this.camera );
                 this.scene.add(prop.mesh);
                 z_inside_prop += this.z_per_subprop;
             }            
@@ -186,8 +186,8 @@ MoyaiClient.prototype.render = function() {
                 for(var i in prop.prim_drawer.prims) {
                     var prim = prop.prim_drawer.prims[i];
                     prim.updateMesh();
-                    prim.mesh.position.x = prop.loc.x * relscl.x + camloc.x;
-                    prim.mesh.position.y = prop.loc.y * relscl.y + camloc.y;
+                    prim.mesh.position.x = prop.loc.x * relscl.x - camloc.x;
+                    prim.mesh.position.y = prop.loc.y * relscl.y - camloc.y;
                     prim.mesh.position.z = prop_z + z_inside_prop;
                     prim.mesh.scale.x = prop.scl.x * relscl.x;
                     prim.mesh.scale.y = prop.scl.y * relscl.y;
