@@ -1593,18 +1593,16 @@ bool parseProgramArgs( int argc, char **argv ) {
     for(int i=1;i<argc;i++) {
         if( strncmp( argv[i], port_prefix, strlen(port_prefix) ) == 0 ){
             g_port = atoi( argv[i] + strlen(port_prefix) );
+        } else if( strcmp( argv[i], "--print_stats" ) == 0 ) {
+            g_enable_print_stats = true;
+        } else if( strcmp( argv[i], "--reprecation" ) == 0 ) {
+            g_enable_reprecation = true;
+        } else if( strncmp( argv[i], save_prefix, strlen(save_prefix)) == 0 ) {
+            snprintf( g_savepath, sizeof(g_savepath), "%s", argv[i] + strlen(save_prefix));
         } else {
             g_server_ip_addr = argv[i];
         }
-        if( strcmp( argv[i], "--print_stats" ) == 0 ) {
-            g_enable_print_stats = true;
-        }
-        if( strcmp( argv[i], "--reprecation" ) == 0 ) {
-            g_enable_reprecation = true;
-        }
-        if( strncmp( argv[i], save_prefix, strlen(save_prefix)) == 0 ) {
-            snprintf( g_savepath, sizeof(g_savepath), "%s", argv[i] + strlen(save_prefix));
-        }
+
     }
     print("viewer config: serverip:'%s' port:%d window:%d,%d", g_server_ip_addr, g_port, g_window_width, g_window_height );
     return true;
