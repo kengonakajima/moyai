@@ -137,11 +137,16 @@ function createWSClient(url) {
     ws.onopen = function(event) {
         console.log("wsopen");
     };
-
+    ws.total_read_bytes=0;
+    ws.total_read_count=0;
+    ws.total_packet_count=0;
+    ws.total_unzipped_read_bytes=0;
     ws.onmessage = function(ev) {
         var dv = new DataView(ev.data);
 //        console.log("onmessage:", ev.data.byteLength);
         if(ws.log)dump( dv, ev.data.byteLength );
+        ws.total_read_bytes+=ev.data.byteLength;
+        ws.total_read_count++;
         ws.rb.push( dv, ev.data.byteLength );
         for(;;){
             if(!ws.parseDispatch(ws.rb))break;
@@ -177,11 +182,21 @@ function createWSClient(url) {
             u8a[i] = recvbuf.dv.getUint8(4+2+i);
         }        
         ws.onPacket(ws,pkttype,u8a);
+        ws.total_packet_count++;
         recvbuf.shift(pkt_len+4);
         return true;
     };
     ws.onPacket = function(ws,pkttype,argdata) {
         console.log("onPacket not overwritten? pkttype:",pkttype,argdata.length);
+    }
+    ws.sendUS1UI2 = function(usval,ui0,ui1) {
+        var totalsize = 4 + 2 + 4+4;
+        var dv = new DataView(new ArrayBuffer(totalsize));
+        dv.setUint32(0,totalsize-4,true);
+        dv.setUint16(4,usval,true);
+        dv.setUint32(6,ui0,true);
+        dv.setUint32(10,ui1,true);
+        ws.send(dv.buffer);        
     }
     ws.sendUS1UI3 = function(usval,ui0,ui1,ui2) {
         var totalsize = 4 + 2 + 4+4+4;

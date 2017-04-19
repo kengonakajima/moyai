@@ -19,7 +19,8 @@ var g_window_width=null;
 var g_window_height=null;
 
 
-
+var g_last_ping_rtt=0;
+var g_timestamp_count=0;
 
 ////////////////
 function getString8FromDataView(dv,ofs) {
@@ -123,6 +124,7 @@ function onPacket(ws,pkttype,argdata) {
         var uncompressed = Snappy.uncompress(argdata.buffer);
         //            console.log(uncompressed);
         var dv = new DataView(uncompressed);
+        ws.total_unzipped_read_bytes+=uncompressed.byteLength;
         ws.unzipped_rb.push(dv,uncompressed.byteLength);
         //            console.log("unzipped_rb:",ws.unzipped_rb);
         return;
@@ -130,8 +132,18 @@ function onPacket(ws,pkttype,argdata) {
 
     var dv = new DataView(argdata.buffer);
     switch(pkttype) {
+    case PACKETTYPE_PING:
+        {
+            var sec = dv.getUint32(0,true);
+            var usec = dv.getUint32(4,true);
+            var t = sec + (usec/1000000);
+            var dt = (new Date().getTime())/1000-t;
+            g_last_ping_rtt = dt;            
+        }
+        break;
     case PACKETTYPE_TIMESTAMP:
         {
+            g_timestamp_count++;
         }
         break;
         
@@ -292,7 +304,6 @@ function onPacket(ws,pkttype,argdata) {
         break;
     case PACKETTYPE_S2C_IMAGE_RAW:
         {
-//        sendUS1UI1Bytes( outstream, PACKETTYPE_S2C_IMAGE_RAW, img->id, (const char*) img->buffer, img->getBufferSize() );                
             var id = dv.getUint32(0,true);
             var data_len = dv.getUint32(4,true);
             var data_u8a=new Uint8Array(data_len);
@@ -988,8 +999,6 @@ function onPacket(ws,pkttype,argdata) {
     }
 }
 
-var screen = document.getElementById("screen");
-                
 
 // button funcs
 function connectButton() {
@@ -1061,20 +1070,61 @@ window.addEventListener("mousemove", function(e)  {
     sendMousePosEvent(x,y);
 },false);    
 
+var g_poll_count=0;
+var g_last_total_read_bytes=0;
+var g_last_kbps_print=0;
+var g_last_kbps=0;
+
+function updateDebugStat(now_time) {
+    if(!g_moyai_client) return;
+    
+    var debugstat = document.getElementById("debugstat");
+    if( now_time > g_last_kbps_print + 1.0) {
+        if( g_ws.total_read_bytes > g_last_total_read_bytes) {
+            g_last_kbps = ((g_ws.total_read_bytes - g_last_total_read_bytes )*8)/1000.0;
+            g_last_total_read_bytes = g_ws.total_read_bytes;
+            g_last_kbps_print = now_time;
+        }
+    }
+
+    var bytes_per_packet = g_ws.total_read_bytes / g_ws.total_packet_count;
+    var bytes_per_read = g_ws.total_read_bytes / g_ws.total_read_count;
+    var comprate = g_ws.total_read_bytes / g_ws.total_unzipped_read_bytes;
+    debugstat.innerHTML = "polled:" + g_poll_count + " " + g_last_kbps + "Kbps" + " Pingms:" + (g_last_ping_rtt*1000).toFixed(1) + " TS:" + g_timestamp_count + " rc:" + g_ws.total_read_count + " B/pkt:" + bytes_per_packet.toFixed(1) + " B/read:" + bytes_per_read.toFixed(1) + " comp:" + comprate.toFixed(1);
+
+
+//            }
+//            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d B/p:%.1f B/r:%.1f sbused:%d comp:%.3f",
+//                        polled, rendered, kbps, g_last_ping_rtt*1000,g_timestamp_count, g_total_read_count,
+//                        (float)g_total_read/(float)g_packet_count, (float)g_total_read/(float)g_total_read_count,
+//                        g_stream->sendbuf.used, (float)g_total_read/(float)g_total_unzipped_bytes );
+}
 
 
 ////////////////////
 
 var last_anim_at = new Date().getTime();
+var g_last_ping_sent_at=0;
 
 function animate() {
 	if(!g_stop_render) requestAnimationFrame( animate );
     if(!g_moyai_client)return;
-    var now_time = new Date().getTime();
+    var now_time = new Date().getTime()/1000.0;
     var dt = now_time - last_anim_at;
     last_anim_at = now_time;
-    g_moyai_client.poll(dt/1000.0);
+    g_moyai_client.poll(dt);
+    g_poll_count++;
     g_moyai_client.render();
+
+    updateDebugStat(now_time);
+
+    if( now_time > g_last_ping_sent_at+1.0) {
+        g_last_ping_sent_at = now_time;
+        if(g_ws.readyState==1) {
+            g_ws.sendUS1UI2( PACKETTYPE_PING, parseInt(now_time), (now_time - parseInt(now_time))*1000000 );// seconds,microseconds
+        }
+    }
+    
 }
 
     
