@@ -633,7 +633,7 @@ function onPacket(ws,pkttype,argdata) {
     case PACKETTYPE_S2C_PROP2D_LOC_VEL:
         {
             var prop_id = dv.getUint32(0,true);
-            var lx = dv.getInt3232(4,true);
+            var lx = dv.getInt32(4,true);
             var ly = dv.getInt32(8,true);
             var vx = dv.getFloat32(12,true);
             var vy = dv.getFloat32(16,true);
@@ -1071,7 +1071,8 @@ function animate() {
 	if(!g_stop_render) requestAnimationFrame( animate );
     if(!g_moyai_client)return;
     var now_time = new Date().getTime();
-    var dt = now_time - last_anim_at;        
+    var dt = now_time - last_anim_at;
+    last_anim_at = now_time;
     g_moyai_client.poll(dt/1000.0);
     g_moyai_client.render();
 }
