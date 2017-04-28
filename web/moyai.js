@@ -451,6 +451,10 @@ function Prim(t,a,b,col,lw) {
     this.geom=null;
     this.material=null;
     this.mesh=null;
+    if(t==PRIMTYPE_RECTANGLE) {
+        this.fragment_shader = new PrimColorShader();
+        this.need_material_update = true;        
+    }
 }
 Prim.prototype.updateMesh = function() {
     if(this.type==PRIMTYPE_LINE) {
@@ -489,8 +493,21 @@ Prim.prototype.updateMesh = function() {
             this.geom.faces.push(new THREE.Face3(0, 2, 1));
             this.geom.faces.push(new THREE.Face3(0, 3, 2));
         }
-        if(!this.material) {
-            this.material = createMeshBasicMaterial({ color: this.color.toCode(),depthTest:true, transparent:true, side: THREE.DoubleSide });
+        this.geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
+        this.geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
+        this.geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
+        this.geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
+        this.geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
+        this.geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
+        
+        if(this.need_material_update ) {
+            if(!this.material) {
+                this.fragment_shader.updateUniforms(this.color);
+                this.material = this.fragment_shader.material;
+            } else {
+                this.fragment_shader.updateUniforms(this.color);
+            }
+            this.need_material_update = false;
         }
         if(this.mesh) {
             this.mesh.geometry = this.geom;
@@ -773,7 +790,7 @@ Prop2D.prototype.updateMesh = function() {
         this.need_uv_update = false;
     }
     if( this.need_color_update ) {
-        this.color.r = this.color.g = this.color.b = this.color.a = 1;
+//        this.color.r = this.color.g = this.color.b = this.color.a = 1;
         this.geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
         this.geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
         this.geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
@@ -1416,6 +1433,23 @@ CharGrid.prototype.printf = function() {
 }
 
 /////////////////////////////
+var vertex_vcolor_glsl =
+    "varying vec4 vColor;\n"+
+    "attribute vec3 color;\n"+
+    "void main()\n"+
+    "{\n"+
+    "  vColor = vec4(color,1);\n"+
+    "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n"+
+    "  gl_Position = projectionMatrix * mvPosition;\n"+
+    "}\n";    
+var fragment_vcolor_glsl = 
+    "uniform vec4 meshcolor;\n"+
+    "varying vec4 vColor;\n"+    
+    "void main()\n"+
+    "{\n"+
+    "  gl_FragColor = meshcolor;//vec4(1,0,1,1);\n"+
+    "}\n";
+//    
 var vertex_uv_color_glsl =
     "varying vec2 vUv;\n"+
     "varying vec4 vColor;\n"+
@@ -1427,7 +1461,6 @@ var vertex_uv_color_glsl =
     "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n"+
     "  gl_Position = projectionMatrix * mvPosition;\n"+
     "}\n";
-
 var fragment_uv_color_glsl =
     "uniform sampler2D texture;\n"+
     "uniform vec4 meshcolor;\n"+
@@ -1528,6 +1561,23 @@ DefaultColorShader.prototype.updateUniforms = function(texture,moyaicolor) {
         };
     }
     this.updateMaterial();
+}
+PrimColorShader.prototype = Object.create(FragmentShader.prototype);
+PrimColorShader.prototype.constructor = PrimColorShader;
+function PrimColorShader() {
+    FragmentShader.call(this);
+    this.fsh_src = fragment_vcolor_glsl;
+    this.vsh_src = vertex_vcolor_glsl;
+}
+PrimColorShader.prototype.updateUniforms = function(moyaicolor) {
+    if(this.uniforms) {
+        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a );
+    } else {
+        this.uniforms = {
+            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a ) }
+        };
+    }
+    this.updateMaterial();    
 }
 //////////////////////
 function Keyboard() {

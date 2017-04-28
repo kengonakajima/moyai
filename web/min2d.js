@@ -40,7 +40,11 @@ p.setDeck(deck);
 p.setIndex(1);
 p.setScl(48,48);
 p.setLoc(0,0);
+p.addRect( new Vec2(0,0), new Vec2(5,5), new Color(1,1,1,0.3));
 g_main_layer.insertProp(p);
+
+
+
 
 var p_over = new Prop2D();
 p_over.setDeck(deck);
