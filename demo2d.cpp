@@ -846,18 +846,7 @@ void gameInit() {
         }
         p->addGrid(g);
         g_main_layer->insertProp(p);
-
-        Prop2D *p2 = new Prop2D();
-        p2->setColor(1,1,0,0.5);
-        p2->setDeck(d2);
-        p2->setScl(12,12);
-        p2->setLoc(-100,100);
-        p2->addGrid(g);
-        tmplayer->insertProp(p2);
     }
-    
-
-    
 
     int bulletinds[] = { ATLAS_BULLET0, ATLAS_BULLET0+1, ATLAS_BULLET0+2,ATLAS_BULLET0+3};
     g_bullet_anim_curve = new AnimCurve( 0.2, true, bulletinds, elementof(bulletinds));

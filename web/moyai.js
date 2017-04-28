@@ -143,14 +143,18 @@ MoyaiClient.prototype.render = function() {
                 for(var i in prop.grids) {
                     var grid = prop.grids[i];
                     grid.updateMesh();
-                    grid.mesh.position.x = prop.loc.x * relscl.x - camloc.x;
-                    grid.mesh.position.y = prop.loc.y * relscl.y - camloc.y;
-                    grid.mesh.position.z = prop_z + z_inside_prop;
-                    grid.mesh.scale.x = prop.scl.x * relscl.x;
-                    grid.mesh.scale.y = prop.scl.y * relscl.y;
-                    grid.mesh.rotation.set(0,0,prop.rot);
-                    this.scene.add(grid.mesh);
-                    z_inside_prop += this.z_per_subprop;
+                    if(!grid.mesh) {
+                        console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
+                    } else {
+                        grid.mesh.position.x = prop.loc.x * relscl.x - camloc.x;
+                        grid.mesh.position.y = prop.loc.y * relscl.y - camloc.y;
+                        grid.mesh.position.z = prop_z + z_inside_prop;
+                        grid.mesh.scale.x = prop.scl.x * relscl.x;
+                        grid.mesh.scale.y = prop.scl.y * relscl.y;
+                        grid.mesh.rotation.set(0,0,prop.rot);
+                        this.scene.add(grid.mesh);
+                        z_inside_prop += this.z_per_subprop;
+                    }
                 }
             }
             if(prop.children.length>0) {
