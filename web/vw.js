@@ -773,14 +773,19 @@ function onPacket(ws,pkttype,argdata) {
         {
             var grid_id = dv.getUint32(0,true);
             var data_len = dv.getUint32(4,true);
-            var bits_ary=[];
+            var xflip_bits_ary=[];
+            var yflip_bits_ary=[];
+            var uvrot_bits_ary=[];
             for(var i=0;i<data_len;i++) {
-                bits_ary[i] = dv.getUint8(8+i);
+                var bits = dv.getUint8(8+i);
+                xflip_bits_ary[i] = getXFlipFromFlipRotBits(bits);
+                yflip_bits_ary[i] = getYFlipFromFlipRotBits(bits);
+                uvrot_bits_ary[i] = getUVRotFromFlipRotBits(bits);
             }
             var g = g_grid_pool[grid_id];
 //            console.log("received grid_table_flip_snapshot", grid_id,data_len,bits_ary,g);
             if(g) {
-                g.bulkSetFlipBits(bits_ary);
+                g.bulkSetFlipRotBits(xflip_bits_ary, yflip_bits_ary, uvrot_bits_ary );
             } else {
                 console.log("grid not found");                
             }

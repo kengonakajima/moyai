@@ -841,17 +841,15 @@ Grid.prototype.bulkSetIndex = function(inds) {
         this.need_geometry_update = true;
     }
 }
-Grid.prototype.bulkSetFlipBits = function(bits) {
+Grid.prototype.bulkSetFlipRotBits = function(xflbits,yflbits,uvrotbits) {
     var expect_len = this.width * this.height;
-    if(bits.length<expect_len){
-        console.log("bulksetflipbits: data not enough. expect:",expect_len, "got:",bits.length);
-    } else {
-        var ind=0;
-        for(var y=0;y<this.height;y++) {
-            for(var x=0;x<this.width;x++) {
-                this.setXFlip(x,y,bits[ind]);
-                ind++;
-            }
+    var ind=0;
+    for(var y=0;y<this.height;y++) {
+        for(var x=0;x<this.width;x++) {
+            this.setXFlip(x,y,xflbits[ind]);
+            this.setYFlip(x,y,yflbits[ind]);
+            this.setUVRot(x,y,uvrotbits[ind]);
+            ind++;
         }
     }
 }
