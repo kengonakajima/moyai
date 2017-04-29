@@ -906,7 +906,8 @@ void TrackerTextBox::broadcastDiff( bool force ) {
         parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_TEXTBOX_FONT, target_tb->id, target_tb->font->id );
         parent_rh->broadcastUS1UI1Wstr( PACKETTYPE_S2C_TEXTBOX_STRING, target_tb->id, target_tb->str, target_tb->len_str );
         parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_TEXTBOX_LOC, target_tb->id, target_tb->loc.x, target_tb->loc.y );
-        parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_TEXTBOX_SCL, target_tb->id, target_tb->scl.x, target_tb->scl.y );        
+        parent_rh->broadcastUS1UI1F2( PACKETTYPE_S2C_TEXTBOX_SCL, target_tb->id, target_tb->scl.x, target_tb->scl.y );
+        parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_TEXTBOX_PRIORITY, target_tb->id, target_tb->priority );
         PacketColor pc;
         copyColorToPacketColor(&pc,&target_tb->color);
         parent_rh->broadcastUS1UI1Bytes( PACKETTYPE_S2C_TEXTBOX_COLOR, target_tb->id, (const char*)&pc, sizeof(pc) );            
@@ -1493,6 +1494,7 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     case PACKETTYPE_S2C_TEXTBOX_LOC: return "PACKETTYPE_S2C_TEXTBOX_LOC";
     case PACKETTYPE_S2C_TEXTBOX_SCL: return "PACKETTYPE_S2C_TEXTBOX_SCL";
     case PACKETTYPE_S2C_TEXTBOX_COLOR: return "PACKETTYPE_S2C_TEXTBOX_COLOR";
+    case PACKETTYPE_S2C_TEXTBOX_PRIORITY: return "PACKETTYPE_S2C_TEXTBOX_PRIORITY";        
     case PACKETTYPE_S2C_TEXTBOX_LAYER: return "PACKETTYPE_S2C_TEXTBOX_LAYER";
     case PACKETTYPE_S2C_FONT_CREATE: return "PACKETTYPE_S2C_FONT_CREATE";
     case PACKETTYPE_S2C_FONT_CHARCODES: return "PACKETTYPE_S2C_FONT_CHARCODES";

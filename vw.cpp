@@ -1171,6 +1171,16 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             tb->setColor(col);
         }
         break;
+    case PACKETTYPE_S2C_TEXTBOX_PRIORITY:
+        {
+            uint32_t tb_id = get_u32(argdata);
+            uint32_t prio = get_u32(argdata+4);
+            TextBox *tb = g_textbox_pool.get(tb_id);
+            if(tb) {
+                tb->priority = prio;
+            }
+        }
+        break;
     case PACKETTYPE_S2C_TEXTBOX_LAYER:
         {
             uint32_t tb_id = get_u32(argdata);
