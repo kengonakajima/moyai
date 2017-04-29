@@ -1124,7 +1124,7 @@ TextureAtlas.prototype.ensureTexture = function() {
     }
     this.moyai_tex = new Texture();
     this.moyai_tex.setImage(this.image);
-//    this.moyai_tex.three_tex.magFilter = THREE.LinearFilter;
+    this.moyai_tex.three_tex.magFilter = THREE.LinearFilter;
 }
 
 Font.prototype.id_gen=1;
