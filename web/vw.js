@@ -1015,7 +1015,9 @@ function onPacket(ws,pkttype,argdata) {
 
 // button funcs
 function connectButton() {
-    g_ws = createWSClient("ws://localhost:8888/");
+    var addr = document.getElementById("address").value;
+    var port = parseInt(document.getElementById("port").value);
+    g_ws = createWSClient("ws://" + addr + ":" + port + "/" );
     g_ws.onPacket = onPacket;
 }
 function disconnectButton() {
