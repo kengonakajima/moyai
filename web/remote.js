@@ -108,6 +108,7 @@ var PACKETTYPE_S2C_TEXTBOX_STRING = 502;    // tb_id; utf8str
 var PACKETTYPE_S2C_TEXTBOX_LOC = 503;    // tb_id; x;y
 var PACKETTYPE_S2C_TEXTBOX_SCL = 504;    // tb_id; x;y    
 var PACKETTYPE_S2C_TEXTBOX_COLOR = 505;    // tb_id; PacketColor
+var PACKETTYPE_S2C_TEXTBOX_PRIORITY = 506;    // tb_id, prio
 var PACKETTYPE_S2C_TEXTBOX_LAYER = 510;     // tb_id; l_id
 var PACKETTYPE_S2C_FONT_CREATE = 540; // fontid; utf8 string array
 var PACKETTYPE_S2C_FONT_CHARCODES = 541; // fontid; utf8str

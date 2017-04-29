@@ -963,6 +963,7 @@ Grid.prototype.fillColor = function(c) {
     }
     this.need_geometry_update = true;
 }
+var g_debug_grid_alpha_message=false;
 Grid.prototype.updateMesh = function() {
     if(!this.deck) {
         console.log("grid.updateMesh: deck is null?", this.deck, this.id );
@@ -1047,7 +1048,17 @@ Grid.prototype.updateMesh = function() {
                 geom.faceVertexUvs[0].push([uv_q,uv_s,uv_r]);
                 geom.faceVertexUvs[0].push([uv_q,uv_p,uv_s]);
                 var col; 
-                if( this.color_table && this.color_table[ind] ) col = this.color_table[ind].toTHREEColor(); else col = new THREE.Color("#fff");
+                if( this.color_table && this.color_table[ind] ) {
+                    col = this.color_table[ind].toTHREEColor();
+                    if(this.color_table[ind].a < 1.0 ) {
+                        if(!g_debug_grid_alpha_message) {
+                            console.log("alpha blending in grid cell is not implemented yet (THREE.js dont have vert color alpha)");
+                            g_debug_grid_alpha_message=true;
+                        }
+                    }
+                } else {
+                    col = new THREE.Color("#fff");
+                }
                 geom.faces[quad_cnt*2+0].vertexColors[0] = col;
                 geom.faces[quad_cnt*2+0].vertexColors[1] = col;
                 geom.faces[quad_cnt*2+0].vertexColors[2] = col;

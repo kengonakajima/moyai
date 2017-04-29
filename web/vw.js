@@ -900,6 +900,14 @@ function onPacket(ws,pkttype,argdata) {
             if(tb) tb.setColor(col);
         }
         break;
+    case PACKETTYPE_S2C_TEXTBOX_PRIORITY:
+        {
+            var tb_id = dv.getUint32(0,true);
+            var prio = dv.getUint32(4,true);
+            var tb = g_textbox_pool[tb_id];
+            if(tb) tb.priority = prio;
+        }
+        break;
     case PACKETTYPE_S2C_TEXTBOX_LAYER:    // tb_id, l_id
         {
             var tb_id = dv.getUint32(0,true);
