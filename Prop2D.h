@@ -119,7 +119,7 @@ public:
         copy_mesh_at_draw = false; // set true for drawDBL
 
         loc_sync_score = 0;
-        locsync_mode = LOCSYNCMODE_ALWAYS;
+        locsync_mode = LOCSYNCMODE_DEFAULT;
 	}
 	virtual ~Prop2D(){
 		for(int i=0;i<grid_used_num;i++){

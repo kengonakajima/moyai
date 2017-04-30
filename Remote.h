@@ -105,8 +105,8 @@ class BufferArray;
 typedef std::unordered_map<unsigned int,Client*>::iterator ClientIteratorType;
 
 typedef enum {
-    LOCSYNCMODE_ALWAYS = 0, // always send loc-sync
-    LOCSYNCMODE_LINEAR = 1,
+    LOCSYNCMODE_DEFAULT = 0, // non-linear motion, (changes velocity every poll at most)
+    LOCSYNCMODE_LINEAR = 1, // velocity never changes after init
 } LOCSYNCMODE;
 
 typedef enum {

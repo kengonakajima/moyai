@@ -166,6 +166,7 @@ void Tracker2D::broadcastDiff( bool force ) {
                 if( target_prop2d->loc_sync_score < parent_rh->nonlinear_sync_score_thres ) {
                     if( !parent_rh->appendChangelist( target_prop2d, &pktbuf[cur_buffer_index] ) ) {
                         // must send if changelist is full
+                        prt("chd:%d ", target_prop2d->id);
                         parent_rh->nearcastUS1UI3( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,
                                                    pktbuf[cur_buffer_index].prop_id,
                                                    (int)pktbuf[cur_buffer_index].loc.x, (int)pktbuf[cur_buffer_index].loc.y );                        
