@@ -71,6 +71,8 @@ unsigned int g_recv_counts[PACKETTYPE_MAX];
 unsigned int g_recv_totalcounts[PACKETTYPE_MAX];
 unsigned int g_recv_sizes[PACKETTYPE_MAX];
 unsigned int g_recv_totalsizes[PACKETTYPE_MAX];
+unsigned int g_recv_counts_last_second[PACKETTYPE_MAX];
+unsigned int g_recv_counts_last_print[PACKETTYPE_MAX];
 
 ReprecationProxy *g_reproxy;
 
@@ -281,7 +283,7 @@ void setupDebugStat() {
     g_debug_tb = new TextBox();
     g_debug_tb->setFont(g_debug_font);
     g_debug_tb->setScl(1);
-    g_debug_tb->setLoc(-g_window_width/2+10,g_window_height/2-15);
+    g_debug_tb->setLoc(-g_window_width/2+10,g_window_height/2-24);
     g_debug_tb->setString("not init");
     g_debug_layer->insertProp(g_debug_tb);    
 }
@@ -1591,10 +1593,13 @@ void printStats() {
         int pkttype = *((int*)se[i].ptr);
         print("%s cnt: %d(%d) sz: %d(%d)",
               RemoteHead::funcidToString((PACKETTYPE)pkttype),
-              g_recv_counts[pkttype], g_recv_totalcounts[pkttype], g_recv_sizes[pkttype], g_recv_totalsizes[pkttype] );
+              g_recv_counts[pkttype] - g_recv_counts_last_print[pkttype],
+              g_recv_totalcounts[pkttype], g_recv_sizes[pkttype], g_recv_totalsizes[pkttype] );
     }
-           
-    for(int i=0;i<elementof(g_recv_counts);i++) g_recv_counts[i]=g_recv_sizes[i]=0;
+    for(int i=0;i<elementof(g_recv_counts);i++) {
+        g_recv_counts_last_print[i]=g_recv_counts[i];
+        g_recv_sizes[i]=0;
+    }
 }
 
 bool parseProgramArgs( int argc, char **argv ) {
@@ -1931,14 +1936,31 @@ int main( int argc, char **argv ) {
                 last_total_read = g_total_read;
                 last_total_read_at = t;
             }
-            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d B/p:%.1f B/r:%.1f sbused:%d comp:%.3f",
+#define CALC_DIFF_PKT(enm) ( g_recv_counts[enm] - g_recv_counts_last_second[enm] )
+            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d B/p:%.1f B/r:%.1f sbused:%d comp:%.3f\n"
+                        "Prop2D ss:%d l:%d i:%d s:%d r:%d f:%d c:%d op:%d pr:%d d:%d cch:%d lv:%d il:%d",
                         polled, rendered, kbps, g_last_ping_rtt*1000,g_timestamp_count, g_total_read_count,
                         (float)g_total_read/(float)g_packet_count, (float)g_total_read/(float)g_total_read_count,
-                        g_stream->sendbuf.used, (float)g_total_read/(float)g_total_unzipped_bytes );
+                        g_stream->sendbuf.used, (float)g_total_read/(float)g_total_unzipped_bytes,
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_SNAPSHOT),
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_LOC),
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_INDEX),
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_SCALE),
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_ROT),
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_FLIPROTBITS),
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_COLOR),
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_OPTBITS),
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_PRIORITY),
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_DELETE),
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_CLEAR_CHILD),
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_LOC_VEL),
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_INDEX_LOC)
+                        );
             updateDebugStat( fmt.buf );
             if(t>g_last_ping_at+1) {
                 g_last_ping_at = t;
-                sendPing( g_stream );                
+                sendPing( g_stream );
+                memcpy( g_recv_counts_last_second,g_recv_counts,sizeof(g_recv_counts_last_second));
             }
         }
 
