@@ -649,11 +649,26 @@ function onPacket(ws,pkttype,argdata) {
             var vx = dv.getFloat32(12,true);
             var vy = dv.getFloat32(16,true);
             var p = g_prop2d_pool[prop_id];
-            console.log("received prop2d_loc_vel", prop_id, lx,ly,vx,vy);
+//            console.log("received prop2d_loc_vel", prop_id, lx,ly,vx,vy);
             if(p) {
                 p.setLoc(lx,ly);
                 p.remote_vel = new Vec2(vx,vy);
             } 
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_LOC_SCL:
+        {
+            var prop_id = dv.getUint32(0,true);
+            var lx = dv.getInt32(4,true);
+            var ly = dv.getInt32(8,true);
+            var sx = dv.getFloat32(12,true);
+            var sy = dv.getFloat32(16,true);
+            var p = g_prop2d_pool[prop_id];
+            console.log("received prop2d_loc_scl", prop_id, lx,ly,sx,sy);
+            if(p) {
+                p.setLoc(lx,ly);
+                p.setScl(sx,sy);
+            }             
         }
         break;
     case PACKETTYPE_S2C_FONT_CREATE: // fontid; utf8 string array
