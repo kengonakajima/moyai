@@ -195,6 +195,11 @@ void Tracker2D::broadcastDiff( bool force ) {
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_INDEX, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].index );
         } else if( diff == (CHANGED_INDEX | CHANGED_LOC) && (!force) ) {
             parent_rh->broadcastUS1UI4( PACKETTYPE_S2C_PROP2D_INDEX_LOC, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].index, (int)pktbuf[cur_buffer_index].loc.x, (int)pktbuf[cur_buffer_index].loc.y );
+        } else if( diff == (CHANGED_LOC | CHANGED_SCL ) && (!force) ) {
+            parent_rh->nearcastUS1UI3F2( target_prop2d,
+                                         PACKETTYPE_S2C_PROP2D_LOC_SCL, pktbuf[cur_buffer_index].prop_id,
+                                         (int)pktbuf[cur_buffer_index].loc.x, (int)pktbuf[cur_buffer_index].loc.y,
+                                         pktbuf[cur_buffer_index].scl.x, pktbuf[cur_buffer_index].scl.y );
         } else if( diff == CHANGED_FLIPROTBITS && (!force) ) {
             parent_rh->broadcastUS1UI1UC1( PACKETTYPE_S2C_PROP2D_FLIPROTBITS, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].fliprotbits );
         } else if( diff == CHANGED_OPTBITS && (!force) ) {
@@ -202,7 +207,7 @@ void Tracker2D::broadcastDiff( bool force ) {
         } else if( diff == CHANGED_PRIORITY && (!force) ) {
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_PRIORITY, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].priority );
         } else {
-            //                        prt("SS%d ",diff);            
+                                    prt("SS%d ",diff);            
             parent_rh->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&pktbuf[cur_buffer_index], sizeof(PacketProp2DSnapshot) );
         }        
     }
@@ -1458,6 +1463,7 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     case PACKETTYPE_S2C_PROP2D_CLEAR_CHILD: return "PACKETTYPE_S2C_PROP2D_CLEAR_CHILD";
     case PACKETTYPE_S2C_PROP2D_LOC_VEL: return "PACKETTYPE_S2C_PROP2D_LOC_VEL";
     case PACKETTYPE_S2C_PROP2D_INDEX_LOC: return "PACKETTYPE_S2C_PROP2D_INDEX_LOC";
+    case PACKETTYPE_S2C_PROP2D_LOC_SCL: return "PACKETTYPE_S2C_PROP2D_LOC_SCL";
     
     case PACKETTYPE_S2C_LAYER_CREATE: return "PACKETTYPE_S2C_LAYER_CREATE";
     case PACKETTYPE_S2C_LAYER_VIEWPORT: return "PACKETTYPE_S2C_LAYER_VIEWPORT";

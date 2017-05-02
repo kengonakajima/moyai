@@ -372,6 +372,21 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                 }
             }
             break; // must go to second step switch.
+        case PACKETTYPE_S2C_PROP2D_LOC_SCL:
+            {
+                uint32_t id = get_u32(argdata+0);
+                Prop2D *p = g_prop2d_pool.get(id);
+                if(p) {
+                    int32_t lx = get_u32(argdata+4);
+                    int32_t ly = get_u32(argdata+8);
+                    float sx = get_f32(argdata+12);
+                    float sy = get_f32(argdata+16);
+                    POOL_SCAN(g_reproxy->cl_pool,Client) {
+                        if(it->second->canSee(p)) sendUS1UI3F2( it->second, PACKETTYPE_S2C_PROP2D_LOC_SCL, id, lx,ly, sx,sy );
+                    }
+                }
+            }
+            break;
         case PACKETTYPE_S2R_CAMERA_CREATE:
             {
                 uint32_t gclid = get_u32(argdata+0);
@@ -640,6 +655,21 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                 float vy = get_f32(argdata+16);                
                 prop->setLoc(lx,ly);
                 prop->remote_vel = Vec2(vx,vy);
+            }
+        }
+        break;
+    case PACKETTYPE_S2C_PROP2D_LOC_SCL:
+        {
+            uint32_t id = get_u32(argdata+0);
+            Prop2D *prop = g_prop2d_pool.get(id);
+            if(prop) {
+                int32_t lx = get_u32(argdata+4);
+                int32_t ly = get_u32(argdata+8);
+                float sx = get_f32(argdata+12);
+                float sy = get_f32(argdata+16);                
+                prop->setLoc(lx,ly);
+                prop->scl.x = sx;
+                prop->scl.y = sy;
             }
         }
         break;        
@@ -1938,7 +1968,7 @@ int main( int argc, char **argv ) {
             }
 #define CALC_DIFF_PKT(enm) ( g_recv_counts[enm] - g_recv_counts_last_second[enm] )
             Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d B/p:%.1f B/r:%.1f sbused:%d comp:%.3f\n"
-                        "Prop2D ss:%d l:%d i:%d s:%d r:%d f:%d c:%d op:%d pr:%d d:%d cch:%d lv:%d il:%d",
+                        "Prop2D ss:%d l:%d i:%d s:%d r:%d f:%d c:%d op:%d pr:%d d:%d cch:%d lv:%d il:%d ls:%d",
                         polled, rendered, kbps, g_last_ping_rtt*1000,g_timestamp_count, g_total_read_count,
                         (float)g_total_read/(float)g_packet_count, (float)g_total_read/(float)g_total_read_count,
                         g_stream->sendbuf.used, (float)g_total_read/(float)g_total_unzipped_bytes,
@@ -1954,7 +1984,8 @@ int main( int argc, char **argv ) {
                         CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_DELETE),
                         CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_CLEAR_CHILD),
                         CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_LOC_VEL),
-                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_INDEX_LOC)
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_INDEX_LOC),
+                        CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_LOC_SCL)
                         );
             updateDebugStat( fmt.buf );
             if(t>g_last_ping_at+1) {
