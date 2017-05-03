@@ -67,8 +67,9 @@ public:
     Tracker2D *tracker;
     bool copy_mesh_at_draw;
 
-    // location sync skipping
+    // location sync skipping based on scoring
     float loc_sync_score;
+    bool loc_changed;
     LOCSYNCMODE locsync_mode;
     Vec2 remote_vel;
     
@@ -119,6 +120,7 @@ public:
         copy_mesh_at_draw = false; // set true for drawDBL
 
         loc_sync_score = 0;
+        loc_changed=true;
         locsync_mode = LOCSYNCMODE_DEFAULT;
 	}
 	virtual ~Prop2D(){

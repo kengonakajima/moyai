@@ -548,10 +548,24 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             memcpy(&pkt,argdata+4,sizeof(pkt));
             //            prt("s%d ", pkt.prop_id );
 
-#if 0
-            print("packettype_prop2d_snapshot. id:%d layer_id:%d parentprop:%d loc:%f,%f scl:%f,%f index:%d tdid:%d col:%x,%x,%x,%x",
-                  pkt.prop_id, pkt.layer_id, pkt.parent_prop_id, pkt.loc.x, pkt.loc.y, pkt.scl.x, pkt.scl.y, pkt.index,
-                  pkt.tiledeck_id , pkt.color.r,pkt.color.g,pkt.color.b,pkt.color.a);
+#if 1
+            if(pkt.debug==1323) print("packettype_prop2d_snapshot. id:%d layer_id:%d parentprop:%d loc:%f,%f scl:%f,%f index:%d tdid:%d col:%x,%x,%x,%x rot:%f shader:%d opt:%d prio:%d fliprot:%d debug:%d pktsize:%d",
+                  pkt.prop_id,
+                  pkt.layer_id,
+                  pkt.parent_prop_id,
+                  pkt.loc.x, pkt.loc.y,
+                  pkt.scl.x, pkt.scl.y,
+                  pkt.index,
+                  pkt.tiledeck_id ,
+                  pkt.color.r,pkt.color.g,pkt.color.b,pkt.color.a,
+                  pkt.rot,
+                  pkt.shader_id,
+                  pkt.optbits,
+                  pkt.priority,
+                  pkt.fliprotbits,
+                  pkt.debug,
+                  sizeof(pkt)
+                  );
 #endif
             
             Layer *layer = NULL;
@@ -612,8 +626,9 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                 ColorReplacerShader *crs = g_crshader_pool.get(pkt.shader_id);
                 if(crs) {
                     prop->setFragmentShader(crs);
+                    if(pkt.debug==1323) print("  colorreplacershader %d found and set", pkt.shader_id, pkt.debug );
                 } else {
-                    print("  colorreplacershader %d not found", pkt.shader_id);
+                     if(pkt.debug==1323) print("  colorreplacershader %d not found", pkt.shader_id);
                 }
             }
             prop->priority = pkt.priority;

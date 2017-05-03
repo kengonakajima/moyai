@@ -73,6 +73,9 @@ void makePacketProp2DSnapshot( PacketProp2DSnapshot *out, Prop2D *tgt, Prop2D *p
     out->scl.y = tgt->scl.y;
     out->index = tgt->index;
     out->tiledeck_id = tgt->deck ? tgt->deck->id : 0;
+    if(out->tiledeck_id==0 && tgt->grid_used_num==0) {
+        print("WARNING: tiledeck is 0 for prop %d ind:%d grid:%d", tgt->id , tgt->index, tgt->grid_used_num );
+    }
     out->debug = tgt->debug_id;
     out->fliprotbits = toFlipRotBits(tgt->xflip,tgt->yflip,tgt->uvrot);
     out->rot = tgt->rot;
@@ -81,6 +84,7 @@ void makePacketProp2DSnapshot( PacketProp2DSnapshot *out, Prop2D *tgt, Prop2D *p
     out->optbits = 0;
     if( tgt->use_additive_blend ) out->optbits |= PROP2D_OPTBIT_ADDITIVE_BLEND;
     out->priority = tgt->priority;
+    //    print("ss prop:%d FS:%d size:%d", tgt->id, out->shader_id, sizeof(*out));
     
 }
 void Tracker2D::scanProp2D( Prop2D *parentprop ) {
@@ -143,12 +147,14 @@ void Tracker2D::broadcastDiff( bool force ) {
             Vec2 v1(pktbuf[cur_buffer_index].loc.x,pktbuf[cur_buffer_index].loc.y);
             float l = v0.len(v1);
             target_prop2d->loc_sync_score+= l;
+            if(v0.x!=v1.x||v0.y!=v1.y) target_prop2d->loc_changed=true;
             
             // only location changed!
             if( target_prop2d->locsync_mode == LOCSYNCMODE_LINEAR ) {
                 bool to_send = true;                
                 if(target_prop2d->loc_sync_score > parent_rh->linear_sync_score_thres ) {
                     target_prop2d->loc_sync_score=0;
+                    target_prop2d->loc_changed=false;
                 } else if( target_prop2d->poll_count>2 ){
                     to_send = false;
                 }
@@ -164,15 +170,17 @@ void Tracker2D::broadcastDiff( bool force ) {
             } else {
                 target_prop2d->loc_sync_score+=1; // avoid missing syncing stopped props
                 if( target_prop2d->loc_sync_score < parent_rh->nonlinear_sync_score_thres ) {
-                    if( !parent_rh->appendChangelist( target_prop2d, &pktbuf[cur_buffer_index] ) ) {
+                    if( !parent_rh->appendNonlinearChangelist( target_prop2d, &pktbuf[cur_buffer_index] ) ) {
                         // must send if changelist is full
-                        prt("chd:%d ", target_prop2d->id);
+                        prt("FL %d", target_prop2d->id);
                         parent_rh->nearcastUS1UI3( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,
                                                    pktbuf[cur_buffer_index].prop_id,
                                                    (int)pktbuf[cur_buffer_index].loc.x, (int)pktbuf[cur_buffer_index].loc.y );                        
                     }
                 } else {
+                    prt("NL LOC SCORE:%d prop:%d",target_prop2d->loc_sync_score, target_prop2d->id );
                     target_prop2d->loc_sync_score=0;
+                    target_prop2d->loc_changed=false;
                     // dont use changelist sorting for big changes
                     parent_rh->nearcastUS1UI3( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,
                                                pktbuf[cur_buffer_index].prop_id,
@@ -960,6 +968,7 @@ void TrackerColorReplacerShader::broadcastDiff( bool force ) {
     if( checkDiff() || force ) {
         PacketColorReplacerShaderSnapshot pkt;
         setupPacketColorReplacerShaderSnapshot( &pkt, target_shader );
+        print("TrackerColorReplacerShader broadcastDiff");
         parent_rh->broadcastUS1Bytes( PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT, (const char*)&pkt, sizeof(pkt) );
     }
 }
@@ -1617,7 +1626,7 @@ void RemoteHead::broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 ) {
 }
 
 
-bool RemoteHead::appendChangelist(Prop2D *p, PacketProp2DSnapshot *pkt) {
+bool RemoteHead::appendNonlinearChangelist(Prop2D *p, PacketProp2DSnapshot *pkt) {
     if( changelist_used == elementof(changelist) )return false;
     changelist[changelist_used] = ChangeEntry(p,pkt);
     changelist_used++;
@@ -1632,16 +1641,18 @@ void RemoteHead::broadcastSortedChangelist() {
     quickSortF( tosort, 0, changelist_used-1);
     //    print("sortChangelist:%d",changelist_used);
 
-    int max_send_num = sort_sync_thres; 
-    if( max_send_num > changelist_used ) max_send_num = changelist_used;
+    int max_send_num = sorted_changelist_max_send_num;
+    if( sorted_changelist_max_send_num > changelist_used ) max_send_num = changelist_used;
     int sent_n=0;
     for(int i=changelist_used-1;i>=0;i--) { // reverse order: biggest first
-        //        print("KKK:%d %f",i, changelist[i].p->loc_sync_score);
         ChangeEntry *e = (ChangeEntry*)tosort[i].ptr;
-        nearcastUS1UI3( e->p, PACKETTYPE_S2C_PROP2D_LOC, e->pkt->prop_id, (int)e->pkt->loc.x, (int)e->pkt->loc.y );
-        e->p->loc_sync_score=0;
-        sent_n++;
-        if( sent_n >= max_send_num )break;
+        if( e->p->loc_sync_score > sort_sync_thres ) {
+            nearcastUS1UI3( e->p, PACKETTYPE_S2C_PROP2D_LOC, e->pkt->prop_id, (int)e->pkt->loc.x, (int)e->pkt->loc.y );
+            e->p->loc_sync_score=0;
+            e->p->loc_changed=false;
+            sent_n++;
+            if( sent_n >= max_send_num)break;
+        }
     }
     //    print("broadcastChangelist: tot:%d sent:%d max:%d", changelist_used, sent_n, max_send_num);
 }
@@ -1672,25 +1683,34 @@ char sendbuf_work[1024*1024*8];
     set_u16( sendbuf_work+4, usval );
 
 
-#define PUSH_DATA_TO_STREAM(s) (( s->sendbuf.push(sendbuf_work,totalsize) ) ? totalsize : 0)
+int pushDataToStream( Stream *s, char *buf, size_t sz ) {
+#if 1 // for debugging
+    if(sz>=6){
+        uint16_t funcid = get_u16((const char*)buf+4);
+        print("[%.4f] SEND %s ARGLEN:%d", now(), RemoteHead::funcidToString( (PACKETTYPE)funcid), sz-4-2 );
+    }
+#endif    
+    int ret = s->sendbuf.push(buf,sz);
+    if(ret) return sz; else return 0;
+}
 
 int sendUS1RawArgs( Stream *s, uint16_t usval, const char *data, uint32_t datalen ) {
     size_t totalsize = 4 + 2 + datalen;
     SET_RECORD_LEN_AND_US1;
     memcpy( sendbuf_work+4+2,data, datalen);
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1( Stream *s, uint16_t usval ) {
     size_t totalsize = 4 + 2;
     SET_RECORD_LEN_AND_US1;
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1Bytes( Stream *s, uint16_t usval, const char *bytes, uint16_t byteslen ) {
     size_t totalsize = 4 + 2 + (4+byteslen);
     SET_RECORD_LEN_AND_US1;
     set_u32( sendbuf_work+4+2, byteslen );
     memcpy( sendbuf_work+4+2+4, bytes, byteslen );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1UI1Bytes( Stream *s, uint16_t usval, uint32_t uival, const char *bytes, uint32_t byteslen ) {
     size_t totalsize = 4 + 2 + 4 + (4+byteslen);
@@ -1698,20 +1718,20 @@ int sendUS1UI1Bytes( Stream *s, uint16_t usval, uint32_t uival, const char *byte
     set_u32( sendbuf_work+4+2, uival );
     set_u32( sendbuf_work+4+2+4, byteslen );
     memcpy( sendbuf_work+4+2+4+4, bytes, byteslen );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1UI1( Stream *s, uint16_t usval, uint32_t uival ) {
     size_t totalsize = 4 + 2 + 4;
     SET_RECORD_LEN_AND_US1;
     set_u32( sendbuf_work+4+2, uival );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1UI2( Stream *s, uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
     size_t totalsize = 4 + 2 + 4+4;
     SET_RECORD_LEN_AND_US1;
     set_u32( sendbuf_work+4+2, ui0 );
     set_u32( sendbuf_work+4+2+4, ui1 );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1UI3( Stream *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
     size_t totalsize = 4 + 2 + 4+4+4;
@@ -1719,7 +1739,7 @@ int sendUS1UI3( Stream *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t 
     set_u32( sendbuf_work+4+2, ui0 );
     set_u32( sendbuf_work+4+2+4, ui1 );
     set_u32( sendbuf_work+4+2+4+4, ui2 );    
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1UI4( Stream *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3 ) {
     size_t totalsize = 4 + 2 + 4+4+4+4+4;
@@ -1728,7 +1748,7 @@ int sendUS1UI4( Stream *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t 
     set_u32( sendbuf_work+4+2+4, ui1 );
     set_u32( sendbuf_work+4+2+4+4, ui2 );
     set_u32( sendbuf_work+4+2+4+4+4, ui3 );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1UI5( Stream *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3, uint32_t ui4 ) {
     size_t totalsize = 4 + 2 + 4+4+4+4+4;
@@ -1738,14 +1758,14 @@ int sendUS1UI5( Stream *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t 
     set_u32( sendbuf_work+4+2+4+4, ui2 );
     set_u32( sendbuf_work+4+2+4+4+4, ui3 );
     set_u32( sendbuf_work+4+2+4+4+4+4, ui4 );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1UI1F1( Stream *s, uint16_t usval, uint32_t uival, float f0 ) {
     size_t totalsize = 4 + 2 + 4+4;
     SET_RECORD_LEN_AND_US1;
     set_u32( sendbuf_work+4+2, uival );
     memcpy( sendbuf_work+4+2+4, &f0, 4 );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1UI1F2( Stream *s, uint16_t usval, uint32_t uival, float f0, float f1 ) {
     size_t totalsize = 4 + 2 + 4+4+4;
@@ -1753,7 +1773,7 @@ int sendUS1UI1F2( Stream *s, uint16_t usval, uint32_t uival, float f0, float f1 
     set_u32( sendbuf_work+4+2, uival );
     memcpy( sendbuf_work+4+2+4, &f0, 4 );
     memcpy( sendbuf_work+4+2+4+4, &f1, 4 );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1UI2F2( Stream *s, uint16_t usval, uint32_t uival0, uint32_t uival1, float f0, float f1 ) {
     size_t totalsize = 4 + 2 + 4+4+4+4;
@@ -1762,7 +1782,7 @@ int sendUS1UI2F2( Stream *s, uint16_t usval, uint32_t uival0, uint32_t uival1, f
     set_u32( sendbuf_work+4+2+4, uival1 );    
     memcpy( sendbuf_work+4+2+4+4, &f0, 4 );
     memcpy( sendbuf_work+4+2+4+4+4, &f1, 4 );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1UI3F2( Stream *s, uint16_t usval, uint32_t uival0, uint32_t uival1, uint32_t uival2, float f0, float f1 )  {
     size_t totalsize = 4 + 2 + 4+4+4+4+4;
@@ -1772,7 +1792,7 @@ int sendUS1UI3F2( Stream *s, uint16_t usval, uint32_t uival0, uint32_t uival1, u
     set_u32( sendbuf_work+4+2+4+4, uival2 );        
     memcpy( sendbuf_work+4+2+4+4+4, &f0, 4 );
     memcpy( sendbuf_work+4+2+4+4+4+4, &f1, 4 );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
     
 }
 int sendUS1UI1F4( Stream *s, uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 ) {
@@ -1783,21 +1803,21 @@ int sendUS1UI1F4( Stream *s, uint16_t usval, uint32_t uival, float f0, float f1,
     memcpy( sendbuf_work+4+2+4+4, &f1, 4 );
     memcpy( sendbuf_work+4+2+4+4+4, &f2, 4 );
     memcpy( sendbuf_work+4+2+4+4+4+4, &f3, 4 );    
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1UI1UC1( Stream *s, uint16_t usval, uint32_t uival, uint8_t ucval ) {
     size_t totalsize = 4 + 2 + 4+1;
     SET_RECORD_LEN_AND_US1;
     set_u32( sendbuf_work+4+2, uival );
     sendbuf_work[4+2+4] = ucval;
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1F2( Stream *s, uint16_t usval, float f0, float f1 ) {
     size_t totalsize = 4 + 2 + 4+4;
     SET_RECORD_LEN_AND_US1;
     memcpy( sendbuf_work+4+2, &f0, 4 );
     memcpy( sendbuf_work+4+2+4, &f1, 4 );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1UI1Str( Stream *s, uint16_t usval, uint32_t uival, const char *cstr ) {
     int cstrlen = strlen(cstr);
@@ -1807,7 +1827,7 @@ int sendUS1UI1Str( Stream *s, uint16_t usval, uint32_t uival, const char *cstr )
     set_u32( sendbuf_work+4+2, uival );
     set_u8( sendbuf_work+4+2+4, (unsigned char) cstrlen );
     memcpy( sendbuf_work+4+2+4+1, cstr, cstrlen );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 int sendUS1UI2Str( Stream *s, uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr ) {
     int cstrlen = strlen(cstr);
@@ -1818,7 +1838,7 @@ int sendUS1UI2Str( Stream *s, uint16_t usval, uint32_t ui0, uint32_t ui1, const 
     set_u32( sendbuf_work+4+2+4, ui1 );    
     set_u8( sendbuf_work+4+2+4+4, (unsigned char) cstrlen );
     memcpy( sendbuf_work+4+2+4+4+1, cstr, cstrlen );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 // [record-len:16][usval:16][cstr-len:8][cstr-body][data-len:32][data-body]
 int sendUS1StrBytes( Stream *s, uint16_t usval, const char *cstr, const char *data, uint32_t datalen ) {
@@ -1831,7 +1851,7 @@ int sendUS1StrBytes( Stream *s, uint16_t usval, const char *cstr, const char *da
     set_u32( sendbuf_work+4+2+1+cstrlen, datalen );
     memcpy( sendbuf_work+4+2+1+cstrlen+4, data, datalen );
     //    print("send_packet_str_bytes: cstrlen:%d datalen:%d totallen:%d", cstrlen, datalen, totalsize );
-    return PUSH_DATA_TO_STREAM(s);
+    return pushDataToStream(s,sendbuf_work,totalsize);
 }
 void parsePacketStrBytes( char *inptr, char *outcstr, char **outptr, size_t *outsize ) {
     uint8_t slen = get_u8(inptr);
