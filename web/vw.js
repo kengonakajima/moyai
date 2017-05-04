@@ -96,27 +96,17 @@ function getYFlipFromFlipRotBits(bits) { return bits & 0x02; }
 function getUVRotFromFlipRotBits(bits) { return bits & 0x04; }
     
 var PROP2D_OPTBIT_ADDITIVE_BLEND = 0x00000001;
-    
-    
-    /*
-      typedef struct  {
-      uint32_t prop_id; // non-zero
-      uint32_t layer_id; // non-zero for layer, zero for child props
-      uint32_t parent_prop_id; // non-zero for child props, zero for layer props
-      PacketVec2 loc;
-      PacketVec2 scl;
-      int32_t index;
-      uint32_t tiledeck_id; // non-zero
-      int32_t debug;
-      float rot;
-      PacketColor color;
-      uint32_t shader_id;
-      uint32_t optbits;
-      int32_t priority;
-      uint8_t fliprotbits;
-      } PacketProp2DSnapshot;
-    */
 
+
+// color replacer shader is duplicated to have each different uniforms
+function updateAllColorReplacerShader(shader_id,fromc,toc,eps) {
+    for(var i in g_prop2d_pool) {
+        var p = g_prop2d_pool[i];
+        if(p.fragment_shader && p.fragment_shader.orig_shader_id==shader_id) {
+            p.fragment_shader.setColor(fromc,toc,eps);
+        }
+    }
+}
 
 function onPacket(ws,pkttype,argdata) {
     if(pkttype==PACKETTYPE_ZIPPED_RECORDS) {
@@ -517,7 +507,13 @@ function onPacket(ws,pkttype,argdata) {
             if(pkt.shader_id != 0 ) {
                 var crs = g_crshader_pool[pkt.shader_id];
                 if(crs) {
-                    prop.setFragmentShader(crs);
+                    console.log("prop2d_snapshot: colorreplacershader found", pkt.shader_id);
+                    // Must duplicate shader because three.js always share shader uniforms too                    
+                    var newcrs = new ColorReplacerShader();
+                    newcrs.updateUniforms(crs.uniforms.texture.value);                                          
+                    newcrs.updateMaterial();
+                    newcrs.orig_shader_id = pkt.shader_id; // search this when updating uniforms later
+                    prop.setFragmentShader(newcrs);
                 } else {
                     console.log("prop2d_snapshot: colorreplacershader not found", pkt.shader_id);
                 }
@@ -664,7 +660,7 @@ function onPacket(ws,pkttype,argdata) {
             var sx = dv.getFloat32(12,true);
             var sy = dv.getFloat32(16,true);
             var p = g_prop2d_pool[prop_id];
-            console.log("received prop2d_loc_scl", prop_id, lx,ly,sx,sy);
+//            console.log("received prop2d_loc_scl", prop_id, lx,ly,sx,sy);
             if(p) {
                 p.setLoc(lx,ly);
                 p.setScl(sx,sy);
@@ -720,6 +716,7 @@ function onPacket(ws,pkttype,argdata) {
                 g_crshader_pool[pkt.shader_id] = s;
             }
             s.setColor( pkt.from_color, pkt.to_color, pkt.epsilon );
+            updateAllColorReplacerShader(pkt.shader_id,pkt.from_color,pkt.to_color, pkt.epsilon );
         }
         break;
 

@@ -691,7 +691,7 @@ Prop2D.prototype.getChild = function(propid) {
     }
     return null;
 }
-Prop2D.prototype.setFragmentShader = function(s) { this.fragment_shader = s; }
+Prop2D.prototype.setFragmentShader = function(s) {    this.fragment_shader = s;}
 Prop2D.prototype.basePoll = function(dt) { // return false to clean
     this.poll_count++;
     this.accum_time+=dt;    
