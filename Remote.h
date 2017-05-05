@@ -50,9 +50,9 @@ inline uint8_t toFlipRotBits(bool xflip, bool yflip, bool uvrot) {
     return out;
 }
 inline void fromFlipRotBits(uint8_t bits, bool *xfl, bool *yfl, bool *uvr ) {
-    if(bits&0x01) *xfl=true;
-    if(bits&0x02) *yfl=true;
-    if(bits&0x04) *uvr=true;
+    if(bits&0x01) *xfl=true; else *xfl=false;
+    if(bits&0x02) *yfl=true; else *yfl=false;
+    if(bits&0x04) *uvr=true; else *uvr=false;
 }
 inline bool getXFlipFromFlipRotBits(uint8_t bits) { return bits & 0x01; }
 inline bool getYFlipFromFlipRotBits(uint8_t bits) { return bits & 0x02; }
