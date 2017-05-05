@@ -494,6 +494,9 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
     }
 
     // second step switch
+#if 0
+    print("[%.4f] %s", now(), RemoteHead::funcidToString((PACKETTYPE)funcid ));
+#endif    
     switch(funcid) {
     case PACKETTYPE_PING:
         {
@@ -548,7 +551,7 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             memcpy(&pkt,argdata+4,sizeof(pkt));
             //            prt("s%d ", pkt.prop_id );
 
-#if 1
+#if 0
             if(pkt.debug==1323) print("packettype_prop2d_snapshot. id:%d layer_id:%d parentprop:%d loc:%f,%f scl:%f,%f index:%d tdid:%d col:%x,%x,%x,%x rot:%f shader:%d opt:%d prio:%d fliprot:%d debug:%d pktsize:%d",
                   pkt.prop_id,
                   pkt.layer_id,
@@ -643,6 +646,7 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                 int32_t x = get_u32(argdata+4);
                 int32_t y = get_u32(argdata+8);
                 prop->setLoc(x,y);
+                //                print("[%.4f] PROP2D_LOC %d %d %d", now(), id, x,y);
             }
         }
         break;
@@ -656,6 +660,7 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                 int32_t y = get_u32(argdata+12);
                 prop->setLoc(x,y);
                 prop->setIndex(ind);
+                //                print("received prop2d_index_loc: %d ind:%d %d,%d", id,ind,x,y);
             }
         }
         break;
@@ -834,7 +839,7 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             unsigned int camera_id = get_u32(argdata);
             float x = get_f32(argdata+4);
             float y = get_f32(argdata+4+4);
-            //            print("received s2c_camera_loc. id:%d (%f,%f)", camera_id, x,y );            
+            //            print("[%.4f] received s2c_camera_loc. id:%d (%f,%f)", now(), camera_id, x,y );            
             Camera *cam = g_camera_pool.get(camera_id);
             assert(cam);
             cam->setLoc(x,y);

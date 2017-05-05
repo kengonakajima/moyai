@@ -1652,6 +1652,11 @@ void RemoteHead::broadcastSortedChangelist() {
             e->p->loc_changed=false;
             sent_n++;
             if( sent_n >= max_send_num)break;
+        } else if( e->p->target_client_id > 0 ) {
+            Client *cl = cl_pool.get(e->p->target_client_id);
+            if(cl) {
+                sendUS1UI3( cl, PACKETTYPE_S2C_PROP2D_LOC, e->pkt->prop_id, (int)e->pkt->loc.x, (int)e->pkt->loc.y );
+            }
         }
     }
     //    print("broadcastChangelist: tot:%d sent:%d max:%d", changelist_used, sent_n, max_send_num);
@@ -1684,7 +1689,7 @@ char sendbuf_work[1024*1024*8];
 
 
 int pushDataToStream( Stream *s, char *buf, size_t sz ) {
-#if 1 // for debugging
+#if 0 // for debugging
     if(sz>=6){
         uint16_t funcid = get_u16((const char*)buf+4);
         print("[%.4f] SEND %s ARGLEN:%d", now(), RemoteHead::funcidToString( (PACKETTYPE)funcid), sz-4-2 );

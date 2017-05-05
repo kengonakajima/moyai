@@ -72,6 +72,7 @@ public:
     bool loc_changed;
     LOCSYNCMODE locsync_mode;
     Vec2 remote_vel;
+    int target_client_id; // >0 if used
     
 	Prop2D() : Prop(), Renderable() {
         init();
@@ -122,6 +123,7 @@ public:
         loc_sync_score = 0;
         loc_changed=true;
         locsync_mode = LOCSYNCMODE_DEFAULT;
+        target_client_id = 0;
 	}
 	virtual ~Prop2D(){
 		for(int i=0;i<grid_used_num;i++){
@@ -327,5 +329,10 @@ public:
     static void drawToDBL( Layer *l, DrawBatchList *bl,FragmentShader *fs, bool additive_blend, Deck *dk, int index, Color col, Vec2 loc, Vec2 scl, float rot );
     void setLocSyncMode(LOCSYNCMODE mode ) { locsync_mode = mode; }
     bool isInView( Vec2 *minv, Vec2 *maxv, Camera *cam );
-    
+    void setTargetClient( Client *cl ) {
+        target_client_id = cl->id;
+        for(int i=0;i<children_num;i++) {
+            children[i]->setTargetClient(cl);
+        }
+    }
 };
