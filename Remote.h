@@ -139,6 +139,8 @@ typedef enum {
     PACKETTYPE_S2R_VIEWPORT_CREATE = 180,
     PACKETTYPE_S2R_VIEWPORT_DYNAMIC_LAYER = 181,
     PACKETTYPE_S2R_VIEWPORT_SCALE = 182,
+    PACKETTYPE_S2R_PROP2D_TARGET_CLIENT = 183,
+    PACKETTYPE_S2R_PROP2D_LOC = 184,     // send this movement to target client
     
     // server to client
     PACKETTYPE_S2C_PROP2D_SNAPSHOT = 200, 
@@ -311,7 +313,7 @@ public:
     void broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen );
     void broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen );    
     void broadcastUS1UI1( uint16_t usval, uint32_t uival );
-    void broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 );
+    void broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1, bool reprecator_only = false );
     void broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
     void broadcastUS1UI4( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3 );    
     void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
@@ -322,8 +324,10 @@ public:
     void broadcastUS1UI1UC1( uint16_t usval, uint32_t uival, uint8_t ucval );    
 
     void nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1 );
-    void nearcastUS1UI3( Prop2D *p, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
+    void nearcastUS1UI3( Prop2D *p, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, bool reprecator_only = false );
     void nearcastUS1UI3F2( Prop2D *p, uint16_t usval, uint32_t uival, uint32_t u0, uint32_t u1, float f0, float f1 );
+
+    void broadcastUS1UI2ToReprecator( uint16_t usval, uint32_t ui0, uint32_t ui1 );
     
     void broadcastTimestamp();
 

@@ -486,6 +486,35 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                 }
             }
             return;
+        case PACKETTYPE_S2R_PROP2D_TARGET_CLIENT:
+            {
+                uint32_t prop_id = get_u32(argdata+0);
+                uint32_t client_id = get_u32(argdata+4);
+                Prop2D *prop = g_prop2d_pool.get(prop_id);
+                if(prop) {
+                    prop->target_client_id = client_id;
+                    //                    print("XXX received s2r_prop2d_target_client p:%d cl:%d", prop_id, client_id );
+                }                    
+            }
+            return;
+        case PACKETTYPE_S2R_PROP2D_LOC: // used for props with target_client_id 
+            {
+                uint32_t prop_id = get_u32(argdata+0);
+                int32_t x = get_u32(argdata+4);
+                int32_t y = get_u32(argdata+8);
+                Prop2D *prop = g_prop2d_pool.get(prop_id);
+                if(prop) {
+                    //                    print("#### received s2r_prop2d_loc prop:%d x:%d y:%d tgtcl:%d", prop_id, x,y, prop->target_client_id );
+                    prop->setLoc(x,y);
+                    if(prop->target_client_id>0) {
+                        Client *cl = g_reproxy->getClientByGlobalId(prop->target_client_id);
+                        if(cl) {
+                            sendUS1UI3( cl, PACKETTYPE_S2C_PROP2D_LOC, prop->id, x,y);
+                        }
+                    }
+                }              
+            }
+            return;
         default:
             //        print("forwarding pkt: f:%d sz:%d",funcid, argdatalen);
             g_reproxy->broadcastUS1RawArgs(funcid,argdata,argdatalen);
@@ -1664,8 +1693,11 @@ bool parseProgramArgs( int argc, char **argv ) {
             g_enable_reprecation = true;
         } else if( strncmp( argv[i], save_prefix, strlen(save_prefix)) == 0 ) {
             snprintf( g_savepath, sizeof(g_savepath), "%s", argv[i] + strlen(save_prefix));
-        } else {
+        } else if( argv[i][0] != '-' ){
             g_server_ip_addr = argv[i];
+        } else if( argv[i][0] == '-' ) {
+            print( "unknown option: '%s'", argv[i]);
+            return false;
         }
 
     }

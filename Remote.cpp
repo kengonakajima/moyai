@@ -215,8 +215,11 @@ void Tracker2D::broadcastDiff( bool force ) {
         } else if( diff == CHANGED_PRIORITY && (!force) ) {
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_PRIORITY, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].priority );
         } else {
-                                    prt("SS%d ",diff);            
+            prt("SS%d ",diff);
             parent_rh->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&pktbuf[cur_buffer_index], sizeof(PacketProp2DSnapshot) );
+            if( target_prop2d->target_client_id > 0 ) {
+                parent_rh->broadcastUS1UI2( PACKETTYPE_S2R_PROP2D_TARGET_CLIENT,target_prop2d->id, target_prop2d->target_client_id, true);
+            }
         }        
     }
 }
@@ -1456,7 +1459,9 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     case PACKETTYPE_S2R_CAMERA_LOC: return "PACKETTYPE_S2R_CAMERA_LOC";        
     case PACKETTYPE_S2R_VIEWPORT_CREATE: return "PACKETTYPE_S2R_VIEWPORT_CREATE";
     case PACKETTYPE_S2R_VIEWPORT_DYNAMIC_LAYER: return "PACKETTYPE_S2R_VIEWPORT_DYNAMIC_LAYER";
-    case PACKETTYPE_S2R_VIEWPORT_SCALE: return "PACKETTYPE_S2R_VIEWPORT_SCALE";        
+    case PACKETTYPE_S2R_VIEWPORT_SCALE: return "PACKETTYPE_S2R_VIEWPORT_SCALE";
+    case PACKETTYPE_S2R_PROP2D_TARGET_CLIENT: return "PACKETTYPE_S2R_PROP2D_TARGET_CLIENT";
+    case PACKETTYPE_S2R_PROP2D_LOC: return "PACKETTYPE_S2R_PROP2D_LOC";
         
     // server to client
     case PACKETTYPE_S2C_PROP2D_SNAPSHOT: return "PACKETTYPE_S2C_PROP2D_SNAPSHOT";
@@ -1564,8 +1569,8 @@ void RemoteHead::broadcastUS1UI1( uint16_t usval, uint32_t uival ) {
     CLIENT_ITER_SEND sendUS1UI1(  it->second, usval, uival );
     REPRECATOR_ITER_SEND sendUS1UI1(  it->second, usval, uival );
 }
-void RemoteHead::broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1 ) {
-    CLIENT_ITER_SEND sendUS1UI2(  it->second, usval, ui0, ui1 );
+void RemoteHead::broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1, bool reprecator_only ) {
+    if(!reprecator_only) CLIENT_ITER_SEND sendUS1UI2(  it->second, usval, ui0, ui1 );
     REPRECATOR_ITER_SEND sendUS1UI2(  it->second, usval, ui0, ui1 );
 }
 void RemoteHead::broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
@@ -1604,11 +1609,13 @@ void RemoteHead::nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, fl
     }
     REPRECATOR_ITER_SEND sendUS1UI1F2( it->second, usval, uival, f0, f1 );
 }
-void RemoteHead::nearcastUS1UI3( Prop2D *p, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 ) {
-    POOL_SCAN(cl_pool,Client) {
-        Client *cl = it->second;
-        if(cl->canSee(p)==false) continue;
-        sendUS1UI3( cl, usval, ui0, ui1, ui2 );
+void RemoteHead::nearcastUS1UI3( Prop2D *p, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, bool reprecator_only ) {
+    if(!reprecator_only) {
+        POOL_SCAN(cl_pool,Client) {
+            Client *cl = it->second;
+            if(cl->canSee(p)==false) continue;
+            sendUS1UI3( cl, usval, ui0, ui1, ui2 );
+        }
     }
     REPRECATOR_ITER_SEND sendUS1UI3( it->second, usval, ui0, ui1, ui2 );
 }
@@ -1657,6 +1664,7 @@ void RemoteHead::broadcastSortedChangelist() {
             if(cl) {
                 sendUS1UI3( cl, PACKETTYPE_S2C_PROP2D_LOC, e->pkt->prop_id, (int)e->pkt->loc.x, (int)e->pkt->loc.y );
             }
+            nearcastUS1UI3( e->p, PACKETTYPE_S2R_PROP2D_LOC, e->pkt->prop_id, (int)e->pkt->loc.x, (int)e->pkt->loc.y, true );
         }
     }
     //    print("broadcastChangelist: tot:%d sent:%d max:%d", changelist_used, sent_n, max_send_num);
