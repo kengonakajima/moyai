@@ -172,13 +172,13 @@ void Tracker2D::broadcastDiff( bool force ) {
                 if( target_prop2d->loc_sync_score < parent_rh->nonlinear_sync_score_thres ) {
                     if( !parent_rh->appendNonlinearChangelist( target_prop2d, &pktbuf[cur_buffer_index] ) ) {
                         // must send if changelist is full
-                        prt("FL %d", target_prop2d->id);
+                        //                        prt("FL %d", target_prop2d->id);
                         parent_rh->nearcastUS1UI3( target_prop2d, PACKETTYPE_S2C_PROP2D_LOC,
                                                    pktbuf[cur_buffer_index].prop_id,
                                                    (int)pktbuf[cur_buffer_index].loc.x, (int)pktbuf[cur_buffer_index].loc.y );                        
                     }
                 } else {
-                    prt("NL LOC SCORE:%d prop:%d",target_prop2d->loc_sync_score, target_prop2d->id );
+                    //                    prt("NL LOC SCORE:%d prop:%d",target_prop2d->loc_sync_score, target_prop2d->id );
                     target_prop2d->loc_sync_score=0;
                     target_prop2d->loc_changed=false;
                     // dont use changelist sorting for big changes
@@ -215,7 +215,7 @@ void Tracker2D::broadcastDiff( bool force ) {
         } else if( diff == CHANGED_PRIORITY && (!force) ) {
             parent_rh->broadcastUS1UI2( PACKETTYPE_S2C_PROP2D_PRIORITY, pktbuf[cur_buffer_index].prop_id, pktbuf[cur_buffer_index].priority );
         } else {
-            prt("SS%d ",diff);
+            //            prt("SS%d ",diff);
             parent_rh->broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, (const char*)&pktbuf[cur_buffer_index], sizeof(PacketProp2DSnapshot) );
             if( target_prop2d->target_client_id > 0 ) {
                 parent_rh->broadcastUS1UI2( PACKETTYPE_S2R_PROP2D_TARGET_CLIENT,target_prop2d->id, target_prop2d->target_client_id, true);
