@@ -587,6 +587,23 @@ void optest(){
     print("optest done");    
 }
 
+void comptestbig() {
+    size_t sz=1024*1024;
+    char *buf = (char*)MALLOC(sz);
+    for(int i=0;i<sz;i++) buf[i] = irange(0,8);
+    char *zipped = (char*)MALLOC(sz*2);
+    char *inflated = (char*)MALLOC(sz);
+    double t0 = now();
+    int zipped_len = memCompressSnappy( zipped, sz*2, buf, sz);
+    double t1 = now();
+    int inflated_len = memDecompressSnappy( inflated, sz, zipped, zipped_len );
+    double t2 = now();
+    print("snappy big: %d bytes to %d byte. comptime:%f decomptime:%f", inflated_len, zipped_len, t1-t0, t2-t1 );
+    FREE(buf);
+    FREE(zipped);
+    FREE(inflated);
+}
+
 void comptest() {
     char buf[] = "hogehogefugafugahogefugapiyopiyo";
     char zipped[1024];
@@ -638,6 +655,7 @@ void gameInit() {
     qstest();
     optest();
     comptest();
+    comptestbig();
 
     print("gameInit: headless_mode:%d spritestream:%d videostream:%d", g_headless_mode, g_enable_spritestream, g_enable_videostream );
 
