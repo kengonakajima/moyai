@@ -20,6 +20,7 @@ bool g_enable_videostream=false;
 bool g_enable_spritestream=true;
 bool g_enable_reprecation=false;
 bool g_disable_timestamp=false;
+bool g_disable_compress=false;
 
 MoyaiClient *g_moyai_client;
 Viewport *g_viewport;
@@ -729,6 +730,7 @@ void gameInit() {
         if( g_enable_videostream ) g_rh->enableVideoStream(SCRW*RETINA,SCRH*RETINA,3);
         if( g_enable_reprecation ) g_rh->enableReprecation(REPRECATOR_SERVER_PORT);
         if( g_disable_timestamp ) g_rh->disableTimestamp();
+        if( g_disable_compress ) g_rh->enable_compression = false;
         
         g_moyai_client->setRemoteHead(g_rh);
         g_rh->setTargetMoyaiClient(g_moyai_client);
@@ -1045,6 +1047,7 @@ int main(int argc, char **argv )
         if(strcmp(argv[i], "--skip-spritestream") == 0 ) g_enable_spritestream = false;
         if(strcmp(argv[i], "--reprecation") == 0 ) g_enable_reprecation = true;
         if(strcmp(argv[i], "--disable-timestamp")==0) g_disable_timestamp = true;
+        if(strcmp(argv[i], "--disable-compression")==0) g_disable_compress = true;
     }
         
     gameInit();

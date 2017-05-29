@@ -73,8 +73,8 @@ void makePacketProp2DSnapshot( PacketProp2DSnapshot *out, Prop2D *tgt, Prop2D *p
     out->scl.y = tgt->scl.y;
     out->index = tgt->index;
     out->tiledeck_id = tgt->deck ? tgt->deck->id : 0;
-    if(out->tiledeck_id==0 && tgt->grid_used_num==0) {
-        print("WARNING: tiledeck is 0 for prop %d ind:%d grid:%d", tgt->id , tgt->index, tgt->grid_used_num );
+    if(out->tiledeck_id==0 && tgt->grid_used_num==0 && tgt->children_num==0) {
+        print("WARNING: tiledeck is 0 for prop %d ind:%d grid:%d childnum:%d", tgt->id , tgt->index, tgt->grid_used_num, tgt->children_num );
     }
     out->debug = tgt->debug_id;
     out->fliprotbits = toFlipRotBits(tgt->xflip,tgt->yflip,tgt->uvrot);
@@ -602,7 +602,7 @@ static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
     uv_tcp_init( uv_default_loop(), newsock );
     if( uv_accept( listener, (uv_stream_t*) newsock ) == 0 ) {
         RemoteHead *rh = (RemoteHead*)listener->data;
-        Client *cl = new Client(newsock, rh );        
+        Client *cl = new Client(newsock, rh, rh->enable_compression );        
         newsock->data = cl;
         cl->tcp = newsock;
         cl->parent_rh->addClient(cl);
@@ -971,7 +971,6 @@ void TrackerColorReplacerShader::broadcastDiff( bool force ) {
     if( checkDiff() || force ) {
         PacketColorReplacerShaderSnapshot pkt;
         setupPacketColorReplacerShaderSnapshot( &pkt, target_shader );
-        print("TrackerColorReplacerShader broadcastDiff");
         parent_rh->broadcastUS1Bytes( PACKETTYPE_S2C_COLOR_REPLACER_SHADER_SNAPSHOT, (const char*)&pkt, sizeof(pkt) );
     }
 }
@@ -2177,7 +2176,7 @@ void Stream::flushSendbuf(size_t unitsize) {
 
 
 // normal headless client
-Client::Client( uv_tcp_t *sk, RemoteHead *rh ) : Stream(sk,16*1024*1024,8*1024,true){
+Client::Client( uv_tcp_t *sk, RemoteHead *rh, bool compress ) : Stream(sk,16*1024*1024,8*1024,compress){
     init();
     parent_rh = rh;
 }

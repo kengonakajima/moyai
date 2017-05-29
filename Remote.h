@@ -269,6 +269,8 @@ public:
     BufferArray *audio_buf_ary;
 
     Reprecator *reprecator;
+
+    bool enable_compression;
     
     void enableSpriteStream() { enable_spritestream = true; };
     void enableVideoStream( int w, int h, int pixel_skip );
@@ -281,7 +283,7 @@ public:
     void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
     void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_spritestream(0), enable_videostream(0), enable_timestamp(true), jc(NULL), audio_buf_ary(0), reprecator(NULL), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0), changelist_used(0), sorted_changelist_max_send_num(20), sort_sync_thres(50), linear_sync_score_thres(50), nonlinear_sync_score_thres(50) {
+    RemoteHead() : target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_spritestream(0), enable_videostream(0), enable_timestamp(true), jc(NULL), audio_buf_ary(0), reprecator(NULL), enable_compression(true), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0), changelist_used(0), sorted_changelist_max_send_num(20), sort_sync_thres(50), linear_sync_score_thres(50), nonlinear_sync_score_thres(50) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
@@ -564,7 +566,7 @@ public:
 
     Stream *reprecator_stream; // used only when logical client
     
-    Client( uv_tcp_t *sk, RemoteHead *rh );
+    Client( uv_tcp_t *sk, RemoteHead *rh, bool compress );
     Client( uv_tcp_t *sk, ReprecationProxy *reproxy );
     Client( uv_tcp_t *sk, Reprecator *repr );
     Client( RemoteHead *rh );
