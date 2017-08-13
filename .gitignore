@@ -122,6 +122,8 @@ glfw-3.2/tests/title.app/
 glfw-3.2/tests/windows.app/
 glfw-3.2/tests/icon.app/
 glfw-3.2/tests/timeout.app/
+glfw-3.2/docs/CMakeFiles/
+glfw-3.2/docs/cmake_install.cmake
 demowin/Release/moyai.lib
 demowin/Release/demowin.exe
 moyai/Debug/vc120.idb
