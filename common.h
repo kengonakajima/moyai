@@ -41,6 +41,7 @@ public:
     inline Vec3(float xx, float yy, float zz ) : x(xx),y(yy),z(zz){}
     inline Vec3(float xx, float yy ) : x(xx),y(yy),z(0){}
     inline Vec3() : x(0), y(0), z(0) {}
+    inline void set(float xx,float yy,float zz) { x=xx; y=yy; z=zz; }
     inline Vec3 normalize(float l){
         float xx = x, yy = y, zz = z;
         ::normalize( &xx, &yy, &zz, l );
