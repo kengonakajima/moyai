@@ -154,7 +154,6 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 					print("WARNING: too many props in a layer : %d", cnt );
 					break;
 				}
-				drawn ++;
 			}  else {
 #if 0                
                 print("culled: %d %f %f %f %f  %f %f - %f %f",
@@ -173,6 +172,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 			if(p->visible){
 				//                { Prop2D *p2d = (Prop2D*)p; print("prio:%f %d %d", p2d->loc.y, p2d->priority, p2d->id  ); }
 				p->render(camera, bl);
+                drawn++;
 			}
 		}
 		return drawn;
@@ -187,8 +187,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 
 		// ‚à‚Æ‚à‚Æƒ‰ƒCƒgÝ’è‚Í‚±‚ÌˆÊ’u‚É‚ ‚Á‚½‚ª drawmesh‚ÉˆÚ“®‚µ‚½
 
-		int cnt=0;
-
+        int drawn=0;
 		Prop *cur = prop_top;
 		while(cur){
 			assert(cur->id>0);            
@@ -199,14 +198,13 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 
 			assertmsg( cur3d->mesh || cur3d->children_num > 0, "mesh or children is required for 3d prop %p", cur3d );
 
-			cnt++;
-
 			if( cur3d->visible ) {
 				cur3d->performRenderOptions();
 				if( cur3d->mesh ) {
 					drawMesh( cur3d->debug_id, cur3d->mesh, cur3d->deck,
 						& cur3d->loc, &cur3d->draw_offset, & cur3d->scl, & cur3d->rot,
 						NULL, NULL, NULL, cur3d->material );
+                    drawn++;
 				}
 				cur3d->cleanRenderOptions();
 
@@ -215,7 +213,6 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 					int opaque_n=0;
 					int transparent_n=0;
 					for(int i=0;i<cur3d->children_num;i++) {
-						cnt++;
 						Prop3D *child = cur3d->children[i];
 						if(child && child->visible ) {
 							float l = camera->loc.len( cur3d->loc + child->loc + child->sort_center );
@@ -245,7 +242,6 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 								& child->loc, & child->scl, & child->rot,
 								child->material
 								);
-
 						} else { 
 							drawMesh( child->debug_id, child->mesh, child->deck,
 								& cur3d->loc, &cur3d->draw_offset, & cur3d->scl, & cur3d->rot,
@@ -253,7 +249,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 								child->material
 								);
 						}
-
+                        drawn++;
 						child->cleanRenderOptions();                        
 					}
 					for(int i=transparent_n-1;i>=0;i--){
@@ -275,13 +271,14 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 								);
 						}
 						child->cleanRenderOptions();
+                        drawn++;
 					}
 				}
 			}
 
 			cur = cur->next;
 		}
-		return cnt;        
+		return drawn;
 	}
 }
 
