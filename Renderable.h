@@ -14,8 +14,9 @@ public:
 	bool visible;
 	Deck *deck;
 	float enfat_epsilon;
-	int index;    
-	Renderable() : dimension(DIMENSION_INVAL), priority(0), visible(true), deck(NULL), enfat_epsilon(0), index(-1) {
+	int index;
+    bool wireframe;
+	Renderable() : dimension(DIMENSION_INVAL), priority(0), visible(true), deck(NULL), enfat_epsilon(0), index(-1), wireframe(false) {
 	}
 
 	~Renderable() {}
@@ -33,7 +34,7 @@ public:
 		deck = d;
 		index = 0;
 	}
-
+    inline void setWireframe(bool flg) { wireframe=flg; }
 	inline void setVisible(bool flg){ visible = flg; }
 	inline bool getVisible() { return visible; }
     inline void setPriority(int prio) { priority = prio; }
@@ -58,6 +59,6 @@ public:
 			lower->priority = tmp;
 		}
 	}
-
+ 
 	virtual void render(Camera *cam, DrawBatchList *bl ){};
 };

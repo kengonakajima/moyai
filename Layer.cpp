@@ -166,7 +166,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 		}
 
 		quickSortF( tosort, 0, cnt-1 );
-		//        for(int i=cnt-1;i>=0;i--){
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL ); // wireframe 2D is not supported
 		for(int i=0;i<cnt;i++) {
 			Prop2D *p = (Prop2D*) tosort[i].ptr;
 			if(p->visible){
@@ -201,6 +201,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 			if( cur3d->visible ) {
 				cur3d->performRenderOptions();
 				if( cur3d->mesh ) {
+                    glPolygonMode( GL_FRONT_AND_BACK, cur3d->wireframe?GL_LINE:GL_FILL );
 					drawMesh( cur3d->debug_id, cur3d->mesh, cur3d->deck,
 						& cur3d->loc, &cur3d->draw_offset, & cur3d->scl, & cur3d->rot,
 						NULL, NULL, NULL, cur3d->material );
@@ -235,6 +236,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 					for(int i=opaque_n-1;i>=0;i--) {
 						Prop3D *child = (Prop3D*)sorter_opaque[i].ptr;
 						child->performRenderOptions();
+                        glPolygonMode( GL_FRONT_AND_BACK, child->wireframe?GL_LINE:GL_FILL );
 						if( child->skip_rot ) {
 							Vec3 fixedrot(0,0,0);
 							drawMesh( child->debug_id, child->mesh, child->deck,
@@ -242,7 +244,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 								& child->loc, & child->scl, & child->rot,
 								child->material
 								);
-						} else { 
+						} else {
 							drawMesh( child->debug_id, child->mesh, child->deck,
 								& cur3d->loc, &cur3d->draw_offset, & cur3d->scl, & cur3d->rot,
 								& child->loc, & child->scl, & child->rot,
@@ -255,6 +257,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 					for(int i=transparent_n-1;i>=0;i--){
 						Prop3D *child = (Prop3D*)sorter_transparent[i].ptr;
 						child->performRenderOptions();
+                        glPolygonMode( GL_FRONT_AND_BACK, child->wireframe?GL_LINE:GL_FILL );
 						if( child->skip_rot ) {
 							Vec3 fixedrot(0,0,0);
 							drawMesh( child->debug_id, child->mesh, child->deck,
