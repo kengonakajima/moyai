@@ -26,9 +26,9 @@ class VertexBuffer {
 public:
 	VertexFormat *fmt;
 	float *buf;
-	int array_len, total_num_float, unit_num_float;
+	int array_len, total_num_float, unit_num_float, render_len;
 	GLuint gl_name;
-	VertexBuffer() : fmt(NULL), buf(NULL), array_len(0), total_num_float(0), unit_num_float(0), gl_name(0) {}
+	VertexBuffer() : fmt(NULL), buf(NULL), array_len(0), total_num_float(0), unit_num_float(0), render_len(0), gl_name(0) {}
 	~VertexBuffer() {
 		if(gl_name>0) {
             unbless();

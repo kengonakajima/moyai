@@ -3,6 +3,7 @@
 void VertexBuffer::reserve(int cnt){
 	assertmsg(fmt, "vertex format is not set" );
 	array_len = cnt;
+    render_len = cnt;
 	unit_num_float = fmt->getNumFloat();
 	total_num_float = array_len * unit_num_float;
 	buf = (float*)MALLOC( total_num_float * sizeof(float));

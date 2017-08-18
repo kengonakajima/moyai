@@ -42,8 +42,8 @@ inline void Layer::drawMesh( int dbg, Mesh *mesh, Deck *deck, Vec3 *loc, Vec3 *l
 			mesh->vb->fmt->texture_offset,
 			mesh->vb->fmt->normal_offset,
 			vert_sz,
-			mesh->vb->array_len,
-			mesh->ib->array_len,              
+			mesh->vb->render_len,
+			mesh->ib->render_len,              
 			loc->x, loc->y, loc->z
 			);
 	}

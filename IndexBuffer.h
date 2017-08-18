@@ -13,8 +13,8 @@ typedef unsigned int IndexBufferType;
 class IndexBuffer {
 public:
 	IndexBufferType *buf; // 16bit for ES, 32bit for normal
-	int array_len;
-    int render_len;
+	int array_len; // max len
+    int render_len; // actually used len
 	GLuint gl_name;
 	IndexBuffer() : buf(0), array_len(0), render_len(0), gl_name(0) {}
 	~IndexBuffer();
