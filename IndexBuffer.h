@@ -25,6 +25,7 @@ public:
     void setRenderLen(int l); 
 	void bless();
     void unbless();
+    void rebless() { unbless(); bless(); }
 	void dump(int lim);
     void copyFromBuffer( IndexBufferType *buf, int ind_cnt );
 };

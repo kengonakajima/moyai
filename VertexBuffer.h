@@ -52,6 +52,7 @@ public:
 	void setNormalBulk( Vec3 *v, int num );
 	void bless();
     void unbless();
+    void rebless() { unbless(); bless(); }
 	Vec3 calcCenterOfCoords();
 	void dump(int lim);
 };
