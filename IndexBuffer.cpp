@@ -40,7 +40,7 @@ void IndexBuffer::bless(){
 		glGenBuffers(1, &gl_name);
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, gl_name );
 		// データがよく変わるときは GL_DYNAMIC_DRAWらしいけど、それはコンセプトから外れた使い方だからデフォルトはSTATICにしておく。
-		glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(IndexBufferType) * array_len, buf, GL_STATIC_DRAW );
+		glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof(IndexBufferType) * render_len, buf, GL_STATIC_DRAW );
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	}
 #endif    

@@ -120,7 +120,7 @@ void VertexBuffer::bless(){
 	if( gl_name == 0 ){
 		glGenBuffers(1, &gl_name);
 		glBindBuffer( GL_ARRAY_BUFFER, gl_name );
-		glBufferData( GL_ARRAY_BUFFER, total_num_float * sizeof(float), buf, GL_STATIC_DRAW );
+		glBufferData( GL_ARRAY_BUFFER, render_len * unit_num_float * sizeof(float), buf, GL_STATIC_DRAW );
 		glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	}
 #endif        

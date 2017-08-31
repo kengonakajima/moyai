@@ -169,7 +169,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL ); // wireframe 2D is not supported
 		for(int i=0;i<cnt;i++) {
 			Prop2D *p = (Prop2D*) tosort[i].ptr;
-			if(p->visible){
+			if(p->visible && p->to_clean==false){
 				//                { Prop2D *p2d = (Prop2D*)p; print("prio:%f %d %d", p2d->loc.y, p2d->priority, p2d->id  ); }
 				p->render(camera, bl);
                 drawn++;
@@ -198,7 +198,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 
 			assertmsg( cur3d->mesh || cur3d->children_num > 0, "mesh or children is required for 3d prop %p", cur3d );
 
-			if( cur3d->visible ) {
+			if( cur3d->visible && cur3d->to_clean==false) {
 				cur3d->performRenderOptions();
 				if( cur3d->mesh ) {
                     glPolygonMode( GL_FRONT_AND_BACK, cur3d->wireframe?GL_LINE:GL_FILL );
@@ -215,7 +215,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 					int transparent_n=0;
 					for(int i=0;i<cur3d->children_num;i++) {
 						Prop3D *child = cur3d->children[i];
-						if(child && child->visible ) {
+						if(child && child->visible && child->to_clean==false ) {
 							float l = camera->loc.len( cur3d->loc + child->loc + child->sort_center );
 							assert( child->mesh );
 							if( child->mesh->transparent ) {
