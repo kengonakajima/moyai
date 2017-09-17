@@ -498,7 +498,7 @@ function animate() {
         pp.setIndex( parseInt(range(0,4)));
         pp.setScl(8,8);
         pp.setLoc(range(-300,300),range(-300,300));;
-        pp.propPoll = function(dt) {
+        pp.prop2DPoll = function(dt) {
             if(pp.accum_time>3) return false; else return true;
         }
         g_main_layer.insertProp(pp);                     

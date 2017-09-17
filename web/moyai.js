@@ -702,7 +702,7 @@ Prop2D.prototype.basePoll = function(dt) { // return false to clean
         this.loc.x += this.remote_vel.x*dt;
         this.loc.y += this.remote_vel.y*dt;
     }
-    if( this.propPoll && this.propPoll(dt) == false ) {
+    if( this.prop2DPoll && this.prop2DPoll(dt) == false ) {
         return false;
     }
     return true;
