@@ -12,7 +12,9 @@ function range(a,b) {
     }
     return (small + (big-small)*Math.random());
 }
-
+function sign(f) {
+    if(f>0) return 1; else if(f<0)return -1; else return 0;
+}
 //////////////
 function createMeshBasicMaterial(objarg) {
     var m = new THREE.MeshBasicMaterial(objarg);
