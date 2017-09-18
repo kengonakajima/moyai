@@ -1681,7 +1681,7 @@ Mouse.prototype.getToggled = function(btn_ind) {
 Mouse.prototype.clearToggled = function(btn_ind) {
     this.toggled[btn_ind] = false;        
 }
-
+Mouse.prototype.getCursorPos = function() { return this.cursor_pos; }
 
 /////////////////////////
 
