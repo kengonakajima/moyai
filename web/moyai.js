@@ -1664,10 +1664,10 @@ Mouse.prototype.setupBrowser = function(w,dom) {
     },false);    
 }
 Mouse.prototype.readButtonEvent = function(e,pressed) {
-    this.buttons[e.button] = pressed;
     if(pressed) {
         if(!this.buttons[e.button]) this.toggled[e.button] = true;
     }
+    this.buttons[e.button] = pressed;
     this.mod_shift = e.shiftKey;
     this.mod_alt = e.altKey;
     this.mod_ctrl = e.ctrlKey;
