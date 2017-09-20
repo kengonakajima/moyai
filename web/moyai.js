@@ -15,6 +15,13 @@ function range(a,b) {
 function sign(f) {
     if(f>0) return 1; else if(f<0)return -1; else return 0;
 }
+function now() {
+    var t = new Date().getTime();
+    return t / 1000.0;
+}
+function lengthf(x0,y0,x1,y1) {
+    return Math.sqrt( (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0) );
+}
 //////////////
 function createMeshBasicMaterial(objarg) {
     var m = new THREE.MeshBasicMaterial(objarg);
