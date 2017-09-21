@@ -153,7 +153,7 @@ MoyaiClient.prototype.render = function() {
                     var grid = prop.grids[i];
                     grid.updateMesh();
                     if(!grid.mesh) {
-                        console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
+//                        console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
                     } else {
                         grid.mesh.position.x = prop.loc.x * relscl.x - camloc.x;
                         grid.mesh.position.y = prop.loc.y * relscl.y - camloc.y;
@@ -975,11 +975,11 @@ Grid.prototype.fillColor = function(c) {
 var g_debug_grid_alpha_message=false;
 Grid.prototype.updateMesh = function() {
     if(!this.deck) {
-        console.log("grid.updateMesh: deck is null?", this.deck, this.id );
+//        console.log("grid.updateMesh: deck is null?", this.deck, this.id );
         return;
     }
     if(!this.index_table) {
-        console.log("grid.updateMesh: index_table is null?", this, "grid_id:",this.id );
+//        console.log("grid.updateMesh: index_table is null?", this, "grid_id:",this.id );
         return;
     }
     
