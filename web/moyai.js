@@ -846,6 +846,7 @@ Grid.prototype._fill = function(tbl,val) {
             tbl[x+y*this.width] = val;
         }
     }
+    this.need_geometry_update = true;
 }
 var GRID_NOT_USED = -1;
 Grid.prototype.set = function(x,y,ind) {
@@ -963,6 +964,7 @@ Grid.prototype.clear = function(x,y) {
     }    
 }
 Grid.prototype.fillColor = function(c) {
+    if(!this.color_table)this.color_table=[];
     if(this.color_table) {
         for(var y=0;y<this.height;y++) {
             for(var x=0;x<this.width;x++) {
