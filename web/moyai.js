@@ -92,7 +92,7 @@ function MoyaiClient(w,h,pixratio){
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setPixelRatio( pixratio);
     this.renderer.setSize(w,h);
-    this.renderer.setClearColor("#333");
+    this.renderer.setClearColor("#000");
     this.renderer.autoClear = false;
 
     this.z_per_layer = 100000;
