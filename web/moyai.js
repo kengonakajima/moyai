@@ -82,6 +82,15 @@ Color.prototype.toTHREEColor = function() {
 Color.prototype.equals = function(r,g,b,a) {
     return (this.r==r && this.g==g && this.b==b && this.a==a);
 }
+Color.prototype.adjust = function(v) {
+    var rr = this.r*v;
+    var gg = this.g*v;
+    var bb = this.b*v;
+    if(rr>1)rr=1;
+    if(gg>1)gg=1;
+    if(bb>1)bb=1;
+    return new Color(rr,gg,bb,this.a);
+}
 
 ///////////////
 var g_moyais=[];
