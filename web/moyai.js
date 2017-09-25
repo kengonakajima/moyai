@@ -983,6 +983,17 @@ Grid.prototype.fillColor = function(c) {
     }
     this.need_geometry_update = true;
 }
+Grid.prototype.fill = function(ind) {
+    this.fillRect(0,0,this.width-1,this.height-1,ind);
+}
+Grid.prototype.fillRect = function(x0,y0,x1,y1,ind) {
+    for(var y=y0;y<=y1;y++) {
+        for(var x=x0;x<=x1;x++) {
+            this.set(x,y,ind);
+        }
+    }    
+}
+
 var g_debug_grid_alpha_message=false;
 Grid.prototype.updateMesh = function() {
     if(!this.deck) {
