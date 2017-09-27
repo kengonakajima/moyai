@@ -139,6 +139,21 @@ Vec2.prototype.setWith2args = function(x,y) {
         this.y=y;
     }
 }
+Vec2.prototype.normalize = function(l) {
+    var ll = Math.sqrt(this.x*this.x+this.y*this.y);
+    if(ll==0) return new Vec2(0,0);
+    return new Vec2(this.x/ll*l,this.y/ll*l);
+}
+Vec2.prototype.add = function(to_add) {
+    this.x += to_add.x;
+    this.y += to_add.y;
+    return this;
+}
+Vec2.prototype.mul = function(to_mul) {
+    this.x *= to_mul;
+    this.y *= to_mul;
+    return this;
+}
 
 
 // 0 ~ 1
@@ -1803,7 +1818,10 @@ Mouse.prototype.getCursorPos = function() { return this.cursor_pos; }
 function SoundSystem() {
     this.sounds={};
     this.context = new AudioContext();
+    this.master_volume = 1;
 }
+SoundSystem.prototype.setMasterVolume = function(vol) { this.master_volume=vol; }
+SoundSystem.prototype.getMasterVolume = function() { return this.master_volume; }
 // type: "float" or other, "wav", "mp3"..
 SoundSystem.prototype.newBGMFromMemory = function(data,type) {
     var snd = this.createSound(data,true,type);
@@ -1817,6 +1835,7 @@ SoundSystem.prototype.newSoundFromMemory = function(data,type) {
 }
 SoundSystem.prototype.createSound = function(data,loop,type) {
     var snd = new Sound();
+    snd.sound_system = this;
     snd.context=this.context;
     snd.setLoop(loop);
     snd.setData(data,type);
@@ -1834,6 +1853,7 @@ function Sound(data,loop,type) {
     this.default_volume=1;
     this.source=null;
     this.play_volume=null;
+    this.sound_system=null; 
 }
 Sound.prototype.setLoop = function(loop) { this.loop=loop; }
 Sound.prototype.isReady = function() { return this.audiobuffer; }
@@ -1863,7 +1883,7 @@ Sound.prototype.prepareSource = function(vol) {
     this.gain_node = this.context.createGain();
     this.source.connect(this.gain_node);
     this.gain_node.connect(this.context.destination);
-    this.gain_node.gain.value = this.default_volume * vol;
+    this.gain_node.gain.value = this.default_volume * vol * this.sound_system.master_volume;
 }
 Sound.prototype.play = function(vol) {
     if(vol==undefined)vol=1;
