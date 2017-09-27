@@ -250,6 +250,7 @@ MoyaiClient.prototype.render = function() {
         if(layer.viewport) relscl = layer.viewport.getRelativeScale();
         for(var i in layer.props) {                    
             var prop = layer.props[i];
+            if(!prop.visible)continue;
             prop.updateMesh();
             var z_inside_prop=0;
             
@@ -257,6 +258,7 @@ MoyaiClient.prototype.render = function() {
             if(prop.grids) {
                 for(var i in prop.grids) {
                     var grid = prop.grids[i];
+                    if(!grid.visible)continue;
                     grid.updateMesh();
                     if(!grid.mesh) {
 //                        console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
@@ -275,6 +277,7 @@ MoyaiClient.prototype.render = function() {
             if(prop.children.length>0) {
                 for(var i in prop.children) {
                     var chp = prop.children[i];
+                    if(!chp.visible)continue;
                     chp.updateMesh();
                     if( chp.mesh ) {
                         chp.mesh.position.x = chp.loc.x * relscl.x - camloc.x;
@@ -724,6 +727,7 @@ Prop2D.prototype.onDelete = function() {
         if(this.mesh.material) this.mesh.material.dispose();
     }
 }
+Prop2D.prototype.setVisible = function(flg) { this.visible=flg; }
 Prop2D.prototype.setDeck = function(dk) { this.deck = dk; this.need_material_update = true; }
 Prop2D.prototype.setIndex = function(ind) { this.index = ind; this.need_uv_update = true; }
 Prop2D.prototype.setScl = function(x,y) { this.scl.setWith2args(x,y);}
