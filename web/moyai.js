@@ -145,14 +145,10 @@ Vec2.prototype.normalize = function(l) {
     return new Vec2(this.x/ll*l,this.y/ll*l);
 }
 Vec2.prototype.add = function(to_add) {
-    this.x += to_add.x;
-    this.y += to_add.y;
-    return this;
+    return new Vec2( this.x + to_add.x, this.y + to_add.y );
 }
 Vec2.prototype.mul = function(to_mul) {
-    this.x *= to_mul;
-    this.y *= to_mul;
-    return this;
+    return new Vec2( this.x * to_mul, this.y * to_mul );
 }
 
 
