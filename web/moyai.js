@@ -150,6 +150,9 @@ Vec2.prototype.add = function(to_add) {
 Vec2.prototype.mul = function(to_mul) {
     return new Vec2( this.x * to_mul, this.y * to_mul );
 }
+Vec2.prototype.randomize = function(r) {
+    return new Vec2( this.x - r + range(0,r*2), this.y - r + range(0,r*2) );
+}
 
 
 // 0 ~ 1
