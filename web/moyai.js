@@ -1917,7 +1917,6 @@ Sound.prototype.isPlaying = function() {
     }        
 }
 Sound.prototype.stop = function() {
-    console.log("popopopo",this.source);
     if(this.source) {
         console.log("stopping..", this.source);
         this.source.stop(0);
