@@ -408,6 +408,13 @@ Layer.prototype.getHighestPriority = function() {
     }
     return highp;    
 }
+Layer.prototype.getLowesetPriority = function() {
+    var lowp=0;
+    for(var i in this.props) {
+        if(this.props[i].priority<lowp) lowp = this.props[i].priority;
+    }
+    return lowp;
+}
 Layer.prototype.getPropById = function(id) {
     for(var i in this.props) {
         if( this.props[i].id == id ) return this.props[i];
@@ -750,6 +757,7 @@ Prop2D.prototype.setColor = function(r,g,b,a) {
 }
 Prop2D.prototype.setXFlip = function(flg) { this.xflip=flg; this.need_uv_update = true; }
 Prop2D.prototype.setYFlip = function(flg) { this.yflip=flg; this.need_uv_update = true; }
+Prop2D.prototype.setPriority = function(prio) { this.priority = prio; }
 Prop2D.prototype.ensurePrimDrawer = function() {
     if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
 }
