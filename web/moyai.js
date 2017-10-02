@@ -1428,6 +1428,7 @@ TextBox.prototype.setString = function(s) {
     this.str = s;
     this.need_geometry_update=true;
 }
+TextBox.prototype.getString = function(s) { return str; }
 TextBox.prototype.updateMesh = function() {
     if(!this.font)return;
     if(!this.need_geometry_update)return;
@@ -1763,6 +1764,7 @@ Keyboard.prototype.readBrowserEvent = function(e,pressed) {
     if(e.key=="Control") this.mod_ctrl = pressed;
     if(e.key=="Shift") this.mod_shift = pressed;
     if(e.key=="Alt") this.mod_alt = pressed;
+    if(this.onKeyEvent) this.onKeyEvent(e.key,pressed);
 }
 Keyboard.prototype.setupBrowser = function(w) {
     var _this = this;
