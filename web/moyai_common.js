@@ -1,16 +1,16 @@
 
-var DIR4_NONE=-1;
-var DIR4_UP=0;
-var DIR4_RIGHT=1;
-var DIR4_DOWN=2;
-var DIR4_LEFT=3;
+DIR4_NONE=-1;
+DIR4_UP=0;
+DIR4_RIGHT=1;
+DIR4_DOWN=2;
+DIR4_LEFT=3;
 
 
-function randomDir() {
+randomDir = function() {
     return irange(DIR4_UP,DIR4_LEFT+1);
 }
 
-function reverseDir(d){
+reverseDir = function(d){
     switch(d){
     case DIR4_UP: return DIR4_DOWN;
     case DIR4_DOWN: return DIR4_UP;
@@ -21,7 +21,7 @@ function reverseDir(d){
     }
 }
 
-function rightDir(d) {
+rightDir = function(d) {
     switch(d){
     case DIR4_UP: return DIR4_RIGHT; 
     case DIR4_DOWN: return DIR4_LEFT;
@@ -31,7 +31,7 @@ function rightDir(d) {
         return DIR4_NONE;
     }
 }
-function leftDir(d) {
+leftDir = function(d) {
     switch(d){
     case DIR4_UP: return DIR4_LEFT;
     case DIR4_DOWN: return DIR4_RIGHT;
@@ -43,7 +43,7 @@ function leftDir(d) {
 }
 
 // 4方向のみ
-function dxdyToDir(dx,dy){
+dxdyToDir = function(dx,dy){
     if(dx>0&&dy==0){
         return DIR4_RIGHT;
     } else if(dx<0&&dy==0){
@@ -56,7 +56,7 @@ function dxdyToDir(dx,dy){
         return DIR4_NONE;
     }
 }
-function clockDir(d) {
+clockDir = function(d) {
     switch(d) {
     case DIR4_NONE: return DIR4_NONE;
     case DIR4_UP: return DIR4_RIGHT;
@@ -68,7 +68,7 @@ function clockDir(d) {
     return DIR4_NONE;
 }
 
-function dirToDXDY(d) {
+dirToDXDY = function(d) {
     switch(d){
     case DIR4_NONE: return null;
     case DIR4_RIGHT: return {x:1,y:0};
@@ -85,10 +85,10 @@ function dirToDXDY(d) {
 
 ////
 
-function irange(a,b) {
+irange = function(a,b) {
     return parseInt(range(a,b));
 }
-function range(a,b) {
+range = function(a,b) {
     var small=a,big=b;
     if(big<small) {
         var tmp = big;
@@ -97,13 +97,15 @@ function range(a,b) {
     }
     return (small + (big-small)*Math.random());
 }
-function sign(f) {
+sign = function(f) {
     if(f>0) return 1; else if(f<0)return -1; else return 0;
 }
-function now() {
+now = function() {
     var t = new Date().getTime();
     return t / 1000.0;
 }
-function lengthf(x0,y0,x1,y1) {
+lengthf = function(x0,y0,x1,y1) {
     return Math.sqrt( (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0) );
 }
+
+
