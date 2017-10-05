@@ -109,3 +109,76 @@ lengthf = function(x0,y0,x1,y1) {
 }
 
 
+
+//////////////
+
+Vec2 = function(x,y) {
+    this.x = x;
+    this.y = y;
+}
+Vec2.prototype.setWith2args = function(x,y) {
+    if(y==undefined) {
+        if( (typeof x) == "number" ) {
+            this.x=x;
+            this.y=x;
+        } else if( x.__proto__ == Vec2.prototype ) {
+            this.x=x.x;
+            this.y=x.y;            
+        }
+    } else {
+        this.x=x;
+        this.y=y;
+    }
+}
+Vec2.prototype.normalize = function(l) {
+    var ll = Math.sqrt(this.x*this.x+this.y*this.y);
+    if(ll==0) return new Vec2(0,0);
+    return new Vec2(this.x/ll*l,this.y/ll*l);
+}
+Vec2.prototype.add = function(to_add) {
+    return new Vec2( this.x + to_add.x, this.y + to_add.y );
+}
+Vec2.prototype.mul = function(to_mul) {
+    return new Vec2( this.x * to_mul, this.y * to_mul );
+}
+Vec2.prototype.randomize = function(r) {
+    return new Vec2( this.x - r + range(0,r*2), this.y - r + range(0,r*2) );
+}
+
+
+// 0 ~ 1
+Color = function(r,g,b,a) {
+    if(g==undefined || g==null) {
+        var code = r; // color code
+        this.r = ((code & 0xff0000)>>16)/255;
+        this.g = ((code & 0xff00)>>8)/255;
+        this.b = (code & 0xff)/255;
+        this.a = 1.0;        
+    } else {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+    }
+}
+Color.prototype.toRGBA = function() {
+    return [ parseInt(this.r*255), parseInt(this.g*255), parseInt(this.b*255), parseInt(this.a*255) ];
+}
+Color.prototype.toCode = function() {
+    return ( parseInt(this.r * 255) << 16 ) + ( parseInt(this.g * 255) << 8 ) + parseInt(this.b * 255);
+}
+Color.prototype.toTHREEColor = function() {
+    return new THREE.Color(this.toCode());
+}
+Color.prototype.equals = function(r,g,b,a) {
+    return (this.r==r && this.g==g && this.b==b && this.a==a);
+}
+Color.prototype.adjust = function(v) {
+    var rr = this.r*v;
+    var gg = this.g*v;
+    var bb = this.b*v;
+    if(rr>1)rr=1;
+    if(gg>1)gg=1;
+    if(bb>1)bb=1;
+    return new Color(rr,gg,bb,this.a);
+}
