@@ -242,6 +242,14 @@ Layer.prototype.getPropById = function(id) {
     }
     return null;
 }
+Layer.prototype.findByKey = function(keyname,val) {
+    for(var i in this.props) {
+        var p = this.props[i];
+        if( p[keyname] == val ) return p;
+    }
+    return null;
+}
+
 /////////////////////
 Image.prototype.id_gen = 1;
 function Image() {
