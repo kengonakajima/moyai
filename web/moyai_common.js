@@ -95,7 +95,9 @@ range = function(a,b) {
         big=small;
         small=tmp;
     }
-    return (small + (big-small)*Math.random());
+    var out=(small + (big-small)*Math.random());
+    if(out==b)return a; // in very rare case, out==b
+    return out;
 }
 sign = function(f) {
     if(f>0) return 1; else if(f<0)return -1; else return 0;

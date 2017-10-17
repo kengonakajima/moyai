@@ -17,7 +17,7 @@ function MoyaiClient(w,h,pixratio){
     this.width=w;
     this.height=h;
     this.scene = new THREE.Scene();
-    this.renderer = new THREE.WebGLRenderer();
+    this.renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true});
     this.renderer.setPixelRatio( pixratio);
     this.renderer.setSize(w,h);
     this.renderer.setClearColor("#000");
@@ -251,30 +251,30 @@ Layer.prototype.findByKey = function(keyname,val) {
 }
 
 /////////////////////
-Image.prototype.id_gen = 1;
-function Image() {
+MoyaiImage.prototype.id_gen = 1;
+function MoyaiImage() {
     this.id = this.__proto__.id_gen++;
     this.data = null;
     this.png=null;
 }
-Image.prototype.loadPNGMem = function(u8adata) {
+MoyaiImage.prototype.loadPNGMem = function(u8adata) {
     var b = new Buffer(u8adata);
     this.png = pngParse(b);
     this.width = this.png.width;
     this.height = this.png.height;
     this.data = this.png.data;
 }
-Image.prototype.setSize = function(w,h) {
+MoyaiImage.prototype.setSize = function(w,h) {
     this.width = w;
     this.height = h;
     if(!this.data) {
         this.data = new Uint8Array(w*h*4);
     }
 }
-Image.prototype.getSize = function() {
+MoyaiImage.prototype.getSize = function() {
     return new Vec2(this.width,this.height);
 }
-Image.prototype.getPixelRaw = function(x,y) {
+MoyaiImage.prototype.getPixelRaw = function(x,y) {
 // int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a ) {
     var out={};
     if(x>=0&&y>=0&&x<this.width&&y<this.height){
@@ -286,7 +286,7 @@ Image.prototype.getPixelRaw = function(x,y) {
     }
     return out;
 }
-Image.prototype.setPixelRaw = function(x,y,r,g,b,a) {
+MoyaiImage.prototype.setPixelRaw = function(x,y,r,g,b,a) {
     if(x>=0&&y>=0&&x<this.width&&y<this.height){
         var index = ( x + y * this.width ) * 4;
         this.data[index] = r;
@@ -295,13 +295,13 @@ Image.prototype.setPixelRaw = function(x,y,r,g,b,a) {
         this.data[index+3] = a;
     }    
 }
-Image.prototype.setPixel = function(x,y,c) {
+MoyaiImage.prototype.setPixel = function(x,y,c) {
     var colary = c.toRGBA();
     var index = (x+y*this.width)*4;
     this.setPixelRaw(x,y,colary[0],colary[1],colary[2],colary[3]);
 }
-Image.prototype.getBufferSize = function() { return this.width * this.height * 4; }
-Image.prototype.setAreaRaw = function(x0,y0,w,h, data_u8a, insz ) {
+MoyaiImage.prototype.getBufferSize = function() { return this.width * this.height * 4; }
+MoyaiImage.prototype.setAreaRaw = function(x0,y0,w,h, data_u8a, insz ) {
     var reqsize = w*h*4;
     if( insz < reqsize ) {
         console.log("image.prototype.setAreaRaw input size too small required:",reqsize, "got:",insz);
@@ -331,7 +331,7 @@ function Texture() {
     this.mat = null;
 }
 Texture.prototype.loadPNGMem = function(u8adata) {
-    this.image = new Image();
+    this.image = new MoyaiImage();
     this.image.loadPNGMem(u8adata);
     this.update();
 }
@@ -1086,7 +1086,7 @@ TextureAtlas.prototype.dump = function(ofsx,ofsy, w,h) {
     console.log(this.data);
 }
 TextureAtlas.prototype.ensureTexture = function() {
-    this.image = new Image();
+    this.image = new MoyaiImage();
     this.image.setSize(this.width,this.height);
     for(var y=0;y<this.height;y++) {
         for(var x=0;x<this.width;x++) {

@@ -233,7 +233,7 @@ if(1) {
 
 if(1)  {
     // Image manipulation
-    var dragonimg = new Image();
+    var dragonimg = new MoyaiImage();
     dragonimg.loadPNGMem( dragon8_png );
     for(var y=0;y<8;y++){
         for(var x=0;x<8;x++) {
@@ -316,7 +316,7 @@ if(1) {
 
 if(1) {
     // dynamic images
-    var g_img = new Image();
+    var g_img = new MoyaiImage();
     g_img.setSize(256,256);
     for(var i=0;i<256;i++){
         var c = new Color( Math.random(), Math.random(), Math.random(),1 );
