@@ -1598,11 +1598,11 @@ Keyboard.prototype.readBrowserEvent = function(e,pressed) {
 Keyboard.prototype.setupBrowser = function(w) {
     var _this = this;
     w.addEventListener("keydown", function(e) {
-        e.preventDefault();
+//        e.preventDefault();
         _this.readBrowserEvent(e,true);
     }, false);
     w.addEventListener("keyup", function(e) {
-        e.preventDefault();
+//        e.preventDefault();
         _this.readBrowserEvent(e,false);    
     });
 }
@@ -1620,18 +1620,18 @@ function Mouse() {
 Mouse.prototype.setupBrowser = function(w,dom) {
     var _this = this;
     w.addEventListener("mousedown", function(e) {
-        e.preventDefault();
+//        e.preventDefault();
         _this.readButtonEvent(e,true);
     },false);
     w.addEventListener("mouseup", function(e)  {
-        e.preventDefault();
+//        e.preventDefault();
         _this.readButtonEvent(e,false);        
     },false);
     w.addEventListener("mousemove", function(e)  {
         var rect = dom.getBoundingClientRect();
         var x = parseInt(e.clientX - rect.left);
         var y = parseInt(e.clientY - rect.top);
-        e.preventDefault();
+//        e.preventDefault();
         _this.cursor_pos = new Vec2(x,y);
     },false);    
 }
