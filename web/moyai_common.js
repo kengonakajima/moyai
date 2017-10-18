@@ -87,7 +87,7 @@ dirToDXDY = function(d) {
 ////
 
 irange = function(a,b) {
-    return parseInt(range(a,b));
+    return Math.floor(range(a,b));
 }
 range = function(a,b) {
     var small=a,big=b;
@@ -165,10 +165,10 @@ Color = function(r,g,b,a) {
     }
 }
 Color.prototype.toRGBA = function() {
-    return [ parseInt(this.r*255), parseInt(this.g*255), parseInt(this.b*255), parseInt(this.a*255) ];
+    return [ Math.floor(this.r*255), Math.floor(this.g*255), Math.floor(this.b*255), Math.floor(this.a*255) ];
 }
 Color.prototype.toCode = function() {
-    return ( parseInt(this.r * 255) << 16 ) + ( parseInt(this.g * 255) << 8 ) + parseInt(this.b * 255);
+    return ( Math.floor(this.r * 255) << 16 ) + ( Math.floor(this.g * 255) << 8 ) + Math.floor(this.b * 255);
 }
 Color.prototype.toTHREEColor = function() {
     return new THREE.Color(this.toCode());
