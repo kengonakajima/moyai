@@ -386,7 +386,7 @@ function animate() {
     
 
     g_bullet.setLoc(0, 100*Math.sin(anim_cnt/10));
-    g_bullet.setIndex(32+(parseInt(anim_cnt/2)%4));
+    g_bullet.setIndex(32+(Math.floor(anim_cnt/2)%4));
 
 
     if(g_linep) g_linep.loc.y = Math.sin( anim_cnt/50 ) * 200;
@@ -495,7 +495,7 @@ function animate() {
     if(anim_cnt%9==0) {
         var pp = new Prop2D();
         pp.setDeck(g_base_deck);
-        pp.setIndex( parseInt(range(0,4)));
+        pp.setIndex( Math.floor(range(0,4)));
         pp.setScl(8,8);
         pp.setLoc(range(-300,300),range(-300,300));;
         pp.prop2DPoll = function(dt) {

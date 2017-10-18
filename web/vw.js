@@ -1148,7 +1148,7 @@ function animate() {
     if( now_time > g_last_ping_sent_at+1.0) {
         g_last_ping_sent_at = now_time;
         if(g_ws.readyState==1) {
-            g_ws.sendUS1UI2( PACKETTYPE_PING, parseInt(now_time), (now_time - parseInt(now_time))*1000000 );// seconds,microseconds
+            g_ws.sendUS1UI2( PACKETTYPE_PING, Math.floor(now_time), (now_time - Math.floor(now_time))*1000000 );// seconds,microseconds
         }
     }
     

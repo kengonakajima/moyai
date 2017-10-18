@@ -378,8 +378,8 @@ TileDeck.prototype.setTexture = function(tex) {
 TileDeck.prototype.getUVFromIndex = function(ind,uofs,vofs,eps) {
 	var uunit = this.cell_width / this.moyai_tex.image.width;
 	var vunit = this.cell_height / this.moyai_tex.image.height;
-	var start_x = this.cell_width * parseInt( parseInt(ind) % parseInt(this.tile_width) );
-	var start_y = this.cell_height * parseInt( parseInt(ind) / parseInt(this.tile_width ) );
+	var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
+	var start_y = this.cell_height * Math.floor( Math.floor(ind) / Math.floor(this.tile_width ) );
     var u0 = start_x / this.moyai_tex.image.width + eps + uofs * uunit;
     var v0 = start_y / this.moyai_tex.image.height + eps + vofs * vunit;
     var u1 = u0 + uunit - eps*2;  // *2 because adding eps once for u0 and v0
@@ -1143,8 +1143,8 @@ Font.prototype.loadFromMemTTF = function(u8a,codes,pxsz) {
     return true;
 }
 Font.prototype.loadGlyphs = function(codes) {
-    var horiz_num = parseInt(parseInt(this.atlas.width) / parseInt(this.pixel_size));
-    var vert_num = parseInt(parseInt(this.atlas.height) / parseInt(this.pixel_size));
+    var horiz_num = Math.floor(Math.floor(this.atlas.width) / Math.floor(this.pixel_size));
+    var vert_num = Math.floor(Math.floor(this.atlas.height) / Math.floor(this.pixel_size));
     var max_glyph_num = horiz_num * vert_num;
     console.log("max_glyph_num:",max_glyph_num, "horiz:",horiz_num, "vert:", vert_num, "pixel_size:",this.pixel_size );
     var font = FTFuncs.find_font(this.font_name);
@@ -1170,7 +1170,7 @@ Font.prototype.loadGlyphs = function(codes) {
 //            console.log("BUF:",buf);
         }
         var start_x = (i % horiz_num) * this.pixel_size;
-        var start_y = parseInt(i / horiz_num) * (this.pixel_size);
+        var start_y = Math.floor(i / horiz_num) * (this.pixel_size);
 
         var l = FTFuncs.get_left();
         var top = FTFuncs.get_top();        
@@ -1374,7 +1374,7 @@ function sprintf() {
             switch (m[7]) {
             case 'b': a = a.toString(2); break;
             case 'c': a = String.fromCharCode(a); break;
-            case 'd': a = parseInt(a); break;
+            case 'd': a = Math.floor(a); break;
             case 'e': a = m[6] ? a.toExponential(m[6]) : a.toExponential(); break;
             case 'f': a = m[6] ? parseFloat(a).toFixed(m[6]) : parseFloat(a); break;
             case 'o': a = a.toString(8); break;
@@ -1629,8 +1629,8 @@ Mouse.prototype.setupBrowser = function(w,dom) {
     },false);
     w.addEventListener("mousemove", function(e)  {
         var rect = dom.getBoundingClientRect();
-        var x = parseInt(e.clientX - rect.left);
-        var y = parseInt(e.clientY - rect.top);
+        var x = Math.floor(e.clientX - rect.left);
+        var y = Math.floor(e.clientY - rect.top);
 //        e.preventDefault();
         _this.cursor_pos = new Vec2(x,y);
     },false);    
