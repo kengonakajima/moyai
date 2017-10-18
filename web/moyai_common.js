@@ -77,6 +77,7 @@ dirToDXDY = function(d) {
     case DIR4_DOWN: return {x:0,y:-1};
     default:
         console.assert("dirToDXDY: invalid direction:",d);
+        return null;
     }
 }
 
