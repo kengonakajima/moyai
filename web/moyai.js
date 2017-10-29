@@ -1519,6 +1519,7 @@ function Keyboard() {
     this.mod_shift=false;
     this.mod_ctrl=false;
     this.mod_alt=false;
+    this.prevent_default=false;
 }
 Keyboard.prototype.setKey = function(keycode,pressed) {
     this.keys[keycode] = pressed;
@@ -1547,15 +1548,15 @@ Keyboard.prototype.readBrowserEvent = function(e,pressed) {
 Keyboard.prototype.setupBrowser = function(w) {
     var _this = this;
     w.addEventListener("keydown", function(e) {
-//        e.preventDefault();
+        if(_this.prevent_default) e.preventDefault();
         _this.readBrowserEvent(e,true);
     }, false);
     w.addEventListener("keyup", function(e) {
-//        e.preventDefault();
+        if(_this.preventDefault) e.preventDefault();
         _this.readBrowserEvent(e,false);    
     });
 }
-
+Keyboard.prototype.setPreventDefault = function(flg) { this.prevent_default=flg; }
 
 /////////////////////
 function Mouse() {
