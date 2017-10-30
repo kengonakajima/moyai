@@ -41,27 +41,27 @@ MoyaiClient.prototype.resize = function(w,h) {
 }
 MoyaiClient.prototype.getHighestPriority = function() {
     var highp=0;
-    for(var i in this.layers) {
+    for(var i=0;i<this.layers.length;i++) {
         if(this.layers[i].priority>highp) highp = this.layers[i].priority;
     }
     return highp;
 }
 MoyaiClient.prototype.poll = function(dt) {
     var cnt=0;
-    for(var i in this.layers) {
+    for(var i=0;i<this.layers.length;i++) {
         var layer = this.layers[i];
         if( layer && (!layer.skip_poll) ) cnt += layer.pollAllProps(dt);
     }
     return cnt;   
 }
 MoyaiClient.prototype.render = function() {
-    for(var i in this.scene.children) {
+    for(var i=0;i<this.scene.children.length;i++) {
         this.scene.remove( this.scene.children[i]);
     }
     if( this.scene.children.length>0) this.scene.remove( this.scene.children[0] ); // confirm remove all.. (TODO refactor)
 //    this.scene.children.forEach(function(object){ this.scene.remove(object); });    
-    for(var i in this.layers) {
-        var layer = this.layers[i];
+    for(var li=0;li<this.layers.length;li++) {
+        var layer = this.layers[li];
         var relscl = new Vec2(1,1);
         var camloc;
         if(layer.camera) {
@@ -72,16 +72,17 @@ MoyaiClient.prototype.render = function() {
         if(layer.viewport) {
             relscl = layer.viewport.getRelativeScale();
         }
-        for(var i in layer.props) {                    
-            var prop = layer.props[i];
+        for(var pi=0;pi<layer.props.length;pi++ ) {                    
+            var prop = layer.props[pi];
             if(!prop.visible)continue;
+
             prop.updateMesh();
             var z_inside_prop=0;
             
             var prop_z = layer.priority * this.z_per_layer + prop.priority * this.z_per_prop;
             if(prop.grids) {
-                for(var i in prop.grids) {
-                    var grid = prop.grids[i];
+                for(var gi=0;gi<prop.grids.length;gi++) {
+                    var grid = prop.grids[gi];
                     if(!grid.visible)continue;
                     grid.updateMesh();
                     if(!grid.mesh) {
@@ -99,7 +100,7 @@ MoyaiClient.prototype.render = function() {
                 }
             }
             if(prop.children.length>0) {
-                for(var i in prop.children) {
+                for(var i=0;i<prop.children.length;i++) {
                     var chp = prop.children[i];
                     if(!chp.visible)continue;
                     chp.updateMesh();
@@ -129,7 +130,7 @@ MoyaiClient.prototype.render = function() {
                 z_inside_prop += this.z_per_subprop;
             }            
             if(prop.prim_drawer) {
-                for(var i in prop.prim_drawer.prims) {
+                for(var i=0;i<prop.prim_drawer.prims.length;i++) {
                     var prim = prop.prim_drawer.prims[i];
                     prim.updateMesh();
                     prim.mesh.position.x = (prop.loc.x-camloc.x)*relscl.x;
@@ -210,7 +211,7 @@ Layer.prototype.insertProp = function(p) {
 }
 Layer.prototype.pollAllProps = function(dt) {
     var keep=[];
-    for(var i in this.props) {
+    for(var i=0;i<this.props.length;i++) {
         var prop = this.props[i];
         var to_keep = prop.basePoll(dt);
         if(to_keep) {
@@ -224,26 +225,26 @@ Layer.prototype.pollAllProps = function(dt) {
 }
 Layer.prototype.getHighestPriority = function() {
     var highp=0;
-    for(var i in this.props) {
+    for(var i=0;i<this.props.length;i++) {
         if(this.props[i].priority>highp) highp = this.props[i].priority;
     }
     return highp;    
 }
 Layer.prototype.getLowesetPriority = function() {
     var lowp=0;
-    for(var i in this.props) {
+    for(var i=0;i<this.props.length;i++) {
         if(this.props[i].priority<lowp) lowp = this.props[i].priority;
     }
     return lowp;
 }
 Layer.prototype.getPropById = function(id) {
-    for(var i in this.props) {
+    for(var i=0;i<this.props.length;i++) {
         if( this.props[i].id == id ) return this.props[i];
     }
     return null;
 }
 Layer.prototype.findByKey = function(keyname,val) {
-    for(var i in this.props) {
+    for(var i=0;i<this.props.length;i++) {
         var p = this.props[i];
         if( p[keyname] == val ) return p;
     }
@@ -496,13 +497,13 @@ PrimDrawer.prototype.addRect = function(a,b,col,w) {
     return newprim;
 }
 PrimDrawer.prototype.getPrimById = function(id) {
-    for(var i in  this.prims) {
+    for(var i=0;i<this.prims.length;i++) {
         if(this.prims[i].id == id ) return this.prims[i];
     }
     return null;
 }
 PrimDrawer.prototype.deletePrim = function(id) {
-    for(var i in  this.prims) {
+    for(var i=0;i<this.prims.length;i++) {
         if(this.prims[i].id == id ) {
             this.prims[i].onDelete();
             this.prims.splice(i,1);
@@ -637,13 +638,13 @@ Prop2D.prototype.clearChildren = function() {
 }
 Prop2D.prototype.clearChild = function(p) {
     var keep=[];
-    for(var i in this.children) {
+    for(var i=0;i<this.children.length;i++) {
         if(this.children[i]!=p) keep.push( this.children[i]);
     }
     this.children = keep;
 }
 Prop2D.prototype.getChild = function(propid) {
-    for(var i in this.children) {
+    for(var i=0;i<this.children.length;i++) {
         if( this.children[i].id == propid ) {
             return this.children[i];
         }

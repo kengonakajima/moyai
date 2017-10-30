@@ -227,7 +227,7 @@ function createWSClient(url) {
 function File(path,u8adata) {
     this.path = path;
     this.data = new Uint8Array(u8adata.length);
-    for(var i in u8adata) this.data[i]=u8adata[i];
+    for(var i=0;i<u8adata.length;i++) this.data[i]=u8adata[i];
 }
 File.prototype.comparePath = function(path) {
     return (this.path==path);
@@ -236,7 +236,7 @@ function FileDepo() {
     this.files=[];
 }
 FileDepo.prototype.get = function(path) {
-    for(var i in this.files) {
+    for(var i=0;i<this.files.length;i++) {
         if( this.files[i].comparePath(path) ) {
             return this.files[i];
         }

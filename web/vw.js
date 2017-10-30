@@ -100,7 +100,7 @@ var PROP2D_OPTBIT_ADDITIVE_BLEND = 0x00000001;
 
 // color replacer shader is duplicated to have each different uniforms
 function updateAllColorReplacerShader(shader_id,fromc,toc,eps) {
-    for(var i in g_prop2d_pool) {
+    for(var i=0;i<g_prop2d_pool.length;i++) {
         var p = g_prop2d_pool[i];
         if(p.fragment_shader && p.fragment_shader.orig_shader_id==shader_id) {
             p.fragment_shader.setColor(fromc,toc,eps);
@@ -965,7 +965,7 @@ function onPacket(ws,pkttype,argdata) {
             // check for deleted prims
             if( prop.prim_drawer.prims.length > pktnum ) {
 //                console.log( "primitive deleted? pkt:",pktnum, "local:", prop.prim_drawer.prims, remote_prim_ids );
-                for( var i in prop.prim_drawer.prims ) {
+                for(var i=0;i<prop.prim_drawer.prims.length;i++) {
                     var prim = prop.prim_drawer.prims[i];
                     var found = false;
                     for(var j=0;j<pktnum;j++) {
