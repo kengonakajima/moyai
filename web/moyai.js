@@ -1521,7 +1521,9 @@ function Keyboard() {
     this.mod_ctrl=false;
     this.mod_alt=false;
     this.prevent_default=false;
+    this.to_read_event=true;
 }
+Keyboard.prototype.enableReadEvent = function(flg) { this.to_read_event=flg; }
 Keyboard.prototype.setKey = function(keycode,pressed) {
     this.keys[keycode] = pressed;
     if(pressed &&  (!this.toggled[keycode]) ) {
@@ -1550,11 +1552,11 @@ Keyboard.prototype.setupBrowser = function(w) {
     var _this = this;
     w.addEventListener("keydown", function(e) {
         if(_this.prevent_default) e.preventDefault();
-        _this.readBrowserEvent(e,true);
+        if(_this.to_read_event) _this.readBrowserEvent(e,true);
     }, false);
     w.addEventListener("keyup", function(e) {
         if(_this.preventDefault) e.preventDefault();
-        _this.readBrowserEvent(e,false);    
+        if(_this.to_read_event) _this.readBrowserEvent(e,false);    
     });
 }
 Keyboard.prototype.setPreventDefault = function(flg) { this.prevent_default=flg; }
