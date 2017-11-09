@@ -1542,14 +1542,19 @@ Keyboard.prototype.clearToggled = function(keycode) {
     this.toggled[keycode]=false;
 }
 function safariKey(e) {
+    console.log("safari:",e);    
     if(e.keyIdentifier=="Enter") return "Enter";
+    if(e.keyIdentifier=="Right") return "ArrowRight";
+    if(e.keyIdentifier=="Left") return "ArrowLeft";
+    if(e.keyIdentifier=="Down") return "ArrowDown";
+    if(e.keyIdentifier=="Up") return "ArrowUp";        
     if(e.keyIdentifier=="U+0008") return "Backspace";
+    if(e.keyIdentifier=="U+001B") return "Escape";    
     var k=String.fromCharCode(e.keyCode);
     if(!e.shiftKey)k=k.toLowerCase();
     return k;
 }
 Keyboard.prototype.readBrowserEvent = function(e,pressed) {
-    console.log("EEEE:",e);
     var id=e.key;
     if(!id)id=safariKey(e);
     this.setKey(id,pressed);
