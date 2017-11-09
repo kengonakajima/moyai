@@ -1541,12 +1541,22 @@ Keyboard.prototype.getToggled = function(keycode) {
 Keyboard.prototype.clearToggled = function(keycode) {
     this.toggled[keycode]=false;
 }
+function safariKey(e) {
+    if(e.keyIdentifier=="Enter") return "Enter";
+    if(e.keyIdentifier=="U+0008") return "Backspace";
+    var k=String.fromCharCode(e.keyCode);
+    if(!e.shiftKey)k=k.toLowerCase();
+    return k;
+}
 Keyboard.prototype.readBrowserEvent = function(e,pressed) {
-    this.setKey(e.key,pressed);
+    console.log("EEEE:",e);
+    var id=e.key;
+    if(!id)id=safariKey(e);
+    this.setKey(id,pressed);
     if(e.key=="Control") this.mod_ctrl = pressed;
     if(e.key=="Shift") this.mod_shift = pressed;
     if(e.key=="Alt") this.mod_alt = pressed;
-    if(this.onKeyEvent) this.onKeyEvent(e.key,pressed);
+    if(this.onKeyEvent) this.onKeyEvent(id,pressed);
 }
 Keyboard.prototype.setupBrowser = function(w) {
     var _this = this;
