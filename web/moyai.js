@@ -1611,8 +1611,17 @@ Mouse.prototype.getCursorPos = function() { return this.cursor_pos; }
 /////////////////////////
 
 function SoundSystem() {
+    var AudioContext = window.AudioContext // Default
+    || window.webkitAudioContext // Safari and old versions of Chrome
+    || false; 
+
+    if (AudioContext) {
+        this.context = new AudioContext();
+    } else {
+        console.log("AudioContext is not available in this browser");
+        this.context = null;
+    }
     this.sounds={};
-    this.context = new AudioContext();
     this.master_volume = 1;
 }
 SoundSystem.prototype.setMasterVolume = function(vol) { this.master_volume=vol; }
@@ -1654,6 +1663,7 @@ Sound.prototype.setLoop = function(loop) { this.loop=loop; }
 Sound.prototype.isReady = function() { return this.audiobuffer; }
 Sound.prototype.setDefaultVolume = function(v) { this.default_volume=v;}
 Sound.prototype.setData = function(data,type) {
+    if(!this.context)return;
     this.type = type;
     this.data = data;
     if(type=="float") {
@@ -1670,6 +1680,7 @@ Sound.prototype.setData = function(data,type) {
     }
 }
 Sound.prototype.prepareSource = function(vol) {
+    if(!this.context)return;
     if(this.source) {
         this.source.stop();
     }
@@ -1681,6 +1692,7 @@ Sound.prototype.prepareSource = function(vol) {
     this.gain_node.gain.value = this.default_volume * vol * this.sound_system.master_volume;
 }
 Sound.prototype.play = function(vol) {
+    if(!this.context)return;
     if(vol==undefined)vol=1;
     if(this.audiobuffer) {
         this.prepareSource(vol);
@@ -1691,6 +1703,7 @@ Sound.prototype.play = function(vol) {
     }
 }
 Sound.prototype.setTimePositionSec = function( pos_sec ) {
+    if(!this.context)return;    
     if(this.source) {
         if(this.source.paused) {
             return;
@@ -1702,6 +1715,7 @@ Sound.prototype.setTimePositionSec = function( pos_sec ) {
     }
 }
 Sound.prototype.isPlaying = function() {
+    if(!this.context)return;    
     if(this.source) {
         return !this.source.paused;
     } else {
@@ -1709,6 +1723,7 @@ Sound.prototype.isPlaying = function() {
     }        
 }
 Sound.prototype.stop = function() {
+    if(!this.context)return;    
     if(this.source) {
         console.log("stopping..", this.source);
         this.source.stop(0);
