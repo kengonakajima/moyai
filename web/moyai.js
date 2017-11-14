@@ -1053,18 +1053,24 @@ Grid.prototype.updateMesh = function() {
 
 /////////////////////
 var FTFuncs={};
-FTFuncs.monochrome	= FTModule.cwrap("monochrome", 'number', ['number']);
-FTFuncs.load_font  = FTModule.cwrap("load_font", 'number', ['string','string','number']);
-FTFuncs.load_mem_font_c = FTModule.cwrap("load_mem_font", "number", ['number','number','string','number']);
-FTFuncs.find_font  = FTModule.cwrap("find_font", 'number', ['string']);
-FTFuncs.get_bitmap = FTModule.cwrap("get_bitmap", 'number', ['number','number','number','number']);
-FTFuncs.get_width = FTModule.cwrap("get_width", 'number', []);
-FTFuncs.get_height = FTModule.cwrap("get_height", 'number', []);
-FTFuncs.get_left = FTModule.cwrap("get_left", 'number', []);
-FTFuncs.get_top = FTModule.cwrap("get_top", 'number', []);
-FTFuncs.get_advance = FTModule.cwrap("get_advance", 'number', []);
-FTFuncs.get_debug_code = FTModule.cwrap("get_debug_code", 'number', []);
-FTFuncs.get_bitmap_opt_retcode = FTModule.cwrap("get_bitmap_opt_retcode","number",[]);
+
+try {
+    FTFuncs.monochrome	= FTModule.cwrap("monochrome", 'number', ['number']);
+    FTFuncs.load_font  = FTModule.cwrap("load_font", 'number', ['string','string','number']);
+    FTFuncs.load_mem_font_c = FTModule.cwrap("load_mem_font", "number", ['number','number','string','number']);
+    FTFuncs.find_font  = FTModule.cwrap("find_font", 'number', ['string']);
+    FTFuncs.get_bitmap = FTModule.cwrap("get_bitmap", 'number', ['number','number','number','number']);
+    FTFuncs.get_width = FTModule.cwrap("get_width", 'number', []);
+    FTFuncs.get_height = FTModule.cwrap("get_height", 'number', []);
+    FTFuncs.get_left = FTModule.cwrap("get_left", 'number', []);
+    FTFuncs.get_top = FTModule.cwrap("get_top", 'number', []);
+    FTFuncs.get_advance = FTModule.cwrap("get_advance", 'number', []);
+    FTFuncs.get_debug_code = FTModule.cwrap("get_debug_code", 'number', []);
+    FTFuncs.get_bitmap_opt_retcode = FTModule.cwrap("get_bitmap_opt_retcode","number",[]);
+} catch(e) {
+    console.log("Can't init FTFuncs. no freetype available");
+}
+
 
 // freetype-gl's texture_atlas_t
 function TextureAtlas(w,h,depth) {
