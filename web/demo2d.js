@@ -367,6 +367,12 @@ var samples = new Array(44100/4);
 for(var i=0;i<samples.length;i++) samples[i] = Math.cos(i/20.0);
 var g_mem_sound = g_sound_system.newSoundFromMemory(samples,"float");
 
+////////////////////
+screen.addEventListener( "touchend", function(event) {
+    console.log("touch");
+    g_explosion_sound.play();
+}, false);
+
 
 ////////////////////
 
@@ -512,6 +518,7 @@ function animate() {
     
 }
 
-console.log("IIIIIIIIIIIIIIIi")    ;
+
+
 
 animate();
