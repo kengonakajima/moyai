@@ -55,6 +55,7 @@ double g_last_ping_rtt=0;
 
 bool g_enable_print_stats = false;
 bool g_enable_reprecation = false;
+bool g_enable_compression = true;
 
 #if defined(__APPLE__)
 #define RETINA 2
@@ -1650,7 +1651,7 @@ void on_connect( uv_connect_t *connect, int status ) {
     if(r) {
         print("uv_read_start: fail:%d",r);
     }
-    g_stream = createStream((uv_tcp_t*)connect->handle, false);
+    g_stream = createStream((uv_tcp_t*)connect->handle, g_enable_compression );
 }
 
 
@@ -1691,6 +1692,8 @@ bool parseProgramArgs( int argc, char **argv ) {
             g_enable_print_stats = true;
         } else if( strcmp( argv[i], "--reprecation" ) == 0 ) {
             g_enable_reprecation = true;
+        } else if( strcmp( argv[i], "--disable-compression") == 0 ) {
+            g_enable_compression = false;  
         } else if( strncmp( argv[i], save_prefix, strlen(save_prefix)) == 0 ) {
             snprintf( g_savepath, sizeof(g_savepath), "%s", argv[i] + strlen(save_prefix));
         } else if( argv[i][0] != '-' ){
