@@ -57,7 +57,6 @@ double g_last_ping_rtt=0;
 
 bool g_enable_print_stats = false;
 bool g_enable_reprecation = false;
-bool g_enable_compression = true;
 
 #if defined(__APPLE__)
 #define RETINA 2
@@ -1642,8 +1641,8 @@ void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
     parseRecord( stream, &stream->unzipped_recvbuf, NULL, 0, on_packet_callback );
     
 }
-Stream *createStream(uv_tcp_t *tcp, bool compression ) {
-    Stream *out = new Stream( (uv_tcp_t*) tcp, 8*1024, 16*1024*1024,compression);
+Stream *createStream(uv_tcp_t *tcp ) {
+    Stream *out = new Stream( (uv_tcp_t*) tcp, 8*1024, 16*1024*1024,false); // no compression to server
     tcp->data=out;
     return out;
 }
@@ -1655,7 +1654,7 @@ void on_connect( uv_connect_t *connect, int status ) {
     if(r) {
         print("uv_read_start: fail:%d",r);
     }
-    g_stream = createStream((uv_tcp_t*)connect->handle, g_enable_compression );
+    g_stream = createStream((uv_tcp_t*)connect->handle );
 }
 
 
@@ -1696,8 +1695,6 @@ bool parseProgramArgs( int argc, char **argv ) {
             g_enable_print_stats = true;
         } else if( strcmp( argv[i], "--reprecation" ) == 0 ) {
             g_enable_reprecation = true;
-        } else if( strcmp( argv[i], "--disable-compression") == 0 ) {
-            g_enable_compression = false;  
         } else if( strncmp( argv[i], save_prefix, strlen(save_prefix)) == 0 ) {
             snprintf( g_savepath, sizeof(g_savepath), "%s", argv[i] + strlen(save_prefix));
         } else if( argv[i][0] != '-' ){
@@ -2001,6 +1998,8 @@ int main( int argc, char **argv ) {
         double t = now();
         double dt = t - last_poll_at;
 
+        //        if(g_enable_reprecation) sleepMilliSec(50);
+        
         uv_run_times(10);
         if( g_reproxy ) g_reproxy->heartbeat();
         if( g_moyai_client && g_enable_reprecation==false ) {
