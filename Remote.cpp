@@ -1340,7 +1340,7 @@ static void reprecator_on_accept_callback( uv_stream_t *listener, int status ) {
     uv_tcp_init( uv_default_loop(), newsock );
     if( uv_accept( listener, (uv_stream_t*) newsock ) == 0 ) {
         Reprecator *rep = (Reprecator*)listener->data;
-        Client *cl = new Client(newsock,rep);
+        Client *cl = new Client(newsock,rep,false);
         rep->addRealClient(cl);
         newsock->data=(void*)cl;
         
@@ -2181,12 +2181,12 @@ Client::Client( uv_tcp_t *sk, RemoteHead *rh, bool compress ) : Stream(sk,16*102
     parent_rh = rh;
 }
 // clients connecting to reproxy
-Client::Client( uv_tcp_t *sk, ReprecationProxy *reproxy ) : Stream(sk,16*1024*1024,8*1024,true) {
+Client::Client( uv_tcp_t *sk, ReprecationProxy *reproxy, bool compress ) : Stream(sk,16*1024*1024,8*1024,compress) {
     init();
     parent_reproxy = reproxy;
 }
 // reproxies
-Client::Client( uv_tcp_t *sk, Reprecator *repr ) : Stream(sk, 32*1024*1024,32*1024,false){
+Client::Client( uv_tcp_t *sk, Reprecator *repr, bool compress ) : Stream(sk, 32*1024*1024,32*1024,compress){
     init();
     parent_reprecator = repr;
 }
@@ -2314,7 +2314,7 @@ void reproxy_on_accept_callback(uv_stream_t *listener, int status) {
     uv_tcp_init( uv_default_loop(), newsock );
     if( uv_accept( listener, (uv_stream_t*)newsock) == 0 ) {
         ReprecationProxy *rp = (ReprecationProxy*)listener->data;
-        Client *cl = new Client(newsock,rp);
+        Client *cl = new Client(newsock,rp,true);
         newsock->data = cl;
         cl->parent_reproxy->addClient(cl);
         print("reproxy_on_accept_callback. accepted");

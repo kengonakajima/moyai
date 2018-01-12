@@ -567,8 +567,8 @@ public:
     Stream *reprecator_stream; // used only when logical client
     
     Client( uv_tcp_t *sk, RemoteHead *rh, bool compress );
-    Client( uv_tcp_t *sk, ReprecationProxy *reproxy );
-    Client( uv_tcp_t *sk, Reprecator *repr );
+    Client( uv_tcp_t *sk, ReprecationProxy *reproxy, bool compress );
+    Client( uv_tcp_t *sk, Reprecator *repr, bool compress );
     Client( RemoteHead *rh );
     static Client *createLogicalClient( Stream *reprecator_stream, RemoteHead *rh );
     void init();
