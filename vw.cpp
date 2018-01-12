@@ -325,6 +325,16 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
     // first step switch
     if(g_reproxy) {
         switch(funcid) {
+        case PACKETTYPE_ZIPPED_RECORDS:
+            {
+                //                print("REPROXY received zipped_records argdatalen:%d", argdatalen );
+                static char unzipout[8*1024*1024];
+                int unzipped_size = memDecompressSnappy( unzipout, sizeof(unzipout), argdata, argdatalen );
+                //            print("pushed to unzipped_recvbuf. used:%d", s->unzipped_recvbuf.used);
+                g_total_unzipped_bytes += unzipped_size;
+                parseRecord( s, &s->unzipped_recvbuf, unzipout, unzipped_size, on_packet_callback );
+            }
+            return;
         case PACKETTYPE_S2C_VIEWPORT_DYNAMIC_LAYER:
             print("ignoring vp_dyn_layer");
             return;
@@ -550,13 +560,9 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             //            print("received zipped_records argdatalen:%d", argdatalen );
             static char unzipout[8*1024*1024];
             int unzipped_size = memDecompressSnappy( unzipout, sizeof(unzipout), argdata, argdatalen );
-            bool pushed = s->unzipped_recvbuf.push(unzipout,unzipped_size);
-            if(!pushed) {
-                print("unzipped_recvbuf full?");
-                break;
-            }
             //            print("pushed to unzipped_recvbuf. used:%d", s->unzipped_recvbuf.used);
             g_total_unzipped_bytes += unzipped_size;
+            parseRecord( s, &s->unzipped_recvbuf, unzipout, unzipped_size, on_packet_callback );
         }
         break;
 
@@ -1638,8 +1644,6 @@ void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
     }
     Stream *stream = (Stream*)s->data;
     parseRecord( stream, &stream->recvbuf, buf->base, nread, on_packet_callback );
-    parseRecord( stream, &stream->unzipped_recvbuf, NULL, 0, on_packet_callback );
-    
 }
 Stream *createStream(uv_tcp_t *tcp ) {
     Stream *out = new Stream( (uv_tcp_t*) tcp, 8*1024, 16*1024*1024,false); // no compression to server
