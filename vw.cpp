@@ -42,6 +42,8 @@ SoundSystem *g_soundsystem;
 
 uint64_t g_total_read;
 uint64_t g_total_read_count;
+uint64_t g_second_read;
+uint64_t g_second_read_count;
 uint64_t g_total_unzipped_bytes;
 uint64_t g_packet_count;
 
@@ -1626,7 +1628,9 @@ void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
         print("read error! st:%d closing..", nread);
         g_done=true;
         return;
-    } 
+    }
+    g_second_read_count ++;
+    g_second_read += nread;
     g_total_read_count ++;
     g_total_read += nread;
 
@@ -2022,10 +2026,12 @@ int main( int argc, char **argv ) {
                 last_total_read_at = t;
             }
 #define CALC_DIFF_PKT(enm) ( g_recv_counts[enm] - g_recv_counts_last_second[enm] )
-            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d B/p:%.1f B/r:%.1f sbused:%d comp:%.3f\n"
+            Format fmt( "polled:%d rendered:%d %.1fKbps Ping:%.1fms TS:%d rc:%d B/p:%.1f B/r:%.1f B/rs:%.1f sbused:%d comp:%.3f\n"
                         "Prop2D ss:%d l:%d i:%d s:%d r:%d f:%d c:%d op:%d pr:%d d:%d cch:%d lv:%d il:%d ls:%d",
                         polled, rendered, kbps, g_last_ping_rtt*1000,g_timestamp_count, g_total_read_count,
-                        (float)g_total_read/(float)g_packet_count, (float)g_total_read/(float)g_total_read_count,
+                        (float)g_total_read/(float)g_packet_count,
+                        (float)g_total_read/(float)g_total_read_count,
+                        (float)g_second_read/(float)g_second_read_count,
                         g_stream->sendbuf.used, (float)g_total_read/(float)g_total_unzipped_bytes,
                         CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_SNAPSHOT),
                         CALC_DIFF_PKT(PACKETTYPE_S2C_PROP2D_LOC),
@@ -2045,6 +2051,7 @@ int main( int argc, char **argv ) {
             updateDebugStat( fmt.buf );
             if(t>g_last_ping_at+1) {
                 g_last_ping_at = t;
+                g_second_read_count=g_second_read=0;
                 sendPing( g_stream );
                 memcpy( g_recv_counts_last_second,g_recv_counts,sizeof(g_recv_counts_last_second));
             }
