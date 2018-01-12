@@ -658,7 +658,8 @@ void gameInit() {
     comptest();
     comptestbig();
 
-    print("gameInit: headless_mode:%d spritestream:%d videostream:%d", g_headless_mode, g_enable_spritestream, g_enable_videostream );
+    print("gameInit: headless_mode:%d spritestream:%d videostream:%d disable_compression:%d",
+          g_headless_mode, g_enable_spritestream, g_enable_videostream, g_disable_compress );
 
 #ifdef __APPLE__    
     setlocale( LC_ALL, "ja_JP");
@@ -725,7 +726,10 @@ void gameInit() {
         if( g_rh->startServer(HEADLESS_SERVER_PORT) == false ) {
             print("headless server: can't start server. port:%d", HEADLESS_SERVER_PORT );
             exit(1);
-        }
+        } 
+            
+        print("headless server listening on:%d",HEADLESS_SERVER_PORT);
+        
         if( g_enable_spritestream ) g_rh->enableSpriteStream();
         if( g_enable_videostream ) g_rh->enableVideoStream(SCRW*RETINA,SCRH*RETINA,3);
         if( g_enable_reprecation ) g_rh->enableReprecation(REPRECATOR_SERVER_PORT);
