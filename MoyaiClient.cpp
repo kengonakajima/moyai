@@ -54,7 +54,7 @@ void MoyaiClient::capture( Image *img ) {
 int MoyaiClient::poll( double dt ) {
     int cnt = Moyai::poll(dt);
     if( remote_head ) {
-         remote_head->heartbeat();
+         remote_head->heartbeat(dt);
     }    
     return cnt;    
 }

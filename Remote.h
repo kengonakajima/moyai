@@ -271,12 +271,13 @@ public:
     Reprecator *reprecator;
 
     bool enable_compression;
+    double send_wait_sec;
     
     void enableSpriteStream() { enable_spritestream = true; };
     void enableVideoStream( int w, int h, int pixel_skip );
     void enableReprecation(int portnum);
     void disableTimestamp() { enable_timestamp = false; }
-    
+    void setSendWait(double sec) { send_wait_sec=sec; print("XXXXXXXXXXXXX:%f",sec); }
     void (*on_connect_cb)(RemoteHead*rh,Client *cl);
     void (*on_disconnect_cb)(RemoteHead*rh, Client *cl);
     void (*on_keyboard_cb)(Client *cl,int kc,int act,int modshift,int modctrl,int modalt);
@@ -299,8 +300,8 @@ public:
     void setOnKeyboardCallback( void (*f)(Client*cl,int,int,int,int,int) ) { on_keyboard_cb = f; }
     void setOnMouseButtonCallback( void (*f)(Client*cl,int,int,int,int,int) ) { on_mouse_button_cb = f; }
     void setOnMouseCursorCallback( void (*f)(Client*cl,int,int) ) { on_mouse_cursor_cb = f; }
-    void heartbeat();
-    void flushBufferToNetwork();
+    void heartbeat(double dt);
+    void flushBufferToNetwork(double dt);
     void scanSendAllPrerequisites( Stream *outstream );
     void scanSendAllProp2DSnapshots( Stream *outstream );
     void notifyProp2DDeleted( Prop2D *prop_deleted );
@@ -565,6 +566,9 @@ public:
     uint32_t global_client_id; // used by reproxy
 
     Stream *reprecator_stream; // used only when logical client
+
+    double accum_time;
+    double send_wait;
     
     Client( uv_tcp_t *sk, RemoteHead *rh, bool compress );
     Client( uv_tcp_t *sk, ReprecationProxy *reproxy, bool compress );
@@ -581,6 +585,17 @@ public:
     }
     bool isLogical() { return reprecator_stream; }
     void flushSendbufToNetwork();
+    bool updateSendTimer(double dt) {
+        accum_time+=dt;
+        if(send_wait==0)return true;
+        if(accum_time>send_wait) {
+            accum_time=0;
+            return true;
+            
+        } else {
+            return false;
+        }
+    }
 };
 
 

@@ -56,7 +56,7 @@ Prim *g_narrow_line_prim;
 #define SCALE  2
 
 int g_last_render_cnt ;
-
+int g_send_wait_ms=0;
 
 RemoteHead *g_rh;
 
@@ -735,7 +735,8 @@ void gameInit() {
         if( g_enable_reprecation ) g_rh->enableReprecation(REPRECATOR_SERVER_PORT);
         if( g_disable_timestamp ) g_rh->disableTimestamp();
         if( g_disable_compress ) g_rh->enable_compression = false;
-        
+
+        g_rh->setSendWait((double)(g_send_wait_ms)/1000.0);
         g_moyai_client->setRemoteHead(g_rh);
         g_rh->setTargetMoyaiClient(g_moyai_client);
         g_sound_system->setRemoteHead(g_rh);
@@ -1052,6 +1053,9 @@ int main(int argc, char **argv )
         if(strcmp(argv[i], "--reprecation") == 0 ) g_enable_reprecation = true;
         if(strcmp(argv[i], "--disable-timestamp")==0) g_disable_timestamp = true;
         if(strcmp(argv[i], "--disable-compression")==0) g_disable_compress = true;
+        if(strncmp( argv[i], "--send_wait_ms=", strlen("--send_wait_ms=") ) == 0 ){
+            g_send_wait_ms = atoi( argv[i] + strlen("--send_wait_ms="));
+        }
     }
         
     gameInit();

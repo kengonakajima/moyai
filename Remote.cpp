@@ -477,7 +477,7 @@ void RemoteHead::scanSendAllProp2DSnapshots( Stream *outstream ) {
         }
     }    
 }
-void RemoteHead::heartbeat() {
+void RemoteHead::heartbeat(double dt) {
     if(enable_spritestream) track2D();
     if(enable_videostream) broadcastCapturedScreen();
     if( (!enable_videostream) && (!enable_spritestream) ) {
@@ -502,14 +502,16 @@ void RemoteHead::heartbeat() {
         }
     }
 #endif
-    flushBufferToNetwork();
+    flushBufferToNetwork(dt);
     if(reprecator) reprecator->heartbeat();
     uv_run_times(100);
 }
 
-void RemoteHead::flushBufferToNetwork() {
+void RemoteHead::flushBufferToNetwork(double dt) {
     POOL_SCAN(cl_pool,Client) {
-        it->second->flushSendbufToNetwork();
+        Client *cl=it->second;
+        bool to_send = cl->updateSendTimer(dt);        
+        if(to_send) cl->flushSendbufToNetwork();
     }
 }
 static void remotehead_on_close_callback( uv_handle_t *s ) {
@@ -606,6 +608,7 @@ static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
         newsock->data = cl;
         cl->tcp = newsock;
         cl->parent_rh->addClient(cl);
+        cl->send_wait=rh->send_wait_sec;
         print("remotehead_on_accept_callback. ok status:%d client-id:%d", status, cl->id );
 
         int r = uv_read_start( (uv_stream_t*) newsock, moyai_libuv_alloc_buffer, remotehead_on_read_callback );
@@ -2212,6 +2215,8 @@ void Client::init() {
     initialized_at = now();
     global_client_id = 0;
     reprecator_stream=NULL;
+    accum_time=0;
+    send_wait=0;
 }
 Client::~Client() {
     print("~Client called for %d", id );
