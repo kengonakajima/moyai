@@ -603,6 +603,7 @@ static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
     uv_tcp_t *newsock = (uv_tcp_t*) MALLOC( sizeof(uv_tcp_t) );
     uv_tcp_init( uv_default_loop(), newsock );
     if( uv_accept( listener, (uv_stream_t*) newsock ) == 0 ) {
+        uv_tcp_nodelay(newsock,1);
         RemoteHead *rh = (RemoteHead*)listener->data;
         Client *cl = new Client(newsock, rh, rh->enable_compression );        
         newsock->data = cl;
@@ -1342,6 +1343,7 @@ static void reprecator_on_accept_callback( uv_stream_t *listener, int status ) {
     uv_tcp_t *newsock = (uv_tcp_t*) MALLOC( sizeof(uv_tcp_t) );
     uv_tcp_init( uv_default_loop(), newsock );
     if( uv_accept( listener, (uv_stream_t*) newsock ) == 0 ) {
+        uv_tcp_nodelay(newsock,1);        
         Reprecator *rep = (Reprecator*)listener->data;
         Client *cl = new Client(newsock,rep,false);
         rep->addRealClient(cl);
@@ -2318,6 +2320,7 @@ void reproxy_on_accept_callback(uv_stream_t *listener, int status) {
     uv_tcp_t *newsock = (uv_tcp_t*)MALLOC( sizeof(uv_tcp_t));
     uv_tcp_init( uv_default_loop(), newsock );
     if( uv_accept( listener, (uv_stream_t*)newsock) == 0 ) {
+        uv_tcp_nodelay(newsock,1);        
         ReprecationProxy *rp = (ReprecationProxy*)listener->data;
         Client *cl = new Client(newsock,rp,true);
         newsock->data = cl;

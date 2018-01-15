@@ -1653,7 +1653,7 @@ Stream *createStream(uv_tcp_t *tcp ) {
 
 void on_connect( uv_connect_t *connect, int status ) {
     print("on_connect status:%d",status);
-    
+    uv_tcp_nodelay( (uv_tcp_t*)connect->handle, 1);
     int r = uv_read_start( (uv_stream_t*)connect->handle, moyai_libuv_alloc_buffer, on_data );
     if(r) {
         print("uv_read_start: fail:%d",r);
