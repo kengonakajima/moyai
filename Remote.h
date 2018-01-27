@@ -111,9 +111,9 @@ typedef enum {
 
 typedef enum {
     // generic
-    PACKETTYPE_PING = 1,
-    PACKETTYPE_TIMESTAMP = 2,
-    PACKETTYPE_ZIPPED_RECORDS = 8, // not used in server-reprecator connection.
+    PACKETTYPE_PING = 1, // sec:u32 usec:u32
+    PACKETTYPE_TIMESTAMP = 2, // sec:u32 usec:u32
+    PACKETTYPE_ZIPPED_RECORDS = 8, // snappied content only.
     
     // client to server 
     PACKETTYPE_C2S_KEYBOARD = 100,
