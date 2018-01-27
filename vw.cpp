@@ -1709,7 +1709,7 @@ bool parseProgramArgs( int argc, char **argv ) {
         }
 
     }
-    print("viewer config: serverip:'%s' port:%d window:%d,%d", g_server_ip_addr, g_port, g_window_width, g_window_height );
+    print("viewer config: serverip:'%s' port:%d", g_server_ip_addr, g_port );
     return true;
 }
 
