@@ -1,190 +1,261 @@
 // moyai node.js server module
+var fs=require("fs");
 
-
-
-DIR4_NONE=-1;
-DIR4_UP=0;
-DIR4_RIGHT=1;
-DIR4_DOWN=2;
-DIR4_LEFT=3;
-
-
-randomDir = function() {
-    return irange(DIR4_UP,DIR4_LEFT+1);
+function Moyai() {
+    this.layers=[];
+}
+Moyai.prototype.insertLayer = function(l) {
+    if(l.priority==null) {
+        var highp = this.getHighestPriority();
+        l.priority = highp+1;
+    }
+    this.layers.push(l);    
+}
+Moyai.prototype.poll = function(dt) {
+    var cnt=0;
+    for(var i=0;i<this.layers.length;i++) {
+        var layer = this.layers[i];
+        if( layer && (!layer.skip_poll) ) cnt += layer.pollAllProps(dt);
+    }
+    return cnt;   
 }
 
-reverseDir = function(d){
-    switch(d){
-    case DIR4_UP: return DIR4_DOWN;
-    case DIR4_DOWN: return DIR4_UP;
-    case DIR4_RIGHT: return DIR4_LEFT;
-    case DIR4_LEFT: return DIR4_RIGHT;
-    default:
-        return DIR4_NONE;
+Moyai.prototype.getHighestPriority = function() {
+    var highp=0;
+    for(var i=0;i<this.layers.length;i++) {
+        if(this.layers[i].priority>highp) highp = this.layers[i].priority;
+    }
+    return highp;
+}
+
+///////////////
+
+Texture.prototype.id_gen = 1;
+function Texture() {
+    this.id = this.__proto__.id_gen++;
+    this.image = null;
+}
+Texture.prototype.loadPNG = function(path) {
+    this.image = new Image();
+    var data = fs.readFileSync(path);
+    this.image.loadPNGMem(data);
+}
+Texture.prototype.getSize = function() {
+    return this.image.getSize();
+}
+Texture.prototype.setImage = function(img) {
+    this.image = img;
+}
+Texture.prototype.updateImage = function(img) {
+    console.log("no impl in node");
+}
+
+
+/////////////////////
+
+Prop2D.prototype.id_gen=1;
+function Prop2D() {
+    this.id=this.__proto__.id_gen++;
+    this.index = 0;
+    this.scl = new Vec2(32,32);
+    this.loc = new Vec2(0,0);
+    this.rot = 0;
+    this.deck = null;
+    this.uvrot = false;
+    this.color = new Color(1,1,1,1);
+    this.prim_drawer = null;
+    this.grids=null;
+    this.visible=true;
+    this.use_additive_blend = false;
+    this.children=[];
+    this.accum_time=0;
+    this.poll_count=0;
+//    this.mesh=null;
+//    this.material=null;
+    this.priority = null; // set when insertprop if kept null
+//    this.need_material_update=false;
+//    this.need_color_update=false;
+//    this.need_uv_update=true;
+    this.xflip=false;
+    this.yflip=false;
+    this.fragment_shader= new DefaultColorShader();
+//    this.remote_vel=null; 
+}
+Prop2D.prototype.onDelete = function() {
+    if(this.mesh){
+        if(this.mesh.geometry) this.mesh.geometry.dispose();
+        if(this.mesh.material) this.mesh.material.dispose();
     }
 }
-
-rightDir = function(d) {
-    switch(d){
-    case DIR4_UP: return DIR4_RIGHT; 
-    case DIR4_DOWN: return DIR4_LEFT;
-    case DIR4_RIGHT: return DIR4_DOWN;
-    case DIR4_LEFT: return DIR4_UP;
-    default:
-        return DIR4_NONE;
+Prop2D.prototype.setVisible = function(flg) { this.visible=flg; }
+Prop2D.prototype.setDeck = function(dk) { this.deck = dk; this.need_material_update = true; }
+Prop2D.prototype.setIndex = function(ind) { this.index = ind; this.need_uv_update = true; }
+Prop2D.prototype.setScl = function(x,y) { this.scl.setWith2args(x,y);}
+Prop2D.prototype.setLoc = function(x,y) { this.loc.setWith2args(x,y);}
+Prop2D.prototype.setRot = function(r) { this.rot=r; }
+Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg; this.need_uv_update = true; }
+Prop2D.prototype.setColor = function(r,g,b,a) {
+    if(this.color.equals(r,g,b,a)==false) {
+        this.need_color_update = true;
+        if(this.fragment_shader) this.need_material_update = true;
     }
-}
-leftDir = function(d) {
-    switch(d){
-    case DIR4_UP: return DIR4_LEFT;
-    case DIR4_DOWN: return DIR4_RIGHT;
-    case DIR4_RIGHT: return DIR4_UP;
-    case DIR4_LEFT: return DIR4_DOWN;
-    default:
-        return DIR4_NONE;
-    }    
-}
-
-// 4方向のみ
-dxdyToDir = function(dx,dy){
-    if(dx>0&&dy==0){
-        return DIR4_RIGHT;
-    } else if(dx<0&&dy==0){
-        return DIR4_LEFT;
-    } else if(dy>0&&dx==0){
-        return DIR4_UP;
-    }else if(dy<0&&dx==0){
-        return DIR4_DOWN;
+    if(typeof r == 'object' ) {
+        this.color = r ;
     } else {
-        return DIR4_NONE;
+        this.color = new Color(r,g,b,a); 
     }
 }
-clockDir = function(d) {
-    switch(d) {
-    case DIR4_NONE: return DIR4_NONE;
-    case DIR4_UP: return DIR4_RIGHT;
-    case DIR4_RIGHT: return DIR4_DOWN;
-    case DIR4_DOWN: return DIR4_LEFT;
-    case DIR4_LEFT: return DIR4_UP;
-    default: console.assert( "clockDir: invalid direction:", d);
-    }
-    return DIR4_NONE;
+Prop2D.prototype.setXFlip = function(flg) { this.xflip=flg; this.need_uv_update = true; }
+Prop2D.prototype.setYFlip = function(flg) { this.yflip=flg; this.need_uv_update = true; }
+Prop2D.prototype.setPriority = function(prio) { this.priority = prio; }
+Prop2D.prototype.ensurePrimDrawer = function() {
+    if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
 }
-
-dirToDXDY = function(d) {
-    switch(d){
-    case DIR4_NONE: return null;
-    case DIR4_RIGHT: return {x:1,y:0};
-    case DIR4_LEFT: return {x:-1,y:0};
-    case DIR4_UP: return {x:0,y:1};
-    case DIR4_DOWN: return {x:0,y:-1};
-    default:
-        console.assert("dirToDXDY: invalid direction:",d);
-        return null;
-    }
+Prop2D.prototype.addLine = function(p0,p1,col,w) {
+    this.ensurePrimDrawer();
+    return this.prim_drawer.addLine(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
 }
-
-
-
-
-////
-
-irange = function(a,b) {
-    return Math.floor(range(a,b));
+Prop2D.prototype.addRect = function(p0,p1,col,w) {
+    this.ensurePrimDrawer();
+    return this.prim_drawer.addRect(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
 }
-range = function(a,b) {
-    var small=a,big=b;
-    if(big<small) {
-        var tmp = big;
-        big=small;
-        small=tmp;
-    }
-    var out=(small + (big-small)*Math.random());
-    if(out==b)return a; // in very rare case, out==b
-    return out;
+Prop2D.prototype.getPrimById = function(id) {
+    if(!this.prim_drawer)return null;
+    return this.prim_drawer.getPrimById(id);
 }
-sign = function(f) {
-    if(f>0) return 1; else if(f<0)return -1; else return 0;
+Prop2D.prototype.deletePrim = function(id) {
+    if(this.prim_drawer) this.prim_drawer.deletePrim(id);
 }
-now = function() {
-    var t = new Date().getTime();
-    return t / 1000.0;
+Prop2D.prototype.addGrid = function(g) {
+    if(!this.grids) this.grids=[];
+    this.grids.push(g);
+//    console.log("addGrid: grid id:",g.id,g.width, g.height, "propid:",this.id, "grids:",this.grids);
 }
-lengthf = function(x0,y0,x1,y1) {
-    return Math.sqrt( (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0) );
-}
-
-
-
-//////////////
-
-Vec2 = function(x,y) {
-    this.x = x;
-    this.y = y;
-}
-Vec2.prototype.setWith2args = function(x,y) {
-    if(y==undefined) {
-        if( (typeof x) == "number" ) {
-            this.x=x;
-            this.y=x;
-        } else if( x.__proto__ == Vec2.prototype ) {
-            this.x=x.x;
-            this.y=x.y;            
+Prop2D.prototype.setGrid = function(g) {
+    if(this.grids) {
+        for(var i=0;i<this.grids.length;i++) {
+            if(this.grids[i].id==g.id) {
+                return;
+            }
         }
-    } else {
-        this.x=x;
-        this.y=y;
     }
+    this.addGrid(g);
 }
-Vec2.prototype.normalize = function(l) {
-    var ll = Math.sqrt(this.x*this.x+this.y*this.y);
-    if(ll==0) return new Vec2(0,0);
-    return new Vec2(this.x/ll*l,this.y/ll*l);
+Prop2D.prototype.setTexture = function(tex) {
+    var td = new TileDeck();
+    td.setTexture(tex);
+    var sz = tex.getSize();
+    td.setSize(1,1,sz.x,sz.y);
+    this.setDeck(td);
+    this.setIndex(0);
+    this.need_material_update = true;
 }
-Vec2.prototype.add = function(to_add) {
-    return new Vec2( this.x + to_add.x, this.y + to_add.y );
+Prop2D.prototype.addChild = function(chp) {
+    this.children.push(chp);
 }
-Vec2.prototype.mul = function(to_mul) {
-    return new Vec2( this.x * to_mul, this.y * to_mul );
+Prop2D.prototype.clearChildren = function() {
+    this.children=[];
 }
-Vec2.prototype.randomize = function(r) {
-    return new Vec2( this.x - r + range(0,r*2), this.y - r + range(0,r*2) );
+Prop2D.prototype.clearChild = function(p) {
+    var keep=[];
+    for(var i=0;i<this.children.length;i++) {
+        if(this.children[i]!=p) keep.push( this.children[i]);
+    }
+    this.children = keep;
+}
+Prop2D.prototype.getChild = function(propid) {
+    for(var i=0;i<this.children.length;i++) {
+        if( this.children[i].id == propid ) {
+            return this.children[i];
+        }
+    }
+    return null;
+}
+Prop2D.prototype.setFragmentShader = function(s) {    this.fragment_shader = s;}
+Prop2D.prototype.basePoll = function(dt) { // return false to clean
+    this.poll_count++;
+    this.accum_time+=dt;    
+    if(this.to_clean) {
+        return false;
+    }
+    if( this.prop2DPoll && this.prop2DPoll(dt) == false ) {
+        return false;
+    }
+    return true;
 }
 
+///////////////
 
-// 0 ~ 1
-Color = function(r,g,b,a) {
-    if(g==undefined || g==null) {
-        var code = r; // color code
-        this.r = ((code & 0xff0000)>>16)/255;
-        this.g = ((code & 0xff00)>>8)/255;
-        this.b = (code & 0xff)/255;
-        this.a = 1.0;        
+FragmentShader.prototype.id_gen=1;
+function FragmentShader() {
+    this.id=this.__proto__.id_gen++;
+    this.uniforms=null;
+}
+ColorReplacerShader.prototype = Object.create(FragmentShader.prototype);
+ColorReplacerShader.prototype.constructor = ColorReplacerShader;
+function ColorReplacerShader() {
+    FragmentShader.call(this);
+    this.setColor(new THREE.Vector3(0,0,0),new THREE.Vector3(0,1,0),0.01);
+}
+// updateUniforms(tex) called when render
+ColorReplacerShader.prototype.updateUniforms = function(texture,moyaicolor) {
+    if(this.uniforms) {
+        if(texture) this.uniforms["texture"]["value"] = texture;
+        this.uniforms["color1"]["value"] = this.from_color;
+        this.uniforms["replace1"]["value"] = this.to_color;
+        this.uniforms["eps"]["value"] = this.epsilon;
     } else {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-        this.a = a;
+        this.uniforms = {
+            "texture" : { type: "t", value: texture },        
+            "color1" : { type: "v3", value: this.from_color },
+            "replace1" : { type: "v3", value: this.to_color },
+            "eps" : { type: "f", value: this.epsilon }
+        }
+    }
+    //    console.log("colrep: updated uniforms. tex:", texture, this.from_color, this.to_color );    
+}
+ColorReplacerShader.prototype.setColor = function(from,to,eps) {
+    this.epsilon = eps;
+    this.from_color = new THREE.Vector3(from.r,from.g,from.b);
+    this.to_color = new THREE.Vector3(to.r,to.g,to.b);
+    this.updateUniforms();
+}
+DefaultColorShader.prototype = Object.create(FragmentShader.prototype);
+DefaultColorShader.prototype.constructor = DefaultColorShader;
+function DefaultColorShader() {
+    FragmentShader.call(this);
+}
+DefaultColorShader.prototype.updateUniforms = function(texture,moyaicolor) {
+    if(this.uniforms) {
+        if(texture) this.uniforms["texture"]["value"] = texture;
+        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a );
+    } else {
+        this.uniforms = {
+            "texture" : { type: "t", value: texture },
+            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a ) }
+        };
     }
 }
-Color.prototype.toRGBA = function() {
-    return [ Math.floor(this.r*255), Math.floor(this.g*255), Math.floor(this.b*255), Math.floor(this.a*255) ];
+PrimColorShader.prototype = Object.create(FragmentShader.prototype);
+PrimColorShader.prototype.constructor = PrimColorShader;
+function PrimColorShader() {
+    FragmentShader.call(this);
 }
-Color.prototype.toCode = function() {
-    return ( Math.floor(this.r * 255) << 16 ) + ( Math.floor(this.g * 255) << 8 ) + Math.floor(this.b * 255);
+PrimColorShader.prototype.updateUniforms = function(moyaicolor) {
+    if(this.uniforms) {
+        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a );
+    } else {
+        this.uniforms = {
+            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a ) }
+        };
+    }
 }
-Color.prototype.toTHREEColor = function() {
-    return new THREE.Color(this.toCode());
-}
-Color.prototype.equals = function(r,g,b,a) {
-    return (this.r==r && this.g==g && this.b==b && this.a==a);
-}
-Color.prototype.adjust = function(v) {
-    var rr = this.r*v;
-    var gg = this.g*v;
-    var bb = this.b*v;
-    if(rr>1)rr=1;
-    if(gg>1)gg=1;
-    if(bb>1)bb=1;
-    return new Color(rr,gg,bb,this.a);
-}
+
+///////////////////////
+
+
+global.pngParse = require("pngparse-sync");
+
+global.Moyai=Moyai;
+global.Texture=Texture;
+global.Prop2D=Prop2D;
