@@ -310,8 +310,11 @@ RemoteHead.prototype.delClient = function(cl) {
 }
 RemoteHead.prototype.track2D = null;
 RemoteHead.prototype.startServer = function(port) {
+    var this_rh=this;
     this.server = net.createServer( function(conn) {
         console.log("rh:  newconnection");
+        var ncl=new Client(conn);
+        this_rh.addClient(ncl);
     });
     this.server.listen(22222);
 }

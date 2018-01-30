@@ -36,6 +36,7 @@ function gameInit() {
     g_rh = new RemoteHead();
     g_rh.setTargetMoyai(g_moyai);
     g_moyai.setRemoteHead(g_rh);
+    g_rh.startServer(22222);
 
     console.log("gameINit done");
 }
