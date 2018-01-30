@@ -1,8 +1,10 @@
 // moyai node.js server module
 var fs=require("fs");
+var net=require("net");
 
 function Moyai() {
     this.layers=[];
+    this.remote_head;
 }
 Moyai.prototype.insertLayer = function(l) {
     if(l.priority==null) {
@@ -27,6 +29,7 @@ Moyai.prototype.getHighestPriority = function() {
     }
     return highp;
 }
+Moyai.prototype.setRemoteHead = function(rh) { this.remote_head=rh; }
 
 ///////////////
 
@@ -253,9 +256,115 @@ PrimColorShader.prototype.updateUniforms = function(moyaicolor) {
 
 ///////////////////////
 
+Stream.prototype.id_gen=1;
+function Stream(conn) {
+    this.id=this.__proto__.id_gen++;
+    this.conn=conn;
+    this.sendbuf = new Buffer();
+    this.recvbuf = new Bufffer();
+}
+Stream.prototype.flushSendbuf = function(unitsize) {
+    var to_send=unitsize;
+    if(this.sendbuf.length>to_send)to_send=this.sendbuf.length;
+    var final_buf = this.sendbuf.slice(0,to_send);
+    conn.write(final_buf);
+    this.sendbuf = this.sendbuf.slice(to_send,this.sendbuf.length);
+};
+
+function Client(conn) {
+    this.__proto__ = Stream.prototype;
+    this.parent_rh=null;
+    this.target_camera=null;
+    this.target_viewport=null;
+    this.accum_time=0;
+}
+Client.prototype.canSee = null;
+
+function RemoteHead() {
+
+    this.target_moyai=null;
+    this.target_soundsystem=null;
+    this.window_width=0;
+    this.window_height=0;
+
+    this.on_connect_cb=null;
+    this.on_disconnect_cb=null;
+    this.on_keyboard_cb=null;
+    this.on_mouse_button_cb=null;
+    this.on_mouse_cursor_cb=null;
+
+    this.server = null;
+
+    this.clients=new Array();
+}
+RemoteHead.prototype.addClient = function(cl) {
+    this.clients.push(cl);
+}
+RemoteHead.prototype.delClient = function(cl) {
+    for(var i=0;i<this.clients.length;i++) {
+        if(this.clients[i].id==cl.id) {
+            this.clients = this.clients.splice(i,1);
+            break;
+        }
+    }
+}
+RemoteHead.prototype.track2D = null;
+RemoteHead.prototype.startServer = function(port) {
+    this.server = net.createServer( function(conn) {
+        console.log("rh:  newconnection");
+    });
+    this.server.listen(22222);
+}
+RemoteHead.prototype.setWindowSize = function(w,h) { this.window_width = w; this.window_height = h; }
+RemoteHead.prototype.setOnConnectCallback = function(cb) { this.on_connect_cb=cb;}
+RemoteHead.prototype.setOnDisconnectCallback = function(cb) { this.on_disconnect_cb = cb; }
+RemoteHead.prototype.setOnKeyboardCallback = function(cb) { this.on_keyboard_cb = cb; }
+RemoteHead.prototype.setOnMouseButtonCallback = function(cb) {this.on_mouse_button_cb = cb; }
+RemoteHead.prototype.setOnMouseCursorCallback = function(cb) { this.on_mouse_cursor_cb = cb; }
+RemoteHead.prototype.heartbeat = null; // (double dt);
+RemoteHead.prototype.flushBufferToNetwork = null; //(double dt);
+RemoteHead.prototype.scanSendAllPrerequisites = null; //( Stream *outstream );
+RemoteHead.prototype.scanSendAllProp2DSnapshots = null; // ( Stream *outstream );
+//    void notifyProp2DDeleted( Prop2D *prop_deleted );
+//    void notifyGridDeleted( Grid *grid_deleted );
+//    void notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop );
+//    void setTargetSoundSystem(SoundSystem*ss) { target_soundsystem = ss; }
+RemoteHead.prototype.setTargetMoyai = function(moy) { this.target_moyai=moy; }
+//    void notifySoundPlay( Sound *snd, float vol );
+//    void notifySoundStop( Sound *snd );
+    
+//    void broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen );
+//    void broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen );    
+//    void broadcastUS1UI1( uint16_t usval, uint32_t uival );
+//    void broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1, bool reprecator_only = false );
+//    void broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
+//    void broadcastUS1UI4( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3 );    
+//    void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
+//    void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
+//    void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
+//    void broadcastUS1UI2F2( uint16_t usval, uint32_t ui0, uint32_t ui1, float f0, float f1 );    
+//    void broadcastUS1UI1F4( uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );
+//    void broadcastUS1UI1UC1( uint16_t usval, uint32_t uival, uint8_t ucval );    
+
+//    void nearcastUS1UI1F2( Prop2D *p, uint16_t usval, uint32_t uival, float f0, float f1 );
+//    void nearcastUS1UI3( Prop2D *p, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, bool reprecator_only = false );
+//    void nearcastUS1UI3F2( Prop2D *p, uint16_t usval, uint32_t uival, uint32_t u0, uint32_t u1, float f0, float f1 );
+
+//    void broadcastUS1UI2ToReprecator( uint16_t usval, uint32_t ui0, uint32_t ui1 );
+    
+//    void broadcastTimestamp();
+
+//    static const char *funcidToString(PACKETTYPE pkt);
+
+
+
+
+///////////////////////
+
 
 global.pngParse = require("pngparse-sync");
 
 global.Moyai=Moyai;
 global.Texture=Texture;
 global.Prop2D=Prop2D;
+global.RemoteHead=RemoteHead;
