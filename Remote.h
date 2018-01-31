@@ -4,7 +4,7 @@
 #include "Pool.h"
 
 // basic buffering
-
+// TODO: little endian only!
 extern inline unsigned int get_u32(const char *buf){ return *((unsigned int*)(buf)); }
 extern inline unsigned short get_u16(const char *buf){ return *((unsigned short*)(buf)); }
 extern inline unsigned char get_u8(const char *buf){ return *((unsigned char*)(buf)); }
