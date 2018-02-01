@@ -277,7 +277,7 @@ public:
     void enableVideoStream( int w, int h, int pixel_skip );
     void enableReprecation(int portnum);
     void disableTimestamp() { enable_timestamp = false; }
-    void setSendWait(double sec) { send_wait_sec=sec; print("XXXXXXXXXXXXX:%f",sec); }
+    void setSendWait(double sec) { send_wait_sec=sec; }
     void (*on_connect_cb)(RemoteHead*rh,Client *cl);
     void (*on_disconnect_cb)(RemoteHead*rh, Client *cl);
     void (*on_keyboard_cb)(Client *cl,int kc,int act,int modshift,int modctrl,int modalt);
