@@ -260,7 +260,7 @@ function onPacket(ws,pkttype,argdata) {
             var id = dv.getUint32(0,true);
             var img = g_image_pool[id];
             if(!img) {
-                img = new Image();
+                img = new MoyaiImage();
                 img.id=id;
                 console.log("received image creat:",id);
                 g_image_pool[id]=img;
@@ -274,6 +274,7 @@ function onPacket(ws,pkttype,argdata) {
             console.log("received image loadpng", id, pathstr);
             var u8a = g_filedepo.get(pathstr);
             var img = g_image_pool[id];
+            console.log("img:",img);
             if(img && u8a) {
                 img.loadPNGMem(u8a);
 //                console.log("loadpng done:", img,u8a);

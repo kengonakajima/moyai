@@ -379,34 +379,35 @@ TileDeck.prototype.getUVFromIndex = function(ind,uofs,vofs,eps) {
 TileDeck.prototype.getUperCell = function() { return this.cell_width / this.moyai_tex.image.width; }
 TileDeck.prototype.getVperCell = function() { return this.cell_height / this.moyai_tex.image.height; }    
 
-// 
-if(global) {
-    // classes
-    global.Vec2=Vec2;
-    global.Color=Color;
-    global.Viewport=Viewport;
-    global.Camera=Camera;
-    global.Image=MoyaiImage;
-    global.TileDeck = TileDeck;
-    global.Layer = Layer;
+try {
+    if(global) {
+        // classes
+        global.Vec2=Vec2;
+        global.Color=Color;
+        global.Viewport=Viewport;
+        global.Camera=Camera;
+        global.Image=MoyaiImage;
+        global.TileDeck = TileDeck;
+        global.Layer = Layer;
 
-    // funcs
-    global.lengthf=lengthf;
-    global.now=now;
-    global.sign=sign;
-    global.range=range;
-    global.irange=irange;
-    global.dirToDXDY=dirToDXDY;
-    global.clockDir=clockDir;
-    global.dxdyToDir=dxdyToDir;
-    global.leftDir=leftDir;
-    global.rightDir=rightDir;
-    global.reverseDir=reverseDir;
-    global.randomDir=randomDir;
-    // constants
-    global.DIR4_NONE=DIR4_NONE;
-    global.DIR4_UP=DIR4_UP;
-    global.DIR4_RIGHT=DIR4_RIGHT;
-    global.DIR4_DOWN=DIR4_DOWN;
-    global.DIR4_LEFT=DIR4_LEFT;
-}
+        // funcs
+        global.lengthf=lengthf;
+        global.now=now;
+        global.sign=sign;
+        global.range=range;
+        global.irange=irange;
+        global.dirToDXDY=dirToDXDY;
+        global.clockDir=clockDir;
+        global.dxdyToDir=dxdyToDir;
+        global.leftDir=leftDir;
+        global.rightDir=rightDir;
+        global.reverseDir=reverseDir;
+        global.randomDir=randomDir;
+        // constants
+        global.DIR4_NONE=DIR4_NONE;
+        global.DIR4_UP=DIR4_UP;
+        global.DIR4_RIGHT=DIR4_RIGHT;
+        global.DIR4_DOWN=DIR4_DOWN;
+        global.DIR4_LEFT=DIR4_LEFT;
+    }
+} catch(e) {}
