@@ -13,8 +13,12 @@ function gameInit() {
     var vp = new Viewport();
     vp.setSize(SCRW,SCRH);
     vp.setScale2D(SCRW,SCRH); 
-    
+
+    var cam = new Camera();
+    cam.setLoc(0,0);
     var l = new Layer();
+    l.setViewport(vp);
+    l.setCamera(cam);
     g_moyai_client.insertLayer(l);
     
 

@@ -23,7 +23,7 @@ MoyaiClient.prototype.insertLayer = function(l) {
 }
 MoyaiClient.prototype.poll = function(dt) {
     var cnt=0;
-    for(var i=0;i<this.layers.length;i++) {
+    for(var i in this.layers) {
         var layer = this.layers[i];
         if( layer && (!layer.skip_poll) ) cnt += layer.pollAllProps(dt);
     }
@@ -32,7 +32,7 @@ MoyaiClient.prototype.poll = function(dt) {
 
 MoyaiClient.prototype.getHighestPriority = function() {
     var highp=0;
-    for(var i=0;i<this.layers.length;i++) {
+    for(var i in this.layers) {
         if(this.layers[i].priority>highp) highp = this.layers[i].priority;
     }
     return highp;
@@ -312,9 +312,27 @@ Client.prototype.constructor = Client;
 Client.prototype.canSee = null;
 
 /////////////////
+function sendUS1UI1(s,us,ui) {
+    var l=2+4;
+    var b=new Buffer(4+l);
+    b.writeUInt32LE(l,0)
+    b.writeUInt16LE(us,4);
+    b.writeUInt32LE(ui,6);
+    s.appendSendbuf(b);    
+}
+function sendUS1UI1F2(s,us,ui,f0,f1) {
+    var l=2+4+4+4;
+    var b=new Buffer(4+l);
+    b.writeUInt32LE(l,0)
+    b.writeUInt16LE(us,4);
+    b.writeUInt32LE(ui,6);
+    b.writeFloatLE(f0,10);
+    b.writeFloatLE(f1,14);        
+    s.appendSendbuf(b);        
+}
 function sendUS1UI2(s,us,ui0,ui1) {
     var l=2+4+4;
-    var b=new Buffer(l+2+4+4);
+    var b=new Buffer(4+l);
     b.writeUInt32LE(l,0)
     b.writeUInt16LE(us,4);
     b.writeUInt32LE(ui0,6);
@@ -323,6 +341,14 @@ function sendUS1UI2(s,us,ui0,ui1) {
 }
 function sendWindowSize(s,w,h) {
     sendUS1UI2(s,PACKETTYPE_S2C_WINDOW_SIZE,w,h);
+}
+function sendViewportCreateScale(s,vp) {
+    sendUS1UI1(s,PACKETTYPE_S2C_VIEWPORT_CREATE, vp.id );
+    sendUS1UI1F2(s,PACKETTYPE_S2C_VIEWPORT_SCALE, vp.id, vp.scl.x, vp.scl.y );
+}
+function sendCameraCreateLoc(s,cam) {
+    sendUS1UI1(s,PACKETTYPE_S2C_CAMERA_CREATE, cam.id );
+    sendUS1UI1F2(s,PACKETTYPE_S2C_CAMERA_LOC, cam.id, cam.loc.x, cam.loc.y );
 }
 
 
@@ -356,6 +382,134 @@ RemoteHead.prototype.delClient = function(cl) {
         }
     }
 }
+RemoteHead.prototype.scanSendAllPrerequisites = function(s) {
+    if( this.window_width==0 || this.window_height==0) {
+        console.log( "remotehead: window size not set?");
+    }
+    console.log("scanSendAllPrerequisites: layers:", this.target_moyai.layers);
+    // Viewport , Camera
+    for(var i in this.target_moyai.layers) {
+        var l=this.target_moyai.layers[i];
+        console.log("scanSendAllPrerequisites: layer:",l);
+        if(l.viewport) {
+            sendViewportCreateScale(s,l.viewport);            
+        }
+        if(l.camera) {
+            sendCameraCreateLoc(s,l.camera);
+        }
+    }
+/*
+    
+    // Layers(Groups) don't need scanning props
+    for(int i=0;i<Moyai::MAXGROUPS;i++) {
+        Layer *l = (Layer*) target_moyai->getGroupByIndex(i);
+        if(!l)continue;
+        print("sending layer_create id:%d",l->id);
+        sendLayerSetup(outstream,l);
+    }
+    
+    // Image, Texture, tiledeck
+    std::unordered_map<int,Image*> imgmap;
+    std::unordered_map<int,Texture*> texmap;
+    std::unordered_map<int,Deck*> dkmap;
+    std::unordered_map<int,Font*> fontmap;
+    std::unordered_map<int,ColorReplacerShader*> crsmap;
+
+    POOL_SCAN(prereq_deck_pool,Deck) {
+        Deck *dk = it->second;
+        dkmap[dk->id] = dk;
+        if( dk->tex) {
+            texmap[dk->tex->id] = dk->tex;
+            if( dk->tex->image ) imgmap[dk->tex->image->id] = dk->tex->image;        
+        }
+    }
+    
+    for(int i=0;i<Moyai::MAXGROUPS;i++) {
+        Group *grp = target_moyai->getGroupByIndex(i);
+        if(!grp)continue;
+
+        Prop *cur = grp->prop_top;
+        while(cur) {
+            Prop2D *p = (Prop2D*) cur;
+            if(p->deck) {
+                dkmap[p->deck->id] = p->deck;
+                if( p->deck->tex) {
+                    texmap[p->deck->tex->id] = p->deck->tex;
+                    if( p->deck->tex->image ) {
+                        imgmap[p->deck->tex->image->id] = p->deck->tex->image;
+                    }
+                }
+            }
+            if(p->fragment_shader) {
+                ColorReplacerShader *crs = dynamic_cast<ColorReplacerShader*>(p->fragment_shader); // TODO: avoid using dyncast..
+                if(crs) {
+                    crsmap[crs->id] = crs;
+                }                
+            }
+            for(int i=0;i<p->grid_used_num;i++) {
+                Grid *g = p->grids[i];
+                if(g->deck) {
+                    dkmap[g->deck->id] = g->deck;
+                    if( g->deck->tex) {
+                        texmap[g->deck->tex->id] = g->deck->tex;
+                        if( g->deck->tex->image ) {
+                            imgmap[g->deck->tex->image->id] = g->deck->tex->image;
+                        }
+                    }
+                }
+            }
+            TextBox *tb = dynamic_cast<TextBox*>(cur); // TODO: refactor this!
+            if(tb) {
+                if(tb->font) {
+                    fontmap[tb->font->id] = tb->font;
+                }
+            }
+            cur = cur->next;
+        }
+    }
+    // Files
+    for( std::unordered_map<int,Image*>::iterator it = imgmap.begin(); it != imgmap.end(); ++it ) {
+        Image *img = it->second;
+        if( img->last_load_file_path[0] ) {
+            print("sending file path:'%s' in image %d", img->last_load_file_path, img->id );
+            sendFile( outstream, img->last_load_file_path );
+        }
+    }
+    for( std::unordered_map<int,Image*>::iterator it = imgmap.begin(); it != imgmap.end(); ++it ) {
+        Image *img = it->second;
+        sendImageSetup(outstream,img);
+    }
+    for( std::unordered_map<int,Texture*>::iterator it = texmap.begin(); it != texmap.end(); ++it ) {
+        Texture *tex = it->second;
+        //        print("sending texture_create id:%d", tex->id );
+        sendTextureCreateWithImage(outstream,tex);
+    }
+    for( std::unordered_map<int,Deck*>::iterator it = dkmap.begin(); it != dkmap.end(); ++it ) {
+        Deck *dk = it->second;
+        sendDeckSetup(outstream,dk);
+    }
+    for( std::unordered_map<int,Font*>::iterator it = fontmap.begin(); it != fontmap.end(); ++it ) {
+        Font *f = it->second;
+        sendFontSetupWithFile(outstream,f);
+    }
+    for( std::unordered_map<int,ColorReplacerShader*>::iterator it = crsmap.begin(); it != crsmap.end(); ++it ) {
+        ColorReplacerShader *crs = it->second;
+        sendColorReplacerShaderSetup(outstream,crs);
+    }
+
+    // sounds
+    for(int i=0;i<elementof(target_soundsystem->sounds);i++){
+        if(!target_soundsystem)break;
+        Sound *snd = target_soundsystem->sounds[i];
+        if(!snd)continue;
+        sendSoundSetup(outstream,snd);
+    }
+    */    
+}
+RemoteHead.prototype.scanSendAllProp2DSnapshots = function(s) {
+    console.log("scanSendAllProp2DSnapshots: not impl");
+}
+
 RemoteHead.prototype.track2D = null;
 RemoteHead.prototype.startServer = function(port) {
     var this_rh=this;
@@ -364,6 +518,9 @@ RemoteHead.prototype.startServer = function(port) {
         var ncl=new Client(conn);
         this_rh.addClient(ncl);
         sendWindowSize(ncl,this_rh.window_width, this_rh.window_height);
+        this_rh.scanSendAllPrerequisites(ncl);
+        this_rh.scanSendAllProp2DSnapshots(ncl);
+        if(this_rh.on_connect_cb) this_rh.on_connect_cb(this_rh,ncl);
     });
     this.server.listen(22222);
 }
@@ -374,13 +531,11 @@ RemoteHead.prototype.setOnKeyboardCallback = function(cb) { this.on_keyboard_cb 
 RemoteHead.prototype.setOnMouseButtonCallback = function(cb) {this.on_mouse_button_cb = cb; }
 RemoteHead.prototype.setOnMouseCursorCallback = function(cb) { this.on_mouse_cursor_cb = cb; }
 RemoteHead.prototype.heartbeat = function(dt_sec) {
-    for(var i=0;i<this.clients.length;i++) {
+    for(var i in this.clients) {
         this.clients[i].flushSendbuf(1024*32);
     }
 };
 RemoteHead.prototype.flushBufferToNetwork = null; //(double dt);
-RemoteHead.prototype.scanSendAllPrerequisites = null; //( Stream *outstream );
-RemoteHead.prototype.scanSendAllProp2DSnapshots = null; // ( Stream *outstream );
 //    void notifyProp2DDeleted( Prop2D *prop_deleted );
 //    void notifyGridDeleted( Grid *grid_deleted );
 //    void notifyChildCleared( Prop2D *owner_prop, Prop2D *child_prop );
