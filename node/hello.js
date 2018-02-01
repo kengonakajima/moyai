@@ -1,22 +1,21 @@
 // demo2d server main
 
-require("../web/moyai_common.js");
 require("./moyai_node.js");
 
 var SCRW=600, SCRH=400;
 
-var g_moyai;
+var g_moyai_client;
 var g_rh;
 
 function gameInit() {
-    g_moyai = new Moyai();
+    g_moyai_client = new MoyaiClient(SCRW,SCRH);
 
     var vp = new Viewport();
     vp.setSize(SCRW,SCRH);
     vp.setScale2D(SCRW,SCRH); 
     
     var l = new Layer();
-    g_moyai.insertLayer(l);
+    g_moyai_client.insertLayer(l);
     
 
     var tex = new Texture();
@@ -34,8 +33,8 @@ function gameInit() {
 
     // set up spritestream
     g_rh = new RemoteHead();
-    g_rh.setTargetMoyai(g_moyai);
-    g_moyai.setRemoteHead(g_rh);
+    g_rh.setTargetMoyai(g_moyai_client);
+    g_moyai_client.setRemoteHead(g_rh);
     g_rh.startServer(22222);
 
     console.log("gameINit done");
@@ -51,13 +50,13 @@ function gameUpdate() {
     var nt=new Date().getTime();
     var dt=nt-g_last_update_at;
     g_last_update_at=nt;
-    g_moyai.poll(dt/1000.0);
+    g_moyai_client.poll(dt/1000.0);
     if(nt>g_last_print+1000) {
         g_last_print=nt;
         console.log("loop:%d", g_update_cnt);
         
     }
-    
+    g_rh.heartbeat(dt/1000.0);    
 }
 
 

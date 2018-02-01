@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "start": "node ./hello"
+  },
+  "nodemonConfig": {
+    "ignore": [
+    ]
+  },
+  "dependencies": {
+  }
+}

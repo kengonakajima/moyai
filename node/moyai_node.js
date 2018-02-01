@@ -2,18 +2,26 @@
 var fs=require("fs");
 var net=require("net");
 
-function Moyai() {
+require("../web/moyai_common.js");
+eval(fs.readFileSync("../web/packettypes.js").toString());
+
+
+
+function MoyaiClient(win_w,win_h) {
+    this.window_width=win_w;
+    this.window_height=win_h;
+    
     this.layers=[];
     this.remote_head;
 }
-Moyai.prototype.insertLayer = function(l) {
+MoyaiClient.prototype.insertLayer = function(l) {
     if(l.priority==null) {
         var highp = this.getHighestPriority();
         l.priority = highp+1;
     }
     this.layers.push(l);    
 }
-Moyai.prototype.poll = function(dt) {
+MoyaiClient.prototype.poll = function(dt) {
     var cnt=0;
     for(var i=0;i<this.layers.length;i++) {
         var layer = this.layers[i];
@@ -22,14 +30,17 @@ Moyai.prototype.poll = function(dt) {
     return cnt;   
 }
 
-Moyai.prototype.getHighestPriority = function() {
+MoyaiClient.prototype.getHighestPriority = function() {
     var highp=0;
     for(var i=0;i<this.layers.length;i++) {
         if(this.layers[i].priority>highp) highp = this.layers[i].priority;
     }
     return highp;
 }
-Moyai.prototype.setRemoteHead = function(rh) { this.remote_head=rh; }
+MoyaiClient.prototype.setRemoteHead = function(rh) {
+    this.remote_head=rh;
+    rh.setWindowSize(this.window_width, this.window_height);
+}
 
 ///////////////
 
@@ -257,28 +268,65 @@ PrimColorShader.prototype.updateUniforms = function(moyaicolor) {
 ///////////////////////
 
 Stream.prototype.id_gen=1;
-function Stream(conn) {
+function Stream() {
+//    console.log("Stream cons: given this:",this, "arg:",arguments);
     this.id=this.__proto__.id_gen++;
-    this.conn=conn;
-    this.sendbuf = new Buffer();
-    this.recvbuf = new Bufffer();
+    this.conn=arguments[0];
+    this.sendbuf = null; // いつもBuffer.lengthまでデータが満ちてるようにする
+    this.recvbuf = null;
 }
 Stream.prototype.flushSendbuf = function(unitsize) {
+    if(!this.sendbuf)return;
     var to_send=unitsize;
     if(this.sendbuf.length>to_send)to_send=this.sendbuf.length;
     var final_buf = this.sendbuf.slice(0,to_send);
-    conn.write(final_buf);
+    this.conn.write(final_buf);
     this.sendbuf = this.sendbuf.slice(to_send,this.sendbuf.length);
 };
+Stream.prototype.appendSendbuf = function(buffer) {
+    console.log("appendSendbuf:",this.sendbuf, buffer);
+    if(!this.sendbuf) {
+        this.sendbuf=new Buffer(buffer);   
+    } else {
+        this.sendbuf=Buffer.concat([this.sendbuf,buffer]);
+    }
+}
 
-function Client(conn) {
-    this.__proto__ = Stream.prototype;
+function Client() {
+    Client.super_.apply(this,arguments);
+//    console.log("Client cons: this:",this, "arg:",arguments);
     this.parent_rh=null;
     this.target_camera=null;
     this.target_viewport=null;
     this.accum_time=0;
 }
+Client.super_=Stream;
+Client.prototype=Object.create(Stream.prototype, {
+    constructor: {
+        value: Client,
+        enumerable: false 
+    }
+    
+})
+Client.prototype.constructor = Client;
 Client.prototype.canSee = null;
+
+/////////////////
+function sendUS1UI2(s,us,ui0,ui1) {
+    var l=2+4+4;
+    var b=new Buffer(l+2+4+4);
+    b.writeUInt32LE(l,0)
+    b.writeUInt16LE(us,4);
+    b.writeUInt32LE(ui0,6);
+    b.writeUInt32LE(ui1,10);
+    s.appendSendbuf(b);
+}
+function sendWindowSize(s,w,h) {
+    sendUS1UI2(s,PACKETTYPE_S2C_WINDOW_SIZE,w,h);
+}
+
+
+////////////////////////
 
 function RemoteHead() {
 
@@ -315,6 +363,7 @@ RemoteHead.prototype.startServer = function(port) {
         console.log("rh:  newconnection");
         var ncl=new Client(conn);
         this_rh.addClient(ncl);
+        sendWindowSize(ncl,this_rh.window_width, this_rh.window_height);
     });
     this.server.listen(22222);
 }
@@ -324,7 +373,11 @@ RemoteHead.prototype.setOnDisconnectCallback = function(cb) { this.on_disconnect
 RemoteHead.prototype.setOnKeyboardCallback = function(cb) { this.on_keyboard_cb = cb; }
 RemoteHead.prototype.setOnMouseButtonCallback = function(cb) {this.on_mouse_button_cb = cb; }
 RemoteHead.prototype.setOnMouseCursorCallback = function(cb) { this.on_mouse_cursor_cb = cb; }
-RemoteHead.prototype.heartbeat = null; // (double dt);
+RemoteHead.prototype.heartbeat = function(dt_sec) {
+    for(var i=0;i<this.clients.length;i++) {
+        this.clients[i].flushSendbuf(1024*32);
+    }
+};
 RemoteHead.prototype.flushBufferToNetwork = null; //(double dt);
 RemoteHead.prototype.scanSendAllPrerequisites = null; //( Stream *outstream );
 RemoteHead.prototype.scanSendAllProp2DSnapshots = null; // ( Stream *outstream );
@@ -367,7 +420,7 @@ RemoteHead.prototype.setTargetMoyai = function(moy) { this.target_moyai=moy; }
 
 global.pngParse = require("pngparse-sync");
 
-global.Moyai=Moyai;
+global.MoyaiClient=MoyaiClient;
 global.Texture=Texture;
 global.Prop2D=Prop2D;
 global.RemoteHead=RemoteHead;
