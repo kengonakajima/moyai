@@ -339,6 +339,18 @@ function sendUS1UI2(s,us,ui0,ui1) {
     b.writeUInt32LE(ui1,10);
     s.appendSendbuf(b);
 }
+function sendUS1UI5(s,us,ui0,ui1,ui2,ui3,ui4) {
+    var l=2+4*5;
+    var b=new Buffer(4+l);
+    b.writeUInt32LE(l,0)
+    b.writeUInt16LE(us,4);
+    b.writeUInt32LE(ui0,6);
+    b.writeUInt32LE(ui1,10);
+    b.writeUInt32LE(ui2,14);
+    b.writeUInt32LE(ui3,18);
+    b.writeUInt32LE(ui4,22);    
+    s.appendSendbuf(b);    
+}
 function sendWindowSize(s,w,h) {
     sendUS1UI2(s,PACKETTYPE_S2C_WINDOW_SIZE,w,h);
 }
@@ -350,6 +362,22 @@ function sendCameraCreateLoc(s,cam) {
     sendUS1UI1(s,PACKETTYPE_S2C_CAMERA_CREATE, cam.id );
     sendUS1UI1F2(s,PACKETTYPE_S2C_CAMERA_LOC, cam.id, cam.loc.x, cam.loc.y );
 }
+function sendLayerSetup(s,l) {
+    sendUS1UI2(s,PACKETTYPE_S2C_LAYER_CREATE, l.id, l.priority );
+    if(l.viewport) sendUS1UI2(s,PACKETTYPE_S2C_LAYER_VIEWPORT, l.id, l.viewport.id);
+    if(l.camera ) sendUS1UI2(s,PACKETTYPE_S2C_LAYER_CAMERA, l.id, l.camera.id );
+}
+function sendDeckSetup(s,dk) {
+    console.log("sending tiledeck_create:", dk );
+    sendUS1UI1(s, PACKETTYPE_S2C_TILEDECK_CREATE, dk.id );
+    sendUS1UI2(s, PACKETTYPE_S2C_TILEDECK_TEXTURE, dk.id, dk.moyai_tex.id );
+    sendUS1UI5(s, PACKETTYPE_S2C_TILEDECK_SIZE, dk.id, dk.tile_width, dk.tile_height, dk.cell_width, dk.cell_height );    
+}
+function sendTextureCreateWithImage(s,tex) {
+    sendUS1UI1(s, PACKETTYPE_S2C_TEXTURE_CREATE, tex.id );
+    sendUS1UI2(s, PACKETTYPE_S2C_TEXTURE_IMAGE, tex.id, tex.image.id );
+}
+
 
 
 ////////////////////////
@@ -370,6 +398,8 @@ function RemoteHead() {
     this.server = null;
 
     this.clients=new Array();
+
+    this.prereq_decks=new Array();
 }
 RemoteHead.prototype.addClient = function(cl) {
     this.clients.push(cl);
@@ -398,116 +428,78 @@ RemoteHead.prototype.scanSendAllPrerequisites = function(s) {
             sendCameraCreateLoc(s,l.camera);
         }
     }
-/*
     
     // Layers(Groups) don't need scanning props
-    for(int i=0;i<Moyai::MAXGROUPS;i++) {
-        Layer *l = (Layer*) target_moyai->getGroupByIndex(i);
-        if(!l)continue;
-        print("sending layer_create id:%d",l->id);
-        sendLayerSetup(outstream,l);
+    for(var i in this.target_moyai.layers) {
+        var l=this.target_moyai.layers[i];
+        sendLayerSetup(s,l);
     }
-    
-    // Image, Texture, tiledeck
-    std::unordered_map<int,Image*> imgmap;
-    std::unordered_map<int,Texture*> texmap;
-    std::unordered_map<int,Deck*> dkmap;
-    std::unordered_map<int,Font*> fontmap;
-    std::unordered_map<int,ColorReplacerShader*> crsmap;
 
-    POOL_SCAN(prereq_deck_pool,Deck) {
-        Deck *dk = it->second;
-        dkmap[dk->id] = dk;
-        if( dk->tex) {
-            texmap[dk->tex->id] = dk->tex;
-            if( dk->tex->image ) imgmap[dk->tex->image->id] = dk->tex->image;        
+    var decks={}, texs={}, imgs={};
+    
+    for(var i in this.prereq_decks) {
+        var dk=this.prereq_decks[i];
+        decks[dk.id]=dk;
+        if(dk.tex) {
+            texs[dk.tex.id]=dk.tex;
+            if(dk.tex.image) {
+                imgs[dk.tex.image.id]=dk.tex.image;
+            }
         }
     }
-    
-    for(int i=0;i<Moyai::MAXGROUPS;i++) {
-        Group *grp = target_moyai->getGroupByIndex(i);
-        if(!grp)continue;
 
-        Prop *cur = grp->prop_top;
-        while(cur) {
-            Prop2D *p = (Prop2D*) cur;
-            if(p->deck) {
-                dkmap[p->deck->id] = p->deck;
-                if( p->deck->tex) {
-                    texmap[p->deck->tex->id] = p->deck->tex;
-                    if( p->deck->tex->image ) {
-                        imgmap[p->deck->tex->image->id] = p->deck->tex->image;
-                    }
+    // scan all props
+    for(var i in this.target_moyai.layers) {
+        var l=this.target_moyai.layers[i];
+        for(var j in l.props) {
+            var p=l.props[j];
+            if(p.deck) {
+                decks[p.deck.id]=p.deck;
+                if(p.deck.tex) {
+                    texs[p.deck.tex.id]=p.deck.tex;
+                    if(p.deck.tex.image) imgs[p.deck.tex.image.id]=p.deck.tex.image;
                 }
             }
-            if(p->fragment_shader) {
-                ColorReplacerShader *crs = dynamic_cast<ColorReplacerShader*>(p->fragment_shader); // TODO: avoid using dyncast..
-                if(crs) {
-                    crsmap[crs->id] = crs;
-                }                
-            }
-            for(int i=0;i<p->grid_used_num;i++) {
-                Grid *g = p->grids[i];
-                if(g->deck) {
-                    dkmap[g->deck->id] = g->deck;
-                    if( g->deck->tex) {
-                        texmap[g->deck->tex->id] = g->deck->tex;
-                        if( g->deck->tex->image ) {
-                            imgmap[g->deck->tex->image->id] = g->deck->tex->image;
+            if(p.grids) {
+                for(var gi in p.grids) {
+                    var g=p.grids[gi];
+                    if(g.deck) {
+                        decks[g.deck.id]=g.deck;
+                        if(g.deck.tex) {
+                            texs[g.deck.tex.id]=g.deck.tex;
+                            if(g.deck.tex.image) imgs[g.deck.tex.image.id]=g.deck.tex.image;
                         }
                     }
                 }
             }
-            TextBox *tb = dynamic_cast<TextBox*>(cur); // TODO: refactor this!
-            if(tb) {
-                if(tb->font) {
-                    fontmap[tb->font->id] = tb->font;
-                }
-            }
-            cur = cur->next;
+        }
+        
+    }
+    // image files
+    for(var i in imgs) {
+        var img=imgs[i];
+        if(img.last_load_file_path) {
+            console.log("sending file path:", img.last_load_file_path);
+            sendFile(s,img.last_load_file_path);
         }
     }
-    // Files
-    for( std::unordered_map<int,Image*>::iterator it = imgmap.begin(); it != imgmap.end(); ++it ) {
-        Image *img = it->second;
-        if( img->last_load_file_path[0] ) {
-            print("sending file path:'%s' in image %d", img->last_load_file_path, img->id );
-            sendFile( outstream, img->last_load_file_path );
-        }
+    for(var i in imgs) {
+        sendImageSetup(s,imgs[i]);
     }
-    for( std::unordered_map<int,Image*>::iterator it = imgmap.begin(); it != imgmap.end(); ++it ) {
-        Image *img = it->second;
-        sendImageSetup(outstream,img);
+    for(var i in texs) {
+        sendTextureCreateWithImage(s,texs[i]);
     }
-    for( std::unordered_map<int,Texture*>::iterator it = texmap.begin(); it != texmap.end(); ++it ) {
-        Texture *tex = it->second;
-        //        print("sending texture_create id:%d", tex->id );
-        sendTextureCreateWithImage(outstream,tex);
-    }
-    for( std::unordered_map<int,Deck*>::iterator it = dkmap.begin(); it != dkmap.end(); ++it ) {
-        Deck *dk = it->second;
-        sendDeckSetup(outstream,dk);
-    }
-    for( std::unordered_map<int,Font*>::iterator it = fontmap.begin(); it != fontmap.end(); ++it ) {
-        Font *f = it->second;
-        sendFontSetupWithFile(outstream,f);
-    }
-    for( std::unordered_map<int,ColorReplacerShader*>::iterator it = crsmap.begin(); it != crsmap.end(); ++it ) {
-        ColorReplacerShader *crs = it->second;
-        sendColorReplacerShaderSetup(outstream,crs);
+    for(var i in decks) {
+        sendDeckSetup(s,decks[i]);
     }
 
-    // sounds
-    for(int i=0;i<elementof(target_soundsystem->sounds);i++){
-        if(!target_soundsystem)break;
-        Sound *snd = target_soundsystem->sounds[i];
-        if(!snd)continue;
-        sendSoundSetup(outstream,snd);
-    }
-    */    
+    // TODO: send sounds
 }
 RemoteHead.prototype.scanSendAllProp2DSnapshots = function(s) {
     console.log("scanSendAllProp2DSnapshots: not impl");
+}
+RemoteHead.prototype.addPrerequisiteDeck = function(dk) {
+    this.prereq_decks.push(dk);
 }
 
 RemoteHead.prototype.track2D = null;
