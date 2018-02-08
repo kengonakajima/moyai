@@ -233,6 +233,7 @@ Layer.prototype.insertProp = function(p) {
     if(p.priority==null) {
         var highp = this.getHighestPriority();
         p.priority = highp+1;
+        p.parent_layer=this;
     }
     this.props.push(p);
 }

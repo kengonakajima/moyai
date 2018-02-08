@@ -41,6 +41,8 @@ function gameInit() {
     g_moyai_client.setRemoteHead(g_rh);
     g_rh.startServer(22222);
 
+    g_rh.addPrerequisiteDeck(dk);
+
     console.log("gameINit done");
 }
 

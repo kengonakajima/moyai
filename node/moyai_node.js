@@ -53,6 +53,7 @@ Texture.prototype.loadPNG = function(path) {
     this.image = new Image();
     var data = fs.readFileSync(path);
     this.image.loadPNGMem(data);
+    this.image.last_load_file_path=path;
 }
 Texture.prototype.getSize = function() {
     return this.image.getSize();
@@ -70,6 +71,7 @@ Texture.prototype.updateImage = function(img) {
 Prop2D.prototype.id_gen=1;
 function Prop2D() {
     this.id=this.__proto__.id_gen++;
+    this.parent_layer = null;
     this.index = 0;
     this.scl = new Vec2(32,32);
     this.loc = new Vec2(0,0);
@@ -84,17 +86,16 @@ function Prop2D() {
     this.children=[];
     this.accum_time=0;
     this.poll_count=0;
-//    this.mesh=null;
-//    this.material=null;
     this.priority = null; // set when insertprop if kept null
-//    this.need_material_update=false;
-//    this.need_color_update=false;
-//    this.need_uv_update=true;
     this.xflip=false;
     this.yflip=false;
     this.fragment_shader= new DefaultColorShader();
-//    this.remote_vel=null; 
+    this.tracker=null;
 }
+Prop2D.prototype.getParentLayer = function() {
+    return this.parent_layer;
+}
+
 Prop2D.prototype.onDelete = function() {
     if(this.mesh){
         if(this.mesh.geometry) this.mesh.geometry.dispose();
@@ -196,6 +197,16 @@ Prop2D.prototype.basePoll = function(dt) { // return false to clean
         return false;
     }
     return true;
+}
+Prop2D.prototype.onTrack = function(rh,parentprop) {
+    if(!this.tracker) {
+        this.tracker=new Tracker2D(rh,this);
+    }
+    this.tracker.scanProp2D(parentprop);
+    this.tracker.broadcastDiff(false);
+    this.tracker.flipCurrentBuffer();
+
+    // TODO: track grids, shader, prims, dynamic images, children
 }
 
 ///////////////
@@ -312,6 +323,14 @@ Client.prototype.constructor = Client;
 Client.prototype.canSee = null;
 
 /////////////////
+function sendUS1Bytes(s,us,b) {
+    var l=2+b.length;
+    var outb=new Buffer(4+l);
+    outb.writeUInt32LE(l,0);
+    outb.writeUInt16LE(us,4);
+    outb=Buffer.concat([outb,b]);
+    s.appendSendbuf(outb);
+}
 function sendUS1UI1(s,us,ui) {
     var l=2+4;
     var b=new Buffer(4+l);
@@ -320,6 +339,32 @@ function sendUS1UI1(s,us,ui) {
     b.writeUInt32LE(ui,6);
     s.appendSendbuf(b);    
 }
+function sendUS1UI1Str(s,us,ui,str) {
+    var strblen=Buffer.byteLength(str,"utf8");
+    if(strblen>255) throw "sendUS1UI1Str: string too long, cant send message";
+    var l=2+4+1+strblen;
+    var b=new Buffer(4+l);
+    b.writeUInt32LE(l,0)
+    b.writeUInt16LE(us,4);
+    b.writeUInt32LE(ui,6);
+    b.writeUInt8(strblen,10);
+    b.write(str,11);
+    s.appendSendbuf(b);    
+}
+function sendUS1StrBytes(s,us,str,sb) {
+    var strblen=Buffer.byteLength(str,"utf8");    
+    if(strblen>255) throw "sendUS1StrBytes: string too long, cant send message:"+str;
+    var l=2+(1+strblen)+(4+sb.length);
+    var b=new Buffer(4+l);
+    b.writeUInt32LE(l,0)
+    b.writeUInt16LE(us,4);
+    b.writeUInt8(strblen,6);
+    b.write(str,7);
+    b.writeUInt32LE(sb.length,7+strblen);
+    s.appendSendbuf(b);    
+    s.appendSendbuf(sb);
+}    
+
 function sendUS1UI1F2(s,us,ui,f0,f1) {
     var l=2+4+4+4;
     var b=new Buffer(4+l);
@@ -337,6 +382,16 @@ function sendUS1UI2(s,us,ui0,ui1) {
     b.writeUInt16LE(us,4);
     b.writeUInt32LE(ui0,6);
     b.writeUInt32LE(ui1,10);
+    s.appendSendbuf(b);
+}
+function sendUS1UI3(s,us,ui0,ui1,ui2) {
+    var l=2+4+4+4;
+    var b=new Buffer(4+l);
+    b.writeUInt32LE(l,0)
+    b.writeUInt16LE(us,4);
+    b.writeUInt32LE(ui0,6);
+    b.writeUInt32LE(ui1,10);
+    b.writeUInt32LE(ui2,14);    
     s.appendSendbuf(b);
 }
 function sendUS1UI5(s,us,ui0,ui1,ui2,ui3,ui4) {
@@ -374,11 +429,93 @@ function sendDeckSetup(s,dk) {
     sendUS1UI5(s, PACKETTYPE_S2C_TILEDECK_SIZE, dk.id, dk.tile_width, dk.tile_height, dk.cell_width, dk.cell_height );    
 }
 function sendTextureCreateWithImage(s,tex) {
+    console.log("sending texture_create, texture_image:", tex );    
     sendUS1UI1(s, PACKETTYPE_S2C_TEXTURE_CREATE, tex.id );
     sendUS1UI2(s, PACKETTYPE_S2C_TEXTURE_IMAGE, tex.id, tex.image.id );
 }
+function sendImageSetup(s,moyimg) {
+    console.log("sending image_create id:", moyimg.id );
+    sendUS1UI1(s, PACKETTYPE_S2C_IMAGE_CREATE, moyimg.id );
+    if( moyimg.last_load_file_path ) {
+        console.log("sending image_load_png:", moyimg.last_load_file_path );
+        sendUS1UI1Str(s, PACKETTYPE_S2C_IMAGE_LOAD_PNG, moyimg.id, moyimg.last_load_file_path );                
+    }
+    if( moyimg.width>0 && moyimg.buffer) {
+        // this image is not from file, maybe generated.
+        sendUS1UI3(s, PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, moyimg.id, moyimg.width, moyimg.height );
+    }
+}
+function sendFile(s,path) {
+    var buf=fs.readFileSync(path)
+    sendUS1StrBytes(s, PACKETTYPE_S2C_FILE, path, buf);
+}
 
 
+/////////////////
+
+function toFlipRotBits(xflip,yflip,uvrot) {
+    var out=0;
+    if(xflip) out|=0x1;
+    if(yflip) out|=0x2;
+    if(uvrot) out|=0x4;
+    return out;
+}
+
+function makePacketProp2DSnapshotInBuffer(p,parent) {
+    var l=4+4+4+8+8+4+4+4+4+16+4+4+4+1;
+    var b=new Buffer(l);
+    b.writeUInt32LE(p.prop_id,0);
+    b.writeUInt32LE( parent ? 0 : p.getParentLayer().id,4);
+    b.writeUInt32LE( parent ? p.parent_prop_id : 0, 8);        
+    b.writeFloatLE(p.loc.x,12);
+    b.writeFloatLE(p.loc.y,16);
+    b.writeFloatLE(p.scl.x,20);
+    b.writeFloatLE(p.scl.y,24);    
+    b.writeInt32LE(p.index,28);    
+    b.writeUInt32LE( p.deck ? p.deck.id : 0, 32);    
+    b.writeInt32LE(p.debug,36);    
+    b.writeFloatLE(p.rot,40);
+    var colary = p.color.toRGBA();
+    b.writeUInt8(colary[0],44);
+    b.writeUInt8(colary[1],45);
+    b.writeUInt8(colary[2],46);
+    b.writeUInt8(colary[3],47);
+    b.writeUInt32LE(p.fragment_shader ? p.fragment_shader.id : 0,48);
+    var optbits=0;
+    if(p.use_additive_blend) optbits |= PROP2D_OPTBIT_ADDITIVE_BLEND;
+    b.writeUInt32LE(optbits,52);
+    b.writeInt32LE(p.priority,56);
+    b.writeUInt8( toFlipRotBits(p.xflip,p.yflip,p.uvrot), 60 );
+    return b;
+}
+
+
+
+
+function Tracker2D(rh,p) {
+    this.parent_rh=rh;
+    this.target_prop2d=p;
+    this.cur_buffer_index=0;
+    this.pktbuf=new Array(2); // flip-flop
+}
+Tracker2D.prototype.checkDiff = function() {
+}
+Tracker2D.prototype.broadcastDiff = function(force) {
+    var diff=this.checkDiff();
+    if(diff||force) {
+        // TODO: Reduce bandwidth.  locsyncmode, _LOC, _LOC_VEL, ...
+        // TODO: reprecator
+        console.log("t2d:curind:",this.cur_buffer_index, " bcdiff:", this.pktbuf[this.cur_buffer_index] );
+        this.parent_rh.broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, this.pktbuf[this.cur_buffer_index]);
+    }
+}
+
+Tracker2D.prototype.scanProp2D = function(parentprop) {
+    this.pktbuf[this.cur_buffer_index] = makePacketProp2DSnapshotInBuffer(this.target_prop2d,parentprop);
+}
+Tracker2D.prototype.flipCurrentBuffer = function() {
+    this.cur_buffer_index = ( this.cur_buffer_index == 0 ? 1 : 0 );
+}
 
 ////////////////////////
 
@@ -407,7 +544,8 @@ RemoteHead.prototype.addClient = function(cl) {
 RemoteHead.prototype.delClient = function(cl) {
     for(var i=0;i<this.clients.length;i++) {
         if(this.clients[i].id==cl.id) {
-            this.clients = this.clients.splice(i,1);
+            this.clients.splice(i,1);
+            console.log("delClient: deleted client id:",cl.id, this.clients.length);
             break;
         }
     }
@@ -439,11 +577,14 @@ RemoteHead.prototype.scanSendAllPrerequisites = function(s) {
     
     for(var i in this.prereq_decks) {
         var dk=this.prereq_decks[i];
+//        console.log("RPERPEPREOPREOPROE:",dk);
         decks[dk.id]=dk;
-        if(dk.tex) {
-            texs[dk.tex.id]=dk.tex;
-            if(dk.tex.image) {
-                imgs[dk.tex.image.id]=dk.tex.image;
+        if(dk.moyai_tex) {
+//            console.log("scanSendAllPrerequisites: deck", dk.id, "has tex:", dk.moyai_tex );
+            texs[dk.moyai_tex.id]=dk.moyai_tex;
+            if(dk.moyai_tex.image) {
+//                console.log("scanSendAllPrerequisites: tex", dk.moyai_tex.id, "has img:", dk.moyai_tex.image );
+                imgs[dk.moyai_tex.image.id]=dk.moyai_tex.image;
             }
         }
     }
@@ -455,9 +596,9 @@ RemoteHead.prototype.scanSendAllPrerequisites = function(s) {
             var p=l.props[j];
             if(p.deck) {
                 decks[p.deck.id]=p.deck;
-                if(p.deck.tex) {
-                    texs[p.deck.tex.id]=p.deck.tex;
-                    if(p.deck.tex.image) imgs[p.deck.tex.image.id]=p.deck.tex.image;
+                if(p.deck.moyai_tex) {
+                    texs[p.deck.moyai_tex.id]=p.deck.moyai_tex;
+                    if(p.deck.moyai_tex.image) imgs[p.deck.moyai_tex.image.id]=p.deck.moyai_tex.image;
                 }
             }
             if(p.grids) {
@@ -465,9 +606,9 @@ RemoteHead.prototype.scanSendAllPrerequisites = function(s) {
                     var g=p.grids[gi];
                     if(g.deck) {
                         decks[g.deck.id]=g.deck;
-                        if(g.deck.tex) {
-                            texs[g.deck.tex.id]=g.deck.tex;
-                            if(g.deck.tex.image) imgs[g.deck.tex.image.id]=g.deck.tex.image;
+                        if(g.deck.moyai_tex) {
+                            texs[g.deck.moyai_tex.id]=g.deck.moyai_tex;
+                            if(g.deck.moyai_tex.image) imgs[g.deck.moyai_tex.image.id]=g.deck.moyai_tex.image;
                         }
                     }
                 }
@@ -475,6 +616,7 @@ RemoteHead.prototype.scanSendAllPrerequisites = function(s) {
         }
         
     }
+
     // image files
     for(var i in imgs) {
         var img=imgs[i];
@@ -496,7 +638,44 @@ RemoteHead.prototype.scanSendAllPrerequisites = function(s) {
     // TODO: send sounds
 }
 RemoteHead.prototype.scanSendAllProp2DSnapshots = function(s) {
-    console.log("scanSendAllProp2DSnapshots: not impl");
+    for(var i in this.target_moyai.layers) {
+        var l=this.target_moyai.layers[i];
+        for(var j in l.props) {
+            var p=l.props[j];
+            // prop body
+            if(!p.tracker) {
+                p.tracker = new Tracker2D(this,p);
+                p.tracker.scanProp2D(null);
+            }
+            p.tracker.broadcastDiff(true);
+            // grid
+            for(var gi in p.grids) {
+                var g=p.grids[gi];
+                if(!g.tracker) {
+                    g.tracker = new TrackerGrid(this,g);
+                    g.tracker.scanGrid();                    
+                }
+                g.tracker.broadcastDiff(p, true );
+            }
+/*            
+                // prims
+                if(p->prim_drawer) {
+                    if( !p->prim_drawer->tracker) p->prim_drawer->tracker = new TrackerPrimDrawer(this,p->prim_drawer);
+                    p->prim_drawer->tracker->scanPrimDrawer();
+                    p->prim_drawer->tracker->broadcastDiff(p, true );
+                }
+                // children
+                for(int i=0;i<p->children_num;i++) {
+                    Prop2D *chp = p->children[i];
+                    if(!chp->tracker) {
+                        chp->tracker = new Tracker2D(this,chp);
+                        chp->tracker->scanProp2D(p);
+                    }
+                    chp->tracker->broadcastDiff(true);
+                }
+                */                
+        }
+    }    
 }
 RemoteHead.prototype.addPrerequisiteDeck = function(dk) {
     this.prereq_decks.push(dk);
@@ -508,11 +687,21 @@ RemoteHead.prototype.startServer = function(port) {
     this.server = net.createServer( function(conn) {
         console.log("rh:  newconnection");
         var ncl=new Client(conn);
+        conn.client=ncl;
         this_rh.addClient(ncl);
         sendWindowSize(ncl,this_rh.window_width, this_rh.window_height);
         this_rh.scanSendAllPrerequisites(ncl);
         this_rh.scanSendAllProp2DSnapshots(ncl);
         if(this_rh.on_connect_cb) this_rh.on_connect_cb(this_rh,ncl);
+
+        conn.on("data", function(data) {
+            console.log("received data:",data);
+        });
+        conn.on("error", function(e) {
+            console.log("socket error on client:",conn.client.id);
+            this_rh.delClient(conn.client);
+        });
+        
     });
     this.server.listen(22222);
 }
@@ -536,7 +725,9 @@ RemoteHead.prototype.setTargetMoyai = function(moy) { this.target_moyai=moy; }
 //    void notifySoundPlay( Sound *snd, float vol );
 //    void notifySoundStop( Sound *snd );
     
-//    void broadcastUS1Bytes( uint16_t usval, const char *data, size_t datalen );
+RemoteHead.prototype.broadcastUS1Bytes = function(usval,buf) {
+    console.log("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP");
+}
 //    void broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen );    
 //    void broadcastUS1UI1( uint16_t usval, uint32_t uival );
 //    void broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1, bool reprecator_only = false );
