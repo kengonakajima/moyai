@@ -295,7 +295,7 @@ Stream.prototype.flushSendbuf = function(unitsize) {
     this.sendbuf = this.sendbuf.slice(to_send,this.sendbuf.length);
 };
 Stream.prototype.appendSendbuf = function(buffer) {
-    console.log("appendSendbuf:",this.sendbuf, buffer);
+    console.log("appendSendbuf:",buffer);
     if(!this.sendbuf) {
         this.sendbuf=new Buffer(buffer);   
     } else {
@@ -355,14 +355,15 @@ function sendUS1StrBytes(s,us,str,sb) {
     var strblen=Buffer.byteLength(str,"utf8");    
     if(strblen>255) throw "sendUS1StrBytes: string too long, cant send message:"+str;
     var l=2+(1+strblen)+(4+sb.length);
+    console.log("sendUS1StrBytes: strblen:",strblen, "buflen:",sb.length, "total:",l);
     var b=new Buffer(4+l);
     b.writeUInt32LE(l,0)
     b.writeUInt16LE(us,4);
     b.writeUInt8(strblen,6);
     b.write(str,7);
     b.writeUInt32LE(sb.length,7+strblen);
+    sb.copy(b,7+strblen+4);
     s.appendSendbuf(b);    
-    s.appendSendbuf(sb);
 }    
 
 function sendUS1UI1F2(s,us,ui,f0,f1) {
@@ -429,7 +430,7 @@ function sendDeckSetup(s,dk) {
     sendUS1UI5(s, PACKETTYPE_S2C_TILEDECK_SIZE, dk.id, dk.tile_width, dk.tile_height, dk.cell_width, dk.cell_height );    
 }
 function sendTextureCreateWithImage(s,tex) {
-    console.log("sending texture_create, texture_image:", tex );    
+    console.log("sending texture_create, texture:", tex.id, "image:", tex.image.id );    
     sendUS1UI1(s, PACKETTYPE_S2C_TEXTURE_CREATE, tex.id );
     sendUS1UI2(s, PACKETTYPE_S2C_TEXTURE_IMAGE, tex.id, tex.image.id );
 }
@@ -442,6 +443,7 @@ function sendImageSetup(s,moyimg) {
     }
     if( moyimg.width>0 && moyimg.buffer) {
         // this image is not from file, maybe generated.
+        console.log("sending image_ensure_size id:", moyimg.id, moyimg.width, moyimg.height );        
         sendUS1UI3(s, PACKETTYPE_S2C_IMAGE_ENSURE_SIZE, moyimg.id, moyimg.width, moyimg.height );
     }
 }
