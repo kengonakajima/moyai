@@ -324,12 +324,13 @@ Client.prototype.canSee = null;
 
 /////////////////
 function sendUS1Bytes(s,us,b) {
-    var l=2+b.length;
+    var l=2+4;
     var outb=new Buffer(4+l);
-    outb.writeUInt32LE(l,0);
+    outb.writeUInt32LE(l+b.length,0);
     outb.writeUInt16LE(us,4);
-    outb=Buffer.concat([outb,b]);
-    s.appendSendbuf(outb);
+    outb.writeUInt32LE(b.length,6);
+    var finb=Buffer.concat([outb,b]);
+    s.appendSendbuf(finb);
 }
 function sendUS1UI1(s,us,ui) {
     var l=2+4;
@@ -419,6 +420,7 @@ function sendCameraCreateLoc(s,cam) {
     sendUS1UI1F2(s,PACKETTYPE_S2C_CAMERA_LOC, cam.id, cam.loc.x, cam.loc.y );
 }
 function sendLayerSetup(s,l) {
+    console.log("sending layer_create,viewport,camera. layer:", l.id);
     sendUS1UI2(s,PACKETTYPE_S2C_LAYER_CREATE, l.id, l.priority );
     if(l.viewport) sendUS1UI2(s,PACKETTYPE_S2C_LAYER_VIEWPORT, l.id, l.viewport.id);
     if(l.camera ) sendUS1UI2(s,PACKETTYPE_S2C_LAYER_CAMERA, l.id, l.camera.id );
@@ -464,9 +466,9 @@ function toFlipRotBits(xflip,yflip,uvrot) {
 }
 
 function makePacketProp2DSnapshotInBuffer(p,parent) {
-    var l=4+4+4+8+8+4+4+4+4+16+4+4+4+1;
+    var l=64;
     var b=new Buffer(l);
-    b.writeUInt32LE(p.prop_id,0);
+    b.writeUInt32LE(p.id,0);
     b.writeUInt32LE( parent ? 0 : p.getParentLayer().id,4);
     b.writeUInt32LE( parent ? p.parent_prop_id : 0, 8);        
     b.writeFloatLE(p.loc.x,12);
@@ -487,7 +489,8 @@ function makePacketProp2DSnapshotInBuffer(p,parent) {
     if(p.use_additive_blend) optbits |= PROP2D_OPTBIT_ADDITIVE_BLEND;
     b.writeUInt32LE(optbits,52);
     b.writeInt32LE(p.priority,56);
-    b.writeUInt8( toFlipRotBits(p.xflip,p.yflip,p.uvrot), 60 );
+    b.writeUInt32LE( toFlipRotBits(p.xflip,p.yflip,p.uvrot), 60 );
+//    console.log( "makePacketProp2DSnapshotInBuffer outb:", b);
     return b;
 }
 
@@ -507,7 +510,7 @@ Tracker2D.prototype.broadcastDiff = function(force) {
     if(diff||force) {
         // TODO: Reduce bandwidth.  locsyncmode, _LOC, _LOC_VEL, ...
         // TODO: reprecator
-        console.log("t2d:curind:",this.cur_buffer_index, " bcdiff:", this.pktbuf[this.cur_buffer_index] );
+//        console.log("t2d:curind:",this.cur_buffer_index, " bcdiff:", this.pktbuf[this.cur_buffer_index] );
         this.parent_rh.broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, this.pktbuf[this.cur_buffer_index]);
     }
 }
@@ -727,8 +730,10 @@ RemoteHead.prototype.setTargetMoyai = function(moy) { this.target_moyai=moy; }
 //    void notifySoundPlay( Sound *snd, float vol );
 //    void notifySoundStop( Sound *snd );
     
-RemoteHead.prototype.broadcastUS1Bytes = function(usval,buf) {
-    console.log("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP");
+RemoteHead.prototype.broadcastUS1Bytes = function(us,buf) {
+    for(var i in this.clients) {
+        sendUS1Bytes(this.clients[i],us,buf);
+    }
 }
 //    void broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen );    
 //    void broadcastUS1UI1( uint16_t usval, uint32_t uival );
