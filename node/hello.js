@@ -65,6 +65,7 @@ function gameUpdate() {
         console.log("loop:%d", g_update_cnt);
     }
     g_p.loc.x=Math.sin(g_p.accum_time)*40;
+    g_p.setIndex( Math.floor(g_p.accum_time*10)%2);
     console.log("x:",g_p.loc.x);
     g_rh.heartbeat(dt/1000.0);    
 }
