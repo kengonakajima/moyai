@@ -7,6 +7,8 @@ var SCRW=600, SCRH=400;
 var g_moyai_client;
 var g_rh;
 
+var g_p;
+
 function gameInit() {
     g_moyai_client = new MoyaiClient(SCRW,SCRH);
 
@@ -28,12 +30,13 @@ function gameInit() {
     dk.setTexture(tex);
     dk.setSize(32,32,8,8 );
     
-    var p = new Prop2D();
-    p.setDeck(dk);
-    p.setIndex(1);
-    p.setScl(32);
-    p.setLoc(0,0);
-    l.insertProp(p);
+    g_p = new Prop2D();
+    g_p.setDeck(dk);
+    g_p.setIndex(1);
+    g_p.setScl(32);
+    g_p.setLoc(0,0);
+    l.insertProp(g_p);
+
 
     // set up spritestream
     g_rh = new RemoteHead();
@@ -60,8 +63,9 @@ function gameUpdate() {
     if(nt>g_last_print+1000) {
         g_last_print=nt;
         console.log("loop:%d", g_update_cnt);
-        
     }
+    g_p.loc.x=Math.sin(g_p.accum_time)*40;
+    console.log("x:",g_p.loc.x);
     g_rh.heartbeat(dt/1000.0);    
 }
 

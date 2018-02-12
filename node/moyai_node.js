@@ -211,6 +211,8 @@ Prop2D.prototype.onTrack = function(rh,parentprop) {
 
 ///////////////
 
+///////////////
+
 FragmentShader.prototype.id_gen=1;
 function FragmentShader() {
     this.id=this.__proto__.id_gen++;
@@ -470,7 +472,7 @@ function makePacketProp2DSnapshotInBuffer(p,parent) {
     var b=new Buffer(l);
     b.writeUInt32LE(p.id,0);
     b.writeUInt32LE( parent ? 0 : p.getParentLayer().id,4);
-    b.writeUInt32LE( parent ? p.parent_prop_id : 0, 8);        
+    b.writeUInt32LE( parent ? p.parent_prop_id : 0, 8);
     b.writeFloatLE(p.loc.x,12);
     b.writeFloatLE(p.loc.y,16);
     b.writeFloatLE(p.scl.x,20);
@@ -502,15 +504,23 @@ function Tracker2D(rh,p) {
     this.target_prop2d=p;
     this.cur_buffer_index=0;
     this.pktbuf=new Array(2); // flip-flop
+    this.pktbuf[0]=new Buffer(0);
+    this.pktbuf[1]=new Buffer(0);        
 }
 Tracker2D.prototype.checkDiff = function() {
+    if(Buffer.compare(this.pktbuf[0],this.pktbuf[1])==0) {
+        return false;
+    } else {
+        return true;
+    }
 }
 Tracker2D.prototype.broadcastDiff = function(force) {
     var diff=this.checkDiff();
+    console.log("pp",diff);
     if(diff||force) {
         // TODO: Reduce bandwidth.  locsyncmode, _LOC, _LOC_VEL, ...
         // TODO: reprecator
-//        console.log("t2d:curind:",this.cur_buffer_index, " bcdiff:", this.pktbuf[this.cur_buffer_index] );
+        console.log("t2d:curind:",this.cur_buffer_index, " bcdiff:", this.pktbuf[this.cur_buffer_index] );
         this.parent_rh.broadcastUS1Bytes( PACKETTYPE_S2C_PROP2D_SNAPSHOT, this.pktbuf[this.cur_buffer_index]);
     }
 }
@@ -521,6 +531,52 @@ Tracker2D.prototype.scanProp2D = function(parentprop) {
 Tracker2D.prototype.flipCurrentBuffer = function() {
     this.cur_buffer_index = ( this.cur_buffer_index == 0 ? 1 : 0 );
 }
+
+
+Viewport.prototype.onTrack = function(rh) {
+    if(!this.tracker) {
+        this.tracker = new TrackerViewport(rh,this);
+    }
+    this.tracker.scanViewport();
+    this.tracker.broadcastDiff(false);
+    this.tracker.flipCurrentBuffer();
+}
+
+function TrackerViewport(rh,vp) {
+    this.parent_rh=rh;
+    this.target_viewport=vp;
+    this.cur_buffer_index=0;
+    this.sclbuf=new Array(2); // flip-flop
+    this.sclbuf[0]=new Vec2(0,0);
+    this.sclbuf[1]=new Vec2(0,0);
+}
+TrackerViewport.prototype.scanViewport = function() {
+    this.sclbuf[this.cur_buffer_index] = new Vec2( this.target_viewport.scl.x, this.target_viewport.scl.y );
+}
+TrackerViewport.prototype.flipCurrentBuffer = function() {
+    this.cur_buffer_index = ( this.cur_buffer_index == 0 ? 1 : 0 );
+}
+TrackerViewport.prototype.checkDiff = function() {
+    var curscl, prevscl;
+    if( this.cur_buffer_index == 0 ) {
+        curscl = this.sclbuf[0];
+        prevscl = this.sclbuf[1];
+    } else {
+        curscl = this.sclbuf[1];
+        prevscl = this.sclbuf[0];
+    }
+    return curscl.isEqual(prevscl);
+}
+TrackerViewport.prototype.broadcastDiff = function(force) {
+    if( this.checkDiff() || force ) {
+        this.parent_rh.broadcastUS1UI1F2( PACKETTYPE_S2C_VIEWPORT_SCALE,
+                                          this.target_viewport.id,
+                                          this.sclbuf[this.cur_buffer_index].x,
+                                          this.sclbuf[this.cur_buffer_index].y );
+    }
+}
+
+
 
 ////////////////////////
 
@@ -686,7 +742,23 @@ RemoteHead.prototype.addPrerequisiteDeck = function(dk) {
     this.prereq_decks.push(dk);
 }
 
-RemoteHead.prototype.track2D = null;
+RemoteHead.prototype.track2D = function() {
+    //    if(enable_timestamp) broadcastTimestamp();
+    for(var i in this.target_moyai.layers) {
+        var layer = this.target_moyai.layers[i];
+//        if(layer.hasDynamicCameras()) {
+//            layer.onTrackDynamicCameras();
+//        } else if(layer->camera) layer->camera->onTrack(this);
+//        if(layer->hasDynamicViewports()) {
+//            layer->onTrackDynamicViewports();
+        if(layer.viewport) layer.viewport.onTrack(this);
+        for(var j in layer.props) {
+            var p=layer.props[j];
+            p.onTrack(this,null);
+        }        
+    }
+}
+
 RemoteHead.prototype.startServer = function(port) {
     var this_rh=this;
     this.server = net.createServer( function(conn) {
@@ -717,6 +789,7 @@ RemoteHead.prototype.setOnKeyboardCallback = function(cb) { this.on_keyboard_cb 
 RemoteHead.prototype.setOnMouseButtonCallback = function(cb) {this.on_mouse_button_cb = cb; }
 RemoteHead.prototype.setOnMouseCursorCallback = function(cb) { this.on_mouse_cursor_cb = cb; }
 RemoteHead.prototype.heartbeat = function(dt_sec) {
+    this.track2D();
     for(var i in this.clients) {
         this.clients[i].flushSendbuf(1024*32);
     }
@@ -742,7 +815,11 @@ RemoteHead.prototype.broadcastUS1Bytes = function(us,buf) {
 //    void broadcastUS1UI4( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3 );    
 //    void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
 //    void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
-//    void broadcastUS1UI1F2( uint16_t usval, uint32_t uival, float f0, float f1 );
+RemoteHead.prototype.broadcastUS1UI1F2 = function(usval,uival,f0,f1) {
+    for(var i in this.clients) {
+        sendUS1UI1F2( this.clients[i],usval,uival,f0,f1);
+    }
+}
 //    void broadcastUS1UI2F2( uint16_t usval, uint32_t ui0, uint32_t ui1, float f0, float f1 );    
 //    void broadcastUS1UI1F4( uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );
 //    void broadcastUS1UI1UC1( uint16_t usval, uint32_t uival, uint8_t ucval );    
