@@ -9,20 +9,22 @@ var SCRW=600, SCRH=400;
 var g_moyai_client;
 var g_rh;
 
+var g_vp;
 var g_p;
 var g_grid;
+
 
 function gameInit() {
     g_moyai_client = new MoyaiClient(SCRW,SCRH);
 
-    var vp = new Viewport();
-    vp.setSize(SCRW,SCRH);
-    vp.setScale2D(SCRW,SCRH); 
+    g_vp = new Viewport();
+    g_vp.setSize(SCRW,SCRH);
+    g_vp.setScale2D(SCRW,SCRH); 
 
     var cam = new Camera();
     cam.setLoc(0,0);
     var l = new Layer();
-    l.setViewport(vp);
+    l.setViewport(g_vp);
     l.setCamera(cam);
     g_moyai_client.insertLayer(l);
     
@@ -90,7 +92,10 @@ function gameUpdate() {
         var texofs=new Vec2(range(0,1), range(0,1));
         g_grid.setTexOffset(3,2,texofs);
     }
-    
+    if(g_update_cnt%51==0) {
+        var r=range(0.5,2);
+        g_vp.setScale2D(SCRW*r,SCRH*r);
+    }
 
 
     g_rh.heartbeat(dt/1000.0);    
