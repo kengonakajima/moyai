@@ -80,7 +80,12 @@ function gameUpdate() {
         g_p.loc.x=Math.sin(g_p.accum_time)*80;
         g_p.setIndex( Math.floor(g_p.accum_time*10)%2);
     }
-    g_grid.set(2,2,irange(0,3));
+    if(g_update_cnt%21==0) {
+        g_grid.set(2,2,irange(0,3));
+        g_grid.setXFlip(1,2,irange(0,2));
+    }
+    
+
 
     g_rh.heartbeat(dt/1000.0);    
 }
