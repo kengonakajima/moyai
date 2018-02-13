@@ -84,6 +84,8 @@ function gameUpdate() {
         g_grid.set(2,2,irange(0,3));
         g_grid.setXFlip(1,2,irange(0,2));
         g_grid.setColor(2,1,new Color(range(0,1),range(0,1),range(0,1),range(0,1)) );
+        var texofs=new Vec2(range(0,1), range(0,1));
+        g_grid.setTexOffset(3,2,texofs);
     }
     
 

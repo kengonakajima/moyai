@@ -324,7 +324,8 @@ Grid.prototype.setTexOffset = function(x,y,uv) {
 }
 Grid.prototype.getTexOffset = function(x,y) {
     if(!this.texofs_table) return new Vec2(0,0);
-    return this.texofs_table[this.index(x,y)];
+    var o=this.texofs_table[this.index(x,y)];
+    if(!o)return new Vec2(0,0); else return o;
 }
 Grid.prototype.setUVRot = function(x,y,flg) {
     if(!this.rot_table) this.rot_table=[];
