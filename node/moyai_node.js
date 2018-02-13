@@ -340,7 +340,8 @@ Grid.prototype.setColor = function(x,y,col) {
 }
 Grid.prototype.getColor = function(x,y) {
     if(!this.color_table) return new Color(1,1,1,1);
-    return this.color_table[this.index(x,y)];
+    var col=this.color_table[this.index(x,y)];
+    if(!col) return new Color(1,1,1,1); else return col;
 }
 Grid.prototype.setVisible = function(flg) { this.visible=flg; }
 Grid.prototype.getVisible = function() { return this.visible; }
