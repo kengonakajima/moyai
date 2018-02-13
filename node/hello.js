@@ -79,6 +79,9 @@ function gameUpdate() {
     if(g_update_cnt%30==0) {
         g_p.loc.x=Math.sin(g_p.accum_time)*80;
         g_p.setIndex( Math.floor(g_p.accum_time*10)%2);
+        g_p.setXFlip(irange(0,2));
+        g_p.setRot(range(0,3.14*2));
+        g_p.setColor(new Color(range(0,1),range(0,1),range(0,1),range(0,1)) );
     }
     if(g_update_cnt%21==0) {
         g_grid.set(2,2,irange(0,3));
