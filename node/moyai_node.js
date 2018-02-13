@@ -207,9 +207,171 @@ Prop2D.prototype.onTrack = function(rh,parentprop) {
     this.tracker.flipCurrentBuffer();
 
     // TODO: track grids, shader, prims, dynamic images, children
+    for(var i in this.grids) {
+        var g=this.grids[i];
+        if(!g.tracker) g.tracker = new TrackerGrid(rh,g);
+        g.tracker.scanGrid();
+        g.tracker.broadcastDiff(this,false);
+        g.tracker.flipCurrentBuffer();
+    }
 }
 
 ///////////////
+Grid.prototype.id_gen=1;
+
+function Grid(w,h) {
+    this.id=this.__proto__.id_gen++;
+    this.width=w;
+    this.height=h;
+    this.index_table=null;
+    this.xflip_table=null;
+    this.yflip_table=null;
+    this.texofs_table=null;
+    this.rot_table=null;
+    this.color_table=null;
+    this.deck=null;
+    this.visible=true;
+    this.parent_prop=null;
+}
+Grid.prototype.setDeck =function(dk) { this.deck=dk; this.need_material_update=true;}
+Grid.prototype.index = function(x,y) { return x+y*this.width; }
+Grid.prototype.getCellNum = function() { return this.width * this.height; }
+Grid.prototype._fill = function(tbl,val) {
+    for(var y=0;y<this.height;y++) {
+        for(var x=0;x<this.width;x++) {
+            tbl[x+y*this.width] = val;
+        }
+    }
+}
+var GRID_NOT_USED = -1;
+Grid.prototype.set = function(x,y,ind) {
+    if(!this.index_table) this.index_table=[];
+    this.index_table[this.index(x,y)] = ind;
+}
+Grid.prototype.get  =function(x,y) {
+    if(!this.index_table) return GRID_NOT_USED;
+    return this.index_table[ this.index(x,y) ];
+}
+Grid.prototype.bulkSetIndex = function(inds) {
+    if(!this.index_table) this.index_table=[];
+    var expect_len = this.width * this.height;
+    if(inds.length < expect_len) {
+        console.log("bulksetindex: data not enough. expect:",expect_len, "got:",inds.length);
+    } else {
+        for(var i=0;i<expect_len;i++) this.index_table[i] = inds[i];
+    }
+}
+Grid.prototype.bulkSetFlipRotBits = function(xflbits,yflbits,uvrotbits) {
+    var expect_len = this.width * this.height;
+    var ind=0;
+    for(var y=0;y<this.height;y++) {
+        for(var x=0;x<this.width;x++) {
+            this.setXFlip(x,y,xflbits[ind]);
+            this.setYFlip(x,y,yflbits[ind]);
+            this.setUVRot(x,y,uvrotbits[ind]);
+            ind++;
+        }
+    }
+}
+Grid.prototype.bulkSetTexofs = function(ofsary) {
+    var expect_len = this.width * this.height;
+    if(ofsary.length < expect_len ) {
+        console.log("bulksettexofs: data not enough. expect:", expect_len, "got:", ofsary.length );
+    } else {
+        var ind=0;
+        for(var y=0;y<this.height;y++) {
+            for(var x=0;x<this.width;x++) {
+                this.setTexOffset(x,y,ofsary[ind]);
+                ind++;
+            }
+        }
+        
+    }
+}
+Grid.prototype.bulkSetColor = function(colsary) {
+    var expect_len = this.width * this.height;
+    if(colsary.length < expect_len ) {
+        console.log("bulksetcolor: data not enough. expect:", expect_len, "got:", colsary.length );
+    } else {
+        var ind=0;
+        for(var y=0;y<this.height;y++) {
+            for(var x=0;x<this.width;x++) {
+                this.setColor(x,y,colsary[ind]);
+                ind++;
+            }
+        }        
+    }
+}
+Grid.prototype.setXFlip = function(x,y,flg) {
+    if(!this.xflip_table) this.xflip_table=[];
+    this.xflip_table[this.index(x,y)]=flg;
+}
+Grid.prototype.getXFlip = function(x,y) {
+    if(!this.xflip_table) return false;
+    return this.xflip_table[this.index(x,y)];
+}
+Grid.prototype.setYFlip = function(x,y,flg) {
+    if(!this.yflip_table) this.yflip_table=[];
+    this.yflip_table[this.index(x,y)]=flg;    
+}
+Grid.prototype.getYFlip = function(x,y) {
+    if(!this.yflip_table) return false;
+    return this.yflip_table[this.index(x,y)];
+}
+Grid.prototype.setTexOffset = function(x,y,uv) {
+    if(!this.texofs_table) this.texofs_table=[];
+    this.texofs_table[this.index(x,y)]=uv;
+}
+Grid.prototype.getTexOffset = function(x,y) {
+    if(!this.texofs_table) return new Vec2(0,0);
+    return this.texofs_table[this.index(x,y)];
+}
+Grid.prototype.setUVRot = function(x,y,flg) {
+    if(!this.rot_table) this.rot_table=[];
+    this.rot_table[this.index(x,y)]=flg;
+}
+Grid.prototype.getUVRot = function(x,y) {
+    if(!this.rot_table) return false;
+    return this.rot_table[this.index(x,y)];
+}
+Grid.prototype.setColor = function(x,y,col) {
+    if(!this.color_table) this.color_table=[];
+    this.color_table[this.index(x,y)]=col;
+}
+Grid.prototype.getColor = function(x,y) {
+    if(!this.color_table) return new Color(1,1,1,1);
+    return this.color_table[this.index(x,y)];
+}
+Grid.prototype.setVisible = function(flg) { this.visible=flg; }
+Grid.prototype.getVisible = function() { return this.visible; }
+Grid.prototype.clear = function(x,y) {
+    if(x== (void 0) ) {
+        if(this.index_table) this._fill(this.index_table,GRID_NOT_USED);
+    } else {
+        this.set(x,y,GRID_NOT_USED);
+    }    
+}
+Grid.prototype.fillColor = function(c) {
+    if(!this.color_table)this.color_table=[];
+    if(this.color_table) {
+        for(var y=0;y<this.height;y++) {
+            for(var x=0;x<this.width;x++) {
+                this.color_table[this.index(x,y)] = new Color(c.r,c.g,c.b,c.a);
+            }
+        }
+    }
+}
+Grid.prototype.fill = function(ind) {
+    this.fillRect(0,0,this.width-1,this.height-1,ind);
+}
+Grid.prototype.fillRect = function(x0,y0,x1,y1,ind) {
+    for(var y=y0;y<=y1;y++) {
+        for(var x=x0;x<=x1;x++) {
+            this.set(x,y,ind);
+        }
+    }    
+}
+
 
 ///////////////
 
@@ -333,6 +495,16 @@ function sendUS1Bytes(s,us,b) {
     outb.writeUInt32LE(b.length,6);
     var finb=Buffer.concat([outb,b]);
     s.appendSendbuf(finb);
+}
+function sendUS1UI1Bytes(s,us,ui,b) {
+    var l=2+4+4;
+    var outb=new Buffer(4+l);
+    outb.writeUInt32LE(l+b.length,0);
+    outb.writeUInt16LE(us,4);
+    outb.writeUInt32LE(ui,6);
+    outb.writeUInt32LE(b.length,10);    
+    var finb=Buffer.concat([outb,b]);
+    s.appendSendbuf(finb);    
 }
 function sendUS1UI1(s,us,ui) {
     var l=2+4;
@@ -459,6 +631,11 @@ function sendFile(s,path) {
 
 /////////////////
 
+function copyColorToPacketColor(destpkt,srccol) {
+    var c = srccol.toRGBA();
+    destpkt.r=c.r; destpkt.g=c.g; destpkt.b=c.b; destpkt.a=c.a;
+}
+
 function toFlipRotBits(xflip,yflip,uvrot) {
     var out=0;
     if(xflip) out|=0x1;
@@ -516,7 +693,6 @@ Tracker2D.prototype.checkDiff = function() {
 }
 Tracker2D.prototype.broadcastDiff = function(force) {
     var diff=this.checkDiff();
-    console.log("pp",diff);
     if(diff||force) {
         // TODO: Reduce bandwidth.  locsyncmode, _LOC, _LOC_VEL, ...
         // TODO: reprecator
@@ -576,6 +752,174 @@ TrackerViewport.prototype.broadcastDiff = function(force) {
     }
 }
 
+var GTT_INDEX = 1;
+var GTT_FLIP = 2;
+var GTT_TEXOFS = 3;
+var GTT_COLOR = 4;
+
+var GTT_FLIP_BIT_X = 0x01;
+var GTT_FLIP_BIT_Y = 0x02;
+var GTT_FLIP_BIT_UVROT = 0x04;
+
+function TrackerGrid(rh,g) {
+    this.target_grid=g;
+    this.parent_rh=rh;
+    this.cur_buffer_index=0;
+    this.index_table=[new Array(),new Array()];
+    this.flip_table=[new Array(),new Array()];
+    this.texofs_table=[new Array(),new Array()];
+    this.color_table=[new Array(),new Array()];
+}
+
+TrackerGrid.prototype.scanGrid = function() {
+    for(var y=0;y<this.target_grid.height;y++){
+        for(var x=0;x<this.target_grid.width;x++){
+            var ind = this.target_grid.index(x,y);
+            if(this.index_table[this.cur_buffer_index]) {
+                this.index_table[this.cur_buffer_index][ind] = this.target_grid.get(x,y);
+            }
+            if(this.flip_table[this.cur_buffer_index] ) {
+                var bits = 0;
+                if( this.target_grid.getXFlip(x,y) ) bits |= GTT_FLIP_BIT_X;
+                if( this.target_grid.getYFlip(x,y) ) bits |= GTT_FLIP_BIT_Y;
+                if( this.target_grid.getUVRot(x,y) ) bits |= GTT_FLIP_BIT_UVROT;
+                this.flip_table[this.cur_buffer_index][ind] = bits;
+            }
+            if(this.texofs_table[this.cur_buffer_index]) {
+                var texofs=this.target_grid.getTexOffset(x,y);
+                this.texofs_table[this.cur_buffer_index][ind] = new Vec2(texofs.x,texofs.y);
+            }
+            if(this.color_table[this.cur_buffer_index]) {
+                var col = this.target_grid.getColor(x,y);
+                this.color_table[this.cur_buffer_index][ind] = new Color(col.r,col.g,col.b,col.a);
+            }
+        }
+    }
+}
+TrackerGrid.prototype.flipCurrentBuffer = function() {
+    this.cur_buffer_index = ( this.cur_buffer_index == 0 ? 1 : 0 );    
+}
+
+TrackerGrid.prototype.checkDiff = function(tabletype) { 
+    var curind, prevind;
+    if(this.cur_buffer_index==0) {
+        curind = 0;
+        prevind = 1;
+    } else {
+        curind = 1;
+        prevind = 0;
+    }
+    var curtbl,prevtbl;
+    switch(tabletype) {
+    case GTT_INDEX:
+        curtbl = this.index_table[curind];
+        prevtbl = this.index_table[prevind];
+        break;
+    case GTT_FLIP:
+        curtbl = this.flip_table[curind];
+        prevtbl = this.flip_table[prevind];
+        break;
+    case GTT_TEXOFS:
+        curtbl = this.texofs_table[curind];
+        prevtbl = this.texofs_table[prevind];
+        break;
+    case GTT_COLOR:
+        curtbl = this.color_table[curind];
+        prevtbl = this.color_table[prevind];            
+        break;
+    }
+
+    var compsz;
+    switch(tabletype){
+    case GTT_INDEX:
+        compsz = this.target_grid.getCellNum() * 4;//uint32
+        break;
+    case GTT_FLIP:
+        compsz = this.target_grid.getCellNum() * 1; //uint8_t
+        break;
+    case GTT_TEXOFS:
+        compsz = this.target_grid.getCellNum() * 8; // vec2
+        break;
+    case GTT_COLOR:
+        compsz = this.target_grid.getCellNum() * 4; // color
+        break;   
+    }
+    // return true if differ
+    if(prevtbl.length==curtbl.length) {
+        if(prevtbl.every( function(val,i) { return val==curtbl[i]; } ) ) {
+            return false; 
+        }
+    }
+    return true;
+}
+
+function makeInt32Buffer(ia,n) {
+    var outb=new Buffer(n*4);
+    for(var i=0;i<n;i++) outb.writeInt32LE(ia[i],i*4);
+    return outb;
+}
+function makeUInt8Buffer(u8a,n) {
+    var outb=new Buffer(n);
+    for(var i=0;i<n;i++) outb.writeUInt8(u8a[i],i);
+    return outb;
+}
+function makeVec2Buffer(va,n) {
+    var outb=new Buffer(n*8);
+    for(var i=0;i<n;i++) {
+        outb.writeFloatLE(va[i].x,i*8);
+        outb.writeFloatLE(va[i].y,i*8+4);
+    }
+    return outb;    
+}
+function makeColorBuffer(ca,n) {
+    var outb=new Buffer(n*4);
+    for(var i=0;i<n;i++) {
+        var bin=ca[i].toRGBA();
+        outb.writeUInt8(bin[0],i*4);
+        outb.writeUInt8(bin[1],i*4+1);
+        outb.writeUInt8(bin[2],i*4+2);
+        outb.writeUInt8(bin[3],i*4+3);        
+    }
+    return outb;        
+}
+TrackerGrid.prototype.broadcastDiff = function(ownerprop,force) {
+    var have_index_diff = this.checkDiff( GTT_INDEX );
+    var have_flip_diff = this.checkDiff( GTT_FLIP );
+    var have_texofs_diff = this.checkDiff( GTT_TEXOFS );
+    var have_color_diff = this.checkDiff( GTT_COLOR );
+    var have_any_diff = ( have_index_diff || have_flip_diff || have_texofs_diff || have_color_diff );
+
+//    console.log("grid bc:",have_index_diff, have_flip_diff, have_texofs_diff, have_color_diff );
+    
+    if( force || have_any_diff ) {        
+        this.broadcastGridConfs(ownerprop);
+    }
+    var cn=this.target_grid.getCellNum();
+    if(have_index_diff||force) {
+        this.parent_rh.broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_INDEX_SNAPSHOT, this.target_grid.id,
+                                             makeInt32Buffer(this.index_table[this.cur_buffer_index],cn));
+    }
+    if(have_flip_diff||force) {
+        this.parent_rh.broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_FLIP_SNAPSHOT, this.target_grid.id,
+                                             makeUInt8Buffer(this.flip_table[this.cur_buffer_index],cn));
+    }
+    if(have_texofs_diff||force) {
+        this.parent_rh.broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_TEXOFS_SNAPSHOT, this.target_grid.id,
+                                             makeVec2Buffer(this.texofs_table[this.cur_buffer_index],cn));
+    }
+    if(have_color_diff||force) {
+        this.parent_rh.broadcastUS1UI1Bytes( PACKETTYPE_S2C_GRID_TABLE_COLOR_SNAPSHOT, this.target_grid.id,
+                                             makeColorBuffer(this.color_table[this.cur_buffer_index],cn));
+    }
+}
+
+TrackerGrid.prototype.broadcastGridConfs = function(ownerprop) {
+    this.parent_rh.broadcastUS1UI3( PACKETTYPE_S2C_GRID_CREATE, this.target_grid.id, this.target_grid.width, this.target_grid.height );
+    var dk_id = 0;
+    if(this.target_grid.deck) dk_id = this.target_grid.deck.id; else if(ownerprop.deck) dk_id = ownerprop.deck.id;
+    if(dk_id) this.parent_rh.broadcastUS1UI2( PACKETTYPE_S2C_GRID_DECK, this.target_grid.id, dk_id );
+    this.parent_rh.broadcastUS1UI2( PACKETTYPE_S2C_GRID_PROP2D, this.target_grid.id, ownerprop.id );    
+}
 
 
 ////////////////////////
@@ -804,21 +1148,23 @@ RemoteHead.prototype.setTargetMoyai = function(moy) { this.target_moyai=moy; }
 //    void notifySoundStop( Sound *snd );
     
 RemoteHead.prototype.broadcastUS1Bytes = function(us,buf) {
-    for(var i in this.clients) {
-        sendUS1Bytes(this.clients[i],us,buf);
-    }
+    for(var i in this.clients) sendUS1Bytes(this.clients[i],us,buf);
 }
-//    void broadcastUS1UI1Bytes( uint16_t usval, uint32_t uival, const char *data, size_t datalen );    
+RemoteHead.prototype.broadcastUS1UI1Bytes = function(usval,uival,buf) {
+    for(var i in this.clients) sendUS1UI1Bytes(this.clients[i],usval,uival,buf);
+}
 //    void broadcastUS1UI1( uint16_t usval, uint32_t uival );
-//    void broadcastUS1UI2( uint16_t usval, uint32_t ui0, uint32_t ui1, bool reprecator_only = false );
-//    void broadcastUS1UI3( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );
+RemoteHead.prototype.broadcastUS1UI2 = function(usval,ui0,ui1) {
+    for(var i in this.clients) sendUS1UI2(this.clients[i], usval,ui0,ui1);    
+}
+RemoteHead.prototype.broadcastUS1UI3 = function(usval,ui0,ui1,ui2) {
+    for(var i in this.clients) sendUS1UI3(this.clients[i], usval,ui0,ui1,ui2);
+}
 //    void broadcastUS1UI4( uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2, uint32_t ui3 );    
 //    void broadcastUS1UI1Wstr( uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
 //    void broadcastUS1UI1F1( uint16_t usval, uint32_t uival, float f0 );
 RemoteHead.prototype.broadcastUS1UI1F2 = function(usval,uival,f0,f1) {
-    for(var i in this.clients) {
-        sendUS1UI1F2( this.clients[i],usval,uival,f0,f1);
-    }
+    for(var i in this.clients) sendUS1UI1F2( this.clients[i],usval,uival,f0,f1);
 }
 //    void broadcastUS1UI2F2( uint16_t usval, uint32_t ui0, uint32_t ui1, float f0, float f1 );    
 //    void broadcastUS1UI1F4( uint16_t usval, uint32_t uival, float f0, float f1, float f2, float f3 );
@@ -846,3 +1192,4 @@ global.MoyaiClient=MoyaiClient;
 global.Texture=Texture;
 global.Prop2D=Prop2D;
 global.RemoteHead=RemoteHead;
+global.Grid=Grid;

@@ -2,12 +2,15 @@
 
 require("./moyai_node.js");
 
+
+
 var SCRW=600, SCRH=400;
 
 var g_moyai_client;
 var g_rh;
 
 var g_p;
+var g_grid;
 
 function gameInit() {
     g_moyai_client = new MoyaiClient(SCRW,SCRH);
@@ -29,14 +32,23 @@ function gameInit() {
     var dk = new TileDeck();
     dk.setTexture(tex);
     dk.setSize(32,32,8,8 );
+
+    g_grid = new Grid(4,4);
+    g_grid.setDeck(dk);
+    g_grid.set(0,0,0);
+    g_grid.set(1,1,1);
+    g_grid.set(2,2,2);
+    g_grid.set(3,3,3);            
     
     g_p = new Prop2D();
     g_p.setDeck(dk);
     g_p.setIndex(1);
     g_p.setScl(32);
     g_p.setLoc(0,0);
+    g_p.addGrid(g_grid);
     l.insertProp(g_p);
 
+    
 
     // set up spritestream
     g_rh = new RemoteHead();
@@ -64,9 +76,12 @@ function gameUpdate() {
         g_last_print=nt;
         console.log("loop:%d", g_update_cnt);
     }
-    g_p.loc.x=Math.sin(g_p.accum_time)*40;
-    g_p.setIndex( Math.floor(g_p.accum_time*10)%2);
-    console.log("x:",g_p.loc.x);
+    if(g_update_cnt%30==0) {
+        g_p.loc.x=Math.sin(g_p.accum_time)*80;
+        g_p.setIndex( Math.floor(g_p.accum_time*10)%2);
+    }
+    g_grid.set(2,2,irange(0,3));
+
     g_rh.heartbeat(dt/1000.0);    
 }
 
