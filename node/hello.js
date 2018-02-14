@@ -99,7 +99,7 @@ function gameUpdate() {
         g_vp.setScale2D(SCRW*r,SCRH*r);
     }
     if(g_update_cnt%91==0) {
-        g_cam.setLoc( range(-100,100),range(-100,100));
+        g_cam.setLoc( range(-200,200),range(-200,200));
         
     }
 
