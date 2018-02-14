@@ -711,6 +711,8 @@ Tracker2D.prototype.flipCurrentBuffer = function() {
 }
 
 
+////////////////////
+
 Viewport.prototype.onTrack = function(rh) {
     if(!this.tracker) {
         this.tracker = new TrackerViewport(rh,this);
@@ -719,6 +721,16 @@ Viewport.prototype.onTrack = function(rh) {
     this.tracker.broadcastDiff(false);
     this.tracker.flipCurrentBuffer();
 }
+Camera.prototype.onTrack = function(rh) {
+    if(!this.tracker) {
+        this.tracker = new TrackerCamera(rh,this);
+    }
+    this.tracker.scanCamera();
+    this.tracker.broadcastDiff(false);
+    this.tracker.flipCurrentBuffer();    
+}
+
+////////////////////
 
 function TrackerViewport(rh,vp) {
     this.parent_rh=rh;
@@ -753,6 +765,40 @@ TrackerViewport.prototype.broadcastDiff = function(force) {
                                           this.sclbuf[this.cur_buffer_index].y );
     }
 }
+
+/////////////////////
+
+function TrackerCamera(rh,cam) {
+    this.target_camera = cam;
+    this.cur_buffer_index=0;
+    this.parent_rh=rh;
+    this.locbuf = [new Vec2(0,0), new Vec2(0,0)];
+}
+TrackerCamera.prototype.scanCamera = function() {
+    this.locbuf[this.cur_buffer_index] = new Vec2( this.target_camera.loc.x, this.target_camera.loc.y );
+}
+TrackerCamera.prototype.flipCurrentBuffer = function() {
+    this.cur_buffer_index = ( this.cur_buffer_index == 0 ? 1 : 0 );
+}
+TrackerCamera.prototype.checkDiff = function() {
+    var curloc, prevloc;
+    if( this.cur_buffer_index == 0 ) {
+        curloc = this.locbuf[0];
+        prevloc = this.locbuf[1];
+    } else {
+        curloc = this.locbuf[1];
+        prevloc = this.locbuf[0];
+    }
+    return (curloc.x != prevloc.x || curloc.y != prevloc.y );
+}
+TrackerCamera.prototype.broadcastDiff = function(force) {
+    if( this.checkDiff() || force ) {
+        this.parent_rh.broadcastUS1UI1F2( PACKETTYPE_S2C_CAMERA_LOC, this.target_camera.id, this.locbuf[this.cur_buffer_index].x, this.locbuf[this.cur_buffer_index].y );
+    }
+}
+
+
+////////////////////
 
 var GTT_INDEX = 1;
 var GTT_FLIP = 2;
@@ -1094,7 +1140,8 @@ RemoteHead.prototype.track2D = function() {
         var layer = this.target_moyai.layers[i];
 //        if(layer.hasDynamicCameras()) {
 //            layer.onTrackDynamicCameras();
-//        } else if(layer->camera) layer->camera->onTrack(this);
+        //        } else
+        if(layer.camera) layer.camera.onTrack(this);
 //        if(layer->hasDynamicViewports()) {
 //            layer->onTrackDynamicViewports();
         if(layer.viewport) layer.viewport.onTrack(this);

@@ -9,6 +9,8 @@ var SCRW=600, SCRH=400;
 var g_moyai_client;
 var g_rh;
 
+var g_cam;
+
 var g_vp;
 var g_p;
 var g_grid;
@@ -21,11 +23,11 @@ function gameInit() {
     g_vp.setSize(SCRW,SCRH);
     g_vp.setScale2D(SCRW,SCRH); 
 
-    var cam = new Camera();
-    cam.setLoc(0,0);
+    g_cam = new Camera();
+    g_cam.setLoc(0,0);
     var l = new Layer();
     l.setViewport(g_vp);
-    l.setCamera(cam);
+    l.setCamera(g_cam);
     g_moyai_client.insertLayer(l);
     
 
@@ -95,6 +97,10 @@ function gameUpdate() {
     if(g_update_cnt%51==0) {
         var r=range(0.5,2);
         g_vp.setScale2D(SCRW*r,SCRH*r);
+    }
+    if(g_update_cnt%91==0) {
+        g_cam.setLoc( range(-100,100),range(-100,100));
+        
     }
 
 
