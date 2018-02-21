@@ -394,6 +394,7 @@ try {
         global.Layer = Layer;
 
         // funcs
+        global.to_i=Math.floor;
         global.lengthf=lengthf;
         global.now=now;
         global.sign=sign;
