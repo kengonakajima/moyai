@@ -789,10 +789,10 @@ Grid.prototype.updateMesh = function() {
                 */
 
                 // 1セルあたり4頂点づつ
-                geom.vertices.push(new THREE.Vector3(x,y+1,0)); //0
-                geom.vertices.push(new THREE.Vector3(x+1,y+1, 0)); //1
-                geom.vertices.push(new THREE.Vector3(x+1,y, 0)); //2
-                geom.vertices.push(new THREE.Vector3(x,y, 0)); //3
+                geom.vertices.push(new THREE.Vector3(x-this.enfat_epsilon,y+1+this.enfat_epsilon,0)); //0
+                geom.vertices.push(new THREE.Vector3(x+this.enfat_epsilon+1,y+this.enfat_epsilon+1, 0)); //1
+                geom.vertices.push(new THREE.Vector3(x+this.enfat_epsilon+1,y-this.enfat_epsilon, 0)); //2
+                geom.vertices.push(new THREE.Vector3(x-this.enfat_epsilon,y-this.enfat_epsilon, 0)); //3
                 // 1セルあたり2面づつ
                 var face_start_vert_ind = quad_cnt*4;
                 geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+2, face_start_vert_ind+1));
