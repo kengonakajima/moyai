@@ -202,19 +202,19 @@ void Prop2D::render(Camera *cam, DrawBatchList *bl ) {
                         // left bottom
                         const float d = 1;
                         int vi = quad_cnt * 4;
-                        vb->setCoord(vi,Vec3(d*x,d*y,0));
+                        vb->setCoord(vi,Vec3(d*x-enfat_epsilon,d*y-enfat_epsilon,0));
                         if(grid->rot_table && grid->rot_table[ind]) vb->setUV(vi,uv_s); else vb->setUV(vi,uv_p);
                         if(grid->color_table) vb->setColor(vi, grid->color_table[ind]); else vb->setColor(vi, Color(1,1,1,1));
                         // right bottom
-                        vb->setCoord(vi+1,Vec3(d*(x+1),d*y,0));
+                        vb->setCoord(vi+1,Vec3(d*(x+1)+enfat_epsilon,d*y-enfat_epsilon,0));
                         if(grid->rot_table && grid->rot_table[ind]) vb->setUV(vi+1,uv_r); else vb->setUV(vi+1,uv_s);                        
                         if(grid->color_table) vb->setColor(vi+1,grid->color_table[ind]); else vb->setColor(vi+1, Color(1,1,1,1));
                         // left top
-                        vb->setCoord(vi+2,Vec3(d*x,d*(y+1),0));
+                        vb->setCoord(vi+2,Vec3(d*x-enfat_epsilon,d*(y+1)+enfat_epsilon,0));
                         if(grid->rot_table && grid->rot_table[ind]) vb->setUV(vi+2,uv_p); else vb->setUV(vi+2,uv_q);
                         if(grid->color_table) vb->setColor(vi+2,grid->color_table[ind]); else vb->setColor(vi+2, Color(1,1,1,1));
                         // right top
-                        vb->setCoord(vi+3,Vec3(d*(x+1),d*(y+1),0));
+                        vb->setCoord(vi+3,Vec3(d*(x+1)+enfat_epsilon,d*(y+1)+enfat_epsilon,0));
                         if(grid->rot_table && grid->rot_table[ind]) vb->setUV(vi+3,uv_q); else vb->setUV(vi+3,uv_r);
                         if(grid->color_table) vb->setColor(vi+3,grid->color_table[ind]); else vb->setColor(vi+3, Color(1,1,1,1));
 
