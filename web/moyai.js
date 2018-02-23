@@ -1373,11 +1373,15 @@ function safariKey(e) {
 Keyboard.prototype.readBrowserEvent = function(e,pressed) {
     var id=e.key;
     if(!id)id=safariKey(e);
+    if(this.onKeyEvent) {
+        var keep=this.onKeyEvent(id,pressed);
+        if(!keep)return;
+    }
     this.setKey(id,pressed);
     if(e.key=="Control") this.mod_ctrl = pressed;
     if(e.key=="Shift") this.mod_shift = pressed;
     if(e.key=="Alt") this.mod_alt = pressed;
-    if(this.onKeyEvent) this.onKeyEvent(id,pressed);
+
 }
 Keyboard.prototype.setupBrowser = function(w) {
     var _this = this;
