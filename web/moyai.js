@@ -2,9 +2,10 @@
 //////////////
 function createMeshBasicMaterial(objarg) {
     var m = new THREE.MeshBasicMaterial(objarg);
-    m.shading = THREE.FlatShading;
+    //old    m.shading = THREE.FlatShading;
+    m.flatShading=true;
     m.side = THREE.FrontSide;
-    m.alphaTest = 0.5;
+    m.alphaTest = 0;
     m.needsUpdate = true;
     return m;
 }
@@ -760,7 +761,7 @@ Grid.prototype.updateMesh = function() {
     if(this.need_material_update) {
         this.need_material_update=false;
         if(!this.material) {
-            this.material = createMeshBasicMaterial({map: this.deck.moyai_tex.three_tex, transparent:true, depthTest:true, vertexColors:THREE.VertexColors });
+            this.material = createMeshBasicMaterial({map: this.deck.moyai_tex.three_tex, transparent:true, depthTest:true, vertexColors:THREE.VertexColors, blending: THREE.NormalBlending });
         } else {
             this.material.map = this.deck.moyai_tex.three_tex;
         }
@@ -778,7 +779,6 @@ Grid.prototype.updateMesh = function() {
             for(var x=0;x<this.width;x++) {
                 var ind = x+y*this.width;
                 if( this.index_table[ind] == GRID_NOT_USED )continue;
-
                 /*
                   0--1
                   |\ |
