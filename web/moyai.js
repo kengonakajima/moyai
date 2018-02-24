@@ -691,7 +691,12 @@ Grid.prototype.getYFlip = function(x,y) {
 }
 Grid.prototype.setTexOffset = function(x,y,uv) {
     if(!this.texofs_table) this.texofs_table=[];
-    this.texofs_table[this.index(x,y)]=uv;
+    if(y==undefined) {
+        // fill texofs
+        for(var i=0;i<this.width*this.height;i++) this.texofs_table[i]=uv;
+    } else {
+        this.texofs_table[this.index(x,y)]=uv;
+    }
     this.need_geometry_update = true;
 }
 Grid.prototype.getTexOffset = function(x,y) {
