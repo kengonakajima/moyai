@@ -382,6 +382,38 @@ TileDeck.prototype.getUVFromIndex = function(ind,uofs,vofs,eps) {
 TileDeck.prototype.getUperCell = function() { return this.cell_width / this.moyai_tex.image.width; }
 TileDeck.prototype.getVperCell = function() { return this.cell_height / this.moyai_tex.image.height; }    
 
+///////////////////////////
+
+function UVRect(u0,v0,u1,v1) {
+    this.u0=u0;
+    this.u1=u1;
+    this.v0=v0;
+    this.v1=v1;
+};
+PackDeck.prototype.id_gen = 1;
+function PackDeck() {
+    this.id = this.__proto__.id_gen++;
+}
+PackDeck.prototype.setTexture = function(tex) {
+    this.moyai_tex=tex;
+}
+PackDeck.prototype.getUVFromIndex = function(ind,uofs,vofs,eps) {
+    var uvrect = this.rects[ind];
+    if(!uvrect) return [0,0,1,1];
+    return uvrect;
+}
+PackDeck.prototype.getUperCell = function() {
+    return this.rects[0].u1 - this.rects[0].u0;
+}
+PackDeck.prototype.getVperCell = function() {
+    return this.rects[0].v1 - this.rects[0].v0;    
+}
+PackDeck.prototype.setRects = function(uvrects) {
+    this.rects=uvrects;
+}
+
+////////////////////////
+
 try {
     if(global) {
         // classes
