@@ -239,6 +239,21 @@ Layer.prototype.insertProp = function(p) {
     }
     this.props.push(p);
 }
+Layer.prototype.hasProp = function(p) {
+    for(var i=0;i<this.props.length;i++) {
+        if(this.props[i].id==p.id) return true;
+    }
+    return false;
+}
+Layer.prototype.delProp = function(p) {
+    for(var i=0;i<this.props.length;i++) {
+        if(this.props[i].id==p.id) {
+            this.props.splice(i,1);
+            return true;
+        }
+    }
+    return false;
+}
 Layer.prototype.pollAllProps = function(dt) {
     var keep=[];
     for(var i=0;i<this.props.length;i++) {
