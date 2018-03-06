@@ -1526,6 +1526,8 @@ Sound.prototype.prepareSource = function(vol) {
     }
     this.source = this.context.createBufferSource();
     this.source.buffer = this.audiobuffer;
+    var thissnd=this;
+    this.source.onended = function() { thissnd.source.ended=true; }
     this.gain_node = this.context.createGain();
     this.source.connect(this.gain_node);
     this.gain_node.connect(this.context.destination);
@@ -1555,9 +1557,11 @@ Sound.prototype.setTimePositionSec = function( pos_sec ) {
     }
 }
 Sound.prototype.isPlaying = function() {
-    if(!this.context)return;    
+    if(!this.context)return false;    
     if(this.source) {
-        return !this.source.paused;
+        if(this.source.paused) return false;
+        if(this.source.ended ) return false;  // set by moyai
+        return true;
     } else {
         return false;
     }        
