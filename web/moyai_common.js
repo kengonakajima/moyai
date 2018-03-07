@@ -295,6 +295,14 @@ Layer.prototype.findByKey = function(keyname,val) {
     }
     return null;
 }
+Layer.prototype.scan = function(cb) {
+    for(var i=0;i<this.props.length;i++) {
+        cb(this.props[i]);
+    }
+}
+Layer.prototype.clean = function() {
+    this.props=[];
+}
 
 /////////////////////
 MoyaiImage.prototype.id_gen = 1;
