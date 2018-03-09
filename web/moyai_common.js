@@ -86,6 +86,27 @@ dirToDXDY = function(d) {
 
 ////
 
+var moyai_rng_w = 123456789;
+var moyai_rng_z = 987654321;
+var moyai_rng_mask = 0xffffffff;
+
+// Takes any integer
+function moyai_rng_seed(i) {
+    moyai_rng_w = i;
+    moyai_rng_z = 987654321;
+}
+
+// Returns number between 0 (inclusive) and 1.0 (exclusive),
+// just like Math.random().
+function moyai_rng_random()
+{
+    moyai_rng_z = (36969 * (moyai_rng_z & 65535) + (moyai_rng_z >> 16)) & moyai_rng_mask;
+    moyai_rng_w = (18000 * (moyai_rng_w & 65535) + (moyai_rng_w >> 16)) & moyai_rng_mask;
+    var result = ((moyai_rng_z << 16) + moyai_rng_w) & moyai_rng_mask;
+    result /= 4294967296;
+    return result + 0.5;
+}
+
 irange = function(a,b) {
     return Math.floor(range(a,b));
 }
@@ -96,7 +117,7 @@ range = function(a,b) {
         big=small;
         small=tmp;
     }
-    var out=(small + (big-small)*Math.random());
+    var out=(small + (big-small)*moyai_rng_random());
     if(out==b)return a; // in very rare case, out==b
     return out;
 }
