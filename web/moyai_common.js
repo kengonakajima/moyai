@@ -9,7 +9,9 @@ DIR4_LEFT=3;
 randomDir = function() {
     return irange(DIR4_UP,DIR4_LEFT+1);
 }
-
+randomLRDir = function() {
+    return [DIR4_LEFT,DIR4_RIGHT][irange(0,2)];
+}
 reverseDir = function(d){
     switch(d){
     case DIR4_UP: return DIR4_DOWN;
@@ -20,7 +22,16 @@ reverseDir = function(d){
         return DIR4_NONE;
     }
 }
-
+turnDir = function(origdir,turndir) {
+    switch(turndir) {
+    case DIR4_LEFT: return leftDir(origdir);
+    case DIR4_RIGHT: return rightDir(origdir);
+    case DIR4_DOWN: return reverseDir(origdir);
+    case DIR4_UP: return origdir;
+    default:
+        assert(false,"invalid dir");
+    }
+}
 rightDir = function(d) {
     switch(d){
     case DIR4_UP: return DIR4_RIGHT; 
@@ -121,6 +132,10 @@ range = function(a,b) {
     if(out==b)return a; // in very rare case, out==b
     return out;
 }
+choose = function(ary) {
+    return ary[ irange(0,ary.length) ];
+}
+
 sign = function(f) {
     if(f>0) return 1; else if(f<0)return -1; else return 0;
 }
@@ -473,6 +488,7 @@ try {
         global.to_i=Math.floor;
         global.lengthf=lengthf;
         global.now=now;
+        global.choose=choose;
         global.sign=sign;
         global.range=range;
         global.irange=irange;
@@ -483,6 +499,8 @@ try {
         global.rightDir=rightDir;
         global.reverseDir=reverseDir;
         global.randomDir=randomDir;
+        global.randomLRDir=randomLRDir;
+        global.turnDir=turnDir;        
         // constants
         global.DIR4_NONE=DIR4_NONE;
         global.DIR4_UP=DIR4_UP;
