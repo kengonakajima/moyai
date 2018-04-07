@@ -5,24 +5,6 @@
 class VertexFormat 
 {
 public:
-
-	enum VertexSemantic
-	{
-		SEMANTIC_POS,
-		SEMANTIC_TEXCOORD,
-		SEMANTIC_COLOR,
-		SEMANTIC_NORMAL
-	};
-
-	struct Element
-	{
-		VertexSemantic semantic;
-		unsigned int semanticIndex;
-		unsigned int floatSize;
-	};
-
-	static const int MaxInstanceElementCount = 4;
-
 	// float only
 	char types[5]; // 'v': {f,f,f} 'c':{f,f,f,f}  't':{f,f}, 'n':{f,f,f} normal, 'p':{f,f} 2d position
 	int types_used;
@@ -95,16 +77,4 @@ public:
 	}
 
 	void dump();
-
-	// Instancing
-	bool addInstanceElement(VertexSemantic semantic, unsigned int semanticIndex, unsigned int floatSize);
-	int getInstanceElementCount() const { return instanceElementCount; }
-	int getInstanceStride() const { return instanceFloatCount * sizeof(float); }
-	const Element* getInstanceElement(int index) const;
-
-private:
-
-	int instanceFloatCount;
-	int instanceElementCount;
-	Element instanceElements[MaxInstanceElementCount];
 };
