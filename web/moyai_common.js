@@ -264,15 +264,26 @@ Viewport.prototype.getRelativeScale = function() {
 Camera.prototype.id_gen=1;
 function Camera() {
     this.id = this.__proto__.id_gen++;
-    this.loc = new Vec2(0,0);
+    this.loc = null; // vec2 or vec3
+    this.three_camera=null;
+    this.dimension=null;    
 }
-Camera.prototype.setLoc = function(x,y) {
-    this.loc.setWith2args(x,y);
+Camera.prototype.setLoc = function(x,y,z) {
+    if(x.constructor==Vec3){ this.loc=x; this.dimension=3; }
+    else if(x.constructor==Vec2){ this.loc=x; this.dimension=2; }
+    else if(z==undefined) {
+        this.loc=new Vec2(x,y);
+        this.dimension=2;
+    } else {
+        this.loc = new Vec3(x,y,z);
+        this.dimension=3;
+    }
 }
 Camera.prototype.setLookAt = function(at,up) {
 	this.look_at = at;
 	this.look_up = up;
 }
+
 
 /////////////////////
 function Light() {

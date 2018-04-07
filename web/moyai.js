@@ -28,11 +28,9 @@ function MoyaiClient(w,h,pixratio){
     this.z_per_prop = 1;
     this.z_per_subprop = 1; // this causes some issue when dense sprites.. but no way to implement correct draw order
     this.max_z = this.z_per_layer*100; // use z to confirm render order ( renderOrder dont work for line prims..)
-    
-    this.camera = new THREE.OrthographicCamera( -w/2, w/2, h/2, -h/2,-1,this.max_z);
-    this.camera.position.z = this.max_z+this.z_per_layer;
 
-    this.scene = new THREE.Scene();
+    this.scene2d = new THREE.Scene();
+    this.scene3d = new THREE.Scene();
     
     this.layers=[];
     g_moyais.push(this);
@@ -56,27 +54,48 @@ MoyaiClient.prototype.poll = function(dt) {
     return cnt;   
 }
 MoyaiClient.prototype.render = function() {
-    for(var i=0;i<this.scene.children.length;i++) {
-        this.scene.remove( this.scene.children[i]);
+    // clear
+    for(var i=0;i<this.scene2d.children.length;i++) this.scene2d.remove( this.scene2d.children[i]);
+    for(var i=0;i<this.scene3d.children.length;i++) this.scene3d.remove( this.scene3d.children[i]);
+    
+    if( this.scene2d.children.length>0) this.scene2d.remove( this.scene2d.children[0] ); // confirm remove all.. (TODO refactor)
+    if( this.scene3d.children.length>0) this.scene3d.remove( this.scene3d.children[0] ); // confirm remove all.. (TODO refactor)    
+
+    this.renderer.clear();
+    this.renderer.clearDepth();
+    
+    // 3d first
+    for(var li=0;li<this.layers.length;li++) {
+        var layer = this.layers[li];
+        if(layer.viewport.dimension==3) {
+            this.render3D(this.scene3d, layer);
+        }
     }
-    if( this.scene.children.length>0) this.scene.remove( this.scene.children[0] ); // confirm remove all.. (TODO refactor)
-//    this.scene.children.forEach(function(object){ this.scene.remove(object); });    
+//    this.renderer.render(this.scene3d, camera3d );
+
+    // then 2d            
     for(var li=0;li<this.layers.length;li++) {
         var layer = this.layers[li];
         if(layer.viewport.dimension==2) {
-            this.render2D(layer);
-        } else {
-            this.render3D(layer);
+            this.render2D(this.scene2d, layer);
         }
     }
-    this.renderer.clear();
-    this.renderer.clearDepth();
-    this.renderer.render( this.scene, this.camera );
+    var camera2d = new THREE.OrthographicCamera( -this.width/2, this.width/2, this.height/2, -this.height/2,-1,this.max_z);
+    camera2d.position.z = this.max_z;
+    this.renderer.render( this.scene2d, camera2d );
 }
-MoyaiClient.prototype.render3D = function(layer) {
-    
+MoyaiClient.prototype.render3D = function(scene,layer) {
+    if(!this.camera) {
+
+    }
+    for(var pi=0;pi<layer.props.length;pi++ ) {                    
+        var prop = layer.props[pi];
+        if(!prop.visible)continue;
+        console.log("pp",prop);
+        scene.add(prop.mesh);
+    }
 }
-MoyaiClient.prototype.render2D = function(layer) {
+MoyaiClient.prototype.render2D = function(scene, layer) {
     var relscl = new Vec2(1,1);
     var camloc;
     if(layer.camera) {
@@ -109,7 +128,7 @@ MoyaiClient.prototype.render2D = function(layer) {
                     grid.mesh.scale.x = prop.scl.x * relscl.x;
                     grid.mesh.scale.y = prop.scl.y * relscl.y;
                     grid.mesh.rotation.set(0,0,prop.rot);
-                    this.scene.add(grid.mesh);
+                    scene.add(grid.mesh);
                     z_inside_prop += this.z_per_subprop;
                 }
             }
@@ -127,7 +146,7 @@ MoyaiClient.prototype.render2D = function(layer) {
                     chp.mesh.scale.y = chp.scl.y * relscl.y;
                     chp.mesh.rotation.set(0,0,chp.rot);
                     if( chp.use_additive_blend ) chp.material.blending = THREE.AdditiveBlending; else chp.material.blending = THREE.NormalBlending;
-                    this.scene.add(chp.mesh);
+                    scene.add(chp.mesh);
                     z_inside_prop += this.z_per_subprop;
                 }
             }
@@ -141,7 +160,7 @@ MoyaiClient.prototype.render2D = function(layer) {
             prop.mesh.rotation.set(0,0,prop.rot);
             if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
             //               console.log("adding ", prop.mesh, layer.camera, this.camera );
-            this.scene.add(prop.mesh);
+            scene.add(prop.mesh);
             z_inside_prop += this.z_per_subprop;
         }            
         if(prop.prim_drawer) {
@@ -155,7 +174,7 @@ MoyaiClient.prototype.render2D = function(layer) {
                 prim.mesh.scale.y = prop.scl.y * relscl.y;
                 prim.mesh.rotation.set(0,0,prop.rot);
                 //                    console.log("adding prim:", prim, prim.a, prim.b, prim.mesh.position );
-                this.scene.add(prim.mesh);
+                scene.add(prim.mesh);
                 z_inside_prop += this.z_per_subprop;
             }
         }            
@@ -1690,6 +1709,7 @@ class Prop3D extends Prop {
         this.draw_offset = new Vec3(0,0);
         this.priority=this.id;
         this.dimension=3;
+        this.visible=true;        
     }
     propPoll(dt) {
         if(this.prop3DPoll && this.prop3DPoll(dt)==false) {
