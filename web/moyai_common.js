@@ -265,7 +265,6 @@ Camera.prototype.id_gen=1;
 function Camera() {
     this.id = this.__proto__.id_gen++;
     this.loc = null; // vec2 or vec3
-    this.three_camera=null;
     this.dimension=null;    
 }
 Camera.prototype.setLoc = function(x,y,z) {

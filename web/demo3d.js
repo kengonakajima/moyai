@@ -32,7 +32,7 @@ g_main_layer.setViewport(g_viewport3d);
 
 var g_main_camera = new Camera();
 g_main_camera.setLoc(0.001,0,3);
-g_main_camera.setLookAt(Vec3(0,0,0), Vec3(0,1,0));
+g_main_camera.setLookAt(new Vec3(0,0,0), new Vec3(0,1,0));
 g_main_layer.setCamera(g_main_camera);
 
 var g_hud_layer = new Layer();
@@ -111,7 +111,7 @@ geom.faces.push(new THREE.Face3(7,6,2)); // HGC
 for(var i=0;i<12;i++){
     for(var j=0;j<3;j++){
         var c=new Color(1,1,1,1);
-        if(i==0 ||i==5) c=new Color(1,0,0,1);
+        if(i>6 ) c=new Color(1,0,0,1);
         geom.faces[i].vertexColors[j] = c.toTHREEColor();
     }
 }
@@ -146,6 +146,10 @@ function animate() {
     last_anim_at = now_time;    
     g_moyai_client.poll(dt/1000.0);
     g_moyai_client.render();
+
+
+    g_main_camera.setLoc( g_main_camera.loc.x+0.1,0,3);
+    
 }
 
 animate();

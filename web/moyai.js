@@ -69,9 +69,17 @@ MoyaiClient.prototype.render = function() {
         var layer = this.layers[li];
         if(layer.viewport.dimension==3) {
             this.render3D(this.scene3d, layer);
+            var camera3d = new THREE.PerspectiveCamera( 45 , this.width / this.height , 1 , 10000 );    
+            var lcam = layer.camera;
+            console.log("lcam:",lcam);
+            camera3d.up.x = lcam.look_up.x; camera3d.up.y = lcam.look_up.y; camera3d.up.z = lcam.look_up.z;
+            camera3d.position.set( lcam.loc.x, lcam.loc.y, lcam.loc.z );
+            camera3d.lookAt({x: lcam.look_at.x, y: lcam.look_at.y, z: lcam.look_at.z });
+            this.renderer.render(this.scene3d, camera3d );            
         }
     }
-//    this.renderer.render(this.scene3d, camera3d );
+
+
 
     // then 2d            
     for(var li=0;li<this.layers.length;li++) {
