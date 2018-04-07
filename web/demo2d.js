@@ -1,19 +1,8 @@
 
-var g_ws;
-
 var g_moyai_client;
 
-
-
-
 // button funcs
-function connectButton() {
-    g_ws = createWSClient("ws://localhost:8888/");
-    g_ws.onPacket = onPacket;
-}
-function disconnectButton() {
-    g_ws.close();
-}
+
 var g_stop_render=false;
 function stopRender() {
     g_stop_render = true;

@@ -63,93 +63,103 @@ MoyaiClient.prototype.render = function() {
 //    this.scene.children.forEach(function(object){ this.scene.remove(object); });    
     for(var li=0;li<this.layers.length;li++) {
         var layer = this.layers[li];
-        var relscl = new Vec2(1,1);
-        var camloc;
-        if(layer.camera) {
-            camloc = layer.camera.loc;
+        if(layer.viewport.dimension==2) {
+            this.render2D(layer);
         } else {
-            camloc = new Vec2(0,0);
-        }
-        if(layer.viewport) {
-            relscl = layer.viewport.getRelativeScale();
-        }
-        for(var pi=0;pi<layer.props.length;pi++ ) {                    
-            var prop = layer.props[pi];
-            if(!prop.visible)continue;
-
-            prop.updateMesh();
-            var z_inside_prop=0;
-            
-            var prop_z = layer.priority * this.z_per_layer + prop.priority * this.z_per_prop;
-            if(prop.grids) {
-                for(var gi=0;gi<prop.grids.length;gi++) {
-                    var grid = prop.grids[gi];
-                    if(!grid.visible)continue;
-                    grid.updateMesh();
-                    if(!grid.mesh) {
-//                        console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
-                    } else {
-                        grid.mesh.position.x = (prop.loc.x-camloc.x)*relscl.x;
-                        grid.mesh.position.y = (prop.loc.y-camloc.y)*relscl.y;
-                        grid.mesh.position.z = prop_z + z_inside_prop;
-                        grid.mesh.scale.x = prop.scl.x * relscl.x;
-                        grid.mesh.scale.y = prop.scl.y * relscl.y;
-                        grid.mesh.rotation.set(0,0,prop.rot);
-                        this.scene.add(grid.mesh);
-                        z_inside_prop += this.z_per_subprop;
-                    }
-                }
-            }
-            if(prop.children.length>0) {
-                for(var i=0;i<prop.children.length;i++) {
-                    var chp = prop.children[i];
-                    if(!chp.visible)continue;
-                    chp.updateMesh();
-                    if( chp.mesh ) {
-                        chp.mesh.position.x = (chp.loc.x-camloc.x)*relscl.x;
-                        chp.mesh.position.y = (chp.loc.y-camloc.y)*relscl.y;
-                        chp.mesh.position.z = prop_z + z_inside_prop;
-                        chp.mesh.scale.x = chp.scl.x * relscl.x;
-                        chp.mesh.scale.y = chp.scl.y * relscl.y;
-                        chp.mesh.rotation.set(0,0,chp.rot);
-                        if( chp.use_additive_blend ) chp.material.blending = THREE.AdditiveBlending; else chp.material.blending = THREE.NormalBlending;
-                        this.scene.add(chp.mesh);
-                        z_inside_prop += this.z_per_subprop;
-                    }
-                }
-            }
-            if(prop.mesh) {
-                prop.mesh.position.x = (prop.loc.x - camloc.x)*relscl.x;
-                prop.mesh.position.y = (prop.loc.y - camloc.y)*relscl.y;
-                prop.mesh.position.z = prop_z + z_inside_prop;
-                prop.mesh.scale.x = prop.scl.x * relscl.x;
-                prop.mesh.scale.y = prop.scl.y * relscl.y;
-                prop.mesh.rotation.set(0,0,prop.rot);
-                if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
-//               console.log("adding ", prop.mesh, layer.camera, this.camera );
-                this.scene.add(prop.mesh);
-                z_inside_prop += this.z_per_subprop;
-            }            
-            if(prop.prim_drawer) {
-                for(var i=0;i<prop.prim_drawer.prims.length;i++) {
-                    var prim = prop.prim_drawer.prims[i];
-                    prim.updateMesh();
-                    prim.mesh.position.x = (prop.loc.x-camloc.x)*relscl.x;
-                    prim.mesh.position.y = (prop.loc.y-camloc.y)*relscl.y;
-                    prim.mesh.position.z = prop_z + z_inside_prop;
-                    prim.mesh.scale.x = prop.scl.x * relscl.x;
-                    prim.mesh.scale.y = prop.scl.y * relscl.y;
-                    prim.mesh.rotation.set(0,0,prop.rot);
-//                    console.log("adding prim:", prim, prim.a, prim.b, prim.mesh.position );
-                    this.scene.add(prim.mesh);
-                    z_inside_prop += this.z_per_subprop;
-                }
-            }            
+            this.render3D(layer);
         }
     }
     this.renderer.clear();
     this.renderer.clearDepth();
     this.renderer.render( this.scene, this.camera );
+}
+MoyaiClient.prototype.render3D = function(layer) {
+    
+}
+MoyaiClient.prototype.render2D = function(layer) {
+    var relscl = new Vec2(1,1);
+    var camloc;
+    if(layer.camera) {
+        camloc = layer.camera.loc;
+    } else {
+        camloc = new Vec2(0,0);
+    }
+    if(layer.viewport) {
+        relscl = layer.viewport.getRelativeScale();
+    }
+    for(var pi=0;pi<layer.props.length;pi++ ) {                    
+        var prop = layer.props[pi];
+        if(!prop.visible)continue;
+
+        prop.updateMesh();
+        var z_inside_prop=0;
+        
+        var prop_z = layer.priority * this.z_per_layer + prop.priority * this.z_per_prop;
+        if(prop.grids) {
+            for(var gi=0;gi<prop.grids.length;gi++) {
+                var grid = prop.grids[gi];
+                if(!grid.visible)continue;
+                grid.updateMesh();
+                if(!grid.mesh) {
+                    //                        console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
+                } else {
+                    grid.mesh.position.x = (prop.loc.x-camloc.x)*relscl.x;
+                    grid.mesh.position.y = (prop.loc.y-camloc.y)*relscl.y;
+                    grid.mesh.position.z = prop_z + z_inside_prop;
+                    grid.mesh.scale.x = prop.scl.x * relscl.x;
+                    grid.mesh.scale.y = prop.scl.y * relscl.y;
+                    grid.mesh.rotation.set(0,0,prop.rot);
+                    this.scene.add(grid.mesh);
+                    z_inside_prop += this.z_per_subprop;
+                }
+            }
+        }
+        if(prop.children.length>0) {
+            for(var i=0;i<prop.children.length;i++) {
+                var chp = prop.children[i];
+                if(!chp.visible)continue;
+                chp.updateMesh();
+                if( chp.mesh ) {
+                    chp.mesh.position.x = (chp.loc.x-camloc.x)*relscl.x;
+                    chp.mesh.position.y = (chp.loc.y-camloc.y)*relscl.y;
+                    chp.mesh.position.z = prop_z + z_inside_prop;
+                    chp.mesh.scale.x = chp.scl.x * relscl.x;
+                    chp.mesh.scale.y = chp.scl.y * relscl.y;
+                    chp.mesh.rotation.set(0,0,chp.rot);
+                    if( chp.use_additive_blend ) chp.material.blending = THREE.AdditiveBlending; else chp.material.blending = THREE.NormalBlending;
+                    this.scene.add(chp.mesh);
+                    z_inside_prop += this.z_per_subprop;
+                }
+            }
+        }
+        if(prop.mesh) {
+            prop.mesh.position.x = (prop.loc.x - camloc.x)*relscl.x;
+            prop.mesh.position.y = (prop.loc.y - camloc.y)*relscl.y;
+            prop.mesh.position.z = prop_z + z_inside_prop;
+            prop.mesh.scale.x = prop.scl.x * relscl.x;
+            prop.mesh.scale.y = prop.scl.y * relscl.y;
+            prop.mesh.rotation.set(0,0,prop.rot);
+            if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
+            //               console.log("adding ", prop.mesh, layer.camera, this.camera );
+            this.scene.add(prop.mesh);
+            z_inside_prop += this.z_per_subprop;
+        }            
+        if(prop.prim_drawer) {
+            for(var i=0;i<prop.prim_drawer.prims.length;i++) {
+                var prim = prop.prim_drawer.prims[i];
+                prim.updateMesh();
+                prim.mesh.position.x = (prop.loc.x-camloc.x)*relscl.x;
+                prim.mesh.position.y = (prop.loc.y-camloc.y)*relscl.y;
+                prim.mesh.position.z = prop_z + z_inside_prop;
+                prim.mesh.scale.x = prop.scl.x * relscl.x;
+                prim.mesh.scale.y = prop.scl.y * relscl.y;
+                prim.mesh.rotation.set(0,0,prop.rot);
+                //                    console.log("adding prim:", prim, prim.a, prim.b, prim.mesh.position );
+                this.scene.add(prim.mesh);
+                z_inside_prop += this.z_per_subprop;
+            }
+        }            
+    }
 }
 
 MoyaiClient.prototype.insertLayer = function(l) {
@@ -159,6 +169,73 @@ MoyaiClient.prototype.insertLayer = function(l) {
     }
     this.layers.push(l);
 }
+
+
+//////////////////////////
+/*
+function VertexFormat() {
+	this.types = Array(5); // char types[5]; // 'v': {f,f,f} 'c':{f,f,f,f}  't':{f,f}, 'n':{f,f,f} normal, 'p':{f,f} 2d position
+	this.types_used=0;
+	this.num_float=0;
+	this.coord_offset=-1; // not used
+    this.color_offset=-1;
+    this.texture_offset=-1;
+    this.normal_offset=-1;
+    this.pos_offset=-1;
+}
+VertexFormat.prototype.declareCoordVec3 = function() { this.addType('v'); }
+VertexFormat.prototype.declareColor = function() { this.addType('c'); }
+VertexFormat.prototype.declareUV = function() { this.addType('t'); }
+VertexFormat.prototype.declareNormal = function() { this.addType('n'); }
+VertexFormat.prototype.declare2DPos = function() { this.addType('p'); }
+VertexFormat.prototype.addType = function(ch) {
+    if(this.types_used>=5) throw "too many types";
+	this.types[this.types_used++] = ch;
+    this.updateSize();
+}
+VertexFormat.prototype.isCoordVec3Declared = function(ind) { return this.types[ind] == 'v'; }
+VertexFormat.prototype.isColorDeclared = function(ind) { return this.types[ind] == 'c'; }
+VertexFormat.prototype.isUVDeclared = function(ind) { return this.types[ind] == 't'; }
+VertexFormat.prototype.isNormalDeclared = function(ind) { return this.types[ind] == 'n'; }
+VertexFormat.prototype.is2DPosDeclared = function(ind) { return this.types[ind] == 'p'; }
+VertexFormat.prototype.updateSize = function() {
+    this.num_float=0;
+    for(var i=0;i<this.types_used;i++) {
+		switch(this.types[i]){
+		case 'v':
+			this.coord_offset = this.num_float;
+			this.num_float += 3;
+			break;
+		case 'n':
+			this.normal_offset = this.num_float;
+			this.num_float += 3;
+			break;
+		case 'c':
+			this.color_offset = this.num_float;
+			this.num_float += 4;
+			break;
+		case 't':
+			this.texture_offset = this.num_float;
+			this.num_float += 2;
+			break;
+		case 'p':
+			this.pos_offset = this.num_float;
+			this.num_float += 2;
+			break;
+		default:
+			throw "vertexformat: updateSize: invalid type name:", types[i];
+		}
+	}        
+};
+VertexFormat.prototype.getNumFloat = function() { return this.num_float; }
+    */
+//////////////////////////
+/*
+function VertexBuffer() {
+    this.fmt=null;
+    this.geom=null; // THREE.Geometry
+}
+*/
 
 
 //////////////////////////
@@ -343,141 +420,32 @@ PrimDrawer.prototype.ensurePrim = function(p) {
 }
 
 //////////////////
+var moyai_id_gen=1;
+class Prop {
+    constructor() {
+        this.id=moyai_id_gen++;
+        this.poll_count=0;
+        this.accum_time=0;
+    }
+    basePoll(dt) {
+        this.poll_count++;
+        this.accum_time+=dt;    
+        if(this.to_clean) {
+            return false;
+        }
+        if( this.propPoll && this.propPoll(dt) == false ) {
+            return false;
+        }
+        return true;
+    }
+    onDelete() {
+        if(this.mesh){
+            if(this.mesh.geometry) this.mesh.geometry.dispose();
+            if(this.mesh.material) this.mesh.material.dispose();
+        }
+    }
+}
 
-Prop2D.prototype.id_gen=1;
-function Prop2D() {
-    this.id=this.__proto__.id_gen++;
-    this.index = 0;
-    this.scl = new Vec2(32,32);
-    this.loc = new Vec2(0,0);
-    this.rot = 0;
-    this.deck = null;
-    this.uvrot = false;
-    this.color = new Color(1,1,1,1);
-    this.prim_drawer = null;
-    this.grids=null;
-    this.visible=true;
-    this.use_additive_blend = false;
-    this.children=[];
-    this.accum_time=0;
-    this.poll_count=0;
-    this.mesh=null;
-    this.material=null;
-    this.priority = null; // set when insertprop if kept null
-    this.need_material_update=false;
-    this.need_color_update=false;
-    this.need_uv_update=true;
-    this.xflip=false;
-    this.yflip=false;
-    this.fragment_shader= new DefaultColorShader();
-    this.remote_vel=null; 
-}
-Prop2D.prototype.onDelete = function() {
-    if(this.mesh){
-        if(this.mesh.geometry) this.mesh.geometry.dispose();
-        if(this.mesh.material) this.mesh.material.dispose();
-    }
-}
-Prop2D.prototype.setVisible = function(flg) { this.visible=flg; }
-Prop2D.prototype.setDeck = function(dk) { this.deck = dk; this.need_material_update = true; }
-Prop2D.prototype.setIndex = function(ind) { this.index = ind; this.need_uv_update = true; }
-Prop2D.prototype.setScl = function(x,y) { this.scl.setWith2args(x,y);}
-Prop2D.prototype.setLoc = function(x,y) { this.loc.setWith2args(x,y);}
-Prop2D.prototype.setRot = function(r) { this.rot=r; }
-Prop2D.prototype.setUVRot = function(flg) { this.uvrot=flg; this.need_uv_update = true; }
-Prop2D.prototype.setColor = function(r,g,b,a) {
-    if(this.color.equals(r,g,b,a)==false) {
-        this.need_color_update = true;
-        if(this.fragment_shader) this.need_material_update = true;
-    }
-    if(typeof r == 'object' ) {
-        this.color = r ;
-    } else {
-        this.color = new Color(r,g,b,a); 
-    }
-}
-Prop2D.prototype.setXFlip = function(flg) { this.xflip=flg; this.need_uv_update = true; }
-Prop2D.prototype.setYFlip = function(flg) { this.yflip=flg; this.need_uv_update = true; }
-Prop2D.prototype.setPriority = function(prio) { this.priority = prio; }
-Prop2D.prototype.ensurePrimDrawer = function() {
-    if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
-}
-Prop2D.prototype.addLine = function(p0,p1,col,w) {
-    this.ensurePrimDrawer();
-    return this.prim_drawer.addLine(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
-}
-Prop2D.prototype.addRect = function(p0,p1,col,w) {
-    this.ensurePrimDrawer();
-    return this.prim_drawer.addRect(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
-}
-Prop2D.prototype.getPrimById = function(id) {
-    if(!this.prim_drawer)return null;
-    return this.prim_drawer.getPrimById(id);
-}
-Prop2D.prototype.deletePrim = function(id) {
-    if(this.prim_drawer) this.prim_drawer.deletePrim(id);
-}
-Prop2D.prototype.addGrid = function(g) {
-    if(!this.grids) this.grids=[];
-    this.grids.push(g);
-//    console.log("addGrid: grid id:",g.id,g.width, g.height, "propid:",this.id, "grids:",this.grids);
-}
-Prop2D.prototype.setGrid = function(g) {
-    if(this.grids) {
-        for(var i=0;i<this.grids.length;i++) {
-            if(this.grids[i].id==g.id) {
-                return;
-            }
-        }
-    }
-    this.addGrid(g);
-}
-Prop2D.prototype.setTexture = function(tex) {
-    var td = new TileDeck();
-    td.setTexture(tex);
-    var sz = tex.getSize();
-    td.setSize(1,1,sz.x,sz.y);
-    this.setDeck(td);
-    this.setIndex(0);
-    this.need_material_update = true;
-}
-Prop2D.prototype.addChild = function(chp) {
-    this.children.push(chp);
-}
-Prop2D.prototype.clearChildren = function() {
-    this.children=[];
-}
-Prop2D.prototype.clearChild = function(p) {
-    var keep=[];
-    for(var i=0;i<this.children.length;i++) {
-        if(this.children[i]!=p) keep.push( this.children[i]);
-    }
-    this.children = keep;
-}
-Prop2D.prototype.getChild = function(propid) {
-    for(var i=0;i<this.children.length;i++) {
-        if( this.children[i].id == propid ) {
-            return this.children[i];
-        }
-    }
-    return null;
-}
-Prop2D.prototype.setFragmentShader = function(s) {    this.fragment_shader = s;}
-Prop2D.prototype.basePoll = function(dt) { // return false to clean
-    this.poll_count++;
-    this.accum_time+=dt;    
-    if(this.to_clean) {
-        return false;
-    }
-    if(this.remote_vel) {
-        this.loc.x += this.remote_vel.x*dt;
-        this.loc.y += this.remote_vel.y*dt;
-    }
-    if( this.prop2DPoll && this.prop2DPoll(dt) == false ) {
-        return false;
-    }
-    return true;
-}
 function createRectGeometry(width,height) {
     var geometry = new THREE.Geometry();
     var sizeHalfX = width / 2;
@@ -496,85 +464,205 @@ function createRectGeometry(width,height) {
     geometry.faces.push(new THREE.Face3(0, 3, 2));
     return geometry;
 }
-Prop2D.prototype.updateMesh = function() {
-    if(!this.deck)return;
-    if( this.need_material_update ) {
-        if(!this.material) {
-            if(this.fragment_shader) {
-                this.fragment_shader.updateUniforms(this.deck.moyai_tex.three_tex,this.color);
-                this.material = this.fragment_shader.material;
-            } else {
-                this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:true, transparent: true, vertexColors:THREE.VertexColors, blending: THREE.NormalBlending });
-            }
-        } else {
-            this.material.map = this.deck.moyai_tex.three_tex;
-            if(this.fragment_shader) {
-                this.fragment_shader.updateUniforms(this.deck.moyai_tex.three_tex,this.color);
-            }
-        }
-        this.need_material_update = false;
-    }  
-    if( this.need_uv_update ) {
-        var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
-        var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
-        if(this.xflip ) {
-            var tmp = u1; u1 = u0; u0 = tmp;
-        }
-        if(this.yflip ) {
-            var tmp = v1; v1 = v0; v0 = tmp;
-        }
-        var uv_p = new THREE.Vector2(u0,v1);
-        var uv_q = new THREE.Vector2(u0,v0);
-        var uv_r = new THREE.Vector2(u1,v0);
-        var uv_s = new THREE.Vector2(u1,v1);
-        // Q (u0,v0) - R (u1,v0)      top-bottom upside down.
-        //      |           |
-        //      |           |                        
-        // P (u0,v1) - S (u1,v1)        
-        if(this.uvrot) {
-            var tmp = uv_p;
-            uv_p = uv_s;
-            uv_s = uv_r;
-            uv_r = uv_q;
-            uv_q = tmp;
-        }
-        
-        if(!this.geom) {
-            this.geom = createRectGeometry(1,1);
-        }
-        var uvs = this.geom.faceVertexUvs[0][0];
-        if(!uvs) {
-            this.geom.faceVertexUvs[0].push([uv_q,uv_s,uv_r]);
-            this.geom.faceVertexUvs[0].push([uv_q,uv_p,uv_s]);
-        } else {
-            uvs[0].x = uv_q.x; uvs[0].y = uv_q.y;
-            uvs[1].x = uv_s.x; uvs[1].y = uv_s.y;
-            uvs[2].x = uv_r.x; uvs[2].y = uv_r.y;
-            uvs = this.geom.faceVertexUvs[0][1];
-            uvs[0].x = uv_q.x; uvs[0].y = uv_q.y;
-            uvs[1].x = uv_p.x; uvs[1].y = uv_p.y;
-            uvs[2].x = uv_s.x; uvs[2].y = uv_s.y;
-        }
-        
-        this.geom.verticesNeedUpdate = true;
-        this.geom.uvsNeedUpdate = true;
-        this.need_uv_update = false;
-    }
-    if( this.need_color_update ) {
-//        this.color.r = this.color.g = this.color.b = this.color.a = 1;
-        this.geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
-        this.geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
-        this.geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
-        this.geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
-        this.geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
-        this.geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
-        this.need_color_update = false;
-    }
 
-    if(!this.mesh) {
-        this.mesh = new THREE.Mesh(this.geom,this.material);
+class Prop2D extends Prop {
+    constructor() {
+        super();
+        this.index = 0;
+        this.scl = new Vec2(32,32);
+        this.loc = new Vec2(0,0);
+        this.rot = 0;
+        this.deck = null;
+        this.uvrot = false;
+        this.color = new Color(1,1,1,1);
+        this.prim_drawer = null;
+        this.grids=null;
+        this.visible=true;
+        this.use_additive_blend = false;
+        this.children=[];
+        this.mesh=null;
+        this.material=null;
+        this.priority = null; // set when insertprop if kept null
+        this.need_material_update=false;
+        this.need_color_update=false;
+        this.need_uv_update=true;
+        this.xflip=false;
+        this.yflip=false;
+        this.fragment_shader= new DefaultColorShader();
+        this.remote_vel=null; 
+    }
+    setVisible(flg) { this.visible=flg; }
+    setDeck(dk) { this.deck = dk; this.need_material_update = true; }
+    setIndex(ind) { this.index = ind; this.need_uv_update = true; }
+    setScl(x,y) { this.scl.setWith2args(x,y);}
+    setLoc(x,y) { this.loc.setWith2args(x,y);}
+    setRot(r) { this.rot=r; }
+    setUVRot(flg) { this.uvrot=flg; this.need_uv_update = true; }
+    setColor(r,g,b,a) {
+        if(this.color.equals(r,g,b,a)==false) {
+            this.need_color_update = true;
+            if(this.fragment_shader) this.need_material_update = true;
+        }
+        if(typeof r == 'object' ) {
+            this.color = r ;
+        } else {
+            this.color = new Color(r,g,b,a); 
+        }
+    }
+    setXFlip(flg) { this.xflip=flg; this.need_uv_update = true; }
+    setYFlip(flg) { this.yflip=flg; this.need_uv_update = true; }
+    setPriority(prio) { this.priority = prio; }
+    ensurePrimDrawer() {
+        if(!this.prim_drawer) this.prim_drawer = new PrimDrawer();
+    }
+    addLine(p0,p1,col,w) {
+        this.ensurePrimDrawer();
+        return this.prim_drawer.addLine(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
+    }
+    addRect(p0,p1,col,w) {
+        this.ensurePrimDrawer();
+        return this.prim_drawer.addRect(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
+    }
+    getPrimById(id) {
+        if(!this.prim_drawer)return null;
+        return this.prim_drawer.getPrimById(id);
+    }
+    deletePrim(id) {
+        if(this.prim_drawer) this.prim_drawer.deletePrim(id);
+    }
+    addGrid(g) {
+        if(!this.grids) this.grids=[];
+        this.grids.push(g);
+        //    console.log("addGrid: grid id:",g.id,g.width, g.height, "propid:",this.id, "grids:",this.grids);
+    }
+    setGrid(g) {
+        if(this.grids) {
+            for(var i=0;i<this.grids.length;i++) {
+                if(this.grids[i].id==g.id) {
+                    return;
+                }
+            }
+        }
+        this.addGrid(g);
+    }
+    setTexture(tex) {
+        var td = new TileDeck();
+        td.setTexture(tex);
+        var sz = tex.getSize();
+        td.setSize(1,1,sz.x,sz.y);
+        this.setDeck(td);
+        this.setIndex(0);
+        this.need_material_update = true;
+    }
+    addChild(chp) { this.children.push(chp); }
+    clearChildren() { this.children=[]; }
+    clearChild(p) {
+        var keep=[];
+        for(var i=0;i<this.children.length;i++) {
+            if(this.children[i]!=p) keep.push( this.children[i]);
+        }
+        this.children = keep;
+    }
+    getChild(propid) {
+        for(var i=0;i<this.children.length;i++) {
+            if( this.children[i].id == propid ) {
+                return this.children[i];
+            }
+        }
+        return null;
+    }
+    setFragmentShader(s) { this.fragment_shader = s;}
+    propPoll(dt) { 
+        if(this.remote_vel) {
+            this.loc.x += this.remote_vel.x*dt;
+            this.loc.y += this.remote_vel.y*dt;
+        }
+        if( this.prop2DPoll && this.prop2DPoll(dt) == false ) {
+            return false;
+        }
+        return true;
+    }
+    updateMesh() {
+        if(!this.deck)return;
+        if( this.need_material_update ) {
+            if(!this.material) {
+                if(this.fragment_shader) {
+                    this.fragment_shader.updateUniforms(this.deck.moyai_tex.three_tex,this.color);
+                    this.material = this.fragment_shader.material;
+                } else {
+                    this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:true, transparent: true, vertexColors:THREE.VertexColors, blending: THREE.NormalBlending });
+                }
+            } else {
+                this.material.map = this.deck.moyai_tex.three_tex;
+                if(this.fragment_shader) {
+                    this.fragment_shader.updateUniforms(this.deck.moyai_tex.three_tex,this.color);
+                }
+            }
+            this.need_material_update = false;
+        }  
+        if( this.need_uv_update ) {
+            var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
+            var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
+            if(this.xflip ) {
+                var tmp = u1; u1 = u0; u0 = tmp;
+            }
+            if(this.yflip ) {
+                var tmp = v1; v1 = v0; v0 = tmp;
+            }
+            var uv_p = new THREE.Vector2(u0,v1);
+            var uv_q = new THREE.Vector2(u0,v0);
+            var uv_r = new THREE.Vector2(u1,v0);
+            var uv_s = new THREE.Vector2(u1,v1);
+            // Q (u0,v0) - R (u1,v0)      top-bottom upside down.
+            //      |           |
+            //      |           |                        
+            // P (u0,v1) - S (u1,v1)        
+            if(this.uvrot) {
+                var tmp = uv_p;
+                uv_p = uv_s;
+                uv_s = uv_r;
+                uv_r = uv_q;
+                uv_q = tmp;
+            }
+            
+            if(!this.geom) {
+                this.geom = createRectGeometry(1,1);
+            }
+            var uvs = this.geom.faceVertexUvs[0][0];
+            if(!uvs) {
+                this.geom.faceVertexUvs[0].push([uv_q,uv_s,uv_r]);
+                this.geom.faceVertexUvs[0].push([uv_q,uv_p,uv_s]);
+            } else {
+                uvs[0].x = uv_q.x; uvs[0].y = uv_q.y;
+                uvs[1].x = uv_s.x; uvs[1].y = uv_s.y;
+                uvs[2].x = uv_r.x; uvs[2].y = uv_r.y;
+                uvs = this.geom.faceVertexUvs[0][1];
+                uvs[0].x = uv_q.x; uvs[0].y = uv_q.y;
+                uvs[1].x = uv_p.x; uvs[1].y = uv_p.y;
+                uvs[2].x = uv_s.x; uvs[2].y = uv_s.y;
+            }
+            
+            this.geom.verticesNeedUpdate = true;
+            this.geom.uvsNeedUpdate = true;
+            this.need_uv_update = false;
+        }
+        if( this.need_color_update ) {
+            //        this.color.r = this.color.g = this.color.b = this.color.a = 1;
+            this.geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
+            this.geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
+            this.geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
+            this.geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
+            this.geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
+            this.geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
+            this.need_color_update = false;
+        }
+
+        if(!this.mesh) {
+            this.mesh = new THREE.Mesh(this.geom,this.material);
+        }
     }
 }
+
 ////////////////////////////
 
 Grid.prototype.id_gen=1;
@@ -1062,104 +1150,105 @@ Font.prototype.getGlyph = function(code) {
 }
 
 //////////////////
-function TextBox() {
-    Prop2D.call(this);
-    this.font = null;
-    this.scl = new Vec2(1,1);
-    this.str = null;
-    this.geom=null;
-    this.material=null;
-    this.need_geometry_update=false;
-    this.need_material_update=false;
-}
-TextBox.prototype = Object.create(Prop2D.prototype);
-TextBox.prototype.constructor = TextBox;
-TextBox.prototype.setFont = function(fnt) { this.font = fnt; this.need_material_update=true; }
-TextBox.prototype.setString = function(s) {
-    this.str = s;
-    this.need_geometry_update=true;
-}
-TextBox.prototype.getString = function(s) { return str; }
-TextBox.prototype.updateMesh = function() {
-    if(!this.font)return;
-    if(!this.need_geometry_update)return;
-    this.need_geometry_update = false;
-    
-    if(this.geom) this.geom.dispose();
-    var geom = new THREE.Geometry();
-    this.geom = geom;
-    var cur_x=0,cur_y=0;
-    var used_chind=0;
-    for(var chind = 0; chind <this.str.length;chind++) {
-        // 1文字あたり4点, 2面,6インデックス
-        // TODO: kerning
-        // TODO: 改行
-        var char_code = this.str.charCodeAt(chind);
-        if(char_code==10) { // "\n"
-            cur_y += this.font.pixel_size;
-            cur_x = 0;
-            continue;
-        }
-        var glyph = this.font.getGlyph( char_code );
-        if(!glyph) {
-            console.log("glyph not found for:", char_code, "char:", this.str.charAt(chind) );
-        }
-        // 座標の大きさはピクセルサイズ
-        /*
-          0--1
-          |\ |
-          | \|
-          3--2 3の位置が(0,0) = (cur_x,cur_y)  幅がw,高さがh
-        */
-        // 1セルあたり4頂点づつ
-        var w = glyph.width;
-        var h = glyph.height;
-        var l = glyph.left;
-        var t = glyph.top;
-        geom.vertices.push(new THREE.Vector3(cur_x+l,cur_y+t,0)); //0
-        geom.vertices.push(new THREE.Vector3(cur_x+l+w,cur_y+t,0)); //1
-        geom.vertices.push(new THREE.Vector3(cur_x+l+w,cur_y+t-h,0)); //2
-        geom.vertices.push(new THREE.Vector3(cur_x+l,cur_y+t-h,0)); //3
-        var face_start_vert_ind = used_chind*4;
-        geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+2, face_start_vert_ind+1));
-        geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+3, face_start_vert_ind+2));
-        // uvは左上が0,右下が1
-        geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),
-                                     new THREE.Vector2(glyph.u1,glyph.v1),
-                                     new THREE.Vector2(glyph.u1,glyph.v0)]);
-        geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),
-                                     new THREE.Vector2(glyph.u0,glyph.v1),
-                                     new THREE.Vector2(glyph.u1,glyph.v1)]);
-
-        geom.faces[used_chind*2+0].vertexColors[0] = this.color.toTHREEColor();
-        geom.faces[used_chind*2+0].vertexColors[1] = this.color.toTHREEColor();
-        geom.faces[used_chind*2+0].vertexColors[2] = this.color.toTHREEColor();
-        geom.faces[used_chind*2+1].vertexColors[0] = this.color.toTHREEColor();
-        geom.faces[used_chind*2+1].vertexColors[1] = this.color.toTHREEColor();
-        geom.faces[used_chind*2+1].vertexColors[2] = this.color.toTHREEColor();
-        cur_x += glyph.advance;
-        used_chind++;
+class TextBox extends Prop2D {
+    constructor() {
+        super();
+        this.font = null;
+        this.scl = new Vec2(1,1);
+        this.str = null;
+        this.geom=null;
+        this.material=null;
+        this.need_geometry_update=false;
+        this.need_material_update=false;
+        this.dimension=2;
     }
-    geom.verticesNeedUpdate = true;
-    geom.uvsNeedUpdate = true;
+    setFont(fnt) { this.font = fnt; this.need_material_update=true; }
+    setString(s) {
+        this.str = s;
+        this.need_geometry_update=true;
+    }
+    getString(s) { return str; }
+    updateMesh() {
+        if(!this.font)return;
+        if(!this.need_geometry_update)return;
+        this.need_geometry_update = false;
+        
+        if(this.geom) this.geom.dispose();
+        var geom = new THREE.Geometry();
+        this.geom = geom;
+        var cur_x=0,cur_y=0;
+        var used_chind=0;
+        for(var chind = 0; chind <this.str.length;chind++) {
+            // 1文字あたり4点, 2面,6インデックス
+            // TODO: kerning
+            // TODO: 改行
+            var char_code = this.str.charCodeAt(chind);
+            if(char_code==10) { // "\n"
+                cur_y += this.font.pixel_size;
+                cur_x = 0;
+                continue;
+            }
+            var glyph = this.font.getGlyph( char_code );
+            if(!glyph) {
+                console.log("glyph not found for:", char_code, "char:", this.str.charAt(chind) );
+            }
+            // 座標の大きさはピクセルサイズ
+            /*
+              0--1
+              |\ |
+              | \|
+              3--2 3の位置が(0,0) = (cur_x,cur_y)  幅がw,高さがh
+            */
+            // 1セルあたり4頂点づつ
+            var w = glyph.width;
+            var h = glyph.height;
+            var l = glyph.left;
+            var t = glyph.top;
+            geom.vertices.push(new THREE.Vector3(cur_x+l,cur_y+t,0)); //0
+            geom.vertices.push(new THREE.Vector3(cur_x+l+w,cur_y+t,0)); //1
+            geom.vertices.push(new THREE.Vector3(cur_x+l+w,cur_y+t-h,0)); //2
+            geom.vertices.push(new THREE.Vector3(cur_x+l,cur_y+t-h,0)); //3
+            var face_start_vert_ind = used_chind*4;
+            geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+2, face_start_vert_ind+1));
+            geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+3, face_start_vert_ind+2));
+            // uvは左上が0,右下が1
+            geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),
+                                         new THREE.Vector2(glyph.u1,glyph.v1),
+                                         new THREE.Vector2(glyph.u1,glyph.v0)]);
+            geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),
+                                         new THREE.Vector2(glyph.u0,glyph.v1),
+                                         new THREE.Vector2(glyph.u1,glyph.v1)]);
 
-    if(this.need_material_update) {
-        this.need_material_update = false;
-        if(!this.material) {
-            this.material = createMeshBasicMaterial({ map: this.font.atlas.moyai_tex.three_tex,
-                                                      transparent: true,
-                                                      // antialias: true, three warns   'antialias' is not a property of this material.
-                                                      vertexColors:THREE.VertexColors,
-                                                      blending: THREE.NormalBlending });
+            geom.faces[used_chind*2+0].vertexColors[0] = this.color.toTHREEColor();
+            geom.faces[used_chind*2+0].vertexColors[1] = this.color.toTHREEColor();
+            geom.faces[used_chind*2+0].vertexColors[2] = this.color.toTHREEColor();
+            geom.faces[used_chind*2+1].vertexColors[0] = this.color.toTHREEColor();
+            geom.faces[used_chind*2+1].vertexColors[1] = this.color.toTHREEColor();
+            geom.faces[used_chind*2+1].vertexColors[2] = this.color.toTHREEColor();
+            cur_x += glyph.advance;
+            used_chind++;
+        }
+        geom.verticesNeedUpdate = true;
+        geom.uvsNeedUpdate = true;
+
+        if(this.need_material_update) {
+            this.need_material_update = false;
+            if(!this.material) {
+                this.material = createMeshBasicMaterial({ map: this.font.atlas.moyai_tex.three_tex,
+                                                          transparent: true,
+                                                          // antialias: true, three warns   'antialias' is not a property of this material.
+                                                          vertexColors:THREE.VertexColors,
+                                                          blending: THREE.NormalBlending });
+            } else {
+                this.material.map = this.font.atlas.moyai_tex.three_tex;
+            }
+        }
+        if(this.mesh) {
+            this.mesh.geometry = this.geom;
+            this.mesh.material = this.material;
         } else {
-            this.material.map = this.font.atlas.moyai_tex.three_tex;
+            this.mesh = new THREE.Mesh(geom,this.material);
         }
-    }
-    if(this.mesh) {
-        this.mesh.geometry = this.geom;
-        this.mesh.material = this.material;
-    } else {
-        this.mesh = new THREE.Mesh(geom,this.material);
     }
 }
 
@@ -1584,3 +1673,32 @@ FileDepo.prototype.get = function(path) {
 FileDepo.prototype.ensure = function(path,data) {
     return this.files[path] = data;
 }
+
+
+/////////////////////////
+class Prop3D extends Prop {
+    constructor() {
+        super();
+        this.scl = new Vec3(1,1,1);
+        this.loc = new Vec3(0,0,0);
+        this.rot = new Vec3(0,0,0);
+        this.mesh=null;
+        this.sort_center = new Vec3(0,0);
+	    this.depth_mask=true;
+        this.alpha_test=false;
+        this.cull_back_face=true;
+        this.draw_offset = new Vec3(0,0);
+        this.priority=this.id;
+        this.dimension=3;
+    }
+    propPoll(dt) {
+        if(this.prop3DPoll && this.prop3DPoll(dt)==false) {
+            return false;
+        }
+        return true;
+    }
+}
+Prop3D.prototype.setMesh = function(m) {this.mesh=m;}
+Prop3D.prototype.setScl = function(s) {this.scl=s;}
+Prop3D.prototype.setLoc = function(l) {this.loc=l;}
+

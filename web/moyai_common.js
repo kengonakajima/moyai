@@ -187,6 +187,11 @@ Vec2.prototype.isEqual = function(v) {
     return (v.x!=this.x) || (v.y!=this.y);
 }
 
+Vec3 = function(x,y,z) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+}
 // 0 ~ 1
 Color = function(r,g,b,a) {
     if(g==undefined || g==null) {
@@ -230,14 +235,23 @@ Viewport.prototype.id_gen=1;
 function Viewport() {
     this.id = this.__proto__.id_gen++;
     this.screen_width = null;
-    this.screen_height = null;   
+    this.screen_height = null;
+    this.near_clip = null;
+    this.far_clip = null;
+    this.dimension = null;
 }
 Viewport.prototype.setSize = function(sw,sh) {
     this.screen_width = sw;
     this.screen_height = sh;
 }
 Viewport.prototype.setScale2D = function(sx,sy) {
-    this.scl = new Vec2(sx,sy);    
+    this.scl = new Vec2(sx,sy);
+    this.dimension = 2;
+}
+Viewport.prototype.setClip3D = function(near,far) {
+    this.near_clip = near;
+    this.far_clip = far;
+    this.dimension = 3;
 }
 Viewport.prototype.getMinMax = function() {
     return [ new Vec2(-this.scl.x/2,-this.scl.y/2), new Vec2(this.scl.x/2,this.scl.y/2) ];
@@ -255,6 +269,18 @@ function Camera() {
 Camera.prototype.setLoc = function(x,y) {
     this.loc.setWith2args(x,y);
 }
+Camera.prototype.setLookAt = function(at,up) {
+	this.look_at = at;
+	this.look_up = up;
+}
+
+/////////////////////
+function Light() {
+    this.pos = new Vec3(0,0,0);
+    this.diffuse = Color(1,1,1,1);
+    this.ambient = Color(0,0,0,1);
+    this.specular = Color(0,0,0,0);
+};
 
 ////////////////////
 Layer.prototype.id_gen = 1;
@@ -264,9 +290,11 @@ function Layer() {
     this.priority=null;// update when insert to moyai
     this.camera=null;
     this.viewport=null;
+    this.light=null;
 }
 Layer.prototype.setViewport = function(vp) { this.viewport = vp; }
 Layer.prototype.setCamera = function(cam) { this.camera = cam; }
+Layer.prototype.setLight = function(lgt) { this.light = lgt; }
 Layer.prototype.insertProp = function(p) {
     if(p.priority==null) {
         var highp = this.getHighestPriority();
