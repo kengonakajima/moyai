@@ -31,7 +31,7 @@ g_moyai_client.insertLayer(g_main_layer);
 g_main_layer.setViewport(g_viewport3d);
 
 var g_main_camera = new Camera();
-g_main_camera.setLoc(0.001,4,8);
+g_main_camera.setLoc(-4,4,20);
 g_main_camera.setLookAt(new Vec3(0,0,0), new Vec3(0,1,0));
 g_main_layer.setCamera(g_main_camera);
 
@@ -238,10 +238,16 @@ function createChunkGeometry(blks,sz) {
                 geom.faces.push(new THREE.Face3(vn+7,vn+6,vn+2)); // HGC
 
                 // colors
+                var white=new Color(1,1,1,1);
+                var dark=new Color(0.8,0.8,0.8,1);
+                var cols=[ dark,dark,dark,  dark,dark,dark, white,white,white, white,white,white, // ADB DCB  HFG EFH
+                           white,dark,dark, white,white,dark, white,dark,dark, white,dark,white, // EDA EHD  FBC  FCG
+                           white,dark,dark, white,dark,white, white,dark,dark, white,white,dark // EAB EBF  HCD HGC
+                         ];
                 for(var i=fn;i<fn+12;i++){
                     for(var j=0;j<3;j++){
-                        var c=new Color(1,1,1,1);
-                        geom.faces[i].vertexColors[j] = c.toTHREEColor();
+                        geom.faces[i].vertexColors[j] = cols[j+(i-fn)*3].toTHREEColor();
+                        
                     }
                 }
 
