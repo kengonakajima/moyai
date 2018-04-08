@@ -12,4 +12,4 @@ toarray:
 	node toarray.js ../assets/dragon8.png > assets/dragon8.png.js
 	node toarray.js ../assets/font_only.png > assets/font_only.png.js
 	node toarray.js ../assets/gymno1short.wav > assets/gymno1short.wav.js
-
+	node toarray.js ../assets/wood256.png > assets/wood256.png.js
