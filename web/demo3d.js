@@ -5,7 +5,7 @@ function stopRender() {
     g_stop_render = true;
 }
 
-var SCRW=480, SCRH=320;
+var SCRW=800, SCRH=600;
 
 g_moyai_client = new MoyaiClient(SCRW,SCRH,window.devicePixelRatio);
 var screen = document.getElementById("screen");
@@ -154,7 +154,7 @@ console.log("geom2:",geom2);
 geom2.uvsNeedUpdate = true;
 
 
-var mat2 = createMeshBasicMaterial( {
+var g_mat2 = createMeshBasicMaterial( {
     map: g_base_deck.moyai_tex.three_tex,
     depthTest: true,
     transparent:true,
@@ -162,7 +162,7 @@ var mat2 = createMeshBasicMaterial( {
     blending: THREE.NormalBlending
 });
 
-var g_texcolmesh = new THREE.Mesh(geom2,mat2);
+var g_texcolmesh = new THREE.Mesh(geom2,g_mat2);
 
 var g_prop_col = new Prop3D();
 g_prop_col.setMesh(g_colmesh);
@@ -188,13 +188,19 @@ function createFieldBlockData(sz) {
             for(var x=0;x<sz;x++) {
                 var ind=x+z*sz+y*sz*sz;
                 var val=AIR;
-                if(x>y&&z>y)val=STONE;
+                if(y<8)val=STONE; // 2048vox per chunk
+                // if(y==0)val=STONE; // 256vox per chunk
+                //if(x==z && z==y)val=STONE; // 16vox per chunk
                 out[ind]=val;  
             }
         }
     }
     return out;
 }
+
+var white=new Color(1,1,1,1).toTHREEColor();
+var dark=new Color(0.8,0.8,0.8,1).toTHREEColor();
+
 function createChunkGeometry(blks,sz) {
     var l=1.0;
     var geom = new THREE.Geometry();
@@ -205,8 +211,6 @@ function createChunkGeometry(blks,sz) {
                 var block_ind=x+z*sz+y*sz*sz;
                 var blk = blks[block_ind];
                 if(blk==AIR)continue;
-                console.log("blk at",x,y,z,blk);
-                
                 geom.vertices.push(new THREE.Vector3(x,y,z+l));// A red
                 geom.vertices.push(new THREE.Vector3(x+l,y,z+l) ); // B blue
                 geom.vertices.push(new THREE.Vector3(x+l,y,z) ); // C yellow
@@ -238,22 +242,19 @@ function createChunkGeometry(blks,sz) {
                 geom.faces.push(new THREE.Face3(vn+7,vn+6,vn+2)); // HGC
 
                 // colors
-                var white=new Color(1,1,1,1);
-                var dark=new Color(0.8,0.8,0.8,1);
                 var cols=[ dark,dark,dark,  dark,dark,dark, white,white,white, white,white,white, // ADB DCB  HFG EFH
                            white,dark,dark, white,white,dark, white,dark,dark, white,dark,white, // EDA EHD  FBC  FCG
                            white,dark,dark, white,dark,white, white,dark,dark, white,white,dark // EAB EBF  HCD HGC
                          ];
                 for(var i=fn;i<fn+12;i++){
                     for(var j=0;j<3;j++){
-                        geom.faces[i].vertexColors[j] = cols[j+(i-fn)*3].toTHREEColor();
+                        geom.faces[i].vertexColors[j] = cols[j+(i-fn)*3];
                         
                     }
                 }
 
                 // uvs
                 var uvrect=g_base_deck.getUVFromIndex(3,0,0,0);
-                console.log("uvr:",uvrect);
                 var uv_lt=new THREE.Vector2(uvrect[0],uvrect[1]);
                 var uv_rt=new THREE.Vector2(uvrect[2],uvrect[1]);
                 var uv_lb=new THREE.Vector2(uvrect[0],uvrect[3]);
@@ -283,29 +284,60 @@ function createChunkGeometry(blks,sz) {
     }
     geom.verticesNeedUpdate=true;
     geom.uvsNeedUpdate = true;
-    console.log("chgeom:",geom);
     return geom;
 }
-var blockdata = createFieldBlockData(8);
-var chgeom = createChunkGeometry(blockdata,8);
-var chmesh = new THREE.Mesh(chgeom,mat2);
+var g_blockdata = createFieldBlockData(16);
 
-var g_prop_voxel = new Prop3D();
-g_prop_voxel.setMesh(chmesh);
-g_prop_voxel.setScl(1,1,1);
-g_prop_voxel.setLoc(-2,-2,2);
-g_main_layer.insertProp(g_prop_voxel);
+var g_chk_sz = 5;
+var g_chk_x = 0, g_chk_y = 0, g_chk_z = 0;
+
+setInterval(function() {
+    if(g_chk_y==g_chk_sz)return;
+    
+    var chgeom = createChunkGeometry(g_blockdata,16);
+    var chmesh = new THREE.Mesh(chgeom,g_mat2);
+    var chkp = new Prop3D();
+    chkp.setMesh(chmesh);
+    chkp.setScl(1,1,1);
+    chkp.setLoc(g_chk_x*16,g_chk_y*16,g_chk_z*16);
+    g_chk_x++;
+    if(g_chk_x==g_chk_sz) {
+        g_chk_x=0;
+        g_chk_z++;
+        if(g_chk_z==g_chk_sz) {
+            g_chk_y++;
+            g_chk_z=0;
+        }
+    }
+    g_main_layer.insertProp(chkp);    
+}, 20 );
+
+// 1ボクセルあたり12triangle
+// 16voxel x 3000chk = 45fps (2.1GB)  (576000tri/frame)
+// 256voxel x 730chk = 60fps (2GB) (2242560tri/frame)
+// 4096voxel x 64chk = 60fps (1.8GB) (3145728tri/frame)
+// 4096voxel * 128chk = 40fps (2.2GB) (6.2Mtri/frame)
+// 2GB超えるとだめ。 300万tri (1triあたり700byte食うのでメモリがボトルネックになった。)
+
 
 var last_anim_at = new Date().getTime();
-
+var last_print_at = new Date().getTime();
+var fps=0;
 function animate() {
     if(!g_stop_render) requestAnimationFrame(animate);
     if(!g_moyai_client)return;
-    
+
+    fps++;
+
     //    print("propx:%f r:%f", g_prop_0->loc.x, g_prop_0->rot3d.z );
     var now_time = new Date().getTime();
     var dt = (now_time - last_anim_at) / 1000.0;
 
+    if(now_time > last_print_at+1000) {
+        last_print_at=now_time;
+        document.getElementById("status").innerHTML = "FPS:"+fps+ "props:" + g_main_layer.props.length;
+        fps=0;
+    }
     // props
     if( g_prop_col ){
         g_prop_col.loc.x += dt/10;
@@ -316,11 +348,16 @@ function animate() {
         g_prop_texcol.rot.z += dt;
         g_prop_texcol.rot.y += dt;
     }
-    if( g_prop_voxel ){
-        g_prop_voxel.loc.z -= dt/5;        
+    if(g_main_camera) {
+        g_main_camera.loc.y+=0.1;
+        g_main_camera.loc.x+=0.1;
+        g_main_camera.loc.z+=0.1;                
+    }
+//    if( g_prop_voxel ){
+//        g_prop_voxel.loc.z -= dt/5;        
 //        g_prop_voxel.rot.z += dt;
 //        g_prop_voxel.rot.y += dt;
-    }
+//    }
     
     last_anim_at = now_time;    
     g_moyai_client.poll(dt);
