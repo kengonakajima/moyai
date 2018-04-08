@@ -71,7 +71,6 @@ MoyaiClient.prototype.render = function() {
             this.render3D(this.scene3d, layer);
             var camera3d = new THREE.PerspectiveCamera( 45 , this.width / this.height , 1 , 10000 );    
             var lcam = layer.camera;
-            console.log("lcam:",lcam);
             camera3d.up.x = lcam.look_up.x; camera3d.up.y = lcam.look_up.y; camera3d.up.z = lcam.look_up.z;
             camera3d.position.set( lcam.loc.x, lcam.loc.y, lcam.loc.z );
             camera3d.lookAt({x: lcam.look_at.x, y: lcam.look_at.y, z: lcam.look_at.z });
@@ -99,7 +98,8 @@ MoyaiClient.prototype.render3D = function(scene,layer) {
     for(var pi=0;pi<layer.props.length;pi++ ) {                    
         var prop = layer.props[pi];
         if(!prop.visible)continue;
-        console.log("pp",prop);
+        prop.mesh.position.set(prop.loc.x, prop.loc.y, prop.loc.z);
+        prop.mesh.rotation.set(prop.rot.x, prop.rot.y, prop.rot.z);
         scene.add(prop.mesh);
     }
 }
@@ -196,73 +196,6 @@ MoyaiClient.prototype.insertLayer = function(l) {
     }
     this.layers.push(l);
 }
-
-
-//////////////////////////
-/*
-function VertexFormat() {
-	this.types = Array(5); // char types[5]; // 'v': {f,f,f} 'c':{f,f,f,f}  't':{f,f}, 'n':{f,f,f} normal, 'p':{f,f} 2d position
-	this.types_used=0;
-	this.num_float=0;
-	this.coord_offset=-1; // not used
-    this.color_offset=-1;
-    this.texture_offset=-1;
-    this.normal_offset=-1;
-    this.pos_offset=-1;
-}
-VertexFormat.prototype.declareCoordVec3 = function() { this.addType('v'); }
-VertexFormat.prototype.declareColor = function() { this.addType('c'); }
-VertexFormat.prototype.declareUV = function() { this.addType('t'); }
-VertexFormat.prototype.declareNormal = function() { this.addType('n'); }
-VertexFormat.prototype.declare2DPos = function() { this.addType('p'); }
-VertexFormat.prototype.addType = function(ch) {
-    if(this.types_used>=5) throw "too many types";
-	this.types[this.types_used++] = ch;
-    this.updateSize();
-}
-VertexFormat.prototype.isCoordVec3Declared = function(ind) { return this.types[ind] == 'v'; }
-VertexFormat.prototype.isColorDeclared = function(ind) { return this.types[ind] == 'c'; }
-VertexFormat.prototype.isUVDeclared = function(ind) { return this.types[ind] == 't'; }
-VertexFormat.prototype.isNormalDeclared = function(ind) { return this.types[ind] == 'n'; }
-VertexFormat.prototype.is2DPosDeclared = function(ind) { return this.types[ind] == 'p'; }
-VertexFormat.prototype.updateSize = function() {
-    this.num_float=0;
-    for(var i=0;i<this.types_used;i++) {
-		switch(this.types[i]){
-		case 'v':
-			this.coord_offset = this.num_float;
-			this.num_float += 3;
-			break;
-		case 'n':
-			this.normal_offset = this.num_float;
-			this.num_float += 3;
-			break;
-		case 'c':
-			this.color_offset = this.num_float;
-			this.num_float += 4;
-			break;
-		case 't':
-			this.texture_offset = this.num_float;
-			this.num_float += 2;
-			break;
-		case 'p':
-			this.pos_offset = this.num_float;
-			this.num_float += 2;
-			break;
-		default:
-			throw "vertexformat: updateSize: invalid type name:", types[i];
-		}
-	}        
-};
-VertexFormat.prototype.getNumFloat = function() { return this.num_float; }
-    */
-//////////////////////////
-/*
-function VertexBuffer() {
-    this.fmt=null;
-    this.geom=null; // THREE.Geometry
-}
-*/
 
 
 //////////////////////////
@@ -1710,11 +1643,11 @@ class Prop3D extends Prop {
         this.loc = new Vec3(0,0,0);
         this.rot = new Vec3(0,0,0);
         this.mesh=null;
-        this.sort_center = new Vec3(0,0);
+        this.sort_center = new Vec3(0,0,0);
 	    this.depth_mask=true;
         this.alpha_test=false;
         this.cull_back_face=true;
-        this.draw_offset = new Vec3(0,0);
+        this.draw_offset = new Vec3(0,0,0);
         this.priority=this.id;
         this.dimension=3;
         this.visible=true;        
@@ -1728,5 +1661,6 @@ class Prop3D extends Prop {
 }
 Prop3D.prototype.setMesh = function(m) {this.mesh=m;}
 Prop3D.prototype.setScl = function(s) {this.scl=s;}
-Prop3D.prototype.setLoc = function(l) {this.loc=l;}
+Prop3D.prototype.setLoc = function(x,y,z) { this.loc.setWith3args(x,y,z); }
+
 
