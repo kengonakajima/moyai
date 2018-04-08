@@ -198,8 +198,28 @@ function createFieldBlockData(sz) {
     return out;
 }
 
+// precalc
 var white=new Color(1,1,1,1).toTHREEColor();
 var dark=new Color(0.8,0.8,0.8,1).toTHREEColor();
+
+var uvrect=g_base_deck.getUVFromIndex(3,0,0,0);
+var uv_lt=new THREE.Vector2(uvrect[0],uvrect[1]);
+var uv_rt=new THREE.Vector2(uvrect[2],uvrect[1]);
+var uv_lb=new THREE.Vector2(uvrect[0],uvrect[3]);
+var uv_rb=new THREE.Vector2(uvrect[2],uvrect[3]);
+var uv_adb=[uv_lb,uv_lt,uv_rb];// ADB
+var uv_dcb=[uv_lt,uv_rt,uv_rb];// DCB
+var uv_hfg=[uv_lt,uv_rb,uv_rt];// HFG
+var uv_efh=[uv_lb,uv_rb,uv_lt];// EFH
+var uv_eda=[uv_rt,uv_lb,uv_rb];//EDA
+var uv_ehd=[uv_rt,uv_lt,uv_lb];//EHD
+var uv_fbc=[uv_lt,uv_lb,uv_rb];//FBC
+var uv_fcg=[uv_lt,uv_rb,uv_rt];//FCG
+var uv_eab=[uv_lt,uv_lb,uv_rb];//EAB
+var uv_ebf=[uv_lt,uv_rb,uv_rt];//EBF
+var uv_hcd=[uv_lt,uv_rb,uv_lb];// HCD
+var uv_hgc=[uv_lt,uv_rt,uv_rb];//HGC
+
 
 function createChunkGeometry(blks,sz) {
     var l=1.0;
@@ -254,27 +274,18 @@ function createChunkGeometry(blks,sz) {
                 }
 
                 // uvs
-                var uvrect=g_base_deck.getUVFromIndex(3,0,0,0);
-                var uv_lt=new THREE.Vector2(uvrect[0],uvrect[1]);
-                var uv_rt=new THREE.Vector2(uvrect[2],uvrect[1]);
-                var uv_lb=new THREE.Vector2(uvrect[0],uvrect[3]);
-                var uv_rb=new THREE.Vector2(uvrect[2],uvrect[3]);
-
-                geom.faceVertexUvs[0].push([uv_lb,uv_lt,uv_rb]);// ADB
-                geom.faceVertexUvs[0].push([uv_lt,uv_rt,uv_rb]);// DCB
-                
-                geom.faceVertexUvs[0].push([uv_lt,uv_rb,uv_rt]);// HFG
-                geom.faceVertexUvs[0].push([uv_lb,uv_rb,uv_lt]);// EFH
-                
-                geom.faceVertexUvs[0].push([uv_rt,uv_lb,uv_rb]);//EDA
-                geom.faceVertexUvs[0].push([uv_rt,uv_lt,uv_lb]);//EHD
-
-                geom.faceVertexUvs[0].push([uv_lt,uv_lb,uv_rb]);//FBC
-                geom.faceVertexUvs[0].push([uv_lt,uv_rb,uv_rt]);//FCG
-                geom.faceVertexUvs[0].push([uv_lt,uv_lb,uv_rb]);//EAB
-                geom.faceVertexUvs[0].push([uv_lt,uv_rb,uv_rt]);//EBF
-                geom.faceVertexUvs[0].push([uv_lt,uv_rb,uv_lb]);// HCD
-                geom.faceVertexUvs[0].push([uv_lt,uv_rt,uv_rb]);//HGC
+                geom.faceVertexUvs[0].push(uv_adb);// ADB
+                geom.faceVertexUvs[0].push(uv_dcb);// DCB
+                geom.faceVertexUvs[0].push(uv_hfg);// HFG
+                geom.faceVertexUvs[0].push(uv_efh);// EFH
+                geom.faceVertexUvs[0].push(uv_eda);//EDA
+                geom.faceVertexUvs[0].push(uv_ehd);//EHD
+                geom.faceVertexUvs[0].push(uv_fbc);//FBC
+                geom.faceVertexUvs[0].push(uv_fcg);//FCG
+                geom.faceVertexUvs[0].push(uv_eab);//EAB
+                geom.faceVertexUvs[0].push(uv_ebf);//EBF
+                geom.faceVertexUvs[0].push(uv_hcd);// HCD
+                geom.faceVertexUvs[0].push(uv_hgc);//HGC
 
                 vn+=8;
                 fn+=12;
@@ -316,7 +327,7 @@ setInterval(function() {
 // 16voxel x 3000chk = 45fps (2.1GB)  (576000tri/frame)
 // 256voxel x 730chk = 60fps (2GB) (2242560tri/frame)
 // 4096voxel x 64chk = 60fps (1.8GB) (3145728tri/frame)
-// 4096voxel * 128chk = 40fps (2.2GB) (6.2Mtri/frame)
+// 4096voxel * 128chk = 45fps (2.1GB) (6.2Mtri/frame)
 // 2GB超えるとだめ。 300万tri (1triあたり700byte食うのでメモリがボトルネックになった。)
 
 
