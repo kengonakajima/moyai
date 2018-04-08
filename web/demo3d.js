@@ -46,7 +46,7 @@ var g_base_tex = new Texture();
 g_base_tex.loadPNGMem( base_png );
 var g_base_deck = new TileDeck();
 g_base_deck.setTexture(g_base_tex);
-
+g_base_deck.setSize(32,32,8,8);
     
 
 var g_light = new Light();
@@ -149,6 +149,7 @@ geom2.faces[2].vertexColors[0]= new Color(1,0,0,1).toTHREEColor();
 //geom2.faces[2].vertexColors[1]= new Color(1,0,0,1).toTHREEColor();
 //geom2.faces[2].vertexColors[2]= new Color(1,0,0,1).toTHREEColor();
 
+console.log("geom2:",geom2);
 
 geom2.uvsNeedUpdate = true;
 
@@ -175,6 +176,120 @@ g_prop_texcol.setScl(1,1,1);
 g_prop_texcol.setLoc(1.4,2,2);
 g_main_layer.insertProp(g_prop_texcol);
 
+var AIR=0;
+var STONE=1;
+function createFieldBlockData(sz) {
+    // ex. 16*16*16=4096.
+    // x>z>y 
+    // 0: (0,0,0) 1:(1,0,0)... 16:(0,0,1), ... 256:(0,1,0) 4095:(15,15,15)
+    var out=new Array(sz*sz*sz);
+    for(var y=0;y<sz;y++) {
+        for(var z=0;z<sz;z++) {
+            for(var x=0;x<sz;x++) {
+                var ind=x+z*sz+y*sz*sz;
+                var val=AIR;
+                if(x>y&&z>y)val=STONE;
+                out[ind]=val;  
+            }
+        }
+    }
+    return out;
+}
+function createChunkGeometry(blks,sz) {
+    var l=1.0;
+    var geom = new THREE.Geometry();
+    var vn=0, fn=0;
+    for(var y=0;y<sz;y++) {
+        for(var z=0;z<sz;z++) {
+            for(var x=0;x<sz;x++) {
+                var block_ind=x+z*sz+y*sz*sz;
+                var blk = blks[block_ind];
+                if(blk==AIR)continue;
+                console.log("blk at",x,y,z,blk);
+                
+                geom.vertices.push(new THREE.Vector3(x,y,z+l));// A red
+                geom.vertices.push(new THREE.Vector3(x+l,y,z+l) ); // B blue
+                geom.vertices.push(new THREE.Vector3(x+l,y,z) ); // C yellow
+                geom.vertices.push(new THREE.Vector3(x,y,z) ); // D green
+                geom.vertices.push(new THREE.Vector3(x,y+l,z+l) ); // E white
+                geom.vertices.push(new THREE.Vector3(x+l,y+l,z+l) ); // F purple
+                geom.vertices.push(new THREE.Vector3(x+l,y+l,z) ); // G white
+                geom.vertices.push(new THREE.Vector3(x,y+l,z) ); // H white
+
+
+                // faces
+                // bottom
+                geom.faces.push(new THREE.Face3(vn+0,vn+3,vn+1)); // ADB
+                geom.faces.push(new THREE.Face3(vn+3,vn+2,vn+1)); // DCB
+                // top
+                geom.faces.push(new THREE.Face3(vn+7,vn+5,vn+6)); // HFG
+                geom.faces.push(new THREE.Face3(vn+4,vn+5,vn+7)); // EFH
+                // left
+                geom.faces.push(new THREE.Face3(vn+4,vn+3,vn+0)); // EDA
+                geom.faces.push(new THREE.Face3(vn+4,vn+7,vn+3)); // EHD
+                // right
+                geom.faces.push(new THREE.Face3(vn+5,vn+1,vn+2)); // FBC
+                geom.faces.push(new THREE.Face3(vn+5,vn+2,vn+6)); // FCG
+                // front
+                geom.faces.push(new THREE.Face3(vn+4,vn+0,vn+1)); // EAB
+                geom.faces.push(new THREE.Face3(vn+4,vn+1,vn+5)); // EBF
+                // rear
+                geom.faces.push(new THREE.Face3(vn+7,vn+2,vn+3)); // HCD
+                geom.faces.push(new THREE.Face3(vn+7,vn+6,vn+2)); // HGC
+
+                // colors
+                for(var i=fn;i<fn+12;i++){
+                    for(var j=0;j<3;j++){
+                        var c=new Color(1,1,1,1);
+                        geom.faces[i].vertexColors[j] = c.toTHREEColor();
+                    }
+                }
+
+                // uvs
+                var uvrect=g_base_deck.getUVFromIndex(3,0,0,0);
+                console.log("uvr:",uvrect);
+                var uv_lt=new THREE.Vector2(uvrect[0],uvrect[1]);
+                var uv_rt=new THREE.Vector2(uvrect[2],uvrect[1]);
+                var uv_lb=new THREE.Vector2(uvrect[0],uvrect[3]);
+                var uv_rb=new THREE.Vector2(uvrect[2],uvrect[3]);
+
+                geom.faceVertexUvs[0].push([uv_lb,uv_lt,uv_rb]);// ADB
+                geom.faceVertexUvs[0].push([uv_lt,uv_rt,uv_rb]);// DCB
+                
+                geom.faceVertexUvs[0].push([uv_lt,uv_rb,uv_rt]);// HFG
+                geom.faceVertexUvs[0].push([uv_lb,uv_rb,uv_lt]);// EFH
+                
+                geom.faceVertexUvs[0].push([uv_rt,uv_lb,uv_rb]);//EDA
+                geom.faceVertexUvs[0].push([uv_rt,uv_lt,uv_lb]);//EHD
+
+                geom.faceVertexUvs[0].push([uv_lt,uv_lb,uv_rb]);//FBC
+                geom.faceVertexUvs[0].push([uv_lt,uv_rb,uv_rt]);//FCG
+                geom.faceVertexUvs[0].push([uv_lt,uv_lb,uv_rb]);//EAB
+                geom.faceVertexUvs[0].push([uv_lt,uv_rb,uv_rt]);//EBF
+                geom.faceVertexUvs[0].push([uv_lt,uv_rb,uv_lb]);// HCD
+                geom.faceVertexUvs[0].push([uv_lt,uv_rt,uv_rb]);//HGC
+
+                vn+=8;
+                fn+=12;
+                                
+            }
+        }
+    }
+    geom.verticesNeedUpdate=true;
+    geom.uvsNeedUpdate = true;
+    console.log("chgeom:",geom);
+    return geom;
+}
+var blockdata = createFieldBlockData(8);
+var chgeom = createChunkGeometry(blockdata,8);
+var chmesh = new THREE.Mesh(chgeom,mat2);
+
+var g_prop_voxel = new Prop3D();
+g_prop_voxel.setMesh(chmesh);
+g_prop_voxel.setScl(1,1,1);
+g_prop_voxel.setLoc(-2,-2,2);
+g_main_layer.insertProp(g_prop_voxel);
+
 var last_anim_at = new Date().getTime();
 
 function animate() {
@@ -192,11 +307,14 @@ function animate() {
         g_prop_col.rot.y += dt;
     }
     if( g_prop_texcol ){
-        g_prop_texcol.loc.x += dt/10;
         g_prop_texcol.rot.z += dt;
         g_prop_texcol.rot.y += dt;
     }
-
+    if( g_prop_voxel ){
+        g_prop_voxel.loc.z -= dt/5;        
+//        g_prop_voxel.rot.z += dt;
+//        g_prop_voxel.rot.y += dt;
+    }
     
     last_anim_at = now_time;    
     g_moyai_client.poll(dt);

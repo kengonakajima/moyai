@@ -195,10 +195,8 @@ Vec3 = function(x,y,z) {
 Vec3.prototype.setWith3args = function(x,y,z) {
     if(x.constructor==Vec3){
         this.x=x.x; this.y=x.y; this.z=x.z;
-        console.log("hoge:",x,y,z,this)        ;
     } else {
         this.x=x; this.y=y;this.z=z;
-        console.log("hoge2:",x,y,z,this)        ;        
     }
 }
 
