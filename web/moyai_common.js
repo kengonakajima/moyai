@@ -199,7 +199,21 @@ Vec3.prototype.setWith3args = function(x,y,z) {
         this.x=x; this.y=y;this.z=z;
     }
 }
-
+Vec3.prototype.modify = function(v) {
+    this.x += v.x;
+    this.y += v.y;
+    this.z += v.z;
+}
+Vec3.prototype.add = function(to_add) {
+    return new Vec3( this.x + to_add.x, this.y + to_add.y, this.z + to_add.z );
+}
+Vec3.prototype.mul = function(m) {
+    return new Vec3( this.x*m, this.y*m, this.z*m );
+}
+Vec3.prototype.set = function(x,y,z) {
+    this.setWith3args(x,y,z);
+    return this;
+}
 // 0 ~ 1
 Color = function(r,g,b,a) {
     if(g==undefined || g==null) {

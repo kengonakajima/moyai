@@ -1453,12 +1453,14 @@ Keyboard.prototype.setPreventDefault = function(flg) { this.prevent_default=flg;
 /////////////////////
 function Mouse() {
     this.cursor_pos=new Vec2(0,0);
+    this.movement=new Vec2(0,0);
     this.buttons={};
     this.toggled={};
     this.mod_shift=false;
     this.mod_ctrl=false;
     this.mod_alt=false;
 }
+Mouse.prototype.clearMovement = function() { this.movement.x=this.movement.y=0; }
 Mouse.prototype.setupBrowser = function(w,dom) {
     var _this = this;
     w.addEventListener("mousedown", function(e) {
@@ -1475,6 +1477,7 @@ Mouse.prototype.setupBrowser = function(w,dom) {
         var y = Math.floor(e.clientY - rect.top);
 //        e.preventDefault();
         _this.cursor_pos = new Vec2(x,y);
+        _this.movement = new Vec2(e.movementX, e.movementY);
     },false);    
 }
 Mouse.prototype.readButtonEvent = function(e,pressed) {
