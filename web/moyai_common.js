@@ -358,7 +358,7 @@ Layer.prototype.pollAllProps = function(dt) {
         if(to_keep) {
             keep.push(prop);
         } else {
-            prop.onDelete();
+            if(prop.onDelete) prop.onDelete();
         }
     }
     this.props = keep;

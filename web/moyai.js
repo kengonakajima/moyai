@@ -79,7 +79,7 @@ MoyaiClient.prototype.render = function() {
             }
         }
     }
-    this.renderer.render(this.scene3d, camera3d );            
+    if(camera3d) this.renderer.render(this.scene3d, camera3d );            
 
 
     // then 2d            
@@ -400,12 +400,6 @@ class Prop {
         }
         return true;
     }
-    onDelete() {
-        if(this.mesh){
-            if(this.mesh.geometry) this.mesh.geometry.dispose();
-            if(this.mesh.material) this.mesh.material.dispose();
-        }
-    }
 }
 
 function createRectGeometry(width,height) {
@@ -623,6 +617,12 @@ class Prop2D extends Prop {
             this.mesh = new THREE.Mesh(this.geom,this.material);
         }
     }
+    onDelete() {
+        if(this.mesh){
+            if(this.mesh.geometry) this.mesh.geometry.dispose();
+            if(this.mesh.material) this.mesh.material.dispose();
+        }
+    }    
 }
 
 ////////////////////////////
