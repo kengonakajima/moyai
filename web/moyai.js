@@ -100,6 +100,7 @@ MoyaiClient.prototype.render3D = function(scene,layer) {
     for(var pi=0;pi<layer.props.length;pi++ ) {                    
         var prop = layer.props[pi];
         if(!prop.visible)continue;
+        if(prop.to_clean)continue;
         prop.mesh.position.set(prop.loc.x, prop.loc.y, prop.loc.z);
         prop.mesh.rotation.set(prop.rot.x, prop.rot.y, prop.rot.z);
         scene.add(prop.mesh);
