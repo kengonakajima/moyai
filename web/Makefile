@@ -17,3 +17,4 @@ toarray:
 	node toarray.js ../assets/skyblue.png > assets/skyblue.png.js
 	node toarray.js ../assets/skydawn.png > assets/skydawn.png.js
 	node toarray.js ../assets/skynight.png > assets/skynight.png.js
+	node toarray.js ../assets/sun.png > assets/sun.png.js

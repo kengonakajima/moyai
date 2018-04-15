@@ -60,14 +60,15 @@ var g_skynight_deck = new TileDeck();
 g_skynight_deck.setTexture(g_skynight_tex);
 g_skynight_deck.setSize(4,4,16,16);
 
-    
+var g_sun_tex = new Texture();
+g_sun_tex.loadPNGMem(sun_png);
 
 var g_light = new Light();
 g_light.pos = new Vec3(-50,50,100);
 g_main_layer.setLight(g_light);
 
 var g_blue_prop = new Prop2D();
-g_blue_prop.setLoc(-300,0);
+g_blue_prop.setLoc(-300,32);
 g_blue_prop.setScl(128,128);
 g_blue_prop.setDeck(g_skyblue_deck);
 g_blue_prop.setIndex(4);
@@ -82,7 +83,7 @@ g_hud_layer.insertProp(g_dawn_prop);
 
 
 var g_night_prop = new Prop2D();
-g_night_prop.setLoc(-300,-200);
+g_night_prop.setLoc(-300,-200+64);
 g_night_prop.setScl(128,128);
 g_night_prop.setDeck(g_skynight_deck);
 g_night_prop.setIndex(4);
@@ -110,6 +111,19 @@ g_outp2.setDeck(g_skyblue_deck);
 g_outp2.setIndex(4);
 g_hud_layer.insertProp(g_outp2);
 
+var g_sun_sample = new Prop2D();
+g_sun_sample.setLoc(-300,-240);
+g_sun_sample.setScl(64,64);
+g_sun_sample.setTexture(g_sun_tex);
+g_sun_sample.use_additive_blend=true;
+g_hud_layer.insertProp(g_sun_sample);
+
+var g_sunp = new Prop2D();
+g_sunp.setLoc(100,0);
+g_sunp.setScl(64,64);
+g_sunp.setTexture(g_sun_tex);
+g_sunp.use_additive_blend=true;
+g_hud_layer.insertProp(g_sunp);
 
 // hour: 0~24
 function updateSkyColor() {
@@ -153,10 +167,47 @@ function updateSkyColor() {
     }else {
         dawn_alpha=0;
     }
-    
-    
-    console.log("base_sec:",base_sec, "hour:",h, "blue:",blue_alpha);    
 
+    var rad=(h/24.0)*2.0*Math.PI - Math.PI/2.0;
+    g_sunp.setLoc(100,Math.sin(rad)*100);
+    var sun_r=1, sun_g=1, sun_b=1;
+    var sun_start_sunrise=4;
+    var sun_max=7;
+    var sun_dim_start=17;
+    var sun_min=20;
+    
+    // green and blue of sun
+    if(h>sun_start_sunrise&&h<=sun_max) {
+        sun_g=sun_b=(h-sun_start_sunrise)/(sun_max-sun_start_sunrise);
+    } else if(h>sun_max&&h<=sun_dim_start) {
+        sun_g=sun_b=1;
+    } else if(h>sun_dim_start&&h<=sun_min) {
+        sun_g=sun_b=1-(h-sun_dim_start)/(sun_min-sun_dim_start);
+    } else {
+        sun_g=sun_b=0;
+    }
+    // red of sun
+    var sun_morning_min=3;
+    var sun_red_dim_start=19
+    var sun_night_min=22;
+
+    if(h<sun_morning_min) {
+        sun_r=0;
+    } else if(h>=sun_morning_min&&h<sun_start_sunrise) {
+        sun_r=(h-sun_morning_min)/(sun_start_sunrise-sun_morning_min);
+    } else if(h>=sun_start_sunrise&&h<=sun_red_dim_start) {
+        sun_r=1;
+    } else if(h>=sun_red_dim_start&&h<=sun_night_min){
+        sun_r=1-(h-sun_red_dim_start)/(sun_night_min-sun_red_dim_start);
+    } else {
+        sun_r=0;
+    }
+
+    console.log("hour:",h, "blue:",blue_alpha, "dawn:",dawn_alpha, "sun_rgb:",sun_r,sun_g,sun_b);        
+
+    g_sunp.setColor(new Color(sun_r,sun_g,sun_b,1));
+    g_sun_sample.setColor(new Color(sun_r,sun_g,sun_b,1));
+    
     g_outp0.setColor(new Color(1,1,1,night_alpha));
     g_outp1.setColor(new Color(1,1,1,dawn_alpha));
     g_outp2.setColor(new Color(1,1,1,blue_alpha));
