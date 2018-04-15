@@ -14,3 +14,6 @@ toarray:
 	node toarray.js ../assets/gymno1short.wav > assets/gymno1short.wav.js
 	node toarray.js ../assets/wood256.png > assets/wood256.png.js
 	node toarray.js ../assets/fieldbase512.png > assets/fieldbase512.png.js
+	node toarray.js ../assets/skyblue.png > assets/skyblue.png.js
+	node toarray.js ../assets/skydawn.png > assets/skydawn.png.js
+	node toarray.js ../assets/skynight.png > assets/skynight.png.js
