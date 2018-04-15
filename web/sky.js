@@ -113,14 +113,14 @@ g_hud_layer.insertProp(g_outp2);
 
 var g_sun_sample = new Prop2D();
 g_sun_sample.setLoc(-300,-240);
-g_sun_sample.setScl(64,64);
+g_sun_sample.setScl(128,128);
 g_sun_sample.setTexture(g_sun_tex);
 g_sun_sample.use_additive_blend=true;
 g_hud_layer.insertProp(g_sun_sample);
 
 var g_sunp = new Prop2D();
 g_sunp.setLoc(100,0);
-g_sunp.setScl(64,64);
+g_sunp.setScl(128,128);
 g_sunp.setTexture(g_sun_tex);
 g_sunp.use_additive_blend=true;
 g_hud_layer.insertProp(g_sunp);
