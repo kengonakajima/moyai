@@ -103,6 +103,9 @@ MoyaiClient.prototype.render3D = function(scene,layer) {
         if(prop.to_clean)continue;
         prop.mesh.position.set(prop.loc.x, prop.loc.y, prop.loc.z);
         prop.mesh.rotation.set(prop.rot.x, prop.rot.y, prop.rot.z);
+        if(prop.scl.x!=1 || prop.scl.y!=1 || prop.scl.z!=1) {
+            prop.mesh.scale.set(prop.scl.x, prop.scl.y, prop.scl.z); 
+        }
         scene.add(prop.mesh);
     }
 }
@@ -1666,7 +1669,7 @@ class Prop3D extends Prop {
     }
 }
 Prop3D.prototype.setMesh = function(m) {this.mesh=m;}
-Prop3D.prototype.setScl = function(s) {this.scl=s;}
+Prop3D.prototype.setScl = function(x,y,z) {this.scl.setWith3args(x,y,z); }
 Prop3D.prototype.setLoc = function(x,y,z) { this.loc.setWith3args(x,y,z); }
 
 
