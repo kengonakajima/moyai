@@ -214,6 +214,13 @@ Vec3.prototype.set = function(x,y,z) {
     this.setWith3args(x,y,z);
     return this;
 }
+Vec3.prototype.randomize = function(r) {
+    return new Vec3( this.x - r + range(0,r*2), this.y - r + range(0,r*2), this.z - r + range(0,r*2) );
+}
+Vec3.prototype.to_i = function() {
+    return new Vec3( to_i(this.x), to_i(this.y), to_i(this.z) );
+}
+
 // 0 ~ 1
 Color = function(r,g,b,a) {
     if(g==undefined || g==null) {
