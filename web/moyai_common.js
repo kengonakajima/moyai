@@ -229,6 +229,12 @@ Vec3.prototype.normalize = function(l) {
     if(ll==0) return new Vec3(0,0,0);
     return new Vec3(this.x/ll*l,this.y/ll*l,this.z/ll*l);
 }
+Vec3.prototype.to = function(target) {
+    return new Vec3(target.x-this.x, target.y-this.y, target.z-this.z);
+}
+Vec3.prototype.toTHREEVector3 = function() {
+    return new THREE.Vector3(this.x,this.y,this.z);
+}
 // 0 ~ 1
 Color = function(r,g,b,a) {
     if(g==undefined || g==null) {
