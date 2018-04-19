@@ -170,6 +170,7 @@ Vec2.prototype.setWith2args = function(x,y) {
     }
 }
 Vec2.prototype.normalize = function(l) {
+    if(l==undefined)l=1;    
     var ll = Math.sqrt(this.x*this.x+this.y*this.y);
     if(ll==0) return new Vec2(0,0);
     return new Vec2(this.x/ll*l,this.y/ll*l);
@@ -181,6 +182,7 @@ Vec2.prototype.mul = function(to_mul) {
     return new Vec2( this.x * to_mul, this.y * to_mul );
 }
 Vec2.prototype.randomize = function(r) {
+    if(r==undefined)r=1;    
     return new Vec2( this.x - r + range(0,r*2), this.y - r + range(0,r*2) );
 }
 Vec2.prototype.isEqual = function(v) {
@@ -215,12 +217,18 @@ Vec3.prototype.set = function(x,y,z) {
     return this;
 }
 Vec3.prototype.randomize = function(r) {
+    if(r==undefined)r=1;
     return new Vec3( this.x - r + range(0,r*2), this.y - r + range(0,r*2), this.z - r + range(0,r*2) );
 }
 Vec3.prototype.to_i = function() {
     return new Vec3( to_i(this.x), to_i(this.y), to_i(this.z) );
 }
-
+Vec3.prototype.normalize = function(l) {
+    if(l==undefined)l=1;
+    var ll = Math.sqrt(this.x*this.x+this.y*this.y+this.z*this.z);
+    if(ll==0) return new Vec3(0,0,0);
+    return new Vec3(this.x/ll*l,this.y/ll*l,this.z/ll*l);
+}
 // 0 ~ 1
 Color = function(r,g,b,a) {
     if(g==undefined || g==null) {
