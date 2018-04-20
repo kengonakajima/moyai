@@ -94,9 +94,6 @@ MoyaiClient.prototype.render = function() {
     this.renderer.render( this.scene2d, camera2d );
 }
 MoyaiClient.prototype.render3D = function(scene,layer) {
-    if(!this.camera) {
-
-    }
     for(var pi=0;pi<layer.props.length;pi++ ) {                    
         var prop = layer.props[pi];
         if(!prop.visible)continue;
@@ -392,6 +389,7 @@ class Prop {
         this.id=moyai_id_gen++;
         this.poll_count=0;
         this.accum_time=0;
+        this.children=[];        
     }
     basePoll(dt) {
         this.poll_count++;
@@ -404,6 +402,23 @@ class Prop {
         }
         return true;
     }
+    addChild(chp) { this.children.push(chp); }
+    clearChildren() { this.children=[]; }
+    clearChild(p) {
+        var keep=[];
+        for(var i=0;i<this.children.length;i++) {
+            if(this.children[i]!=p) keep.push( this.children[i]);
+        }
+        this.children = keep;
+    }
+    getChild(propid) {
+        for(var i=0;i<this.children.length;i++) {
+            if( this.children[i].id == propid ) {
+                return this.children[i];
+            }
+        }
+        return null;
+    }    
 }
 
 function createRectGeometry(width,height) {
@@ -439,7 +454,6 @@ class Prop2D extends Prop {
         this.grids=null;
         this.visible=true;
         this.use_additive_blend = false;
-        this.children=[];
         this.mesh=null;
         this.material=null;
         this.priority = null; // set when insertprop if kept null
@@ -513,23 +527,6 @@ class Prop2D extends Prop {
         this.setDeck(td);
         this.setIndex(0);
         this.need_material_update = true;
-    }
-    addChild(chp) { this.children.push(chp); }
-    clearChildren() { this.children=[]; }
-    clearChild(p) {
-        var keep=[];
-        for(var i=0;i<this.children.length;i++) {
-            if(this.children[i]!=p) keep.push( this.children[i]);
-        }
-        this.children = keep;
-    }
-    getChild(propid) {
-        for(var i=0;i<this.children.length;i++) {
-            if( this.children[i].id == propid ) {
-                return this.children[i];
-            }
-        }
-        return null;
     }
     setFragmentShader(s) { this.fragment_shader = s;}
     propPoll(dt) { 
