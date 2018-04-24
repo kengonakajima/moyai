@@ -97,6 +97,9 @@ MoyaiClient.prototype.render3D = function(scene,layer) {
     if(layer.light) {
         scene.add(layer.light);
     }
+    if(layer.ambient_light) {
+        scene.add(layer.ambient_light);
+    }
     for(var pi=0;pi<layer.props.length;pi++ ) {                    
         var prop = layer.props[pi];
         if(!prop.visible)continue;

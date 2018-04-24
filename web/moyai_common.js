@@ -343,6 +343,7 @@ function Layer() {
 Layer.prototype.setViewport = function(vp) { this.viewport = vp; }
 Layer.prototype.setCamera = function(cam) { this.camera = cam; }
 Layer.prototype.setLight = function(lgt) { this.light = lgt; }
+Layer.prototype.setAmbientLight = function(lgt) { this.ambient_light = lgt; }
 Layer.prototype.insertProp = function(p) {
     if(p.priority==null) {
         var highp = this.getHighestPriority();
