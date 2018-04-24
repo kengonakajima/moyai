@@ -94,6 +94,9 @@ MoyaiClient.prototype.render = function() {
     this.renderer.render( this.scene2d, camera2d );
 }
 MoyaiClient.prototype.render3D = function(scene,layer) {
+    if(layer.light) {
+        scene.add(layer.light);
+    }
     for(var pi=0;pi<layer.props.length;pi++ ) {                    
         var prop = layer.props[pi];
         if(!prop.visible)continue;

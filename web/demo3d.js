@@ -49,9 +49,7 @@ g_base_deck.setTexture(g_base_tex);
 g_base_deck.setSize(32,32,8,8);
     
 
-var g_light = new Light();
-g_light.pos = new Vec3(-50,50,100);
-g_main_layer.setLight(g_light);
+
 
 var g_material = createMeshBasicMaterial();
 g_material.ambient =Color(0.3,0.3,0.3,1);

@@ -330,14 +330,6 @@ Camera.prototype.setLookAt = function(at,up) {
 }
 
 
-/////////////////////
-function Light() {
-    this.pos = new Vec3(0,0,0);
-    this.diffuse = Color(1,1,1,1);
-    this.ambient = Color(0,0,0,1);
-    this.specular = Color(0,0,0,0);
-};
-
 ////////////////////
 Layer.prototype.id_gen = 1;
 function Layer() {

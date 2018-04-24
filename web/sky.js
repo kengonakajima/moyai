@@ -63,9 +63,6 @@ g_skynight_deck.setSize(4,4,16,16);
 var g_sun_tex = new Texture();
 g_sun_tex.loadPNGMem(sun_png);
 
-var g_light = new Light();
-g_light.pos = new Vec3(-50,50,100);
-g_main_layer.setLight(g_light);
 
 var g_blue_prop = new Prop2D();
 g_blue_prop.setLoc(-300,32);
