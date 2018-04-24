@@ -173,47 +173,6 @@ function makePartCube(ind,szx,szy,szz, ofsx,ofsy,ofsz) {
     return geom;
 }
 
-/*
-var g_head_mesh = new THREE.Mesh(makePartCube(0, 0.5,0.5,0.5, 0,0.5,0),mat);
-var g_head = new Prop3D();
-g_head.setMesh(g_head_mesh);
-g_head.setLoc(0,0,0);
-g_head.prop3DPoll=function(dt) {
-    this.setRot(Math.sin(this.accum_time)/2, this.accum_time,0);
-    return true;
-}
-g_main_layer.insertProp(g_head);
-
-var g_body_mesh = new THREE.Mesh(makePartCube(1, 0.5,0.7,0.3, 0,0,0),mat);
-var g_body = new Prop3D();
-g_body.setMesh(g_body_mesh);
-g_body.setLoc(0,-0.7,0);
-g_main_layer.insertProp(g_body);
-
-var g_lfoot_mesh = new THREE.Mesh(makePartCube(2, 0.2,0.5,0.2, 0,-0.5,0),mat);
-var g_lfoot = new Prop3D();
-g_lfoot.setMesh(g_lfoot_mesh);
-g_lfoot.setLoc(0.25,-1.4,0);
-g_lfoot.prop3DPoll = function(dt) {
-    this.setRot(Math.cos(this.accum_time*4)/2,0,0);
-    return true;
-}
-g_main_layer.insertProp(g_lfoot);
-
-var g_rfoot_mesh = new THREE.Mesh(makePartCube(3,0.2,0.5,0.2, 0,-0.5,0),mat);
-var g_rfoot = new Prop3D();
-g_rfoot.setMesh(g_rfoot_mesh);
-g_rfoot.setLoc(-0.25,-1.4,0);
-g_rfoot.prop3DPoll = function(dt) {
-    this.setRot(Math.cos(this.accum_time*4+Math.PI)/2,0,0);    
-    return true;
-}
-g_main_layer.insertProp(g_rfoot);
-
-*/
-
-
-
 
 var g_head_mesh = new THREE.Mesh(makePartCube(0, 0.5,0.5,0.5, 0,0.5,0),mat);
 g_head_mesh.position.set(0,0,0);
