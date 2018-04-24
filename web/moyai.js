@@ -1666,6 +1666,7 @@ class Prop3D extends Prop {
     }
 }
 Prop3D.prototype.setMesh = function(m) {this.mesh=m;}
+Prop3D.prototype.setGroup = function(g) { this.mesh=g;}
 Prop3D.prototype.setScl = function(x,y,z) {this.scl.setWith3args(x,y,z); }
 Prop3D.prototype.setLoc = function(x,y,z) { this.loc.setWith3args(x,y,z); }
 Prop3D.prototype.setRot = function(x,y,z) { this.rot.setWith3args(x,y,z); }
