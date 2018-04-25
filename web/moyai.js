@@ -55,12 +55,15 @@ MoyaiClient.prototype.poll = function(dt) {
 }
 MoyaiClient.prototype.render = function() {
     // clear
+/*    
     for(var i=0;i<this.scene2d.children.length;i++) this.scene2d.remove( this.scene2d.children[i]);
     for(var i=0;i<this.scene3d.children.length;i++) this.scene3d.remove( this.scene3d.children[i]);
     
     if( this.scene2d.children.length>0) this.scene2d.remove( this.scene2d.children[0] ); // confirm remove all.. (TODO refactor)
     if( this.scene3d.children.length>0) this.scene3d.remove( this.scene3d.children[0] ); // confirm remove all.. (TODO refactor)    
-
+*/
+    this.scene2d=new THREE.Scene();
+    this.scene3d=new THREE.Scene();    
     this.renderer.clear();
     this.renderer.clearDepth();
     
@@ -176,7 +179,6 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
             prop.mesh.scale.y = prop.scl.y * relscl.y;
             prop.mesh.rotation.set(0,0,prop.rot);
             if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
-            //               console.log("adding ", prop.mesh, layer.camera, this.camera );
             scene.add(prop.mesh);
             z_inside_prop += this.z_per_subprop;
         }            
