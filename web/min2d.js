@@ -56,9 +56,8 @@ g_main_layer.insertProp(p_over);
 
 
 // grid test
-var p_grid_under, p_grid_over;
 if(1) {
-    p_grid_under = new Prop2D();
+    var p_grid_under = new Prop2D();
     p_grid_under.setLoc(-200,-100);
     var g=new Grid(4,4);
     g.setDeck(g_base_deck);
@@ -67,7 +66,7 @@ if(1) {
     p_grid_under.setScl(24);
     g_main_layer.insertProp(p_grid_under);
 
-    p_grid_over = new Prop2D();
+    var p_grid_over = new Prop2D();
     p_grid_over.setLoc(-150,-50);
     g=new Grid(4,4);
     g.setDeck(g_base_deck);
@@ -75,6 +74,29 @@ if(1) {
     p_grid_over.addGrid(g);
     p_grid_over.setScl(24);
     g_main_layer.insertProp(p_grid_over);
+}
+
+// custom mesh test
+if(1) {
+    var mat = createMeshBasicMaterial( { map: g_base_deck.moyai_tex.three_tex,
+                                         depthTest:false,
+                                         transparent:true,
+                                         vertexColors: THREE.VertexColors,
+                                         blending: THREE.NormalBlending } );
+    var geom = new THREE.Geometry();
+    geom.vertices.push(new THREE.Vector3(0,0,0));
+    geom.vertices.push(new THREE.Vector3(2,0,0));
+    geom.vertices.push(new THREE.Vector3(0,2,0));
+    geom.faces.push(new THREE.Face3(0,1,2));
+    geom.faces[0].vertexColors = [ new Color(1,1,1,1).toTHREEColor(), new Color(1,1,0,1).toTHREEColor(), new Color(0,1,1,1).toTHREEColor() ];
+    geom.faceVertexUvs[0].push([new THREE.Vector2(0,0), new THREE.Vector2(0.1,0), new THREE.Vector2(0,0.1)]);
+    
+    var mesh = new THREE.Mesh(geom,mat);
+    var p_custom = new Prop2D();
+    p_custom.setLoc(200,-100);
+    p_custom.setMesh(mesh);
+    g_main_layer.insertProp(p_custom);
+    
 }
 ////////////////////
 

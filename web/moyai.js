@@ -130,7 +130,13 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
         var prop = layer.props[pi];
         if(!prop.visible)continue;
 
-        prop.updateMesh();
+        if(prop.custom_mesh) {
+            prop.mesh=prop.custom_mesh;
+            prop.material=prop.custom_mesh.material;
+        } else {
+            prop.updateMesh();
+        }
+        
         var z_inside_prop=0;
         
         var prop_z = layer.priority * this.z_per_layer + prop.priority * this.z_per_prop;
@@ -511,6 +517,9 @@ class Prop2D extends Prop {
     }
     deletePrim(id) {
         if(this.prim_drawer) this.prim_drawer.deletePrim(id);
+    }
+    setMesh(mesh) {
+        this.custom_mesh=mesh;
     }
     addGrid(g) {
         if(!this.grids) this.grids=[];
