@@ -107,7 +107,7 @@ MoyaiClient.prototype.render3D = function(scene,layer) {
         var prop = layer.props[pi];
         if(!prop.visible)continue;
         if(prop.to_clean)continue;
-        prop.mesh.position.set(prop.loc.x, prop.loc.y, prop.loc.z);
+        prop.mesh.position.set(prop.loc.x+prop.draw_offset.x, prop.loc.y+prop.draw_offset.y, prop.loc.z+prop.draw_offset.z);
         prop.mesh.rotation.set(prop.rot.x, prop.rot.y, prop.rot.z);
         if(prop.scl.x!=1 || prop.scl.y!=1 || prop.scl.z!=1) {
             prop.mesh.scale.set(prop.scl.x, prop.scl.y, prop.scl.z); 
@@ -148,8 +148,8 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
                 if(!grid.mesh) {
                     //                        console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
                 } else {
-                    grid.mesh.position.x = (prop.loc.x-camloc.x)*relscl.x;
-                    grid.mesh.position.y = (prop.loc.y-camloc.y)*relscl.y;
+                    grid.mesh.position.x = (prop.loc.x+prop.draw_offset.x-camloc.x)*relscl.x;
+                    grid.mesh.position.y = (prop.loc.y+prop.draw_offset.y-camloc.y)*relscl.y;
                     grid.mesh.position.z = prop_z + z_inside_prop;
                     grid.mesh.scale.x = prop.scl.x * relscl.x;
                     grid.mesh.scale.y = prop.scl.y * relscl.y;
@@ -178,8 +178,8 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
             }
         }
         if(prop.mesh) {
-            prop.mesh.position.x = (prop.loc.x - camloc.x)*relscl.x;
-            prop.mesh.position.y = (prop.loc.y - camloc.y)*relscl.y;
+            prop.mesh.position.x = (prop.loc.x+prop.draw_offset.x - camloc.x)*relscl.x;
+            prop.mesh.position.y = (prop.loc.y+prop.draw_offset.y - camloc.y)*relscl.y;
             prop.mesh.position.z = prop_z + z_inside_prop;
             prop.mesh.scale.x = prop.scl.x * relscl.x;
             prop.mesh.scale.y = prop.scl.y * relscl.y;
@@ -192,8 +192,8 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
             for(var i=0;i<prop.prim_drawer.prims.length;i++) {
                 var prim = prop.prim_drawer.prims[i];
                 prim.updateMesh();
-                prim.mesh.position.x = (prop.loc.x-camloc.x)*relscl.x;
-                prim.mesh.position.y = (prop.loc.y-camloc.y)*relscl.y;
+                prim.mesh.position.x = (prop.loc.x+prop.draw_offset.x-camloc.x)*relscl.x;
+                prim.mesh.position.y = (prop.loc.y+prop.draw_offset.y-camloc.y)*relscl.y;
                 prim.mesh.position.z = prop_z + z_inside_prop;
                 prim.mesh.scale.x = prop.scl.x * relscl.x;
                 prim.mesh.scale.y = prop.scl.y * relscl.y;
@@ -477,7 +477,8 @@ class Prop2D extends Prop {
         this.xflip=false;
         this.yflip=false;
         this.fragment_shader= new DefaultColorShader();
-        this.remote_vel=null; 
+        this.remote_vel=null;
+        this.draw_offset=new Vec2(0,0);
     }
     setVisible(flg) { this.visible=flg; }
     setDeck(dk) { this.deck = dk; this.need_material_update = true; }
