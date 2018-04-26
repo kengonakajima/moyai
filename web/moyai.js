@@ -519,6 +519,10 @@ class Prop2D extends Prop {
     deletePrim(id) {
         if(this.prim_drawer) this.prim_drawer.deletePrim(id);
     }
+    clearMesh() {
+        this.custom_mesh=null;
+        this.mesh=null;
+    }
     setMesh(mesh) {
         this.custom_mesh=mesh;
     }
@@ -641,7 +645,12 @@ class Prop2D extends Prop {
             if(this.mesh.geometry) this.mesh.geometry.dispose();
             if(this.mesh.material) this.mesh.material.dispose();
         }
-    }    
+    }
+	hit(at,margin) {
+        if(margin==undefined)margin=0;
+		return ( at.x >= this.loc.x - this.scl.x/2 - margin ) && ( at.x <= this.loc.x + this.scl.x/2 + margin) && ( at.y >= this.loc.y - this.scl.y/2 - margin) && ( at.y <= this.loc.y + this.scl.y/2 + margin );
+	}
+    
 }
 
 ////////////////////////////
