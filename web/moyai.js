@@ -650,6 +650,20 @@ class Prop2D extends Prop {
         if(margin==undefined)margin=0;
 		return ( at.x >= this.loc.x - this.scl.x/2 - margin ) && ( at.x <= this.loc.x + this.scl.x/2 + margin) && ( at.y >= this.loc.y - this.scl.y/2 - margin) && ( at.y <= this.loc.y + this.scl.y/2 + margin );
 	}
+    hitGrid(at,margin) {
+        if(margin==undefined)margin=0;
+        for(var i in this.grids) {
+            var g = this.grids[i];
+            var rt = new Vec2( this.scl.x * g.width, this.scl.y * g.height );
+            if( (at.x >= this.loc.x-margin) && (at.x <= this.loc.x+rt.x+margin) &&
+                (at.y >= this.loc.y-margin) && (at.y <= this.loc.y+rt.y+margin) ) {
+                return true;
+                
+            }
+            
+        }
+        return false;
+    }
     
 }
 
