@@ -33,8 +33,9 @@ public:
 		if(gl_name>0) {
             unbless();
 		}
-		assert(buf);
-		FREE(buf);
+        if(buf) {
+            FREE(buf);
+        }
 	}
 	void setFormat( VertexFormat *f ) { fmt = f; }
 	void reserve(int cnt);

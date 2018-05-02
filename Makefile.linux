@@ -14,9 +14,10 @@ VIEWERSRCS=vw.cpp
 VIEWEROBJS=$(VIEWERSRCS:.cpp=.o)
 DYNCAM2DSRCS=dyncam2d.cpp
 DYNCAM2DOBJS=$(DYNCAM2DSRCS:.cpp=.o)
-REPLAYERSRCS=rep.cpp
-REPLAYEROBJS=$(REPLAYERSRCS:.cpp=.o)
 
+
+LIBUV=libuv-1.8.0
+LIBUVLIB=$(LIBUV)/.libs/libuv.a # Don't use -luv, no rpm for centos7
 
 BZ2=bzip2-1.0.6
 BZ2LIB=$(BZ2)/libbz2.a # build product of bz2 source
@@ -31,10 +32,10 @@ OUTSVLIB=libmoyaisv.a
 SNAPPYLIB=libsnappy.a
 JPEGLIB=jpeg-8d/libjpeg.a
 
-EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB) $(JPEGLIB)
+EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB) $(JPEGLIB) $(LIBUVLIB)
 EXTCLILIBS = $(EXTCOMMONLIBS)
-CLILIBFLAGS=-m64 -L/usr/local/lib -luv 
-CFLAGS=-O0 -I/usr/local/include -Wall -m64  -I.
+CLILIBFLAGS=-m64 -L/usr/local/lib  -lpthread
+CFLAGS=-O0 -I/usr/local/include -Wall -m64  -I. -I$(LIBUV)/include
 CFLAGS0X=-std=c++0x $(CFLAGS)
 
 JPEGOBJS=jpeg-8d/jaricom.o jpeg-8d/jcapimin.o jpeg-8d/jcapistd.o jpeg-8d/jcarith.o jpeg-8d/jccoefct.o jpeg-8d/jccolor.o jpeg-8d/jcdctmgr.o jpeg-8d/jchuff.o jpeg-8d/jcinit.o jpeg-8d/jcmainct.o jpeg-8d/jcmarker.o jpeg-8d/jcmaster.o jpeg-8d/jcomapi.o jpeg-8d/jcparam.o jpeg-8d/jcprepct.o jpeg-8d/jcsample.o jpeg-8d/jctrans.o jpeg-8d/jdapimin.o jpeg-8d/jdapistd.o jpeg-8d/jdarith.o jpeg-8d/jdatadst.o jpeg-8d/jdatasrc.o jpeg-8d/jdcoefct.o jpeg-8d/jdcolor.o jpeg-8d/jddctmgr.o jpeg-8d/jdhuff.o jpeg-8d/jdinput.o jpeg-8d/jdmainct.o jpeg-8d/jdmarker.o jpeg-8d/jdmaster.o jpeg-8d/jdmerge.o jpeg-8d/jdpostct.o jpeg-8d/jdsample.o jpeg-8d/jdtrans.o jpeg-8d/jerror.o jpeg-8d/jfdctflt.o jpeg-8d/jfdctfst.o jpeg-8d/jfdctint.o jpeg-8d/jidctflt.o jpeg-8d/jidctfst.o jpeg-8d/jidctint.o jpeg-8d/jmemmgr.o jpeg-8d/jmemnobs.o jpeg-8d/jquant1.o jpeg-8d/jquant2.o jpeg-8d/jutils.o
@@ -44,14 +45,11 @@ DEMO3D=demo3d
 MIN2D=min2d
 VIEWER=viewer
 DYNCAM2D=dyncam2d
-REPLAYER=replayer
 
-all : $(DEMO2D) $(DEMO3D) $(MIN2D) $(VIEWER) $(DYNCAM2D) $(REPLAYER)
+all : $(DEMO2D) $(DEMO3D) $(MIN2D) $(VIEWER) $(DYNCAM2D)
 
 server : $(OUTSVLIB) $(SNAPPYLIB)
 
-$(REPLAYER) : $(EXTCLILIBS) $(OUTCLILIB) $(REPLAYEROBJS) $(BZ2LIB) $(ZLIBLIB) $(JPEGLIB)
-	g++ $(CFLAGS0X) $(CLILIBFLAGS) $(REPLAYEROBJS) -o $(REPLAYER) $(OUTCLILIB) $(EXTCLILIBS) 
 
 $(DYNCAM2D) : $(EXTCLILIBS) $(OUTCLILIB) $(DYNCAM2DOBJS) $(BZ2LIB) $(ZLIBLIB) $(JPEGLIB)
 	g++ $(CFLAGS0X) $(CLILIBFLAGS) $(DYNCAM2DOBJS) -o $(DYNCAM2D) $(OUTCLILIB) $(EXTCLILIBS)
@@ -78,8 +76,6 @@ vw.o : vw.cpp
 	g++ -c vw.cpp $(CFLAGS0X)
 dyncam2d.o : dyncam2d.cpp
 	g++ -c dyncam2d.cpp $(CFLAGS0X)
-rep.o : rep.cpp
-	g++ -c rep.cpp $(CFLAGS0X)
 
 $(OUTCLILIB) : $(MOYAICLIOBJS)
 	ar cr $(OUTCLILIB) $(MOYAICLIOBJS)
@@ -174,6 +170,10 @@ snappy.o:
 	g++ -c snappy/snappy.cc $(CFLAGS)
 
 
+$(LIBUVLIB) :
+	tar zxf libuv-1.8.0.tar.gz
+	cd libuv-1.8.0; $(OSX_TARGET_EXPORT); sh autogen.sh; ./configure; make clean; make
+
 $(BZ2LIB):
 	rm -rf $(BZ2)
 	tar zxf $(BZ2).tar.gz
@@ -191,10 +191,10 @@ $(LIBPNGLIB):
 
 clean:
 	rm -rf $(BZ2) $(ZLIB) $(LIBPNG)
-	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(REPLAYER) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
+	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o
 
 depend: 
-	$(CC) $(CFLAGS0X) -MM $(TESTSRCS) $(MOYAICLISRCS) $(DEMO2DSRCS) $(DEMO3DSRCS) $(MIN2DSRCS) $(DYNCAM2DSRCS) $(REPLAYERSRCS) $(VIEWERSRCS) > deps.make
+	$(CC) $(CFLAGS0X) -MM $(TESTSRCS) $(MOYAICLISRCS) $(DEMO2DSRCS) $(DEMO3DSRCS) $(MIN2DSRCS) $(DYNCAM2DSRCS) $(VIEWERSRCS) > deps.make
 
 
 -include deps.make

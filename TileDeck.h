@@ -90,7 +90,7 @@ public:
         rect_num = n;
     }
 	virtual void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
-        assert(ind>=0 && ind<rect_num);
+        assert(ind>=0 && ind<(int)rect_num);
         *u0 = rects[ind].u0;
         *v0 = rects[ind].v0;
         *u1 = rects[ind].u1;

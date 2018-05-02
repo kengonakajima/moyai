@@ -131,6 +131,7 @@ int Layer::render( DrawBatchList *bl ){
     return renderAllProps(bl);
 }
 int Layer::renderAllProps( DrawBatchList *bl ){
+#ifndef __linux__
 	assertmsg( viewport, "no viewport in a layer id:%d setViewport missed?", id );
 	if( viewport->dimension == DIMENSION_2D ) {
 		static SorterEntry tosort[1024*32];
@@ -283,6 +284,9 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 		}
 		return drawn;
 	}
+#else
+    return 0;
+#endif
 }
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
