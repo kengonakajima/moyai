@@ -143,6 +143,10 @@ now = function() {
     var t = new Date().getTime();
     return t / 1000.0;
 }
+hrnow = function() {
+    var t=process.hrtime();
+    return t[0] + t[1]/1000000000.0;
+}
 lengthf = function(x0,y0,x1,y1) {
     return Math.sqrt( (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0) );
 }
