@@ -1,4 +1,4 @@
-OSX_TARGET=10.12
+OSX_TARGET=10.13
 OSX_TARGET_FLAG=-mmacosx-version-min=$(OSX_TARGET)
 OSX_TARGET_EXPORT=export MACOSX_DEPLOYMENT_TARGET=$(OSX_TARGET)
 
@@ -258,6 +258,7 @@ $(LIBPNGLIB):
 	cd $(LIBPNG); $(OSX_TARGET_EXPORT); ./configure; make
 
 
+
 $(GLFWLIB):
 	cd $(GLFW); $(OSX_TARGET_EXPORT); cmake .; make
 
@@ -268,7 +269,7 @@ linux:
 	make -f Makefile.linux
 
 clean:
-	make -C $(GLFW) clean
+	rm -rf $(GLFW)
 	make -C untz clean
 	rm -rf $(FREETYPE) $(LIBUV) $(BZ2) $(ZLIB) $(LIBPNG) $(ALUTLIB) $(JPEGLIB) $(LIBUVLIB)
 	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(REPLAYER) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o $(SNAPPYOBJS)
