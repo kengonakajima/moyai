@@ -25,7 +25,7 @@ REPLAYEROBJS=$(REPLAYERSRCS:.cpp=.o)
 
 JPEGLIB=jpeg-8d/.libs/libjpeg.a # Don't use -ljpeg, because of macosx older deploy target
 
-LIBUV=libuv-1.8.0
+LIBUV=libuv-1.20.2
 LIBUVLIB=$(LIBUV)/.libs/libuv.a # Don't use -luv, because of macosx older dep tgt
 
 FREETYPE=freetype-2.4.10
@@ -126,8 +126,8 @@ $(JPEGLIB) :
 	cd jpeg-8d; $(OSX_TARGET_EXPORT); ./configure; make clean; make
 
 $(LIBUVLIB) :
-	tar zxf libuv-1.8.0.tar.gz
-	cd libuv-1.8.0; $(OSX_TARGET_EXPORT); sh autogen.sh; ./configure; make clean; make
+	tar zxf $(LIBUV).tar.gz
+	cd $(LIBUV); $(OSX_TARGET_EXPORT); sh autogen.sh; ./configure; make clean; make
 
 common.o : common.cpp
 	g++ -c common.cpp $(CFLAGS0X)
@@ -269,7 +269,7 @@ linux:
 	make -f Makefile.linux
 
 clean:
-	rm -rf $(GLFW)
+	make -C glfw-3.2 clean
 	make -C untz clean
 	rm -rf $(FREETYPE) $(LIBUV) $(BZ2) $(ZLIB) $(LIBPNG) $(ALUTLIB) $(JPEGLIB) $(LIBUVLIB)
 	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(REPLAYER) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o $(SNAPPYOBJS)
