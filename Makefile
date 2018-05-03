@@ -268,6 +268,9 @@ $(UNTZLIB):
 linux:
 	make -f Makefile.linux
 
+clean_linux:
+	make -f Makefile.linux clean
+
 clean:
 	make -C glfw-3.2 clean
 	make -C untz clean
