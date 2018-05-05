@@ -1,4 +1,4 @@
-OSX_TARGET=10.12
+OSX_TARGET=10.13
 OSX_TARGET_FLAG=-mmacosx-version-min=$(OSX_TARGET)
 OSX_TARGET_EXPORT=export MACOSX_DEPLOYMENT_TARGET=$(OSX_TARGET)
 
@@ -25,7 +25,7 @@ REPLAYEROBJS=$(REPLAYERSRCS:.cpp=.o)
 
 JPEGLIB=jpeg-8d/.libs/libjpeg.a # Don't use -ljpeg, because of macosx older deploy target
 
-LIBUV=libuv-1.8.0
+LIBUV=libuv-1.20.2
 LIBUVLIB=$(LIBUV)/.libs/libuv.a # Don't use -luv, because of macosx older dep tgt
 
 FREETYPE=freetype-2.4.10
@@ -126,8 +126,8 @@ $(JPEGLIB) :
 	cd jpeg-8d; $(OSX_TARGET_EXPORT); ./configure; make clean; make
 
 $(LIBUVLIB) :
-	tar zxf libuv-1.8.0.tar.gz
-	cd libuv-1.8.0; $(OSX_TARGET_EXPORT); sh autogen.sh; ./configure; make clean; make
+	tar zxf $(LIBUV).tar.gz
+	cd $(LIBUV); $(OSX_TARGET_EXPORT); sh autogen.sh; ./configure; make clean; make
 
 common.o : common.cpp
 	g++ -c common.cpp $(CFLAGS0X)
@@ -258,6 +258,7 @@ $(LIBPNGLIB):
 	cd $(LIBPNG); $(OSX_TARGET_EXPORT); ./configure; make
 
 
+
 $(GLFWLIB):
 	cd $(GLFW); $(OSX_TARGET_EXPORT); cmake .; make
 
@@ -267,8 +268,11 @@ $(UNTZLIB):
 linux:
 	make -f Makefile.linux
 
+clean_linux:
+	make -f Makefile.linux clean
+
 clean:
-	make -C $(GLFW) clean
+	make -C glfw-3.2 clean
 	make -C untz clean
 	rm -rf $(FREETYPE) $(LIBUV) $(BZ2) $(ZLIB) $(LIBPNG) $(ALUTLIB) $(JPEGLIB) $(LIBUVLIB)
 	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(REPLAYER) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o $(SNAPPYOBJS)

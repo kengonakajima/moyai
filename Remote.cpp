@@ -2130,8 +2130,8 @@ static void on_write_end( uv_write_t *req, int status ) {
     if(status<0) {
         print("on_write_end error: status:%d",status);
     }
-    FREE(req);
     FREE(req->data);
+    FREE(req);
 }
 
 void Stream::flushSendbuf(size_t unitsize) {

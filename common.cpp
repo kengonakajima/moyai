@@ -321,7 +321,7 @@ bool Image::loadPNG( const char *path, bool multiply_color_by_alpha ) {
 
     if(error) {
         fprintf(stderr, "decoder error %u: %s\n", error, lodepng_error_text(error) );
-        FREE(image_data);
+        free(image_data); // dont use FREE, allocated by lodepng_decode32_file
         fclose(fp);
         return false;
     }
@@ -346,7 +346,7 @@ bool Image::loadPNG( const char *path, bool multiply_color_by_alpha ) {
     IMAGE_BUFFER_COPY;
     
     // clean up
-    FREE(image_data);
+    free(image_data); // lodepng_decode32_file allocs image_data
     fclose(fp);
     strncpy( last_load_file_path, path, sizeof(last_load_file_path) );
     return true;
