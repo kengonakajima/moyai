@@ -1711,6 +1711,7 @@ class Prop3D extends Prop {
         }
         return true;
     }
+    setVisible(flg) { this.visible=flg; }    
 }
 Prop3D.prototype.setMesh = function(m) {this.mesh=m;}
 Prop3D.prototype.setGroup = function(g) { this.mesh=g;}
