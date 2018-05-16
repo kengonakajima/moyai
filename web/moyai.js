@@ -1446,6 +1446,10 @@ function Keyboard() {
 Keyboard.prototype.enableReadEvent = function(flg) { this.to_read_event=flg; }
 Keyboard.prototype.setKey = function(keycode,pressed) {
     this.keys[keycode] = pressed;
+    if(!pressed) {
+        this.keys[keycode.toUpperCase()]=false;
+        this.keys[keycode.toLowerCase()]=false;        
+    }
     if(pressed &&  (!this.toggled[keycode]) ) {
         this.toggled[keycode]=true;
     } else {
