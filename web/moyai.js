@@ -79,6 +79,7 @@ MoyaiClient.prototype.render = function() {
                 camera3d.up.x = lcam.look_up.x; camera3d.up.y = lcam.look_up.y; camera3d.up.z = lcam.look_up.z;
                 camera3d.position.set( lcam.loc.x, lcam.loc.y, lcam.loc.z );
                 camera3d.lookAt({x: lcam.look_at.x, y: lcam.look_at.y, z: lcam.look_at.z });
+                lcam.three_matrix=camera3d.matrix; // for billboard                
             }
         }
     }
@@ -108,7 +109,7 @@ MoyaiClient.prototype.render3D = function(scene,layer) {
         if(!prop.visible)continue;
         if(prop.to_clean)continue;
         prop.mesh.position.set(prop.loc.x+prop.draw_offset.x, prop.loc.y+prop.draw_offset.y, prop.loc.z+prop.draw_offset.z);
-        prop.mesh.rotation.set(prop.rot.x, prop.rot.y, prop.rot.z);
+        if(!prop.skip_default_rotation) prop.mesh.rotation.set(prop.rot.x, prop.rot.y, prop.rot.z);
         if(prop.scl.x!=1 || prop.scl.y!=1 || prop.scl.z!=1) {
             prop.mesh.scale.set(prop.scl.x, prop.scl.y, prop.scl.z); 
         }
