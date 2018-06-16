@@ -522,6 +522,21 @@ TileDeck.prototype.getUVFromIndex = function(ind,uofs,vofs,eps) {
 TileDeck.prototype.getUperCell = function() { return this.cell_width / this.moyai_tex.image.width; }
 TileDeck.prototype.getVperCell = function() { return this.cell_height / this.moyai_tex.image.height; }    
 
+TileDeck.prototype.getPixelsFromIndex = function(ind) {
+	var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
+	var start_y = this.cell_height * Math.floor( Math.floor(ind) / Math.floor(this.tile_width ) );
+    var out=[];
+    for(var y=start_y;y<start_y+this.cell_height;y++) {
+        for(var x=start_x;x<start_x+this.cell_width;x++) {
+            var di=x*4+y*(this.cell_width*this.tile_width)*4;
+            for(var i=0;i<4;i++) {
+                out.push(this.moyai_tex.image.data[di+i]);
+            }
+        }
+    }
+    return out;
+}
+
 ///////////////////////////
 
 function UVRect(u0,v0,u1,v1) {
