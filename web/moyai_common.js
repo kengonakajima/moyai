@@ -260,6 +260,13 @@ Color = function(r,g,b,a) {
 Color.prototype.toRGBA = function() {
     return [ Math.floor(this.r*255), Math.floor(this.g*255), Math.floor(this.b*255), Math.floor(this.a*255) ];
 }
+Color.prototype.fromRGBA = function(r,g,b,a) {
+    this.r = r/255.0;
+    this.g = g/255.0;
+    this.b = b/255.0;    
+    this.a = a/255.0;
+}
+    
 Color.prototype.toCode = function() {
     return ( Math.floor(this.r * 255) << 16 ) + ( Math.floor(this.g * 255) << 8 ) + Math.floor(this.b * 255);
 }
