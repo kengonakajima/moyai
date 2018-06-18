@@ -145,9 +145,10 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
             for(var gi=0;gi<prop.grids.length;gi++) {
                 var grid = prop.grids[gi];
                 if(!grid.visible)continue;
+                if(!grid.deck)grid.setDeck(prop.deck);
                 grid.updateMesh();
                 if(!grid.mesh) {
-                    //                        console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
+//                    console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
                 } else {
                     grid.mesh.position.x = (prop.loc.x+prop.draw_offset.x-camloc.x)*relscl.x;
                     grid.mesh.position.y = (prop.loc.y+prop.draw_offset.y-camloc.y)*relscl.y;
