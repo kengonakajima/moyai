@@ -570,6 +570,7 @@ class Prop2D extends Prop {
     }
     updateMesh() {
         if(!this.deck)return;
+        if(this.index==-1)return;
         if( this.need_material_update ) {
             if(!this.material) {
                 if(this.fragment_shader) {
