@@ -1606,7 +1606,7 @@ function Sound(data,loop,type) {
     this.default_volume=1;
     this.source=null;
     this.play_volume=null;
-    this.sound_system=null; 
+    this.sound_system=null;
 }
 Sound.prototype.setLoop = function(loop) { this.loop=loop; }
 Sound.prototype.isReady = function() { return this.audiobuffer; }
@@ -1628,13 +1628,16 @@ Sound.prototype.setData = function(data,type) {
         })
     }
 }
-Sound.prototype.prepareSource = function(vol) {
+Sound.prototype.prepareSource = function(vol,detune) {
     if(!this.context)return;
+    if(!detune)detune=0;
+    
     if(this.source) {
         this.source.stop();
     }
     this.source = this.context.createBufferSource();
     this.source.buffer = this.audiobuffer;
+    this.source.detune.value=detune;
     var thissnd=this;
     this.source.onended = function() { thissnd.source.ended=true; }
     this.gain_node = this.context.createGain();
@@ -1642,11 +1645,11 @@ Sound.prototype.prepareSource = function(vol) {
     this.gain_node.connect(this.context.destination);
     this.gain_node.gain.value = this.default_volume * vol * this.sound_system.master_volume;
 }
-Sound.prototype.play = function(vol) {
+Sound.prototype.play = function(vol,detune) {
     if(!this.context)return;
     if(vol==undefined)vol=1;
     if(this.audiobuffer) {
-        this.prepareSource(vol);
+        this.prepareSource(vol,detune);
         this.source.start(0);
         this.play_volume=vol;
     } else {
