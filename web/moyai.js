@@ -351,8 +351,10 @@ Prim.prototype.updateMesh = function() {
     }
 }
 Prim.prototype.onDelete = function() {
-    this.mesh.geometry.dispose();
-    this.mesh.material.dispose();    
+    if(this.mesh) {
+        this.mesh.geometry.dispose();
+        this.mesh.material.dispose();
+    }
 }
 
 //////////////////
