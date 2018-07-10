@@ -403,7 +403,12 @@ PrimDrawer.prototype.ensurePrim = function(p) {
         }        
     }
 }
-
+PrimDrawer.prototype.clear = function() {
+    for(var i=0;i<this.prims.length;i++) {
+        this.prims[i].onDelete();
+    }
+    this.prims=[];
+}
 //////////////////
 var moyai_id_gen=1;
 class Prop {
@@ -526,6 +531,9 @@ class Prop2D extends Prop {
     }
     deletePrim(id) {
         if(this.prim_drawer) this.prim_drawer.deletePrim(id);
+    }
+    clearPrims() {
+        if(this.prim_drawer) this.prim_drawer.clear();
     }
     clearMesh() {
         this.custom_mesh=null;
