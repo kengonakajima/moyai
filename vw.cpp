@@ -311,6 +311,8 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
 
 void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     g_packet_count++;
+
+    print("on_packet_callback: funcid:%d arglen:%d\n",funcid, argdatalen );
     
     // if(g_enable_reprecation) print("funcid:%d l:%d",funcid, argdatalen);
 
