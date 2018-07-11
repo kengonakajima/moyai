@@ -79,6 +79,7 @@ glew-1.10.0/build/vc10/*.suo
 glew-1.10.0/build/vc10/tmp
 glew-1.10.0/lib
 glfw-3.2/CMakeCache.txt
+glfw-3.2/CMakeDoxy*
 glfw-3.2/CMakeFiles/
 glfw-3.2/Makefile
 glfw-3.2/cmake_install.cmake

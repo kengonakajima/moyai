@@ -79,6 +79,7 @@ MoyaiClient.prototype.render = function() {
                 camera3d.up.x = lcam.look_up.x; camera3d.up.y = lcam.look_up.y; camera3d.up.z = lcam.look_up.z;
                 camera3d.position.set( lcam.loc.x, lcam.loc.y, lcam.loc.z );
                 camera3d.lookAt({x: lcam.look_at.x, y: lcam.look_at.y, z: lcam.look_at.z });
+                lcam.three_matrix=camera3d.matrix; // for billboard                
             }
         }
     }
@@ -108,7 +109,7 @@ MoyaiClient.prototype.render3D = function(scene,layer) {
         if(!prop.visible)continue;
         if(prop.to_clean)continue;
         prop.mesh.position.set(prop.loc.x+prop.draw_offset.x, prop.loc.y+prop.draw_offset.y, prop.loc.z+prop.draw_offset.z);
-        prop.mesh.rotation.set(prop.rot.x, prop.rot.y, prop.rot.z);
+        if(!prop.skip_default_rotation) prop.mesh.rotation.set(prop.rot.x, prop.rot.y, prop.rot.z);
         if(prop.scl.x!=1 || prop.scl.y!=1 || prop.scl.z!=1) {
             prop.mesh.scale.set(prop.scl.x, prop.scl.y, prop.scl.z); 
         }
@@ -144,9 +145,10 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
             for(var gi=0;gi<prop.grids.length;gi++) {
                 var grid = prop.grids[gi];
                 if(!grid.visible)continue;
+                if(!grid.deck)grid.setDeck(prop.deck);
                 grid.updateMesh();
                 if(!grid.mesh) {
-                    //                        console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
+//                    console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
                 } else {
                     grid.mesh.position.x = (prop.loc.x+prop.draw_offset.x-camloc.x)*relscl.x;
                     grid.mesh.position.y = (prop.loc.y+prop.draw_offset.y-camloc.y)*relscl.y;
@@ -349,8 +351,10 @@ Prim.prototype.updateMesh = function() {
     }
 }
 Prim.prototype.onDelete = function() {
-    this.mesh.geometry.dispose();
-    this.mesh.material.dispose();    
+    if(this.mesh) {
+        this.mesh.geometry.dispose();
+        this.mesh.material.dispose();
+    }
 }
 
 //////////////////
@@ -401,7 +405,12 @@ PrimDrawer.prototype.ensurePrim = function(p) {
         }        
     }
 }
-
+PrimDrawer.prototype.clear = function() {
+    for(var i=0;i<this.prims.length;i++) {
+        this.prims[i].onDelete();
+    }
+    this.prims=[];
+}
 //////////////////
 var moyai_id_gen=1;
 class Prop {
@@ -525,6 +534,9 @@ class Prop2D extends Prop {
     deletePrim(id) {
         if(this.prim_drawer) this.prim_drawer.deletePrim(id);
     }
+    clearPrims() {
+        if(this.prim_drawer) this.prim_drawer.clear();
+    }
     clearMesh() {
         this.custom_mesh=null;
         this.mesh=null;
@@ -569,6 +581,7 @@ class Prop2D extends Prop {
     }
     updateMesh() {
         if(!this.deck)return;
+        if(this.index==-1)return;
         if( this.need_material_update ) {
             if(!this.material) {
                 if(this.fragment_shader) {
@@ -1446,6 +1459,10 @@ function Keyboard() {
 Keyboard.prototype.enableReadEvent = function(flg) { this.to_read_event=flg; }
 Keyboard.prototype.setKey = function(keycode,pressed) {
     this.keys[keycode] = pressed;
+    if(!pressed) {
+        this.keys[keycode.toUpperCase()]=false;
+        this.keys[keycode.toLowerCase()]=false;        
+    }
     if(pressed &&  (!this.toggled[keycode]) ) {
         this.toggled[keycode]=true;
     } else {
@@ -1599,7 +1616,7 @@ function Sound(data,loop,type) {
     this.default_volume=1;
     this.source=null;
     this.play_volume=null;
-    this.sound_system=null; 
+    this.sound_system=null;
 }
 Sound.prototype.setLoop = function(loop) { this.loop=loop; }
 Sound.prototype.isReady = function() { return this.audiobuffer; }
@@ -1621,13 +1638,16 @@ Sound.prototype.setData = function(data,type) {
         })
     }
 }
-Sound.prototype.prepareSource = function(vol) {
+Sound.prototype.prepareSource = function(vol,detune) {
     if(!this.context)return;
+    if(!detune)detune=0;
+    
     if(this.source) {
         this.source.stop();
     }
     this.source = this.context.createBufferSource();
     this.source.buffer = this.audiobuffer;
+    this.source.detune.value=detune;
     var thissnd=this;
     this.source.onended = function() { thissnd.source.ended=true; }
     this.gain_node = this.context.createGain();
@@ -1635,11 +1655,11 @@ Sound.prototype.prepareSource = function(vol) {
     this.gain_node.connect(this.context.destination);
     this.gain_node.gain.value = this.default_volume * vol * this.sound_system.master_volume;
 }
-Sound.prototype.play = function(vol) {
+Sound.prototype.play = function(vol,detune) {
     if(!this.context)return;
     if(vol==undefined)vol=1;
     if(this.audiobuffer) {
-        this.prepareSource(vol);
+        this.prepareSource(vol,detune);
         this.source.start(0);
         this.play_volume=vol;
     } else {
@@ -1711,6 +1731,7 @@ class Prop3D extends Prop {
         }
         return true;
     }
+    setVisible(flg) { this.visible=flg; }    
 }
 Prop3D.prototype.setMesh = function(m) {this.mesh=m;}
 Prop3D.prototype.setGroup = function(g) { this.mesh=g;}

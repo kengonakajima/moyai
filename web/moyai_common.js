@@ -260,6 +260,13 @@ Color = function(r,g,b,a) {
 Color.prototype.toRGBA = function() {
     return [ Math.floor(this.r*255), Math.floor(this.g*255), Math.floor(this.b*255), Math.floor(this.a*255) ];
 }
+Color.prototype.fromRGBA = function(r,g,b,a) {
+    this.r = r/255.0;
+    this.g = g/255.0;
+    this.b = b/255.0;    
+    this.a = a/255.0;
+}
+    
 Color.prototype.toCode = function() {
     return ( Math.floor(this.r * 255) << 16 ) + ( Math.floor(this.g * 255) << 8 ) + Math.floor(this.b * 255);
 }
@@ -519,8 +526,32 @@ TileDeck.prototype.getUVFromIndex = function(ind,uofs,vofs,eps) {
 	var v1 = v0 + vunit - eps*2;
     return [u0,v0,u1,v1];
 }
+TileDeck.prototype.getUVOfPixel = function(ind,x_in_cell,y_in_cell) {
+    ind=Math.floor(ind);
+    var x0=Math.floor(ind%this.tile_width)*this.cell_width;
+    var y0=Math.floor(ind/this.tile_width)*this.cell_height;
+    var fin_x=x0+x_in_cell, fin_y=y0+y_in_cell;
+    var u_per_pixel = 1.0/this.moyai_tex.image.width;
+    var v_per_pixel = 1.0/this.moyai_tex.image.height;
+    return [fin_x*u_per_pixel, fin_y*v_per_pixel, (fin_x+1)*u_per_pixel, (fin_y+1)*v_per_pixel];
+}
 TileDeck.prototype.getUperCell = function() { return this.cell_width / this.moyai_tex.image.width; }
 TileDeck.prototype.getVperCell = function() { return this.cell_height / this.moyai_tex.image.height; }    
+
+TileDeck.prototype.getPixelsFromIndex = function(ind) {
+	var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
+	var start_y = this.cell_height * Math.floor( Math.floor(ind) / Math.floor(this.tile_width ) );
+    var out=[];
+    for(var y=start_y;y<start_y+this.cell_height;y++) {
+        for(var x=start_x;x<start_x+this.cell_width;x++) {
+            var di=x*4+y*(this.cell_width*this.tile_width)*4;
+            for(var i=0;i<4;i++) {
+                out.push(this.moyai_tex.image.data[di+i]);
+            }
+        }
+    }
+    return out;
+}
 
 ///////////////////////////
 

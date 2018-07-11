@@ -4,7 +4,7 @@ var bytes = fs.readFileSync(process.argv[2]);
 
 var name = path.basename(process.argv[2]).replace(".","_");
 
-var buf = Buffer(bytes)
+var buf = Buffer.from(bytes)
 
 console.log("var ", name, " = new Uint8Array( [");
 var ind=0;
