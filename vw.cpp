@@ -57,6 +57,7 @@ double g_last_ping_rtt=0;
 
 bool g_enable_print_stats = false;
 bool g_enable_reprecation = false;
+bool g_enable_log_all_funcs = false;
 
 #if defined(__APPLE__)
 #define RETINA 2
@@ -312,7 +313,7 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
 void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     g_packet_count++;
 
-    print("on_packet_callback: funcid:%d arglen:%d\n",funcid, argdatalen );
+    print("[%.2f] func:%d arglen:%d",now(), funcid, argdatalen );
     
     // if(g_enable_reprecation) print("funcid:%d l:%d",funcid, argdatalen);
 
@@ -1701,6 +1702,8 @@ bool parseProgramArgs( int argc, char **argv ) {
             g_enable_print_stats = true;
         } else if( strcmp( argv[i], "--reprecation" ) == 0 ) {
             g_enable_reprecation = true;
+        } else if( strcmp( argv[i], "--log_all" ) == 0 ) {
+            g_enable_log_all_funcs = true;  
         } else if( strncmp( argv[i], save_prefix, strlen(save_prefix)) == 0 ) {
             snprintf( g_savepath, sizeof(g_savepath), "%s", argv[i] + strlen(save_prefix));
         } else if( argv[i][0] != '-' ){
