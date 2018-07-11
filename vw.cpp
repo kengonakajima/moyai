@@ -313,7 +313,10 @@ void cursorPosCallback( GLFWwindow *window, double x, double y ) {
 void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     g_packet_count++;
 
-    print("[%.2f] func:%d arglen:%d",now(), funcid, argdatalen );
+    if(g_enable_log_all_funcs) {
+        print("[%.2f] func:%d arglen:%d",now(), funcid, argdatalen );
+        dump(argdata, argdatalen);
+    }
     
     // if(g_enable_reprecation) print("funcid:%d l:%d",funcid, argdatalen);
 
