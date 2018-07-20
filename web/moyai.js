@@ -1495,7 +1495,7 @@ Keyboard.prototype.readBrowserEvent = function(e,pressed) {
     var id=e.key;
     if(!id)id=safariKey(e);
     if(this.onKeyEvent) {
-        var keep=this.onKeyEvent(id,pressed);
+        var keep=this.onKeyEvent(id,pressed,e);
         if(!keep)return;
     }
     this.setKey(id,pressed);
