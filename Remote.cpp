@@ -73,7 +73,7 @@ void makePacketProp2DSnapshot( PacketProp2DSnapshot *out, Prop2D *tgt, Prop2D *p
     out->scl.y = tgt->scl.y;
     out->index = tgt->index;
     out->tiledeck_id = tgt->deck ? tgt->deck->id : 0;
-    if(out->tiledeck_id==0 && tgt->grid_used_num==0 && tgt->children_num==0) {
+    if(out->tiledeck_id==0 && tgt->grid_used_num==0 && tgt->children_num==0 && !tgt->prim_drawer) {
         print("WARNING: tiledeck is 0 for prop %d ind:%d grid:%d childnum:%d", tgt->id , tgt->index, tgt->grid_used_num, tgt->children_num );
     }
     out->debug = tgt->debug_id;
