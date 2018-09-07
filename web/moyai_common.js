@@ -242,6 +242,9 @@ Vec3.prototype.toTHREEVector3 = function() {
 Vec3.prototype.lengthf = function() {
     return Math.sqrt( this.x*this.x + this.y*this.y + this.z*this.z );
 }
+Vec3.prototype.dot = function(v3) {
+    return this.x*v3.x + this.y*v3.y + this.z*v3.z;
+}
 // 0 ~ 1
 Color = function(r,g,b,a) {
     if(g==undefined || g==null) {
