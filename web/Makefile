@@ -1,5 +1,7 @@
 all:
-	browserify modsetup.js -o modbundle.js 
+	npm install
+#	browserify modsetup.js -o modbundle.js
+	node node_modules/browserify/bin/cmd.js modsetup.js -o modbundle.js
 
 wsf:
 	node node_modules/websockify/websockify.js 8888 localhost:22222
@@ -18,3 +20,4 @@ toarray:
 	node toarray.js ../assets/skydawn.png > assets/skydawn.png.js
 	node toarray.js ../assets/skynight.png > assets/skynight.png.js
 	node toarray.js ../assets/sun.png > assets/sun.png.js
+

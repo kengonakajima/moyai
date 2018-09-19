@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -19,13 +19,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -40,7 +40,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\libvorbis-1.3.5\include;$(ProjectDir)\..\libogg-1.3.2\include;$(ProjectDir)\..\rtaudio-4.1.2\include;$(ProjectDir)\..\rtaudio-4.1.2;$(ProjectDir)\..\freealut\include;$(ProjectDir)\..\openal-1.1\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\libvorbis-1.3.5\include;$(ProjectDir)\..\libogg-1.3.2\include;$(ProjectDir)\..\rtaudio-4.1.2\include;$(ProjectDir)\..\rtaudio-4.1.2;$(ProjectDir)\..\freealut\include;$(ProjectDir)\..\openal-1.1\include;$(ProjectDir)\..\freetype-gl\windows\freetype</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\libvorbis-1.3.5\include;$(ProjectDir)\..\libogg-1.3.2\include;$(ProjectDir)\..\rtaudio-4.1.2;$(ProjectDir)\..\rtaudio-4.1.2\include;$(ProjectDir)\..\openal-1.1\include;$(ProjectDir)\..\freealut\include</IncludePath>
@@ -102,52 +102,6 @@
     <ClCompile Include="..\freetype-gl\vector.c" />
     <ClCompile Include="..\freetype-gl\vertex-attribute.c" />
     <ClCompile Include="..\freetype-gl\vertex-buffer.c" />
-    <ClCompile Include="..\jpeg-8d\jaricom.c" />
-    <ClCompile Include="..\jpeg-8d\jcapimin.c" />
-    <ClCompile Include="..\jpeg-8d\jcapistd.c" />
-    <ClCompile Include="..\jpeg-8d\jcarith.c" />
-    <ClCompile Include="..\jpeg-8d\jccoefct.c" />
-    <ClCompile Include="..\jpeg-8d\jccolor.c" />
-    <ClCompile Include="..\jpeg-8d\jcdctmgr.c" />
-    <ClCompile Include="..\jpeg-8d\jchuff.c" />
-    <ClCompile Include="..\jpeg-8d\jcinit.c" />
-    <ClCompile Include="..\jpeg-8d\jcmainct.c" />
-    <ClCompile Include="..\jpeg-8d\jcmarker.c" />
-    <ClCompile Include="..\jpeg-8d\jcmaster.c" />
-    <ClCompile Include="..\jpeg-8d\jcomapi.c" />
-    <ClCompile Include="..\jpeg-8d\jcparam.c" />
-    <ClCompile Include="..\jpeg-8d\jcprepct.c" />
-    <ClCompile Include="..\jpeg-8d\jcsample.c" />
-    <ClCompile Include="..\jpeg-8d\jctrans.c" />
-    <ClCompile Include="..\jpeg-8d\jdapimin.c" />
-    <ClCompile Include="..\jpeg-8d\jdapistd.c" />
-    <ClCompile Include="..\jpeg-8d\jdarith.c" />
-    <ClCompile Include="..\jpeg-8d\jdatadst.c" />
-    <ClCompile Include="..\jpeg-8d\jdatasrc.c" />
-    <ClCompile Include="..\jpeg-8d\jdcoefct.c" />
-    <ClCompile Include="..\jpeg-8d\jdcolor.c" />
-    <ClCompile Include="..\jpeg-8d\jddctmgr.c" />
-    <ClCompile Include="..\jpeg-8d\jdhuff.c" />
-    <ClCompile Include="..\jpeg-8d\jdinput.c" />
-    <ClCompile Include="..\jpeg-8d\jdmainct.c" />
-    <ClCompile Include="..\jpeg-8d\jdmarker.c" />
-    <ClCompile Include="..\jpeg-8d\jdmaster.c" />
-    <ClCompile Include="..\jpeg-8d\jdmerge.c" />
-    <ClCompile Include="..\jpeg-8d\jdpostct.c" />
-    <ClCompile Include="..\jpeg-8d\jdsample.c" />
-    <ClCompile Include="..\jpeg-8d\jdtrans.c" />
-    <ClCompile Include="..\jpeg-8d\jerror.c" />
-    <ClCompile Include="..\jpeg-8d\jfdctflt.c" />
-    <ClCompile Include="..\jpeg-8d\jfdctfst.c" />
-    <ClCompile Include="..\jpeg-8d\jfdctint.c" />
-    <ClCompile Include="..\jpeg-8d\jidctflt.c" />
-    <ClCompile Include="..\jpeg-8d\jidctfst.c" />
-    <ClCompile Include="..\jpeg-8d\jidctint.c" />
-    <ClCompile Include="..\jpeg-8d\jmemmgr.c" />
-    <ClCompile Include="..\jpeg-8d\jmemnobs.c" />
-    <ClCompile Include="..\jpeg-8d\jquant1.c" />
-    <ClCompile Include="..\jpeg-8d\jquant2.c" />
-    <ClCompile Include="..\jpeg-8d\jutils.c" />
     <ClCompile Include="..\lodepng.cpp" />
     <ClCompile Include="..\snappy\snappy-c.cc" />
     <ClCompile Include="..\snappy\snappy-sinksource.cc" />

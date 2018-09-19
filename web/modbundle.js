@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 (function (global){
 var snappyjs = require("snappyjs");
 global.window.Snappy = snappyjs;
@@ -7,7 +7,7 @@ global.window.pngParse = pngParse;
 var Buffer = require("buffer").Buffer;
 global.window.Buffer = Buffer;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"buffer":3,"pngparse-sync":6,"snappyjs":23}],2:[function(require,module,exports){
+},{"buffer":3,"pngparse-sync":21,"snappyjs":23}],2:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -24,68 +24,102 @@ for (var i = 0, len = code.length; i < len; ++i) {
   revLookup[code.charCodeAt(i)] = i
 }
 
+// Support decoding URL-safe base64 strings, as Node.js does.
+// See: https://en.wikipedia.org/wiki/Base64#URL_applications
 revLookup['-'.charCodeAt(0)] = 62
 revLookup['_'.charCodeAt(0)] = 63
 
-function placeHoldersCount (b64) {
+function getLens (b64) {
   var len = b64.length
+
   if (len % 4 > 0) {
     throw new Error('Invalid string. Length must be a multiple of 4')
   }
 
-  // the number of equal signs (place holders)
-  // if there are two placeholders, than the two characters before it
-  // represent one byte
-  // if there is only one, then the three characters before it represent 2 bytes
-  // this is just a cheap hack to not do indexOf twice
-  return b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
+  // Trim off extra bytes after placeholder bytes are found
+  // See: https://github.com/beatgammit/base64-js/issues/42
+  var validLen = b64.indexOf('=')
+  if (validLen === -1) validLen = len
+
+  var placeHoldersLen = validLen === len
+    ? 0
+    : 4 - (validLen % 4)
+
+  return [validLen, placeHoldersLen]
 }
 
+// base64 is 4/3 + up to two characters of the original data
 function byteLength (b64) {
-  // base64 is 4/3 + up to two characters of the original data
-  return b64.length * 3 / 4 - placeHoldersCount(b64)
+  var lens = getLens(b64)
+  var validLen = lens[0]
+  var placeHoldersLen = lens[1]
+  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
+}
+
+function _byteLength (b64, validLen, placeHoldersLen) {
+  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
 }
 
 function toByteArray (b64) {
-  var i, j, l, tmp, placeHolders, arr
-  var len = b64.length
-  placeHolders = placeHoldersCount(b64)
+  var tmp
+  var lens = getLens(b64)
+  var validLen = lens[0]
+  var placeHoldersLen = lens[1]
 
-  arr = new Arr(len * 3 / 4 - placeHolders)
+  var arr = new Arr(_byteLength(b64, validLen, placeHoldersLen))
+
+  var curByte = 0
 
   // if there are placeholders, only get up to the last complete 4 chars
-  l = placeHolders > 0 ? len - 4 : len
+  var len = placeHoldersLen > 0
+    ? validLen - 4
+    : validLen
 
-  var L = 0
-
-  for (i = 0, j = 0; i < l; i += 4, j += 3) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)]
-    arr[L++] = (tmp >> 16) & 0xFF
-    arr[L++] = (tmp >> 8) & 0xFF
-    arr[L++] = tmp & 0xFF
+  for (var i = 0; i < len; i += 4) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 18) |
+      (revLookup[b64.charCodeAt(i + 1)] << 12) |
+      (revLookup[b64.charCodeAt(i + 2)] << 6) |
+      revLookup[b64.charCodeAt(i + 3)]
+    arr[curByte++] = (tmp >> 16) & 0xFF
+    arr[curByte++] = (tmp >> 8) & 0xFF
+    arr[curByte++] = tmp & 0xFF
   }
 
-  if (placeHolders === 2) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 2) | (revLookup[b64.charCodeAt(i + 1)] >> 4)
-    arr[L++] = tmp & 0xFF
-  } else if (placeHolders === 1) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 10) | (revLookup[b64.charCodeAt(i + 1)] << 4) | (revLookup[b64.charCodeAt(i + 2)] >> 2)
-    arr[L++] = (tmp >> 8) & 0xFF
-    arr[L++] = tmp & 0xFF
+  if (placeHoldersLen === 2) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 2) |
+      (revLookup[b64.charCodeAt(i + 1)] >> 4)
+    arr[curByte++] = tmp & 0xFF
+  }
+
+  if (placeHoldersLen === 1) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 10) |
+      (revLookup[b64.charCodeAt(i + 1)] << 4) |
+      (revLookup[b64.charCodeAt(i + 2)] >> 2)
+    arr[curByte++] = (tmp >> 8) & 0xFF
+    arr[curByte++] = tmp & 0xFF
   }
 
   return arr
 }
 
 function tripletToBase64 (num) {
-  return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F]
+  return lookup[num >> 18 & 0x3F] +
+    lookup[num >> 12 & 0x3F] +
+    lookup[num >> 6 & 0x3F] +
+    lookup[num & 0x3F]
 }
 
 function encodeChunk (uint8, start, end) {
   var tmp
   var output = []
   for (var i = start; i < end; i += 3) {
-    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
+    tmp =
+      ((uint8[i] << 16) & 0xFF0000) +
+      ((uint8[i + 1] << 8) & 0xFF00) +
+      (uint8[i + 2] & 0xFF)
     output.push(tripletToBase64(tmp))
   }
   return output.join('')
@@ -95,30 +129,33 @@ function fromByteArray (uint8) {
   var tmp
   var len = uint8.length
   var extraBytes = len % 3 // if we have 1 byte left, pad 2 bytes
-  var output = ''
   var parts = []
   var maxChunkLength = 16383 // must be multiple of 3
 
   // go through the array every three bytes, we'll deal with trailing stuff later
   for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
-    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
+    parts.push(encodeChunk(
+      uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)
+    ))
   }
 
   // pad the end with zeros, but make sure to not forget the extra bytes
   if (extraBytes === 1) {
     tmp = uint8[len - 1]
-    output += lookup[tmp >> 2]
-    output += lookup[(tmp << 4) & 0x3F]
-    output += '=='
+    parts.push(
+      lookup[tmp >> 2] +
+      lookup[(tmp << 4) & 0x3F] +
+      '=='
+    )
   } else if (extraBytes === 2) {
-    tmp = (uint8[len - 2] << 8) + (uint8[len - 1])
-    output += lookup[tmp >> 10]
-    output += lookup[(tmp >> 4) & 0x3F]
-    output += lookup[(tmp << 2) & 0x3F]
-    output += '='
+    tmp = (uint8[len - 2] << 8) + uint8[len - 1]
+    parts.push(
+      lookup[tmp >> 10] +
+      lookup[(tmp >> 4) & 0x3F] +
+      lookup[(tmp << 2) & 0x3F] +
+      '='
+    )
   }
-
-  parts.push(output)
 
   return parts.join('')
 }
@@ -127,7 +164,7 @@ function fromByteArray (uint8) {
 /*!
  * The buffer module from node.js, for the browser.
  *
- * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * @author   Feross Aboukhadijeh <https://feross.org>
  * @license  MIT
  */
 /* eslint-disable no-proto */
@@ -172,16 +209,32 @@ function typedArraySupport () {
   // Can typed array instances can be augmented?
   try {
     var arr = new Uint8Array(1)
-    arr.__proto__ = {__proto__: Uint8Array.prototype, foo: function () { return 42 }}
+    arr.__proto__ = { __proto__: Uint8Array.prototype, foo: function () { return 42 } }
     return arr.foo() === 42
   } catch (e) {
     return false
   }
 }
 
+Object.defineProperty(Buffer.prototype, 'parent', {
+  enumerable: true,
+  get: function () {
+    if (!Buffer.isBuffer(this)) return undefined
+    return this.buffer
+  }
+})
+
+Object.defineProperty(Buffer.prototype, 'offset', {
+  enumerable: true,
+  get: function () {
+    if (!Buffer.isBuffer(this)) return undefined
+    return this.byteOffset
+  }
+})
+
 function createBuffer (length) {
   if (length > K_MAX_LENGTH) {
-    throw new RangeError('Invalid typed array length')
+    throw new RangeError('The value "' + length + '" is invalid for option "size"')
   }
   // Return an augmented `Uint8Array` instance
   var buf = new Uint8Array(length)
@@ -203,8 +256,8 @@ function Buffer (arg, encodingOrOffset, length) {
   // Common case.
   if (typeof arg === 'number') {
     if (typeof encodingOrOffset === 'string') {
-      throw new Error(
-        'If encoding is specified then the first argument must be a string'
+      throw new TypeError(
+        'The "string" argument must be of type string. Received type number'
       )
     }
     return allocUnsafe(arg)
@@ -213,7 +266,7 @@ function Buffer (arg, encodingOrOffset, length) {
 }
 
 // Fix subarray() in ES2016. See: https://github.com/feross/buffer/pull/97
-if (typeof Symbol !== 'undefined' && Symbol.species &&
+if (typeof Symbol !== 'undefined' && Symbol.species != null &&
     Buffer[Symbol.species] === Buffer) {
   Object.defineProperty(Buffer, Symbol.species, {
     value: null,
@@ -226,19 +279,51 @@ if (typeof Symbol !== 'undefined' && Symbol.species &&
 Buffer.poolSize = 8192 // not used by this implementation
 
 function from (value, encodingOrOffset, length) {
-  if (typeof value === 'number') {
-    throw new TypeError('"value" argument must not be a number')
-  }
-
-  if (value instanceof ArrayBuffer) {
-    return fromArrayBuffer(value, encodingOrOffset, length)
-  }
-
   if (typeof value === 'string') {
     return fromString(value, encodingOrOffset)
   }
 
-  return fromObject(value)
+  if (ArrayBuffer.isView(value)) {
+    return fromArrayLike(value)
+  }
+
+  if (value == null) {
+    throw TypeError(
+      'The first argument must be one of type string, Buffer, ArrayBuffer, Array, ' +
+      'or Array-like Object. Received type ' + (typeof value)
+    )
+  }
+
+  if (isInstance(value, ArrayBuffer) ||
+      (value && isInstance(value.buffer, ArrayBuffer))) {
+    return fromArrayBuffer(value, encodingOrOffset, length)
+  }
+
+  if (typeof value === 'number') {
+    throw new TypeError(
+      'The "value" argument must not be of type number. Received type number'
+    )
+  }
+
+  var valueOf = value.valueOf && value.valueOf()
+  if (valueOf != null && valueOf !== value) {
+    return Buffer.from(valueOf, encodingOrOffset, length)
+  }
+
+  var b = fromObject(value)
+  if (b) return b
+
+  if (typeof Symbol !== 'undefined' && Symbol.toPrimitive != null &&
+      typeof value[Symbol.toPrimitive] === 'function') {
+    return Buffer.from(
+      value[Symbol.toPrimitive]('string'), encodingOrOffset, length
+    )
+  }
+
+  throw new TypeError(
+    'The first argument must be one of type string, Buffer, ArrayBuffer, Array, ' +
+    'or Array-like Object. Received type ' + (typeof value)
+  )
 }
 
 /**
@@ -260,9 +345,9 @@ Buffer.__proto__ = Uint8Array
 
 function assertSize (size) {
   if (typeof size !== 'number') {
-    throw new TypeError('"size" argument must be a number')
+    throw new TypeError('"size" argument must be of type number')
   } else if (size < 0) {
-    throw new RangeError('"size" argument must not be negative')
+    throw new RangeError('The value "' + size + '" is invalid for option "size"')
   }
 }
 
@@ -314,7 +399,7 @@ function fromString (string, encoding) {
   }
 
   if (!Buffer.isEncoding(encoding)) {
-    throw new TypeError('"encoding" must be a valid string encoding')
+    throw new TypeError('Unknown encoding: ' + encoding)
   }
 
   var length = byteLength(string, encoding) | 0
@@ -343,11 +428,11 @@ function fromArrayLike (array) {
 
 function fromArrayBuffer (array, byteOffset, length) {
   if (byteOffset < 0 || array.byteLength < byteOffset) {
-    throw new RangeError('\'offset\' is out of bounds')
+    throw new RangeError('"offset" is outside of buffer bounds')
   }
 
   if (array.byteLength < byteOffset + (length || 0)) {
-    throw new RangeError('\'length\' is out of bounds')
+    throw new RangeError('"length" is outside of buffer bounds')
   }
 
   var buf
@@ -377,20 +462,16 @@ function fromObject (obj) {
     return buf
   }
 
-  if (obj) {
-    if (ArrayBuffer.isView(obj) || 'length' in obj) {
-      if (typeof obj.length !== 'number' || isnan(obj.length)) {
-        return createBuffer(0)
-      }
-      return fromArrayLike(obj)
+  if (obj.length !== undefined) {
+    if (typeof obj.length !== 'number' || numberIsNaN(obj.length)) {
+      return createBuffer(0)
     }
-
-    if (obj.type === 'Buffer' && Array.isArray(obj.data)) {
-      return fromArrayLike(obj.data)
-    }
+    return fromArrayLike(obj)
   }
 
-  throw new TypeError('First argument must be a string, Buffer, ArrayBuffer, Array, or array-like object.')
+  if (obj.type === 'Buffer' && Array.isArray(obj.data)) {
+    return fromArrayLike(obj.data)
+  }
 }
 
 function checked (length) {
@@ -411,12 +492,17 @@ function SlowBuffer (length) {
 }
 
 Buffer.isBuffer = function isBuffer (b) {
-  return b != null && b._isBuffer === true
+  return b != null && b._isBuffer === true &&
+    b !== Buffer.prototype // so Buffer.isBuffer(Buffer.prototype) will be false
 }
 
 Buffer.compare = function compare (a, b) {
+  if (isInstance(a, Uint8Array)) a = Buffer.from(a, a.offset, a.byteLength)
+  if (isInstance(b, Uint8Array)) b = Buffer.from(b, b.offset, b.byteLength)
   if (!Buffer.isBuffer(a) || !Buffer.isBuffer(b)) {
-    throw new TypeError('Arguments must be Buffers')
+    throw new TypeError(
+      'The "buf1", "buf2" arguments must be one of type Buffer or Uint8Array'
+    )
   }
 
   if (a === b) return 0
@@ -477,6 +563,9 @@ Buffer.concat = function concat (list, length) {
   var pos = 0
   for (i = 0; i < list.length; ++i) {
     var buf = list[i]
+    if (isInstance(buf, Uint8Array)) {
+      buf = Buffer.from(buf)
+    }
     if (!Buffer.isBuffer(buf)) {
       throw new TypeError('"list" argument must be an Array of Buffers')
     }
@@ -490,15 +579,19 @@ function byteLength (string, encoding) {
   if (Buffer.isBuffer(string)) {
     return string.length
   }
-  if (ArrayBuffer.isView(string) || string instanceof ArrayBuffer) {
+  if (ArrayBuffer.isView(string) || isInstance(string, ArrayBuffer)) {
     return string.byteLength
   }
   if (typeof string !== 'string') {
-    string = '' + string
+    throw new TypeError(
+      'The "string" argument must be one of type string, Buffer, or ArrayBuffer. ' +
+      'Received type ' + typeof string
+    )
   }
 
   var len = string.length
-  if (len === 0) return 0
+  var mustMatch = (arguments.length > 2 && arguments[2] === true)
+  if (!mustMatch && len === 0) return 0
 
   // Use a for loop to avoid recursion
   var loweredCase = false
@@ -510,7 +603,6 @@ function byteLength (string, encoding) {
         return len
       case 'utf8':
       case 'utf-8':
-      case undefined:
         return utf8ToBytes(string).length
       case 'ucs2':
       case 'ucs-2':
@@ -522,7 +614,9 @@ function byteLength (string, encoding) {
       case 'base64':
         return base64ToBytes(string).length
       default:
-        if (loweredCase) return utf8ToBytes(string).length // assume utf8
+        if (loweredCase) {
+          return mustMatch ? -1 : utf8ToBytes(string).length // assume utf8
+        }
         encoding = ('' + encoding).toLowerCase()
         loweredCase = true
     }
@@ -658,6 +752,8 @@ Buffer.prototype.toString = function toString () {
   return slowToString.apply(this, arguments)
 }
 
+Buffer.prototype.toLocaleString = Buffer.prototype.toString
+
 Buffer.prototype.equals = function equals (b) {
   if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
   if (this === b) return true
@@ -667,16 +763,20 @@ Buffer.prototype.equals = function equals (b) {
 Buffer.prototype.inspect = function inspect () {
   var str = ''
   var max = exports.INSPECT_MAX_BYTES
-  if (this.length > 0) {
-    str = this.toString('hex', 0, max).match(/.{2}/g).join(' ')
-    if (this.length > max) str += ' ... '
-  }
+  str = this.toString('hex', 0, max).replace(/(.{2})/g, '$1 ').trim()
+  if (this.length > max) str += ' ... '
   return '<Buffer ' + str + '>'
 }
 
 Buffer.prototype.compare = function compare (target, start, end, thisStart, thisEnd) {
+  if (isInstance(target, Uint8Array)) {
+    target = Buffer.from(target, target.offset, target.byteLength)
+  }
   if (!Buffer.isBuffer(target)) {
-    throw new TypeError('Argument must be a Buffer')
+    throw new TypeError(
+      'The "target" argument must be one of type Buffer or Uint8Array. ' +
+      'Received type ' + (typeof target)
+    )
   }
 
   if (start === undefined) {
@@ -755,8 +855,8 @@ function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
   } else if (byteOffset < -0x80000000) {
     byteOffset = -0x80000000
   }
-  byteOffset = +byteOffset  // Coerce to Number.
-  if (isNaN(byteOffset)) {
+  byteOffset = +byteOffset // Coerce to Number.
+  if (numberIsNaN(byteOffset)) {
     // byteOffset: it it's undefined, null, NaN, "foo", etc, search whole buffer
     byteOffset = dir ? 0 : (buffer.length - 1)
   }
@@ -878,16 +978,14 @@ function hexWrite (buf, string, offset, length) {
     }
   }
 
-  // must be an even number of digits
   var strLen = string.length
-  if (strLen % 2 !== 0) throw new TypeError('Invalid hex string')
 
   if (length > strLen / 2) {
     length = strLen / 2
   }
   for (var i = 0; i < length; ++i) {
     var parsed = parseInt(string.substr(i * 2, 2), 16)
-    if (isNaN(parsed)) return i
+    if (numberIsNaN(parsed)) return i
     buf[offset + i] = parsed
   }
   return i
@@ -1009,8 +1107,8 @@ function utf8Slice (buf, start, end) {
     var codePoint = null
     var bytesPerSequence = (firstByte > 0xEF) ? 4
       : (firstByte > 0xDF) ? 3
-      : (firstByte > 0xBF) ? 2
-      : 1
+        : (firstByte > 0xBF) ? 2
+          : 1
 
     if (i + bytesPerSequence <= end) {
       var secondByte, thirdByte, fourthByte, tempCodePoint
@@ -1573,6 +1671,7 @@ Buffer.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert
 
 // copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
 Buffer.prototype.copy = function copy (target, targetStart, start, end) {
+  if (!Buffer.isBuffer(target)) throw new TypeError('argument should be a Buffer')
   if (!start) start = 0
   if (!end && end !== 0) end = this.length
   if (targetStart >= target.length) targetStart = target.length
@@ -1587,7 +1686,7 @@ Buffer.prototype.copy = function copy (target, targetStart, start, end) {
   if (targetStart < 0) {
     throw new RangeError('targetStart out of bounds')
   }
-  if (start < 0 || start >= this.length) throw new RangeError('sourceStart out of bounds')
+  if (start < 0 || start >= this.length) throw new RangeError('Index out of range')
   if (end < 0) throw new RangeError('sourceEnd out of bounds')
 
   // Are we oob?
@@ -1597,22 +1696,19 @@ Buffer.prototype.copy = function copy (target, targetStart, start, end) {
   }
 
   var len = end - start
-  var i
 
-  if (this === target && start < targetStart && targetStart < end) {
+  if (this === target && typeof Uint8Array.prototype.copyWithin === 'function') {
+    // Use built-in when available, missing from IE11
+    this.copyWithin(targetStart, start, end)
+  } else if (this === target && start < targetStart && targetStart < end) {
     // descending copy from end
-    for (i = len - 1; i >= 0; --i) {
-      target[i + targetStart] = this[i + start]
-    }
-  } else if (len < 1000) {
-    // ascending copy from start
-    for (i = 0; i < len; ++i) {
+    for (var i = len - 1; i >= 0; --i) {
       target[i + targetStart] = this[i + start]
     }
   } else {
     Uint8Array.prototype.set.call(
       target,
-      this.subarray(start, start + len),
+      this.subarray(start, end),
       targetStart
     )
   }
@@ -1635,17 +1731,19 @@ Buffer.prototype.fill = function fill (val, start, end, encoding) {
       encoding = end
       end = this.length
     }
-    if (val.length === 1) {
-      var code = val.charCodeAt(0)
-      if (code < 256) {
-        val = code
-      }
-    }
     if (encoding !== undefined && typeof encoding !== 'string') {
       throw new TypeError('encoding must be a string')
     }
     if (typeof encoding === 'string' && !Buffer.isEncoding(encoding)) {
       throw new TypeError('Unknown encoding: ' + encoding)
+    }
+    if (val.length === 1) {
+      var code = val.charCodeAt(0)
+      if ((encoding === 'utf8' && code < 128) ||
+          encoding === 'latin1') {
+        // Fast path: If `val` fits into a single byte, use that numeric value.
+        val = code
+      }
     }
   } else if (typeof val === 'number') {
     val = val & 255
@@ -1673,8 +1771,12 @@ Buffer.prototype.fill = function fill (val, start, end, encoding) {
   } else {
     var bytes = Buffer.isBuffer(val)
       ? val
-      : new Buffer(val, encoding)
+      : Buffer.from(val, encoding)
     var len = bytes.length
+    if (len === 0) {
+      throw new TypeError('The value "' + val +
+        '" is invalid for argument "value"')
+    }
     for (i = 0; i < end - start; ++i) {
       this[i + start] = bytes[i % len]
     }
@@ -1689,8 +1791,10 @@ Buffer.prototype.fill = function fill (val, start, end, encoding) {
 var INVALID_BASE64_RE = /[^+/0-9A-Za-z-_]/g
 
 function base64clean (str) {
+  // Node takes equal signs as end of the Base64 encoding
+  str = str.split('=')[0]
   // Node strips out invalid characters like \n and \t from the string, base64-js does not
-  str = stringtrim(str).replace(INVALID_BASE64_RE, '')
+  str = str.trim().replace(INVALID_BASE64_RE, '')
   // Node converts strings with length < 2 to ''
   if (str.length < 2) return ''
   // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
@@ -1698,11 +1802,6 @@ function base64clean (str) {
     str = str + '='
   }
   return str
-}
-
-function stringtrim (str) {
-  if (str.trim) return str.trim()
-  return str.replace(/^\s+|\s+$/g, '')
 }
 
 function toHex (n) {
@@ -1827,14 +1926,23 @@ function blitBuffer (src, dst, offset, length) {
   return i
 }
 
-function isnan (val) {
-  return val !== val // eslint-disable-line no-self-compare
+// ArrayBuffer or Uint8Array objects from other contexts (i.e. iframes) do not pass
+// the `instanceof` check but they should be treated as of that type.
+// See: https://github.com/feross/buffer/issues/166
+function isInstance (obj, type) {
+  return obj instanceof type ||
+    (obj != null && obj.constructor != null && obj.constructor.name != null &&
+      obj.constructor.name === type.name)
+}
+function numberIsNaN (obj) {
+  // For IE11 support
+  return obj !== obj // eslint-disable-line no-self-compare
 }
 
 },{"base64-js":2,"ieee754":4}],4:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
-  var eLen = nBytes * 8 - mLen - 1
+  var eLen = (nBytes * 8) - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var nBits = -7
@@ -1847,12 +1955,12 @@ exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   e = s & ((1 << (-nBits)) - 1)
   s >>= (-nBits)
   nBits += eLen
-  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; e = (e * 256) + buffer[offset + i], i += d, nBits -= 8) {}
 
   m = e & ((1 << (-nBits)) - 1)
   e >>= (-nBits)
   nBits += mLen
-  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; m = (m * 256) + buffer[offset + i], i += d, nBits -= 8) {}
 
   if (e === 0) {
     e = 1 - eBias
@@ -1867,7 +1975,7 @@ exports.read = function (buffer, offset, isLE, mLen, nBytes) {
 
 exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   var e, m, c
-  var eLen = nBytes * 8 - mLen - 1
+  var eLen = (nBytes * 8) - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
@@ -1900,7 +2008,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
       m = 0
       e = eMax
     } else if (e + eBias >= 1) {
-      m = (value * c - 1) * Math.pow(2, mLen)
+      m = ((value * c) - 1) * Math.pow(2, mLen)
       e = e + eBias
     } else {
       m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
@@ -1918,700 +2026,6 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 }
 
 },{}],5:[function(require,module,exports){
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-},{}],6:[function(require,module,exports){
-(function (Buffer){
-"use strict"
-
-module.exports = parseData
-
-var pako = require("pako"),
-    HEADER = new Buffer("89504e470d0a1a0a", "hex")
-
-function ImageData(width, height, channels, data, trailer) {
-  this.width    = width;
-  this.height   = height;
-  this.channels = channels;
-  this.data     = data;
-  this.trailer  = trailer;
-}
-
-function paeth(a, b, c) {
-  var p  = a + b - c,
-      pa = Math.abs(p - a),
-      pb = Math.abs(p - b),
-      pc = Math.abs(p - c)
-
-  if((pa <= pb) && (pa <= pc))
-    return a
-
-  if(pb <= pc)
-    return b
-
-  return c
-}
-
-function parseData(dataBuffer) {
-  var state             = 0,
-      off               = 0,
-      buf               = new Buffer(13),
-      b                 = -1,
-      p                 = 0,
-      pngPaletteEntries = 0,
-      pngAlphaEntries   = 0,
-      chunkLength, pngWidth, pngHeight, pngBitDepth, pngDepthMult,
-      pngColorType, pngPixels, pngSamplesPerPixel, pngBytesPerPixel,
-      pngBytesPerScanline, pngSamples, currentScanline, priorScanline,
-      scanlineFilter, pngTrailer, pngPalette, pngAlpha, idChannels;
-
-
-  var inflateQueue = []
-  function inputData(data) {
-    var len = data.length,
-        i   = 0,
-        tmp, j;
-
-    while(i !== len)
-      switch(state) {
-        case 0: /* PNG header */
-          if(data.readUInt8(i++) !== HEADER[off++])
-            return false
-
-          if(off === HEADER.length) {
-            state = 1
-            off   = 0
-          }
-          break
-
-        case 1: /* PNG chunk length and type */
-          if(len - i < 8 - off) {
-            data.copy(buf, off, i)
-            off += len - i
-            i    = len
-          }
-
-          else {
-            data.copy(buf, off, i, i + 8 - off)
-
-            i          += 8 - off
-            off         = 0
-            chunkLength = buf.readUInt32BE(0)
-
-            switch(buf.toString("ascii", 4, 8)) {
-              case "IHDR":
-                state = 2
-                break
-
-              case "PLTE":
-                /* The PNG spec states that PLTE is only required for type 3.
-                 * It may appear in other types, but is only useful if the
-                 * display does not support true color. Since we're just a data
-                 * storage format, we don't have to worry about it. */
-                if(pngColorType !== 3)
-                  state = 7
-
-                else {
-                  if(chunkLength % 3 !== 0)
-                    return false
-
-                  pngPaletteEntries = chunkLength / 3
-                  pngPalette        = new Buffer(chunkLength)
-                  state             = 3
-                }
-                break
-
-              case "tRNS":
-                if(pngColorType !== 3)
-                  return false
-
-                /* We only support tRNS on paletted images right now. Those
-                 * images may either have 1 or 3 channels, but in either case
-                 * we add one for transparency. */
-                idChannels       ++
-
-                pngAlphaEntries = chunkLength
-                pngAlpha        = new Buffer(chunkLength)
-                state           = 4
-                break
-
-              case "IDAT":
-                /* Allocate the PNG if we havn't yet. (We wait to do it until
-                 * here since tRNS may change idChannels, so we can't be sure of
-                 * the size needed until we hit IDAT. With all that, might as
-                 * well wait until we're actually going to start filling the
-                 * buffer in case of errors...) */
-                if(!pngPixels)
-                  pngPixels = new Uint8Array(pngWidth * pngHeight * idChannels)
-
-                state = 5
-                break
-
-              case "IEND":
-                state = 6
-                break
-
-              default:
-                state = 7
-                break
-            }
-          }
-          break
-
-        case 2: /* IHDR */
-          if(chunkLength !== 13)
-            return false
-
-          else if(len - i < chunkLength - off) {
-            data.copy(buf, off, i)
-            off += len - i
-            i    = len
-          }
-
-          else {
-            data.copy(buf, off, i, i + chunkLength - off)
-
-            if(buf.readUInt8(10) !== 0)
-              return false
-
-            if(buf.readUInt8(11) !== 0)
-              return false
-
-            if(buf.readUInt8(12) !== 0)
-              return false
-
-            i           += chunkLength - off
-            state        = 8
-            off          = 0
-            pngWidth     = buf.readUInt32BE(0)
-            pngHeight    = buf.readUInt32BE(4)
-            pngBitDepth  = buf.readUInt8(8)
-            pngDepthMult = 255 / ((1 << pngBitDepth) - 1)
-            pngColorType = buf.readUInt8(9)
-
-            switch(pngColorType) {
-              case 0:
-                pngSamplesPerPixel = 1
-                pngBytesPerPixel   = Math.ceil(pngBitDepth * 0.125)
-                idChannels         = 1
-                break
-
-              case 2:
-                pngSamplesPerPixel = 3
-                pngBytesPerPixel   = Math.ceil(pngBitDepth * 0.375)
-                idChannels         = 3
-                break
-
-              case 3:
-                pngSamplesPerPixel = 1
-                pngBytesPerPixel   = 1
-                idChannels         = 3
-                break
-
-              case 4:
-                pngSamplesPerPixel = 2
-                pngBytesPerPixel   = Math.ceil(pngBitDepth * 0.250)
-                idChannels         = 2
-                break
-
-              case 6:
-                pngSamplesPerPixel = 4
-                pngBytesPerPixel   = Math.ceil(pngBitDepth * 0.5)
-                idChannels         = 4
-                break
-
-              default:
-                return false
-            }
-
-            pngBytesPerScanline = Math.ceil(
-              pngWidth * pngBitDepth * pngSamplesPerPixel / 8
-            )
-            pngSamples          = new Buffer(pngSamplesPerPixel)
-            currentScanline     = new Buffer(pngBytesPerScanline)
-            priorScanline       = new Buffer(pngBytesPerScanline)
-            currentScanline.fill(0)
-          }
-          break
-
-        case 3: /* PLTE */
-          if(len - i < chunkLength - off) {
-            data.copy(pngPalette, off, i)
-            off += len - i
-            i    = len
-          }
-
-          else {
-            data.copy(pngPalette, off, i, i + chunkLength - off)
-            i    += chunkLength - off
-            state = 8
-            off   = 0
-
-            /* If each entry in the color palette is grayscale, set the channel
-             * count to 1. */
-            idChannels = 1;
-            for(j = pngPaletteEntries; j--; )
-              if(pngPalette[j * 3 + 0] !== pngPalette[j * 3 + 1] ||
-                 pngPalette[j * 3 + 0] !== pngPalette[j * 3 + 2]) {
-                idChannels = 3;
-                break;
-              }
-          }
-          break
-
-        case 4: /* tRNS */
-          if(len - i < chunkLength - off) {
-            data.copy(pngAlpha, off, i)
-            off += len - i
-            i    = len
-          }
-
-          else {
-            data.copy(pngAlpha, off, i, i + chunkLength - off)
-            i    += chunkLength - off
-            state = 8
-            off   = 0
-          }
-          break
-
-        case 5: /* IDAT */
-          /* If the amount available is less than the amount remaining, then
-           * feed as much as we can to the inflator. */
-          if(len - i < chunkLength - off) {
-            /* FIXME: Do I need to be smart and check the return value? */
-            inflateQueue.push(data.slice(i))
-            off += len - i
-            i    = len
-          }
-
-          /* Otherwise, write the last bit of the data to the inflator, and
-           * finish processing the chunk. */
-          else {
-            /* FIXME: Do I need to be smart and check the return value? */
-            inflateQueue.push(data.slice(i, i + chunkLength - off))
-            i    += chunkLength - off
-            state = 8
-            off   = 0
-          }
-          break
-
-        case 6: /* IEND */
-          if(chunkLength !== 0)
-            return false
-
-          else if(len - i < 4 - off) {
-            off += len - i
-            i    = len
-          }
-
-          else {
-            pngTrailer = new Buffer(0)
-            i         += 4 - off
-            state      = 9
-            off        = 0
-          }
-          break
-
-        case 7: /* unrecognized chunk */
-          if(len - i < chunkLength - off) {
-            off += len - i
-            i    = len
-          }
-
-          else {
-            i    += chunkLength - off
-            state = 8
-            off   = 0
-          }
-          break
-
-        case 8: /* chunk crc */
-          /* FIXME: CRC is blatantly ignored */
-          if(len - i < 4 - off) {
-            off += len - i
-            i    = len
-          }
-
-          else {
-            i    += 4 - off
-            state = 1
-            off   = 0
-          }
-          break
-
-        case 9: /* trailing data */
-          /* FIXME: It is inefficient to create a trailer buffer of length zero
-           * and keep reallocating it every time we want to add more data. */
-          tmp = new Buffer(off + len - i)
-          pngTrailer.copy(tmp)
-          data.copy(tmp, off, i, len)
-          pngTrailer = tmp
-          off       += len - i
-          i          = len
-          break
-      }
-
-    return true
-  }
-
-  //Try parsing header data
-  if(!inputData(dataBuffer)) {
-    return null
-  }
-
-  if(state !== 9) {
-    return null
-  }
-
-  //Concatenate all inflate buffers
-  var inflateBuffer = Buffer.concat(inflateQueue)
-  var inflateData = pako.inflate(new Uint8Array(inflateBuffer))
-
-  function unpackPixels(data) {
-    var len = data.length,
-        i, tmp, x, j, k
-
-    for(i = 0; i !== len; ++i) {
-      if(b === -1) {
-        scanlineFilter  = data[i]
-        tmp             = currentScanline
-        currentScanline = priorScanline
-        priorScanline   = tmp
-      }
-
-      else
-        switch(scanlineFilter) {
-          case 0:
-            currentScanline[b] = data[i]
-            break
-
-          case 1:
-            currentScanline[b] =
-              b < pngBytesPerPixel ?
-                data[i] :
-                (data[i] + currentScanline[b - pngBytesPerPixel]) & 255
-            break
-
-          case 2:
-            currentScanline[b] = (data[i] + priorScanline[b]) & 255
-            break
-
-          case 3:
-            currentScanline[b] = (data[i] + ((
-              b < pngBytesPerPixel ?
-                priorScanline[b] :
-                currentScanline[b - pngBytesPerPixel] + priorScanline[b]
-            ) >>> 1)) & 255
-            break
-
-          case 4:
-            currentScanline[b] = (data[i] + (
-              b < pngBytesPerPixel ?
-                priorScanline[b] :
-                paeth(
-                  currentScanline[b - pngBytesPerPixel],
-                  priorScanline[b],
-                  priorScanline[b - pngBytesPerPixel]
-                )
-            )) & 255
-            break
-
-          default:
-            return null
-        }
-
-      if(++b === pngBytesPerScanline) {
-        /* One scanline too many? */
-        if(p === pngPixels.length)
-          return null
-
-        /* We have now read a complete scanline, so unfilter it and write it
-         * into the pixel array. */
-        for(j = 0, x = 0; x !== pngWidth; ++x) {
-          /* Read all of the samples into the sample buffer. */
-          for(k = 0; k !== pngSamplesPerPixel; ++j, ++k)
-            switch(pngBitDepth) {
-              case 1:
-                pngSamples[k] =
-                  (currentScanline[(j >>> 3)] >> (7 - (j & 7))) & 1
-                break
-
-              case 2:
-                pngSamples[k] =
-                  (currentScanline[(j >>> 2)] >> ((3 - (j & 3)) << 1)) & 3
-                break
-
-              case 4:
-                pngSamples[k] =
-                  (currentScanline[(j >>> 1)] >> ((1 - (j & 1)) << 2)) & 15
-                break
-
-              case 8:
-                pngSamples[k] = currentScanline[j]
-                break
-
-              default:
-                return null
-            }
-
-          /* Write the pixel based off of the samples so collected. */
-          switch(pngColorType) {
-            case 0:
-              pngPixels[p++] = pngSamples[0] * pngDepthMult;
-              break;
-
-            case 2:
-              pngPixels[p++] = pngSamples[0] * pngDepthMult;
-              pngPixels[p++] = pngSamples[1] * pngDepthMult;
-              pngPixels[p++] = pngSamples[2] * pngDepthMult;
-              break;
-
-            case 3:
-              if(pngSamples[0] >= pngPaletteEntries)
-                return null
-
-              switch(idChannels) {
-                case 1:
-                  pngPixels[p++] = pngPalette[pngSamples[0] * 3];
-                  break;
-
-                case 2:
-                  pngPixels[p++] = pngPalette[pngSamples[0] * 3];
-                  pngPixels[p++] =
-                    pngSamples[0] < pngAlphaEntries ?
-                      pngAlpha[pngSamples[0]] :
-                      255;
-                  break;
-
-                case 3:
-                  pngPixels[p++] = pngPalette[pngSamples[0] * 3 + 0];
-                  pngPixels[p++] = pngPalette[pngSamples[0] * 3 + 1];
-                  pngPixels[p++] = pngPalette[pngSamples[0] * 3 + 2];
-                  break;
-
-                case 4:
-                  pngPixels[p++] = pngPalette[pngSamples[0] * 3 + 0];
-                  pngPixels[p++] = pngPalette[pngSamples[0] * 3 + 1];
-                  pngPixels[p++] = pngPalette[pngSamples[0] * 3 + 2];
-                  pngPixels[p++] =
-                    pngSamples[0] < pngAlphaEntries ?
-                      pngAlpha[pngSamples[0]] :
-                      255;
-                  break;
-              }
-              break;
-
-            case 4:
-              pngPixels[p++] = pngSamples[0] * pngDepthMult;
-              pngPixels[p++] = pngSamples[1] * pngDepthMult;
-              break;
-
-            case 6:
-              pngPixels[p++] = pngSamples[0] * pngDepthMult;
-              pngPixels[p++] = pngSamples[1] * pngDepthMult;
-              pngPixels[p++] = pngSamples[2] * pngDepthMult;
-              pngPixels[p++] = pngSamples[3] * pngDepthMult;
-              break;
-          }
-        }
-
-        b = -1;
-      }
-    }
-    return true
-  }
-
-  if(!unpackPixels(inflateData)) {
-    return null
-  }
-
-  if(p !== pngPixels.length) {
-    return null
-  }
-
-  return new ImageData(pngWidth, pngHeight, idChannels, pngPixels, pngTrailer)
-}
-}).call(this,require("buffer").Buffer)
-},{"buffer":3,"pako":7}],7:[function(require,module,exports){
 // Top level file is just a mixin of submodules & constants
 'use strict';
 
@@ -2627,7 +2041,7 @@ assign(pako, deflate, inflate, constants);
 
 module.exports = pako;
 
-},{"./lib/deflate":8,"./lib/inflate":9,"./lib/utils/common":10,"./lib/zlib/constants":13}],8:[function(require,module,exports){
+},{"./lib/deflate":6,"./lib/inflate":7,"./lib/utils/common":8,"./lib/zlib/constants":11}],6:[function(require,module,exports){
 'use strict';
 
 
@@ -3029,7 +2443,7 @@ exports.deflate = deflate;
 exports.deflateRaw = deflateRaw;
 exports.gzip = gzip;
 
-},{"./utils/common":10,"./utils/strings":11,"./zlib/deflate":15,"./zlib/messages":20,"./zlib/zstream":22}],9:[function(require,module,exports){
+},{"./utils/common":8,"./utils/strings":9,"./zlib/deflate":13,"./zlib/messages":18,"./zlib/zstream":20}],7:[function(require,module,exports){
 'use strict';
 
 
@@ -3449,7 +2863,7 @@ exports.inflate = inflate;
 exports.inflateRaw = inflateRaw;
 exports.ungzip  = inflate;
 
-},{"./utils/common":10,"./utils/strings":11,"./zlib/constants":13,"./zlib/gzheader":16,"./zlib/inflate":18,"./zlib/messages":20,"./zlib/zstream":22}],10:[function(require,module,exports){
+},{"./utils/common":8,"./utils/strings":9,"./zlib/constants":11,"./zlib/gzheader":14,"./zlib/inflate":16,"./zlib/messages":18,"./zlib/zstream":20}],8:[function(require,module,exports){
 'use strict';
 
 
@@ -3553,7 +2967,7 @@ exports.setTyped = function (on) {
 
 exports.setTyped(TYPED_OK);
 
-},{}],11:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 // String encode/decode helpers
 'use strict';
 
@@ -3740,7 +3154,7 @@ exports.utf8border = function (buf, max) {
   return (pos + _utf8len[buf[pos]] > max) ? pos : max;
 };
 
-},{"./common":10}],12:[function(require,module,exports){
+},{"./common":8}],10:[function(require,module,exports){
 'use strict';
 
 // Note: adler32 takes 12% for level 0 and 2% for level 6.
@@ -3774,7 +3188,7 @@ function adler32(adler, buf, len, pos) {
 
 module.exports = adler32;
 
-},{}],13:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 
@@ -3826,7 +3240,7 @@ module.exports = {
   //Z_NULL:                 null // Use -1 or null inline, depending on var type
 };
 
-},{}],14:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 // Note: we can't get significant speed boost here.
@@ -3869,7 +3283,7 @@ function crc32(crc, buf, len, pos) {
 
 module.exports = crc32;
 
-},{}],15:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 var utils   = require('../utils/common');
@@ -5726,7 +5140,7 @@ exports.deflatePrime = deflatePrime;
 exports.deflateTune = deflateTune;
 */
 
-},{"../utils/common":10,"./adler32":12,"./crc32":14,"./messages":20,"./trees":21}],16:[function(require,module,exports){
+},{"../utils/common":8,"./adler32":10,"./crc32":12,"./messages":18,"./trees":19}],14:[function(require,module,exports){
 'use strict';
 
 
@@ -5768,7 +5182,7 @@ function GZheader() {
 
 module.exports = GZheader;
 
-},{}],17:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 
 // See state defs from inflate.js
@@ -6096,7 +5510,7 @@ module.exports = function inflate_fast(strm, start) {
   return;
 };
 
-},{}],18:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 'use strict';
 
 
@@ -7636,7 +7050,7 @@ exports.inflateSyncPoint = inflateSyncPoint;
 exports.inflateUndermine = inflateUndermine;
 */
 
-},{"../utils/common":10,"./adler32":12,"./crc32":14,"./inffast":17,"./inftrees":19}],19:[function(require,module,exports){
+},{"../utils/common":8,"./adler32":10,"./crc32":12,"./inffast":15,"./inftrees":17}],17:[function(require,module,exports){
 'use strict';
 
 
@@ -7965,7 +7379,7 @@ module.exports = function inflate_table(type, lens, lens_index, codes, table, ta
   return 0;
 };
 
-},{"../utils/common":10}],20:[function(require,module,exports){
+},{"../utils/common":8}],18:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -7980,7 +7394,7 @@ module.exports = {
   '-6':   'incompatible version' /* Z_VERSION_ERROR (-6) */
 };
 
-},{}],21:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 
@@ -9184,7 +8598,7 @@ exports._tr_flush_block  = _tr_flush_block;
 exports._tr_tally = _tr_tally;
 exports._tr_align = _tr_align;
 
-},{"../utils/common":10}],22:[function(require,module,exports){
+},{"../utils/common":8}],20:[function(require,module,exports){
 'use strict';
 
 
@@ -9214,6 +8628,704 @@ function ZStream() {
 }
 
 module.exports = ZStream;
+
+},{}],21:[function(require,module,exports){
+(function (Buffer){
+"use strict"
+
+module.exports = parseData
+
+var pako = require("pako"),
+    HEADER = new Buffer("89504e470d0a1a0a", "hex")
+
+function ImageData(width, height, channels, data, trailer) {
+  this.width    = width;
+  this.height   = height;
+  this.channels = channels;
+  this.data     = data;
+  this.trailer  = trailer;
+}
+
+function paeth(a, b, c) {
+  var p  = a + b - c,
+      pa = Math.abs(p - a),
+      pb = Math.abs(p - b),
+      pc = Math.abs(p - c)
+
+  if((pa <= pb) && (pa <= pc))
+    return a
+
+  if(pb <= pc)
+    return b
+
+  return c
+}
+
+function parseData(dataBuffer) {
+  var state             = 0,
+      off               = 0,
+      buf               = new Buffer(13),
+      b                 = -1,
+      p                 = 0,
+      pngPaletteEntries = 0,
+      pngAlphaEntries   = 0,
+      chunkLength, pngWidth, pngHeight, pngBitDepth, pngDepthMult,
+      pngColorType, pngPixels, pngSamplesPerPixel, pngBytesPerPixel,
+      pngBytesPerScanline, pngSamples, currentScanline, priorScanline,
+      scanlineFilter, pngTrailer, pngPalette, pngAlpha, idChannels;
+
+
+  var inflateQueue = []
+  function inputData(data) {
+    var len = data.length,
+        i   = 0,
+        tmp, j;
+
+    while(i !== len)
+      switch(state) {
+        case 0: /* PNG header */
+          if(data.readUInt8(i++) !== HEADER[off++])
+            return false
+
+          if(off === HEADER.length) {
+            state = 1
+            off   = 0
+          }
+          break
+
+        case 1: /* PNG chunk length and type */
+          if(len - i < 8 - off) {
+            data.copy(buf, off, i)
+            off += len - i
+            i    = len
+          }
+
+          else {
+            data.copy(buf, off, i, i + 8 - off)
+
+            i          += 8 - off
+            off         = 0
+            chunkLength = buf.readUInt32BE(0)
+
+            switch(buf.toString("ascii", 4, 8)) {
+              case "IHDR":
+                state = 2
+                break
+
+              case "PLTE":
+                /* The PNG spec states that PLTE is only required for type 3.
+                 * It may appear in other types, but is only useful if the
+                 * display does not support true color. Since we're just a data
+                 * storage format, we don't have to worry about it. */
+                if(pngColorType !== 3)
+                  state = 7
+
+                else {
+                  if(chunkLength % 3 !== 0)
+                    return false
+
+                  pngPaletteEntries = chunkLength / 3
+                  pngPalette        = new Buffer(chunkLength)
+                  state             = 3
+                }
+                break
+
+              case "tRNS":
+                if(pngColorType !== 3)
+                  return false
+
+                /* We only support tRNS on paletted images right now. Those
+                 * images may either have 1 or 3 channels, but in either case
+                 * we add one for transparency. */
+                idChannels       ++
+
+                pngAlphaEntries = chunkLength
+                pngAlpha        = new Buffer(chunkLength)
+                state           = 4
+                break
+
+              case "IDAT":
+                /* Allocate the PNG if we havn't yet. (We wait to do it until
+                 * here since tRNS may change idChannels, so we can't be sure of
+                 * the size needed until we hit IDAT. With all that, might as
+                 * well wait until we're actually going to start filling the
+                 * buffer in case of errors...) */
+                if(!pngPixels)
+                  pngPixels = new Uint8Array(pngWidth * pngHeight * idChannels)
+
+                state = 5
+                break
+
+              case "IEND":
+                state = 6
+                break
+
+              default:
+                state = 7
+                break
+            }
+          }
+          break
+
+        case 2: /* IHDR */
+          if(chunkLength !== 13)
+            return false
+
+          else if(len - i < chunkLength - off) {
+            data.copy(buf, off, i)
+            off += len - i
+            i    = len
+          }
+
+          else {
+            data.copy(buf, off, i, i + chunkLength - off)
+
+            if(buf.readUInt8(10) !== 0)
+              return false
+
+            if(buf.readUInt8(11) !== 0)
+              return false
+
+            if(buf.readUInt8(12) !== 0)
+              return false
+
+            i           += chunkLength - off
+            state        = 8
+            off          = 0
+            pngWidth     = buf.readUInt32BE(0)
+            pngHeight    = buf.readUInt32BE(4)
+            pngBitDepth  = buf.readUInt8(8)
+            pngDepthMult = 255 / ((1 << pngBitDepth) - 1)
+            pngColorType = buf.readUInt8(9)
+
+            switch(pngColorType) {
+              case 0:
+                pngSamplesPerPixel = 1
+                pngBytesPerPixel   = Math.ceil(pngBitDepth * 0.125)
+                idChannels         = 1
+                break
+
+              case 2:
+                pngSamplesPerPixel = 3
+                pngBytesPerPixel   = Math.ceil(pngBitDepth * 0.375)
+                idChannels         = 3
+                break
+
+              case 3:
+                pngSamplesPerPixel = 1
+                pngBytesPerPixel   = 1
+                idChannels         = 3
+                break
+
+              case 4:
+                pngSamplesPerPixel = 2
+                pngBytesPerPixel   = Math.ceil(pngBitDepth * 0.250)
+                idChannels         = 2
+                break
+
+              case 6:
+                pngSamplesPerPixel = 4
+                pngBytesPerPixel   = Math.ceil(pngBitDepth * 0.5)
+                idChannels         = 4
+                break
+
+              default:
+                return false
+            }
+
+            pngBytesPerScanline = Math.ceil(
+              pngWidth * pngBitDepth * pngSamplesPerPixel / 8
+            )
+            pngSamples          = new Buffer(pngSamplesPerPixel)
+            currentScanline     = new Buffer(pngBytesPerScanline)
+            priorScanline       = new Buffer(pngBytesPerScanline)
+            currentScanline.fill(0)
+          }
+          break
+
+        case 3: /* PLTE */
+          if(len - i < chunkLength - off) {
+            data.copy(pngPalette, off, i)
+            off += len - i
+            i    = len
+          }
+
+          else {
+            data.copy(pngPalette, off, i, i + chunkLength - off)
+            i    += chunkLength - off
+            state = 8
+            off   = 0
+
+            /* If each entry in the color palette is grayscale, set the channel
+             * count to 1. */
+            idChannels = 1;
+            for(j = pngPaletteEntries; j--; )
+              if(pngPalette[j * 3 + 0] !== pngPalette[j * 3 + 1] ||
+                 pngPalette[j * 3 + 0] !== pngPalette[j * 3 + 2]) {
+                idChannels = 3;
+                break;
+              }
+          }
+          break
+
+        case 4: /* tRNS */
+          if(len - i < chunkLength - off) {
+            data.copy(pngAlpha, off, i)
+            off += len - i
+            i    = len
+          }
+
+          else {
+            data.copy(pngAlpha, off, i, i + chunkLength - off)
+            i    += chunkLength - off
+            state = 8
+            off   = 0
+          }
+          break
+
+        case 5: /* IDAT */
+          /* If the amount available is less than the amount remaining, then
+           * feed as much as we can to the inflator. */
+          if(len - i < chunkLength - off) {
+            /* FIXME: Do I need to be smart and check the return value? */
+            inflateQueue.push(data.slice(i))
+            off += len - i
+            i    = len
+          }
+
+          /* Otherwise, write the last bit of the data to the inflator, and
+           * finish processing the chunk. */
+          else {
+            /* FIXME: Do I need to be smart and check the return value? */
+            inflateQueue.push(data.slice(i, i + chunkLength - off))
+            i    += chunkLength - off
+            state = 8
+            off   = 0
+          }
+          break
+
+        case 6: /* IEND */
+          if(chunkLength !== 0)
+            return false
+
+          else if(len - i < 4 - off) {
+            off += len - i
+            i    = len
+          }
+
+          else {
+            pngTrailer = new Buffer(0)
+            i         += 4 - off
+            state      = 9
+            off        = 0
+          }
+          break
+
+        case 7: /* unrecognized chunk */
+          if(len - i < chunkLength - off) {
+            off += len - i
+            i    = len
+          }
+
+          else {
+            i    += chunkLength - off
+            state = 8
+            off   = 0
+          }
+          break
+
+        case 8: /* chunk crc */
+          /* FIXME: CRC is blatantly ignored */
+          if(len - i < 4 - off) {
+            off += len - i
+            i    = len
+          }
+
+          else {
+            i    += 4 - off
+            state = 1
+            off   = 0
+          }
+          break
+
+        case 9: /* trailing data */
+          /* FIXME: It is inefficient to create a trailer buffer of length zero
+           * and keep reallocating it every time we want to add more data. */
+          tmp = new Buffer(off + len - i)
+          pngTrailer.copy(tmp)
+          data.copy(tmp, off, i, len)
+          pngTrailer = tmp
+          off       += len - i
+          i          = len
+          break
+      }
+
+    return true
+  }
+
+  //Try parsing header data
+  if(!inputData(dataBuffer)) {
+    return null
+  }
+
+  if(state !== 9) {
+    return null
+  }
+
+  //Concatenate all inflate buffers
+  var inflateBuffer = Buffer.concat(inflateQueue)
+  var inflateData = pako.inflate(new Uint8Array(inflateBuffer))
+
+  function unpackPixels(data) {
+    var len = data.length,
+        i, tmp, x, j, k
+
+    for(i = 0; i !== len; ++i) {
+      if(b === -1) {
+        scanlineFilter  = data[i]
+        tmp             = currentScanline
+        currentScanline = priorScanline
+        priorScanline   = tmp
+      }
+
+      else
+        switch(scanlineFilter) {
+          case 0:
+            currentScanline[b] = data[i]
+            break
+
+          case 1:
+            currentScanline[b] =
+              b < pngBytesPerPixel ?
+                data[i] :
+                (data[i] + currentScanline[b - pngBytesPerPixel]) & 255
+            break
+
+          case 2:
+            currentScanline[b] = (data[i] + priorScanline[b]) & 255
+            break
+
+          case 3:
+            currentScanline[b] = (data[i] + ((
+              b < pngBytesPerPixel ?
+                priorScanline[b] :
+                currentScanline[b - pngBytesPerPixel] + priorScanline[b]
+            ) >>> 1)) & 255
+            break
+
+          case 4:
+            currentScanline[b] = (data[i] + (
+              b < pngBytesPerPixel ?
+                priorScanline[b] :
+                paeth(
+                  currentScanline[b - pngBytesPerPixel],
+                  priorScanline[b],
+                  priorScanline[b - pngBytesPerPixel]
+                )
+            )) & 255
+            break
+
+          default:
+            return null
+        }
+
+      if(++b === pngBytesPerScanline) {
+        /* One scanline too many? */
+        if(p === pngPixels.length)
+          return null
+
+        /* We have now read a complete scanline, so unfilter it and write it
+         * into the pixel array. */
+        for(j = 0, x = 0; x !== pngWidth; ++x) {
+          /* Read all of the samples into the sample buffer. */
+          for(k = 0; k !== pngSamplesPerPixel; ++j, ++k)
+            switch(pngBitDepth) {
+              case 1:
+                pngSamples[k] =
+                  (currentScanline[(j >>> 3)] >> (7 - (j & 7))) & 1
+                break
+
+              case 2:
+                pngSamples[k] =
+                  (currentScanline[(j >>> 2)] >> ((3 - (j & 3)) << 1)) & 3
+                break
+
+              case 4:
+                pngSamples[k] =
+                  (currentScanline[(j >>> 1)] >> ((1 - (j & 1)) << 2)) & 15
+                break
+
+              case 8:
+                pngSamples[k] = currentScanline[j]
+                break
+
+              default:
+                return null
+            }
+
+          /* Write the pixel based off of the samples so collected. */
+          switch(pngColorType) {
+            case 0:
+              pngPixels[p++] = pngSamples[0] * pngDepthMult;
+              break;
+
+            case 2:
+              pngPixels[p++] = pngSamples[0] * pngDepthMult;
+              pngPixels[p++] = pngSamples[1] * pngDepthMult;
+              pngPixels[p++] = pngSamples[2] * pngDepthMult;
+              break;
+
+            case 3:
+              if(pngSamples[0] >= pngPaletteEntries)
+                return null
+
+              switch(idChannels) {
+                case 1:
+                  pngPixels[p++] = pngPalette[pngSamples[0] * 3];
+                  break;
+
+                case 2:
+                  pngPixels[p++] = pngPalette[pngSamples[0] * 3];
+                  pngPixels[p++] =
+                    pngSamples[0] < pngAlphaEntries ?
+                      pngAlpha[pngSamples[0]] :
+                      255;
+                  break;
+
+                case 3:
+                  pngPixels[p++] = pngPalette[pngSamples[0] * 3 + 0];
+                  pngPixels[p++] = pngPalette[pngSamples[0] * 3 + 1];
+                  pngPixels[p++] = pngPalette[pngSamples[0] * 3 + 2];
+                  break;
+
+                case 4:
+                  pngPixels[p++] = pngPalette[pngSamples[0] * 3 + 0];
+                  pngPixels[p++] = pngPalette[pngSamples[0] * 3 + 1];
+                  pngPixels[p++] = pngPalette[pngSamples[0] * 3 + 2];
+                  pngPixels[p++] =
+                    pngSamples[0] < pngAlphaEntries ?
+                      pngAlpha[pngSamples[0]] :
+                      255;
+                  break;
+              }
+              break;
+
+            case 4:
+              pngPixels[p++] = pngSamples[0] * pngDepthMult;
+              pngPixels[p++] = pngSamples[1] * pngDepthMult;
+              break;
+
+            case 6:
+              pngPixels[p++] = pngSamples[0] * pngDepthMult;
+              pngPixels[p++] = pngSamples[1] * pngDepthMult;
+              pngPixels[p++] = pngSamples[2] * pngDepthMult;
+              pngPixels[p++] = pngSamples[3] * pngDepthMult;
+              break;
+          }
+        }
+
+        b = -1;
+      }
+    }
+    return true
+  }
+
+  if(!unpackPixels(inflateData)) {
+    return null
+  }
+
+  if(p !== pngPixels.length) {
+    return null
+  }
+
+  return new ImageData(pngWidth, pngHeight, idChannels, pngPixels, pngTrailer)
+}
+}).call(this,require("buffer").Buffer)
+},{"buffer":3,"pako":5}],22:[function(require,module,exports){
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
 
 },{}],23:[function(require,module,exports){
 (function (process,Buffer){
@@ -9252,10 +9364,8 @@ function isNode () {
   return false
 }
 
-var is_node = isNode()
-
 function isUint8Array (object) {
-  return object instanceof Uint8Array && (!is_node || !Buffer.isBuffer(object))
+  return object instanceof Uint8Array && (!isNode() || !Buffer.isBuffer(object))
 }
 
 function isArrayBuffer (object) {
@@ -9263,7 +9373,7 @@ function isArrayBuffer (object) {
 }
 
 function isBuffer (object) {
-  if (!is_node) {
+  if (!isNode()) {
     return false
   }
   return Buffer.isBuffer(object)
@@ -9278,12 +9388,12 @@ function uncompress (compressed) {
   if (!isUint8Array(compressed) && !isArrayBuffer(compressed) && !isBuffer(compressed)) {
     throw new TypeError(TYPE_ERROR_MSG)
   }
-  var uint8_mode = false
-  var array_buffer_mode = false
+  var uint8Mode = false
+  var arrayBufferMode = false
   if (isUint8Array(compressed)) {
-    uint8_mode = true
+    uint8Mode = true
   } else if (isArrayBuffer(compressed)) {
-    array_buffer_mode = true
+    arrayBufferMode = true
     compressed = new Uint8Array(compressed)
   }
   var decompressor = new SnappyDecompressor(compressed)
@@ -9291,20 +9401,20 @@ function uncompress (compressed) {
   if (length === -1) {
     throw new Error('Invalid Snappy bitstream')
   }
-  var uncompressed, uncompressed_view
-  if (uint8_mode) {
+  var uncompressed, uncompressedView
+  if (uint8Mode) {
     uncompressed = new Uint8Array(length)
     if (!decompressor.uncompressToBuffer(uncompressed)) {
       throw new Error('Invalid Snappy bitstream')
     }
-  } else if (array_buffer_mode) {
+  } else if (arrayBufferMode) {
     uncompressed = new ArrayBuffer(length)
-    uncompressed_view = new Uint8Array(uncompressed)
-    if (!decompressor.uncompressToBuffer(uncompressed_view)) {
+    uncompressedView = new Uint8Array(uncompressed)
+    if (!decompressor.uncompressToBuffer(uncompressedView)) {
       throw new Error('Invalid Snappy bitstream')
     }
   } else {
-    uncompressed = new Buffer(length)
+    uncompressed = Buffer.alloc(length)
     if (!decompressor.uncompressToBuffer(uncompressed)) {
       throw new Error('Invalid Snappy bitstream')
     }
@@ -9316,27 +9426,27 @@ function compress (uncompressed) {
   if (!isUint8Array(uncompressed) && !isArrayBuffer(uncompressed) && !isBuffer(uncompressed)) {
     throw new TypeError(TYPE_ERROR_MSG)
   }
-  var uint8_mode = false
-  var array_buffer_mode = false
-  if (isUint8Array(compressed)) {
-    uint8_mode = true
+  var uint8Mode = false
+  var arrayBufferMode = false
+  if (isUint8Array(uncompressed)) {
+    uint8Mode = true
   } else if (isArrayBuffer(uncompressed)) {
-    array_buffer_mode = true
+    arrayBufferMode = true
     uncompressed = new Uint8Array(uncompressed)
   }
   var compressor = new SnappyCompressor(uncompressed)
-  var max_length = compressor.maxCompressedLength()
-  var compressed, compressed_view
+  var maxLength = compressor.maxCompressedLength()
+  var compressed, compressedView
   var length
-  if (uint8_mode) {
-    compressed = new Uint8Array(max_length)
+  if (uint8Mode) {
+    compressed = new Uint8Array(maxLength)
     length = compressor.compressToBuffer(compressed)
-  } else if (array_buffer_mode) {
-    compressed = new ArrayBuffer(max_length)
-    compressed_view = new Uint8Array(compressed)
-    length = compressor.compressToBuffer(compressed_view)
+  } else if (arrayBufferMode) {
+    compressed = new ArrayBuffer(maxLength)
+    compressedView = new Uint8Array(compressed)
+    length = compressor.compressToBuffer(compressedView)
   } else {
-    compressed = new Buffer(max_length)
+    compressed = Buffer.alloc(maxLength)
     length = compressor.compressToBuffer(compressed)
   }
   return compressed.slice(0, length)
@@ -9346,7 +9456,7 @@ exports.uncompress = uncompress
 exports.compress = compress
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"./snappy_compressor":24,"./snappy_decompressor":25,"_process":5,"buffer":3}],24:[function(require,module,exports){
+},{"./snappy_compressor":24,"./snappy_decompressor":25,"_process":22,"buffer":3}],24:[function(require,module,exports){
 // The MIT License (MIT)
 //
 // Copyright (c) 2016 Zhipeng Jia
@@ -9375,10 +9485,10 @@ var BLOCK_LOG = 16
 var BLOCK_SIZE = 1 << BLOCK_LOG
 
 var MAX_HASH_TABLE_BITS = 14
-var global_hash_tables = new Array(MAX_HASH_TABLE_BITS + 1)
+var globalHashTables = new Array(MAX_HASH_TABLE_BITS + 1)
 
-function hashFunc (key, hash_func_shift) {
-  return (key * 0x1e35a7bd) >>> hash_func_shift
+function hashFunc (key, hashFuncShift) {
+  return (key * 0x1e35a7bd) >>> hashFuncShift
 }
 
 function load32 (array, pos) {
@@ -9392,10 +9502,10 @@ function equals32 (array, pos1, pos2) {
          array[pos1 + 3] === array[pos2 + 3]
 }
 
-function copyBytes (from_array, from_pos, to_array, to_pos, length) {
+function copyBytes (fromArray, fromPos, toArray, toPos, length) {
   var i
   for (i = 0; i < length; i++) {
-    to_array[to_pos + i] = from_array[from_pos + i]
+    toArray[toPos + i] = fromArray[fromPos + i]
   }
 }
 
@@ -9442,87 +9552,87 @@ function emitCopy (output, op, offset, len) {
   return emitCopyLessThan64(output, op, offset, len)
 }
 
-function compressFragment (input, ip, input_size, output, op) {
-  var hash_table_bits = 1
-  while ((1 << hash_table_bits) <= input_size &&
-         hash_table_bits <= MAX_HASH_TABLE_BITS) {
-    hash_table_bits += 1
+function compressFragment (input, ip, inputSize, output, op) {
+  var hashTableBits = 1
+  while ((1 << hashTableBits) <= inputSize &&
+         hashTableBits <= MAX_HASH_TABLE_BITS) {
+    hashTableBits += 1
   }
-  hash_table_bits -= 1
-  var hash_func_shift = 32 - hash_table_bits
+  hashTableBits -= 1
+  var hashFuncShift = 32 - hashTableBits
 
-  if (typeof global_hash_tables[hash_table_bits] === 'undefined') {
-    global_hash_tables[hash_table_bits] = new Uint16Array(1 << hash_table_bits)
+  if (typeof globalHashTables[hashTableBits] === 'undefined') {
+    globalHashTables[hashTableBits] = new Uint16Array(1 << hashTableBits)
   }
-  var hash_table = global_hash_tables[hash_table_bits]
+  var hashTable = globalHashTables[hashTableBits]
   var i
-  for (i = 0; i < hash_table.length; i++) {
-    hash_table[i] = 0
+  for (i = 0; i < hashTable.length; i++) {
+    hashTable[i] = 0
   }
 
-  var ip_end = ip + input_size
-  var ip_limit
-  var base_ip = ip
-  var next_emit = ip
+  var ipEnd = ip + inputSize
+  var ipLimit
+  var baseIp = ip
+  var nextEmit = ip
 
-  var hash, next_hash
-  var next_ip, candidate, skip
-  var bytes_between_hash_lookups
+  var hash, nextHash
+  var nextIp, candidate, skip
+  var bytesBetweenHashLookups
   var base, matched, offset
-  var prev_hash, cur_hash
+  var prevHash, curHash
   var flag = true
 
   var INPUT_MARGIN = 15
-  if (input_size >= INPUT_MARGIN) {
-    ip_limit = ip_end - INPUT_MARGIN
+  if (inputSize >= INPUT_MARGIN) {
+    ipLimit = ipEnd - INPUT_MARGIN
 
     ip += 1
-    next_hash = hashFunc(load32(input, ip), hash_func_shift)
+    nextHash = hashFunc(load32(input, ip), hashFuncShift)
 
     while (flag) {
       skip = 32
-      next_ip = ip
+      nextIp = ip
       do {
-        ip = next_ip
-        hash = next_hash
-        bytes_between_hash_lookups = skip >>> 5
+        ip = nextIp
+        hash = nextHash
+        bytesBetweenHashLookups = skip >>> 5
         skip += 1
-        next_ip = ip + bytes_between_hash_lookups
-        if (ip > ip_limit) {
+        nextIp = ip + bytesBetweenHashLookups
+        if (ip > ipLimit) {
           flag = false
           break
         }
-        next_hash = hashFunc(load32(input, next_ip), hash_func_shift)
-        candidate = base_ip + hash_table[hash]
-        hash_table[hash] = ip - base_ip
+        nextHash = hashFunc(load32(input, nextIp), hashFuncShift)
+        candidate = baseIp + hashTable[hash]
+        hashTable[hash] = ip - baseIp
       } while (!equals32(input, ip, candidate))
 
       if (!flag) {
         break
       }
 
-      op = emitLiteral(input, next_emit, ip - next_emit, output, op)
+      op = emitLiteral(input, nextEmit, ip - nextEmit, output, op)
 
       do {
         base = ip
         matched = 4
-        while (ip + matched < ip_end && input[ip + matched] === input[candidate + matched]) {
+        while (ip + matched < ipEnd && input[ip + matched] === input[candidate + matched]) {
           matched += 1
         }
         ip += matched
         offset = base - candidate
         op = emitCopy(output, op, offset, matched)
 
-        next_emit = ip
-        if (ip >= ip_limit) {
+        nextEmit = ip
+        if (ip >= ipLimit) {
           flag = false
           break
         }
-        prev_hash = hashFunc(load32(input, ip - 1), hash_func_shift)
-        hash_table[prev_hash] = ip - 1 - base_ip
-        cur_hash = hashFunc(load32(input, ip), hash_func_shift)
-        candidate = base_ip + hash_table[cur_hash]
-        hash_table[cur_hash] = ip - base_ip
+        prevHash = hashFunc(load32(input, ip - 1), hashFuncShift)
+        hashTable[prevHash] = ip - 1 - baseIp
+        curHash = hashFunc(load32(input, ip), hashFuncShift)
+        candidate = baseIp + hashTable[curHash]
+        hashTable[curHash] = ip - baseIp
       } while (equals32(input, ip, candidate))
 
       if (!flag) {
@@ -9530,12 +9640,12 @@ function compressFragment (input, ip, input_size, output, op) {
       }
 
       ip += 1
-      next_hash = hashFunc(load32(input, ip), hash_func_shift)
+      nextHash = hashFunc(load32(input, ip), hashFuncShift)
     }
   }
 
-  if (next_emit < ip_end) {
-    op = emitLiteral(input, next_emit, ip_end - next_emit, output, op)
+  if (nextEmit < ipEnd) {
+    op = emitLiteral(input, nextEmit, ipEnd - nextEmit, output, op)
   }
 
   return op
@@ -9558,26 +9668,26 @@ function SnappyCompressor (uncompressed) {
 }
 
 SnappyCompressor.prototype.maxCompressedLength = function () {
-  var source_len = this.array.length
-  return 32 + source_len + Math.floor(source_len / 6)
+  var sourceLen = this.array.length
+  return 32 + sourceLen + Math.floor(sourceLen / 6)
 }
 
-SnappyCompressor.prototype.compressToBuffer = function (out_buffer) {
+SnappyCompressor.prototype.compressToBuffer = function (outBuffer) {
   var array = this.array
   var length = array.length
   var pos = 0
-  var out_pos = 0
+  var outPos = 0
 
-  var fragment_size
+  var fragmentSize
 
-  out_pos = putVarint(length, out_buffer, out_pos)
+  outPos = putVarint(length, outBuffer, outPos)
   while (pos < length) {
-    fragment_size = Math.min(length - pos, BLOCK_SIZE)
-    out_pos = compressFragment(array, pos, fragment_size, out_buffer, out_pos)
-    pos += fragment_size
+    fragmentSize = Math.min(length - pos, BLOCK_SIZE)
+    outPos = compressFragment(array, pos, fragmentSize, outBuffer, outPos)
+    pos += fragmentSize
   }
 
-  return out_pos
+  return outPos
 }
 
 exports.SnappyCompressor = SnappyCompressor
@@ -9609,10 +9719,10 @@ exports.SnappyCompressor = SnappyCompressor
 
 var WORD_MASK = [0, 0xff, 0xffff, 0xffffff, 0xffffffff]
 
-function copyBytes (from_array, from_pos, to_array, to_pos, length) {
+function copyBytes (fromArray, fromPos, toArray, toPos, length) {
   var i
   for (i = 0; i < length; i++) {
-    to_array[to_pos + i] = from_array[from_pos + i]
+    toArray[toPos + i] = fromArray[fromPos + i]
   }
 }
 
@@ -9648,13 +9758,13 @@ SnappyDecompressor.prototype.readUncompressedLength = function () {
   return -1
 }
 
-SnappyDecompressor.prototype.uncompressToBuffer = function (out_buffer) {
+SnappyDecompressor.prototype.uncompressToBuffer = function (outBuffer) {
   var array = this.array
-  var array_length = array.length
+  var arrayLength = array.length
   var pos = this.pos
-  var out_pos = 0
+  var outPos = 0
 
-  var c, len, small_len
+  var c, len, smallLen
   var offset
 
   while (pos < array.length) {
@@ -9664,20 +9774,20 @@ SnappyDecompressor.prototype.uncompressToBuffer = function (out_buffer) {
       // Literal
       len = (c >>> 2) + 1
       if (len > 60) {
-        if (pos + 3 >= array_length) {
+        if (pos + 3 >= arrayLength) {
           return false
         }
-        small_len = len - 60
+        smallLen = len - 60
         len = array[pos] + (array[pos + 1] << 8) + (array[pos + 2] << 16) + (array[pos + 3] << 24)
-        len = (len & WORD_MASK[small_len]) + 1
-        pos += small_len
+        len = (len & WORD_MASK[smallLen]) + 1
+        pos += smallLen
       }
-      if (pos + len > array_length) {
+      if (pos + len > arrayLength) {
         return false
       }
-      copyBytes(array, pos, out_buffer, out_pos, len)
+      copyBytes(array, pos, outBuffer, outPos, len)
       pos += len
-      out_pos += len
+      outPos += len
     } else {
       switch (c & 0x3) {
         case 1:
@@ -9686,7 +9796,7 @@ SnappyDecompressor.prototype.uncompressToBuffer = function (out_buffer) {
           pos += 1
           break
         case 2:
-          if (pos + 1 >= array_length) {
+          if (pos + 1 >= arrayLength) {
             return false
           }
           len = (c >>> 2) + 1
@@ -9694,7 +9804,7 @@ SnappyDecompressor.prototype.uncompressToBuffer = function (out_buffer) {
           pos += 2
           break
         case 3:
-          if (pos + 3 >= array_length) {
+          if (pos + 3 >= arrayLength) {
             return false
           }
           len = (c >>> 2) + 1
@@ -9704,11 +9814,11 @@ SnappyDecompressor.prototype.uncompressToBuffer = function (out_buffer) {
         default:
           break
       }
-      if (offset === 0 || offset > out_pos) {
+      if (offset === 0 || offset > outPos) {
         return false
       }
-      selfCopyBytes(out_buffer, out_pos, offset, len)
-      out_pos += len
+      selfCopyBytes(outBuffer, outPos, offset, len)
+      outPos += len
     }
   }
   return true
