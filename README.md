@@ -276,7 +276,7 @@ $ ./demo3d
 $ ./dyncam2d
 </pre>
 
-Windows 7/8/8.1 VisualStudio 2012/2013 :
+Windows 10 / VisualStudio 2015 :
 
 1. git clone https://github.com/kengonakajima/moyai   or use Github For Windows from github.com
 2. ungzip tar ball of zlib source code
