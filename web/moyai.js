@@ -1647,7 +1647,7 @@ Sound.prototype.prepareSource = function(vol,detune) {
     }
     this.source = this.context.createBufferSource();
     this.source.buffer = this.audiobuffer;
-    this.source.detune.value=detune;
+    if(this.source.detune) this.source.detune.value=detune; // browser dependent
     var thissnd=this;
     this.source.onended = function() { thissnd.source.ended=true; }
     this.gain_node = this.context.createGain();
