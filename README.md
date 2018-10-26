@@ -276,12 +276,28 @@ $ ./demo3d
 $ ./dyncam2d
 </pre>
 
-Windows 7/8/8.1 VisualStudio 2012/2013 :
+Windows 10 / VisualStudio 2015 :
 
 1. git clone https://github.com/kengonakajima/moyai   or use Github For Windows from github.com
-2. Start from demowin/demowin.sln
-3. Build a project "demowin" 
-4. Run(Debug) the program 
+2. ungzip tar ball of zlib source code
+```
+tar zfx zlib-1.2.7.tar.gz
+```
+3. build libuv 
+```
+cd libuv-1.20.2
+vcbuild.bat
+```
+4. Open demowin¥demowin.sln with Visual Studio 2015 (Community is fine)
+execute Debug > Run , then you Will get an error "OpenAL32.dll"
+5. copy OpenAL DLLs 
+copy openal-1.1¥redist_dlls¥*.dll to 
+demowin¥Debug :
+```
+OpenAL32.dll
+wrap_oal.dll
+```
+6. Run again in Visual Studio 2015, then you'll done!
 </pre>
 
 Demo programs
