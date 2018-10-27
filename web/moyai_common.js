@@ -345,6 +345,11 @@ Camera.prototype.setLookAt = function(at,up) {
 
 
 ////////////////////
+g_moyai_z_per_layer = 100000;
+g_moyai_z_per_prop = 1;
+g_moyai_z_per_subprop = 1; // this causes some issue when dense sprites.. but no way to implement correct draw order
+g_moyai_max_z = g_moyai_z_per_layer*100; // use z to confirm render order ( renderOrder dont work for line prims..)
+    
 Layer.prototype.id_gen = 1;
 function Layer() {
     this.id = this.__proto__.id_gen++;

@@ -22,11 +22,6 @@ function MoyaiClient(w,h,pixratio){
     this.renderer.setSize(w,h);
     this.renderer.setClearColor("#000");
     this.renderer.autoClear = false;
-
-    this.z_per_layer = 100000;
-    this.z_per_prop = 1;
-    this.z_per_subprop = 1; // this causes some issue when dense sprites.. but no way to implement correct draw order
-    this.max_z = this.z_per_layer*100; // use z to confirm render order ( renderOrder dont work for line prims..)
     
     this.layers=[];
     g_moyais.push(this);
@@ -89,8 +84,8 @@ MoyaiClient.prototype.render = function() {
             this.render2D(this.scene2d, layer);
         }
     }
-    var camera2d = new THREE.OrthographicCamera( -this.width/2, this.width/2, this.height/2, -this.height/2,-1,this.max_z);
-    camera2d.position.z = this.max_z;
+    var camera2d = new THREE.OrthographicCamera( -this.width/2, this.width/2, this.height/2, -this.height/2,-1, g_moyai_max_z);
+    camera2d.position.z = g_moyai_max_z;
     this.renderer.render( this.scene2d, camera2d );
 }
 MoyaiClient.prototype.render3D = function(scene,layer) {
@@ -136,7 +131,7 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
         
         var z_inside_prop=0;
         
-        var prop_z = layer.priority * this.z_per_layer + prop.priority * this.z_per_prop;
+        var prop_z = layer.priority * g_moyai_z_per_layer + prop.priority * g_moyai_z_per_prop;
         if(prop.grids) {
             for(var gi=0;gi<prop.grids.length;gi++) {
                 var grid = prop.grids[gi];
@@ -153,7 +148,7 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
                     grid.mesh.scale.y = prop.scl.y * relscl.y;
                     grid.mesh.rotation.set(0,0,prop.rot);
                     scene.add(grid.mesh);
-                    z_inside_prop += this.z_per_subprop;
+                    z_inside_prop += g_moyai_z_per_subprop;
                 }
             }
         }
@@ -176,7 +171,7 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
                     chp.mesh.rotation.set(0,0,chp.rot);
                     if( chp.use_additive_blend ) chp.material.blending = THREE.AdditiveBlending; else chp.material.blending = THREE.NormalBlending;
                     scene.add(chp.mesh);
-                    z_inside_prop += this.z_per_subprop;
+                    z_inside_prop += g_moyai_z_per_subprop;
                 }
             }
         }
@@ -190,7 +185,7 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
             if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
             scene.add(prop.mesh);
             if(prop.debug)console.log("p:",prop);
-            z_inside_prop += this.z_per_subprop;
+            z_inside_prop += g_moyai_z_per_subprop;
         }            
         if(prop.prim_drawer) {
             for(var i=0;i<prop.prim_drawer.prims.length;i++) {
@@ -204,7 +199,7 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
                 prim.mesh.rotation.set(0,0,prop.rot);
                 //                    console.log("adding prim:", prim, prim.a, prim.b, prim.mesh.position );
                 scene.add(prim.mesh);
-                z_inside_prop += this.z_per_subprop;
+                z_inside_prop += g_moyai_z_per_subprop;
             }
         }            
     }
