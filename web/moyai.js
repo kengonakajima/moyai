@@ -69,7 +69,7 @@ MoyaiClient.prototype.render = function() {
                 var lcam = layer.camera;
                 camera3d.up.x = lcam.look_up.x; camera3d.up.y = lcam.look_up.y; camera3d.up.z = lcam.look_up.z;
                 camera3d.position.set( lcam.loc.x, lcam.loc.y, lcam.loc.z );
-                camera3d.lookAt(new THREE.Vector3(lcam.look_at.x, lcam.look_at.y, lcam.look_at.z ));
+                camera3d.lookAt(lcam.look_at.x, lcam.look_at.y, lcam.look_at.z );
                 lcam.three_camera=camera3d; // for billboard                
             }
         }
