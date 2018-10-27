@@ -74,11 +74,11 @@ MoyaiClient.prototype.render = function() {
         if(layer.viewport.dimension==3) {
             this.render3D(this.scene3d, layer);
             if(camera3d==null) {
-                camera3d = new THREE.PerspectiveCamera( 45 , this.width / this.height , layer.viewport.near_clip , layer.viewport.far_clip );    
+                camera3d = new THREE.PerspectiveCamera( 45 , this.width / this.height , layer.viewport.near_clip , layer.viewport.far_clip );
                 var lcam = layer.camera;
                 camera3d.up.x = lcam.look_up.x; camera3d.up.y = lcam.look_up.y; camera3d.up.z = lcam.look_up.z;
                 camera3d.position.set( lcam.loc.x, lcam.loc.y, lcam.loc.z );
-                camera3d.lookAt({x: lcam.look_at.x, y: lcam.look_at.y, z: lcam.look_at.z });
+                camera3d.lookAt(new THREE.Vector3(lcam.look_at.x, lcam.look_at.y, lcam.look_at.z ));
                 lcam.three_camera=camera3d; // for billboard                
             }
         }
