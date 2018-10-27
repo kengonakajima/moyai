@@ -27,9 +27,6 @@ function MoyaiClient(w,h,pixratio){
     this.z_per_prop = 1;
     this.z_per_subprop = 1; // this causes some issue when dense sprites.. but no way to implement correct draw order
     this.max_z = this.z_per_layer*100; // use z to confirm render order ( renderOrder dont work for line prims..)
-
-    this.scene2d = new THREE.Scene();
-    this.scene3d = new THREE.Scene();
     
     this.layers=[];
     g_moyais.push(this);
