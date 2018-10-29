@@ -22,6 +22,7 @@ function MoyaiClient(w,h,pixratio){
     this.renderer.setSize(w,h);
     this.renderer.setClearColor("#000");
     this.renderer.autoClear = false;
+    this.enable_clear=true;
     
     this.layers=[];
     g_moyais.push(this);
@@ -44,6 +45,11 @@ MoyaiClient.prototype.poll = function(dt) {
     }
     return cnt;   
 }
+MoyaiClient.prototype.clearAll = function() {
+    this.renderer.clear();
+    this.renderer.clearDepth();            
+}
+
 MoyaiClient.prototype.render = function() {
     // clear
 /*    
@@ -54,10 +60,10 @@ MoyaiClient.prototype.render = function() {
     if( this.scene3d.children.length>0) this.scene3d.remove( this.scene3d.children[0] ); // confirm remove all.. (TODO refactor)    
 */
     this.scene2d=new THREE.Scene();
-    this.scene3d=new THREE.Scene();    
-    this.renderer.clear();
-    this.renderer.clearDepth();
-    
+    this.scene3d=new THREE.Scene();
+    if(this.enable_clear) {
+        this.clearAll();
+    }    
     // 3d first
     var camera3d=null; // 最初の3Dレイヤのカメラを採用する。(TODO:レイヤごとに別のカメラで描画できるようにする)
     for(var li=0;li<this.layers.length;li++) {
