@@ -12,18 +12,25 @@ function initWebGL(canvas) {
     }
 }
 
-var g_fs_src =
-    "void main(void) {\n"+
-    "  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"+
-    "}\n";
+var g_fs_src = `
+varying lowp vec4 vColor;
+void main(void) {
+    gl_FragColor = vColor; //vec4(1.0, 1.0, 1.0, 1.0);
+}
+`;
 
-var g_vs_src =
-    "attribute vec3 aVertexPosition;\n"+
-    "uniform mat4 uModelViewMatrix;\n"+
-    "uniform mat4 uProjectionMatrix;\n"+
-    "void main(void) {\n"+
-    "    gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition, 1.0);\n"+
-    "}\n";
+var g_vs_src = `
+attribute vec3 aVertexPosition;
+attribute vec4 aVertexColor;
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+varying lowp vec4 vColor;
+void main(void) {
+    gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition, 1.0);
+    vColor=aVertexColor;
+}
+`;
+
 
 
 function createShader(src,type) {
@@ -52,7 +59,8 @@ function initShaders() {
     return {
         program: shaderProgram,
         attribLocations: {
-            vertexPosition: gl.getAttribLocation(shaderProgram,"aVertexPosition")
+            vertexPosition: gl.getAttribLocation(shaderProgram,"aVertexPosition"),
+            vertexColor: gl.getAttribLocation(shaderProgram,"aVertexColor"),
         },
         uniformLocations: {
             projectionMatrix: gl.getUniformLocation(shaderProgram,"uProjectionMatrix"),
@@ -66,15 +74,27 @@ function initShaders() {
 function initBuffers() {
     const positionBuffer=gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    var verts=[
+    var positions=[
      1.0,  1.0,
     -1.0,  1.0,
      1.0, -1.0,
     -1.0, -1.0,
     ];
-    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(verts), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(positions), gl.STATIC_DRAW);
+    
+    var colors=[
+        1.0,  1.0,  1.0,  1.0,    // 白
+        1.0,  0.0,  0.0,  1.0,    // 赤
+        0.0,  1.0,  0.0,  1.0,    // 緑
+        0.0,  0.0,  1.0,  1.0     // 青
+    ];
+    const colorBuffer=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(colors), gl.STATIC_DRAW);
+
     return {
-        position:positionBuffer
+        position: positionBuffer,
+        color: colorBuffer,
     };
 }
 
@@ -102,13 +122,15 @@ function drawScene(programInfo, buf) {
 
     // setup buf
     {
-        const numComponents=2;
         const normalize=false;
         const stride=0;
         const offset=0;
         gl.bindBuffer(gl.ARRAY_BUFFER, buf.position);
-        gl.vertexAttribPointer( programInfo.attribLocations.vertexPosition, numComponents, gl.FLOAT, normalize, stride, offset);
+        gl.vertexAttribPointer( programInfo.attribLocations.vertexPosition, 2, gl.FLOAT, normalize, stride, offset);
         gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf.color);
+        gl.vertexAttribPointer( programInfo.attribLocations.vertexColor, 4, gl.FLOAT, false, 0,0 );
+        gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
     }
 
     // setup shader
