@@ -73,11 +73,13 @@ function initBuffers() {
     -1.0, -1.0,
     ];
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(verts), gl.STATIC_DRAW);
-    return positionBuffer;
+    return {
+        position:positionBuffer
+    };
 }
 
 
-function drawScene(programInfo, posbuf) {
+function drawScene(programInfo, buf) {
     //clear
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clearDepth(1.0);
@@ -104,7 +106,7 @@ function drawScene(programInfo, posbuf) {
         const normalize=false;
         const stride=0;
         const offset=0;
-        gl.bindBuffer(gl.ARRAY_BUFFER, posbuf);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf.position);
         gl.vertexAttribPointer( programInfo.attribLocations.vertexPosition, numComponents, gl.FLOAT, normalize, stride, offset);
         gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
     }
@@ -140,8 +142,8 @@ function start() {
     console.log("gl init ok");
     
     const programInfo = initShaders();
-    const posbuf=initBuffers();
+    const buf=initBuffers();
     
-    drawScene(programInfo,posbuf);
+    drawScene(programInfo,buf);
 }
 
