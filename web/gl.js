@@ -1,5 +1,5 @@
 var gl; 
-var SCRW=256, SCRH=128;
+var SCRW=640, SCRH=320;
 
 function initWebGL(canvas) {
     const opt={antialias:false};
@@ -206,9 +206,7 @@ function initBuffers() {
     };
 }
 
-var g_rot=0;
-var g_x=0;
-function drawScene(programInfo, buf, tex, deltaTime) {
+function drawScene(programInfo, buf, tex, deltaTime, xtr,ytr,ztr, xrot,yrot,zrot ) {
     //clear
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clearDepth(1.0);
@@ -225,12 +223,11 @@ function drawScene(programInfo, buf, tex, deltaTime) {
     var projMat=mat4.create();
     mat4.perspective(projMat, fov, aspect, znear, zfar );
     const mvMat=mat4.create();
-    g_x+=deltaTime;
-    mat4.translate(mvMat, mvMat, [Math.sin(g_x)*2, 0, -9.0+g_x ]);
+    mat4.translate(mvMat, mvMat, [xtr,ytr,ztr]);
 
-    g_rot+=deltaTime;
-    mat4.rotate(mvMat, mvMat, g_rot, [0,0,1] );
-    mat4.rotate(mvMat, mvMat, g_rot*0.7, [0,1,0] );
+    mat4.rotate(mvMat, mvMat, xrot, [1,0,0] );
+    mat4.rotate(mvMat, mvMat, yrot, [0,1,0] );
+    mat4.rotate(mvMat, mvMat, zrot, [0,0,1] );    
 //    console.log("projMat:",projMat, "mvMat:",mvMat);
 
     // setup buf
@@ -338,6 +335,8 @@ function isPowerOf2(value) {
 }
 
 
+var g_x=0,g_rot=0;
+
 function start() {
     var canvas = document.getElementById("glcanvas");
     initWebGL(canvas);
@@ -354,8 +353,10 @@ function start() {
         now*=0.001;
         const dt=now-then;
         then=now;
-        drawScene(programInfo,buf,tex,dt);
+        drawScene(programInfo,buf,tex,dt, g_x,0,-5, g_rot,g_rot*0.7,0 );
         requestAnimationFrame(render);
+        g_x+=1/60;
+        g_rot+=1/60;
     }
     requestAnimationFrame(render);    
 }
