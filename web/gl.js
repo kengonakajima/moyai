@@ -99,7 +99,7 @@ function initBuffers() {
 }
 
 var g_rot=0;
-
+var g_x=0;
 function drawScene(programInfo, buf, deltaTime) {
     //clear
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -117,7 +117,8 @@ function drawScene(programInfo, buf, deltaTime) {
     var projMat=mat4.create();
     mat4.perspective(projMat, fov, aspect, znear, zfar );
     const mvMat=mat4.create();
-    mat4.translate(mvMat, mvMat, [-0.0, 0.0, -6.0 ]);
+    g_x+=deltaTime;
+    mat4.translate(mvMat, mvMat, [g_x, g_x, -9.0-g_x ]);
 
     g_rot+=deltaTime;
     mat4.rotate(mvMat, mvMat, g_rot, [0,0,1] );
