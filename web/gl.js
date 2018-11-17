@@ -118,7 +118,7 @@ function drawScene(programInfo, buf, deltaTime) {
     mat4.perspective(projMat, fov, aspect, znear, zfar );
     const mvMat=mat4.create();
     g_x+=deltaTime;
-    mat4.translate(mvMat, mvMat, [g_x, g_x, -9.0-g_x ]);
+    mat4.translate(mvMat, mvMat, [Math.sin(g_x)*2, g_x, -9.0-g_x ]);
 
     g_rot+=deltaTime;
     mat4.rotate(mvMat, mvMat, g_rot, [0,0,1] );
