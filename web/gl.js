@@ -74,27 +74,84 @@ function initShaders() {
 function initBuffers() {
     const positionBuffer=gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    var positions=[
-     1.0,  1.0,
-    -1.0,  1.0,
-     1.0, -1.0,
-    -1.0, -1.0,
+
+    const positions = [
+        // Front face
+            -1.0, -1.0,  1.0,
+        1.0, -1.0,  1.0,
+        1.0,  1.0,  1.0,
+            -1.0,  1.0,  1.0,
+
+        // Back face
+            -1.0, -1.0, -1.0,
+            -1.0,  1.0, -1.0,
+        1.0,  1.0, -1.0,
+        1.0, -1.0, -1.0,
+
+        // Top face
+            -1.0,  1.0, -1.0,
+            -1.0,  1.0,  1.0,
+        1.0,  1.0,  1.0,
+        1.0,  1.0, -1.0,
+
+        // Bottom face
+            -1.0, -1.0, -1.0,
+        1.0, -1.0, -1.0,
+        1.0, -1.0,  1.0,
+            -1.0, -1.0,  1.0,
+
+        // Right face
+        1.0, -1.0, -1.0,
+        1.0,  1.0, -1.0,
+        1.0,  1.0,  1.0,
+        1.0, -1.0,  1.0,
+
+        // Left face
+            -1.0, -1.0, -1.0,
+            -1.0, -1.0,  1.0,
+            -1.0,  1.0,  1.0,
+            -1.0,  1.0, -1.0,
     ];
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(positions), gl.STATIC_DRAW);
-    
-    var colors=[
-        1.0,  1.0,  1.0,  1.0,    // 白
-        1.0,  0.0,  0.0,  1.0,    // 赤
-        0.0,  1.0,  0.0,  1.0,    // 緑
-        0.0,  0.0,  1.0,  1.0     // 青
+
+    const faceColors = [
+        [1.0,  1.0,  1.0,  1.0],    // Front face: white
+        [1.0,  0.0,  0.0,  1.0],    // Back face: red
+        [0.0,  1.0,  0.0,  1.0],    // Top face: green
+        [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
+        [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
+        [1.0,  0.0,  1.0,  1.0],    // Left face: purple
     ];
+
+    var colors = [];
+    for (var j = 0; j < faceColors.length; ++j) {
+        const c = faceColors[j];
+        // Repeat each color four times for the four vertices of the face
+        colors = colors.concat(c, c, c, c);
+    }
+
     const colorBuffer=gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER,colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(colors), gl.STATIC_DRAW);
+    
+    const indices = [
+        0,  1,  2,      0,  2,  3,    // front
+        4,  5,  6,      4,  6,  7,    // back
+        8,  9,  10,     8,  10, 11,   // top
+        12, 13, 14,     12, 14, 15,   // bottom
+        16, 17, 18,     16, 18, 19,   // right
+        20, 21, 22,     20, 22, 23,   // left
+    ];
+    const indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    // Now send the element array to GL
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
+    
     return {
         position: positionBuffer,
         color: colorBuffer,
+        indices: indexBuffer,
     };
 }
 
@@ -118,12 +175,12 @@ function drawScene(programInfo, buf, deltaTime) {
     mat4.perspective(projMat, fov, aspect, znear, zfar );
     const mvMat=mat4.create();
     g_x+=deltaTime;
-    mat4.translate(mvMat, mvMat, [Math.sin(g_x)*2, g_x, -9.0-g_x ]);
+    mat4.translate(mvMat, mvMat, [Math.sin(g_x)*2, 0, -9.0+g_x ]);
 
     g_rot+=deltaTime;
     mat4.rotate(mvMat, mvMat, g_rot, [0,0,1] );
-    console.log("projMat:",projMat, "mvMat:",mvMat);
-
+    mat4.rotate(mvMat, mvMat, g_rot*0.7, [0,1,0] );
+//    console.log("projMat:",projMat, "mvMat:",mvMat);
 
     // setup buf
     {
@@ -131,15 +188,19 @@ function drawScene(programInfo, buf, deltaTime) {
         const stride=0;
         const offset=0;
         gl.bindBuffer(gl.ARRAY_BUFFER, buf.position);
-        gl.vertexAttribPointer( programInfo.attribLocations.vertexPosition, 2, gl.FLOAT, normalize, stride, offset);
+        gl.vertexAttribPointer( programInfo.attribLocations.vertexPosition, 3, gl.FLOAT, normalize, stride, offset);
         gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
         gl.bindBuffer(gl.ARRAY_BUFFER, buf.color);
         gl.vertexAttribPointer( programInfo.attribLocations.vertexColor, 4, gl.FLOAT, false, 0,0 );
         gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
     }
 
+    // ind
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buf.indices);
+
+
     // setup shader
-    console.log("Pinfo:",programInfo);
+//    console.log("Pinfo:",programInfo);
     gl.useProgram(programInfo.program);
     gl.uniformMatrix4fv(
         programInfo.uniformLocations.projectionMatrix,
@@ -154,9 +215,13 @@ function drawScene(programInfo, buf, deltaTime) {
 
     // draw!
     {
+        const vertexCount=36;
+        const type=gl.UNSIGNED_SHORT;
         const offset=0;
-        const vertexCount=4;
-        gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
+        gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+//        const offset=0;
+//        const vertexCount=4;
+  //      gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
     }    
 }
 
