@@ -15,11 +15,15 @@ function initWebGL(canvas) {
 var g_fs_src = `
 varying highp vec2 vTextureCoord;
 varying lowp vec4 vColor;
+varying highp vec3 vLighting;
 uniform sampler2D uSampler;
 void main(void) {
     //    gl_FragColor = texture2D(uSampler,vTextureCoord); //vColor; //vec4(1.0, 1.0, 1.0, 1.0);
     highp vec4 tcolor=texture2D(uSampler,vTextureCoord);
-    gl_FragColor=vec4( tcolor.r*vColor.r, tcolor.g*vColor.g, tcolor.b*vColor.b, tcolor.a*vColor.a);    
+    gl_FragColor=vec4( tcolor.r*vColor.r*vLighting.r,
+                       tcolor.g*vColor.g*vLighting.g,
+                       tcolor.b*vColor.b*vLighting.b,
+                       tcolor.a*vColor.a);    
 }
 `;
 
@@ -27,14 +31,25 @@ var g_vs_src = `
 attribute vec3 aVertexPosition;
 attribute vec4 aVertexColor;
 attribute vec2 aTextureCoord;
+attribute vec3 aVertexNormal;
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
+uniform mat4 uNormalMatrix;
 varying lowp vec4 vColor;
 varying highp vec2 vTextureCoord;
+varying highp vec3 vLighting;
+
 void main(void) {
     gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition, 1.0);
     vColor=aVertexColor;
     vTextureCoord = aTextureCoord;
+
+    highp vec3 ambientLight=vec3(0.3,0.3,0.3);
+    highp vec3 directionalLightColor=vec3(1,1,1);
+    highp vec3 directionalVector=normalize(vec3(0.85,0.8,0.75));
+    highp vec4 transformedNormal=uNormalMatrix * vec4(aVertexNormal,1.0);
+    highp float directional=max(dot(transformedNormal.xyz,directionalVector),0.0);
+    vLighting=ambientLight+(directionalLightColor * directional);
 }
 `;
 
@@ -69,11 +84,13 @@ function initShaders() {
             vertexPosition: gl.getAttribLocation(shaderProgram,"aVertexPosition"),
             vertexColor: gl.getAttribLocation(shaderProgram,"aVertexColor"),
             textureCoord: gl.getAttribLocation(shaderProgram,"aTextureCoord"),
+            vertexNormal: gl.getAttribLocation(shaderProgram,"aVertexNormal"),
         },
         uniformLocations: {
             projectionMatrix: gl.getUniformLocation(shaderProgram,"uProjectionMatrix"),
             modelViewMatrix: gl.getUniformLocation(shaderProgram,"uModelViewMatrix"),
             uSampler: gl.getUniformLocation(shaderProgram, "uSampler"),
+            normalMatrix: gl.getUniformLocation(shaderProgram,"uNormalMatrix"),
         },
     };
 }
@@ -196,6 +213,48 @@ function initBuffers() {
     ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
 
+    // normals
+    const normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    const vertexNormals = [
+        // Front
+        0.0,  0.0,  1.0,
+        0.0,  0.0,  1.0,
+        0.0,  0.0,  1.0,
+        0.0,  0.0,  1.0,
+
+        // Back
+        0.0,  0.0, -1.0,
+        0.0,  0.0, -1.0,
+        0.0,  0.0, -1.0,
+        0.0,  0.0, -1.0,
+
+        // Top
+        0.0,  1.0,  0.0,
+        0.0,  1.0,  0.0,
+        0.0,  1.0,  0.0,
+        0.0,  1.0,  0.0,
+
+        // Bottom
+        0.0, -1.0,  0.0,
+        0.0, -1.0,  0.0,
+        0.0, -1.0,  0.0,
+        0.0, -1.0,  0.0,
+
+        // Right
+        1.0,  0.0,  0.0,
+        1.0,  0.0,  0.0,
+        1.0,  0.0,  0.0,
+        1.0,  0.0,  0.0,
+
+        // Left
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0
+    ];
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
     
     
     return {
@@ -203,6 +262,7 @@ function initBuffers() {
         color: colorBuffer,
         textureCoord: textureCoordBuffer,
         indices: indexBuffer,
+        normal: normalBuffer,
     };
 }
 
@@ -249,6 +309,11 @@ function drawScene(programInfo, buf, tex, xtr,ytr,ztr, xrot,yrot,zrot ) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buf.textureCoord);
     gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, 2, gl.FLOAT, false,0,0 );
     gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord );
+
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf.normal );
+    gl.vertexAttribPointer(programInfo.attribLocations.vertexNormal, 3, gl.FLOAT, false,0,0);
+    gl.enableVertexAttribArray(programInfo.attribLocations.vertexNormal );
     
     // ind
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buf.indices);
@@ -266,6 +331,14 @@ function drawScene(programInfo, buf, tex, xtr,ytr,ztr, xrot,yrot,zrot ) {
         programInfo.uniformLocations.modelViewMatrix,
         false,
         mvMat
+    );
+    const normalMat = mat4.create();
+    mat4.invert(normalMat,mvMat);
+    mat4.transpose(normalMat, normalMat);
+    gl.uniformMatrix4fv(
+        programInfo.uniformLocations.normalMatrix,
+        false,
+        normalMat        
     );
 
     gl.activeTexture(gl.TEXTURE0);
