@@ -206,13 +206,15 @@ function initBuffers() {
     };
 }
 
-function drawScene(programInfo, buf, tex, deltaTime, xtr,ytr,ztr, xrot,yrot,zrot ) {
+function clearScene() {
     //clear
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clearDepth(1.0);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);// 近くにある物体は、遠くにある物体を覆い隠す
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);    
+}
+function drawScene(programInfo, buf, tex, xtr,ytr,ztr, xrot,yrot,zrot ) {
 
     // prepare mat
     const fov=45*Math.PI/180;
@@ -345,7 +347,8 @@ function start() {
     console.log("gl init ok");
     
     const programInfo = initShaders();
-    const buf=initBuffers();
+    const buf0=initBuffers(false);
+    const buf1=initBuffers(true);    
     const tex = loadTexture("./cubetexture.png");
     
     var then=0;
@@ -353,7 +356,10 @@ function start() {
         now*=0.001;
         const dt=now-then;
         then=now;
-        drawScene(programInfo,buf,tex,dt, Math.sin(g_t),0,-8, g_t,g_t*0.7,0 );
+
+        clearScene();
+        drawScene(programInfo,buf0,tex, Math.sin(g_t)*2,0,-8, g_t,g_t*0.7,0 );
+        drawScene(programInfo,buf1,tex, 0,Math.sin(g_t)*2,-8, g_t*0.7,g_t,0 );        
         requestAnimationFrame(render);
         g_t+=1/60;
     }
