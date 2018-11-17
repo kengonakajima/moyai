@@ -335,7 +335,7 @@ function isPowerOf2(value) {
 }
 
 
-var g_x=0,g_rot=0;
+var g_t=0;
 
 function start() {
     var canvas = document.getElementById("glcanvas");
@@ -353,10 +353,9 @@ function start() {
         now*=0.001;
         const dt=now-then;
         then=now;
-        drawScene(programInfo,buf,tex,dt, g_x,0,-5, g_rot,g_rot*0.7,0 );
+        drawScene(programInfo,buf,tex,dt, Math.sin(g_t),0,-8, g_t,g_t*0.7,0 );
         requestAnimationFrame(render);
-        g_x+=1/60;
-        g_rot+=1/60;
+        g_t+=1/60;
     }
     requestAnimationFrame(render);    
 }
