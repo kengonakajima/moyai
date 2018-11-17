@@ -13,21 +13,28 @@ function initWebGL(canvas) {
 }
 
 var g_fs_src = `
+varying highp vec2 vTextureCoord;
 varying lowp vec4 vColor;
+uniform sampler2D uSampler;
 void main(void) {
-    gl_FragColor = vColor; //vec4(1.0, 1.0, 1.0, 1.0);
+    //    gl_FragColor = texture2D(uSampler,vTextureCoord); //vColor; //vec4(1.0, 1.0, 1.0, 1.0);
+    highp vec4 tcolor=texture2D(uSampler,vTextureCoord);
+    gl_FragColor=vec4( tcolor.r*vColor.r, tcolor.g*vColor.g, tcolor.b*vColor.b, tcolor.a*vColor.a);    
 }
 `;
 
 var g_vs_src = `
 attribute vec3 aVertexPosition;
 attribute vec4 aVertexColor;
+attribute vec2 aTextureCoord;
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
 varying lowp vec4 vColor;
+varying highp vec2 vTextureCoord;
 void main(void) {
     gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition, 1.0);
     vColor=aVertexColor;
+    vTextureCoord = aTextureCoord;
 }
 `;
 
@@ -61,10 +68,12 @@ function initShaders() {
         attribLocations: {
             vertexPosition: gl.getAttribLocation(shaderProgram,"aVertexPosition"),
             vertexColor: gl.getAttribLocation(shaderProgram,"aVertexColor"),
+            textureCoord: gl.getAttribLocation(shaderProgram,"aTextureCoord"),
         },
         uniformLocations: {
             projectionMatrix: gl.getUniformLocation(shaderProgram,"uProjectionMatrix"),
-            modelViewMatrix: gl.getUniformLocation(shaderProgram,"uModelViewMatrix")
+            modelViewMatrix: gl.getUniformLocation(shaderProgram,"uModelViewMatrix"),
+            uSampler: gl.getUniformLocation(shaderProgram, "uSampler"),
         },
     };
 }
@@ -147,17 +156,59 @@ function initBuffers() {
     // Now send the element array to GL
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
+
+    //uv
+
+    const textureCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
+
+    const textureCoordinates = [
+        // Front
+        0.0,  0.0,
+        1.0,  0.0,
+        1.0,  1.0,
+        0.0,  1.0,
+        // Back
+        0.0,  0.0,
+        1.0,  0.0,
+        1.0,  1.0,
+        0.0,  1.0,
+        // Top
+        0.0,  0.0,
+        1.0,  0.0,
+        1.0,  1.0,
+        0.0,  1.0,
+        // Bottom
+        0.0,  0.0,
+        1.0,  0.0,
+        1.0,  1.0,
+        0.0,  1.0,
+        // Right
+        0.0,  0.0,
+        1.0,  0.0,
+        1.0,  1.0,
+        0.0,  1.0,
+        // Left
+        0.0,  0.0,
+        1.0,  0.0,
+        1.0,  1.0,
+        0.0,  1.0,
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
+
+    
     
     return {
         position: positionBuffer,
         color: colorBuffer,
+        textureCoord: textureCoordBuffer,
         indices: indexBuffer,
     };
 }
 
 var g_rot=0;
 var g_x=0;
-function drawScene(programInfo, buf, deltaTime) {
+function drawScene(programInfo, buf, tex, deltaTime) {
     //clear
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clearDepth(1.0);
@@ -195,6 +246,11 @@ function drawScene(programInfo, buf, deltaTime) {
         gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
     }
 
+    // uv
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf.textureCoord);
+    gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, 2, gl.FLOAT, false,0,0 );
+    gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord );
+    
     // ind
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buf.indices);
 
@@ -213,6 +269,11 @@ function drawScene(programInfo, buf, deltaTime) {
         mvMat
     );
 
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.uniform1i(programInfo.uniformLocations.uSampler,0);
+    
+
     // draw!
     {
         const vertexCount=36;
@@ -226,6 +287,57 @@ function drawScene(programInfo, buf, deltaTime) {
 }
 
 
+function loadTexture(url) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  // Because images have to be download over the internet
+  // they might take a moment until they are ready.
+  // Until then put a single pixel in the texture so we can
+  // use it immediately. When the image has finished downloading
+  // we'll update the texture with the contents of the image.
+  const level = 0;
+  const internalFormat = gl.RGBA;
+  const width = 1;
+  const height = 1;
+  const border = 0;
+  const srcFormat = gl.RGBA;
+  const srcType = gl.UNSIGNED_BYTE;
+  const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                width, height, border, srcFormat, srcType,
+                pixel);
+
+  const image = new Image();
+  image.onload = function() {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                  srcFormat, srcType, image);
+
+    // WebGL1 has different requirements for power of 2 images
+    // vs non power of 2 images so check if the image is a
+    // power of 2 in both dimensions.
+    if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+       // Yes, it's a power of 2. Generate mips.
+       gl.generateMipmap(gl.TEXTURE_2D);
+    } else {
+       // No, it's not a power of 2. Turn of mips and set
+       // wrapping to clamp to edge
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+  };
+  image.src = url;
+
+  return texture;
+}
+
+function isPowerOf2(value) {
+  return (value & (value - 1)) == 0;
+}
+
+
 function start() {
     var canvas = document.getElementById("glcanvas");
     initWebGL(canvas);
@@ -235,13 +347,14 @@ function start() {
     
     const programInfo = initShaders();
     const buf=initBuffers();
-
+    const tex = loadTexture("./cubetexture.png");
+    
     var then=0;
     function render(now) {
         now*=0.001;
         const dt=now-then;
         then=now;
-        drawScene(programInfo,buf, dt);
+        drawScene(programInfo,buf,tex,dt);
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);    
