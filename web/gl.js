@@ -98,8 +98,9 @@ function initBuffers() {
     };
 }
 
+var g_rot=0;
 
-function drawScene(programInfo, buf) {
+function drawScene(programInfo, buf, deltaTime) {
     //clear
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clearDepth(1.0);
@@ -117,6 +118,9 @@ function drawScene(programInfo, buf) {
     mat4.perspective(projMat, fov, aspect, znear, zfar );
     const mvMat=mat4.create();
     mat4.translate(mvMat, mvMat, [-0.0, 0.0, -6.0 ]);
+
+    g_rot+=deltaTime;
+    mat4.rotate(mvMat, mvMat, g_rot, [0,0,1] );
     console.log("projMat:",projMat, "mvMat:",mvMat);
 
 
@@ -165,7 +169,15 @@ function start() {
     
     const programInfo = initShaders();
     const buf=initBuffers();
-    
-    drawScene(programInfo,buf);
+
+    var then=0;
+    function render(now) {
+        now*=0.001;
+        const dt=now-then;
+        then=now;
+        drawScene(programInfo,buf, dt);
+        requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);    
 }
 
