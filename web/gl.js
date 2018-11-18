@@ -340,23 +340,12 @@ function clearScene() {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
 }
-function drawScene(use_light, programInfo, buf, tex, alpha, xtr,ytr,ztr, xrot,yrot,zrot ) {
-
-    // prepare mat
-    const fov=45*Math.PI/180;
-    const aspect=SCRW/SCRH;
-    const znear=0.1;
-    const zfar=100;
-
-    var projMat=mat4.create();
-    mat4.perspective(projMat, fov, aspect, znear, zfar );
-    const mvMat=mat4.create();
+function drawScene(use_light, projMat, mvMat, programInfo, buf, tex, alpha, xtr,ytr,ztr, xrot,yrot,zrot ) {
+    mat4.identity(mvMat);
     mat4.translate(mvMat, mvMat, [xtr,ytr,ztr]);
-
     mat4.rotate(mvMat, mvMat, xrot, [1,0,0] );
     mat4.rotate(mvMat, mvMat, yrot, [0,1,0] );
     mat4.rotate(mvMat, mvMat, zrot, [0,0,1] );    
-//    console.log("projMat:",projMat, "mvMat:",mvMat);
 
     // setup buf
     {
@@ -387,11 +376,7 @@ function drawScene(use_light, programInfo, buf, tex, alpha, xtr,ytr,ztr, xrot,yr
 
     // setup shader
 //    console.log("Pinfo:",programInfo);
-    gl.uniformMatrix4fv(
-        programInfo.uniformLocations.projectionMatrix,
-        false,
-        projMat
-    );
+    
     gl.uniformMatrix4fv(
         programInfo.uniformLocations.modelViewMatrix,
         false,
@@ -498,21 +483,43 @@ function start() {
     var pg_use;
     if(use_light) pg_use=programInfoLight; else pg_use=programInfoNolight;
     var then=0;
-    var frame_cnt=0;    
+    var frame_cnt=0;
+    var n=5000;
+    var mvMatArray=new Array(n);
+    for(var i=0;i<n;i++) {
+        mvMatArray[i]=mat4.create();
+    }
     function render(now) {
         frame_cnt++;
         now*=0.001;
         const dt=now-then;
         then=now;
-        const k=30,d=100;
+        const k=20,d=80;
         clearScene();
-        gl.useProgram(pg_use.program);
         
-        for(var i=0;i<3000;i++) {
-            drawScene(use_light,pg_use,buf,tex, range(0,1), range(-k,k),range(-k,k),range(-d,-10), range(1,5),range(1,5),0 );            
+        gl.useProgram(pg_use.program);
+
+        // prepare mat
+        const fov=45*Math.PI/180;
+        const aspect=SCRW/SCRH;
+        const znear=0.1;
+        const zfar=100;
+
+        var projMat=mat4.create();
+        mat4.perspective(projMat, fov, aspect, znear, zfar );
+
+        gl.uniformMatrix4fv(
+            pg_use.uniformLocations.projectionMatrix,
+            false,
+            projMat
+        );        
+        for(var i=0;i<n;i++) {
+            drawScene(use_light, projMat, mvMatArray[i], pg_use,buf,tex, range(0,1), range(-k,k)*2,range(-k,k),range(-d,-d/2), range(1,5),range(1,5),0 );            
         }
-        drawScene(use_light,pg_use,buf,tex, 1.0, Math.sin(g_t)*2,0,-8, g_t,g_t*0.7,0 );
-        drawScene(use_light,pg_use,buf,tex, 0.2, 0,Math.sin(g_t)*2,-8, g_t*0.7,g_t,0 );        
+        var mvMat0=mat4.create();
+        var mvMat1=mat4.create();
+        drawScene(use_light, projMat, mvMat0, pg_use,buf,tex, 1.0, Math.sin(g_t)*2,0,-8, g_t,g_t*0.7,0 );
+        drawScene(use_light, projMat, mvMat1, pg_use,buf,tex, 0.2, 0,Math.sin(g_t)*2,-8, g_t*0.7,g_t,0 );        
         requestAnimationFrame(render);
         g_t+=1/60;
     }
