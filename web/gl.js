@@ -28,6 +28,22 @@ void main(void) {
 }
 `;
 
+var g_fs_nolight_src = `
+varying highp vec2 vTextureCoord;
+varying lowp vec4 vColor;
+uniform sampler2D uSampler;
+uniform lowp float uAlpha;
+void main(void) {
+    //    gl_FragColor = texture2D(uSampler,vTextureCoord); //vColor; //vec4(1.0, 1.0, 1.0, 1.0);
+    highp vec4 tcolor=texture2D(uSampler,vTextureCoord);
+    gl_FragColor=vec4( tcolor.r*vColor.r,
+                       tcolor.g*vColor.g,
+                       tcolor.b*vColor.b,
+                       tcolor.a*vColor.a * uAlpha);    
+}
+`;
+
+
 var g_vs_src = `
 attribute vec3 aVertexPosition;
 attribute vec4 aVertexColor;
@@ -54,6 +70,23 @@ void main(void) {
 }
 `;
 
+var g_vs_nolight_src = `
+attribute vec3 aVertexPosition;
+attribute vec4 aVertexColor;
+attribute vec2 aTextureCoord;
+attribute vec3 aVertexNormal;
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+varying lowp vec4 vColor;
+varying highp vec2 vTextureCoord;
+
+void main(void) {
+    gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition, 1.0);
+    vColor=aVertexColor;
+    vTextureCoord = aTextureCoord;
+}
+`;
+
 
 
 function createShader(src,type) {
@@ -66,7 +99,7 @@ function createShader(src,type) {
     }
     return sh;
 }
-function initShaders() {
+function initLightShaders() {
     var fs=createShader(g_fs_src, gl.FRAGMENT_SHADER);
     var vs=createShader(g_vs_src, gl.VERTEX_SHADER);
   
@@ -93,6 +126,35 @@ function initShaders() {
             uSampler: gl.getUniformLocation(shaderProgram, "uSampler"),
             uAlpha: gl.getUniformLocation(shaderProgram,"uAlpha"),
             normalMatrix: gl.getUniformLocation(shaderProgram,"uNormalMatrix"),
+        },
+    };
+}
+
+function initNolightShaders() {
+    var fs=createShader(g_fs_nolight_src, gl.FRAGMENT_SHADER);
+    var vs=createShader(g_vs_nolight_src, gl.VERTEX_SHADER);
+  
+    var shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vs);
+    gl.attachShader(shaderProgram, fs);
+    gl.linkProgram(shaderProgram);
+  
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        console.warn("cant init shader program");
+    }
+
+    return {
+        program: shaderProgram,
+        attribLocations: {
+            vertexPosition: gl.getAttribLocation(shaderProgram,"aVertexPosition"),
+            vertexColor: gl.getAttribLocation(shaderProgram,"aVertexColor"),
+            textureCoord: gl.getAttribLocation(shaderProgram,"aTextureCoord"),
+        },
+        uniformLocations: {
+            projectionMatrix: gl.getUniformLocation(shaderProgram,"uProjectionMatrix"),
+            modelViewMatrix: gl.getUniformLocation(shaderProgram,"uModelViewMatrix"),
+            uSampler: gl.getUniformLocation(shaderProgram, "uSampler"),
+            uAlpha: gl.getUniformLocation(shaderProgram,"uAlpha"),
         },
     };
 }
@@ -278,7 +340,7 @@ function clearScene() {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
 }
-function drawScene(programInfo, buf, tex, alpha, xtr,ytr,ztr, xrot,yrot,zrot ) {
+function drawScene(use_light, programInfo, buf, tex, alpha, xtr,ytr,ztr, xrot,yrot,zrot ) {
 
     // prepare mat
     const fov=45*Math.PI/180;
@@ -314,11 +376,11 @@ function drawScene(programInfo, buf, tex, alpha, xtr,ytr,ztr, xrot,yrot,zrot ) {
     gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, 2, gl.FLOAT, false,0,0 );
     gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord );
 
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf.normal );
-    gl.vertexAttribPointer(programInfo.attribLocations.vertexNormal, 3, gl.FLOAT, false,0,0);
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexNormal );
-    
+    if(use_light) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf.normal );
+        gl.vertexAttribPointer(programInfo.attribLocations.vertexNormal, 3, gl.FLOAT, false,0,0);
+        gl.enableVertexAttribArray(programInfo.attribLocations.vertexNormal );
+    }
     // ind
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buf.indices);
 
@@ -336,14 +398,16 @@ function drawScene(programInfo, buf, tex, alpha, xtr,ytr,ztr, xrot,yrot,zrot ) {
         false,
         mvMat
     );
-    const normalMat = mat4.create();
-    mat4.invert(normalMat,mvMat);
-    mat4.transpose(normalMat, normalMat);
-    gl.uniformMatrix4fv(
-        programInfo.uniformLocations.normalMatrix,
-        false,
-        normalMat        
-    );
+    if(use_light) {
+        const normalMat = mat4.create();
+        mat4.invert(normalMat,mvMat);
+        mat4.transpose(normalMat, normalMat);
+        gl.uniformMatrix4fv(
+            programInfo.uniformLocations.normalMatrix,
+            false,
+            normalMat        
+        );
+    }
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -417,30 +481,37 @@ function isPowerOf2(value) {
 
 var g_t=0;
 
+
+
 function start() {
     var canvas = document.getElementById("glcanvas");
     initWebGL(canvas);
     gl.viewport(0, 0, canvas.width, canvas.height);
 
     console.log("gl init ok");
-    
-    const programInfo = initShaders();
-    const buf0=initBuffers(false);
-    const buf1=initBuffers(true);    
+
+    const use_light=false;
+    var programInfoLight=initLightShaders();
+    var programInfoNolight=initNolightShaders();
+
+    const buf=initBuffers(use_light);
     const tex = loadTexture("./cubetexture.png");
-    
+    var pg_use;
+    if(use_light) pg_use=programInfoLight; else pg_use=programInfoNolight;
     var then=0;
+    var frame_cnt=0;    
     function render(now) {
+        frame_cnt++;
         now*=0.001;
         const dt=now-then;
         then=now;
         const k=30,d=100;
         clearScene();
-        for(var i=0;i<1000;i++) {
-            drawScene(programInfo,buf0,tex, 1.0, range(-k,k),range(-k,k),range(-d,-10), range(1,5),range(1,5),0 );            
+        for(var i=0;i<3000;i++) {
+            drawScene(use_light,pg_use,buf,tex, range(0,1), range(-k,k),range(-k,k),range(-d,-10), range(1,5),range(1,5),0 );            
         }
-        drawScene(programInfo,buf0,tex, 1.0, Math.sin(g_t)*2,0,-8, g_t,g_t*0.7,0 );
-        drawScene(programInfo,buf1,tex, 0.2, 0,Math.sin(g_t)*2,-8, g_t*0.7,g_t,0 );        
+        drawScene(use_light,pg_use,buf,tex, 1.0, Math.sin(g_t)*2,0,-8, g_t,g_t*0.7,0 );
+        drawScene(use_light,pg_use,buf,tex, 0.2, 0,Math.sin(g_t)*2,-8, g_t*0.7,g_t,0 );        
         requestAnimationFrame(render);
         g_t+=1/60;
     }
