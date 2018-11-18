@@ -1,5 +1,5 @@
 var gl; 
-var SCRW=640, SCRH=320;
+var SCRW=1024, SCRH=512;
 
 function initWebGL(canvas) {
     const opt={antialias:false};
@@ -434,8 +434,11 @@ function start() {
         now*=0.001;
         const dt=now-then;
         then=now;
-
+        const k=30,d=100;
         clearScene();
+        for(var i=0;i<1000;i++) {
+            drawScene(programInfo,buf0,tex, 1.0, range(-k,k),range(-k,k),range(-d,-10), range(1,5),range(1,5),0 );            
+        }
         drawScene(programInfo,buf0,tex, 1.0, Math.sin(g_t)*2,0,-8, g_t,g_t*0.7,0 );
         drawScene(programInfo,buf1,tex, 0.2, 0,Math.sin(g_t)*2,-8, g_t*0.7,g_t,0 );        
         requestAnimationFrame(render);
