@@ -17,13 +17,14 @@ varying highp vec2 vTextureCoord;
 varying lowp vec4 vColor;
 varying highp vec3 vLighting;
 uniform sampler2D uSampler;
+uniform lowp float uAlpha;
 void main(void) {
     //    gl_FragColor = texture2D(uSampler,vTextureCoord); //vColor; //vec4(1.0, 1.0, 1.0, 1.0);
     highp vec4 tcolor=texture2D(uSampler,vTextureCoord);
     gl_FragColor=vec4( tcolor.r*vColor.r*vLighting.r,
                        tcolor.g*vColor.g*vLighting.g,
                        tcolor.b*vColor.b*vLighting.b,
-                       tcolor.a*vColor.a);    
+                       tcolor.a*vColor.a * uAlpha);    
 }
 `;
 
@@ -90,6 +91,7 @@ function initShaders() {
             projectionMatrix: gl.getUniformLocation(shaderProgram,"uProjectionMatrix"),
             modelViewMatrix: gl.getUniformLocation(shaderProgram,"uModelViewMatrix"),
             uSampler: gl.getUniformLocation(shaderProgram, "uSampler"),
+            uAlpha: gl.getUniformLocation(shaderProgram,"uAlpha"),
             normalMatrix: gl.getUniformLocation(shaderProgram,"uNormalMatrix"),
         },
     };
@@ -272,9 +274,11 @@ function clearScene() {
     gl.clearDepth(1.0);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);// 近くにある物体は、遠くにある物体を覆い隠す
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);    
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
 }
-function drawScene(programInfo, buf, tex, xtr,ytr,ztr, xrot,yrot,zrot ) {
+function drawScene(programInfo, buf, tex, alpha, xtr,ytr,ztr, xrot,yrot,zrot ) {
 
     // prepare mat
     const fov=45*Math.PI/180;
@@ -344,7 +348,8 @@ function drawScene(programInfo, buf, tex, xtr,ytr,ztr, xrot,yrot,zrot ) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.uniform1i(programInfo.uniformLocations.uSampler,0);
-    
+
+    gl.uniform1f(programInfo.uniformLocations.uAlpha, alpha);
 
     // draw!
     {
@@ -431,8 +436,8 @@ function start() {
         then=now;
 
         clearScene();
-        drawScene(programInfo,buf0,tex, Math.sin(g_t)*2,0,-8, g_t,g_t*0.7,0 );
-        drawScene(programInfo,buf1,tex, 0,Math.sin(g_t)*2,-8, g_t*0.7,g_t,0 );        
+        drawScene(programInfo,buf0,tex, 1.0, Math.sin(g_t)*2,0,-8, g_t,g_t*0.7,0 );
+        drawScene(programInfo,buf1,tex, 0.2, 0,Math.sin(g_t)*2,-8, g_t*0.7,g_t,0 );        
         requestAnimationFrame(render);
         g_t+=1/60;
     }
