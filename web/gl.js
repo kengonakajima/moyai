@@ -387,7 +387,6 @@ function drawScene(use_light, programInfo, buf, tex, alpha, xtr,ytr,ztr, xrot,yr
 
     // setup shader
 //    console.log("Pinfo:",programInfo);
-    gl.useProgram(programInfo.program);
     gl.uniformMatrix4fv(
         programInfo.uniformLocations.projectionMatrix,
         false,
@@ -507,6 +506,8 @@ function start() {
         then=now;
         const k=30,d=100;
         clearScene();
+        gl.useProgram(pg_use.program);
+        
         for(var i=0;i<3000;i++) {
             drawScene(use_light,pg_use,buf,tex, range(0,1), range(-k,k),range(-k,k),range(-d,-10), range(1,5),range(1,5),0 );            
         }
