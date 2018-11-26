@@ -495,12 +495,7 @@ function clearScene() {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
 }
-function drawScene(type,vertexCount,use_light, projMat, mvMat, programInfo, buf, tex, alpha, xtr,ytr,ztr, xrot,yrot,zrot ) {
-    mat4.identity(mvMat);
-    mat4.translate(mvMat, mvMat, [xtr,ytr,ztr]);
-    mat4.rotate(mvMat, mvMat, xrot, [1,0,0] );
-    mat4.rotate(mvMat, mvMat, yrot, [0,1,0] );
-    mat4.rotate(mvMat, mvMat, zrot, [0,0,1] );    
+function drawScene(type,vertexCount,use_light, projMat, mvMat, programInfo, buf, tex, alpha ) {
 
     // setup buf
     {
@@ -617,6 +612,9 @@ function isPowerOf2(value) {
 
 var g_t=0;
 
+var v3_100=vec3.fromValues(1,0,0);
+var v3_010=vec3.fromValues(0,1,0);
+var v3_001=vec3.fromValues(0,0,1);        
 
 function start() {
     var canvas = document.getElementById("glcanvas");
@@ -638,8 +636,12 @@ function start() {
     var frame_cnt=0;
     var n=1000;
     var mvMatArray=new Array(n);
+    var locArray=new Array(n);
+    var rotArray=new Array(n);
     for(var i=0;i<n;i++) {
         mvMatArray[i]=mat4.create();
+        locArray[i]=vec3.create();
+        rotArray[i]=vec3.create();
     }
     var last_print_at=0;
     function render(now) {
@@ -668,7 +670,7 @@ function start() {
 
         var projMat=mat4.create();
         mat4.perspective(projMat, fov, aspect, znear, zfar );
-
+        
         gl.uniformMatrix4fv(
             pg_use.uniformLocations.projectionMatrix,
             false,
@@ -676,16 +678,31 @@ function start() {
         );
         const xmargin=Math.sin(now/7)*130;
         for(var i=0;i<n;i++) {
-            drawScene(gl.UNSIGNED_INT, bigbuf.vertexCount, use_light, projMat, mvMatArray[i], pg_use, bigbuf,tex, range(0,1), range(-k,k)*2+xmargin,range(-k,k),range(-d,-d/2), range(1,5),range(1,5),0 );
-            
+            locArray[i][0]=range(-k,k)*2+xmargin;
+            locArray[i][1]=range(-k,k);
+            locArray[i][2]=range(-d,-d/2);
+            rotArray[i][0]=range(1,5);
+            rotArray[i][1]=range(1,5);
+
+            mat4.identity(mvMatArray[i]);
+            mat4.translate(mvMatArray[i], mvMatArray[i], locArray[i]);
+            mat4.rotate(mvMatArray[i], mvMatArray[i], rotArray[i][0], v3_100 );
+            mat4.rotate(mvMatArray[i], mvMatArray[i], rotArray[i][1], v3_010 );
+            mat4.rotate(mvMatArray[i], mvMatArray[i], rotArray[i][2], v3_001 );
+            drawScene(gl.UNSIGNED_INT, bigbuf.vertexCount, use_light, projMat, mvMatArray[i], pg_use, bigbuf,tex);
         }
         var mvMat0=mat4.create();
+        mat4.identity(mvMat0);
+        mat4.translate(mvMat0, mvMat0, [Math.sin(g_t)*2,0,-8]);
+        mat4.rotate(mvMat0,mvMat0, g_t, v3_100);
+        mat4.rotate(mvMat0,mvMat0, g_t*0.7, v3_010);
+        drawScene(gl.UNSIGNED_SHORT,buf.vertexCount,use_light, projMat, mvMat0, pg_use,buf,tex, 1.0 );
         var mvMat1=mat4.create();
-        drawScene(gl.UNSIGNED_SHORT,buf.vertexCount,use_light, projMat, mvMat0, pg_use,buf,tex, 1.0, Math.sin(g_t)*2,0,-8, g_t,g_t*0.7,0 );
-        drawScene(gl.UNSIGNED_SHORT,buf.vertexCount,use_light, projMat, mvMat1, pg_use,buf,tex, 0.2, 0,Math.sin(g_t)*2,-8, g_t*0.7,g_t,0 );
-
-
-        
+        mat4.identity(mvMat1);
+        mat4.translate(mvMat1,mvMat1, [0,Math.sin(g_t)*2,-8]);
+        mat4.rotate(mvMat1,mvMat1, g_t*0.7, v3_100);
+        mat4.rotate(mvMat1,mvMat1, g_t, v3_010);
+        drawScene(gl.UNSIGNED_SHORT,buf.vertexCount,use_light, projMat, mvMat1, pg_use,buf,tex, 0.2 );
         requestAnimationFrame(render);
         g_t+=1/60;
     }
