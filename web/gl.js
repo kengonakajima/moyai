@@ -160,7 +160,7 @@ function initNolightShaders() {
 }
 
 function initBigBuffers() {
-    var n=16; //32*32*32=32K cube, x4x6 verts1.5M verts
+    var n=8; //32*32*32=32K cube, x4x6 verts1.5M verts
 
     const positions = [
         // Front face
@@ -618,7 +618,6 @@ function isPowerOf2(value) {
 var g_t=0;
 
 
-
 function start() {
     var canvas = document.getElementById("glcanvas");
     initWebGL(canvas);
@@ -637,16 +636,25 @@ function start() {
     if(use_light) pg_use=programInfoLight; else pg_use=programInfoNolight;
     var then=0;
     var frame_cnt=0;
-    var n=5000;
+    var n=1000;
     var mvMatArray=new Array(n);
     for(var i=0;i<n;i++) {
         mvMatArray[i]=mat4.create();
     }
+    var last_print_at=0;
     function render(now) {
         frame_cnt++;
         now*=0.001;
         const dt=now-then;
         then=now;
+
+        if(last_print_at<now-1) {
+            last_print_at=now;
+            var e=document.getElementById("fps");
+            e.innerHTML="fps:"+frame_cnt;
+            frame_cnt=0;
+        }
+        
         const k=20,d=100;
         clearScene();
         
@@ -665,9 +673,10 @@ function start() {
             pg_use.uniformLocations.projectionMatrix,
             false,
             projMat
-        );        
-        for(var i=0;i<100;i++) {
-            drawScene(gl.UNSIGNED_INT, bigbuf.vertexCount, use_light, projMat, mvMatArray[i], pg_use, bigbuf,tex, range(0,1), range(-k,k)*2,range(-k,k),range(-d,-d/2), range(1,5),range(1,5),0 );
+        );
+        const xmargin=Math.sin(now/7)*130;
+        for(var i=0;i<n;i++) {
+            drawScene(gl.UNSIGNED_INT, bigbuf.vertexCount, use_light, projMat, mvMatArray[i], pg_use, bigbuf,tex, range(0,1), range(-k,k)*2+xmargin,range(-k,k),range(-d,-d/2), range(1,5),range(1,5),0 );
             
         }
         var mvMat0=mat4.create();
