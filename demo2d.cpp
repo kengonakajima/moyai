@@ -15,6 +15,168 @@
 
 #include "client.h"
 
+#ifdef USE_GENVID
+#include "genvid.h"
+#include <chrono>
+
+static const std::string sStream_Audio = "Audio";
+static const std::string sStream_Video = "Video";
+static const std::string sStream_GameData = "GameData";
+static const std::string sStream_Popularity = "Popularity";
+static const std::string sStream_ColorChanged = "ColorChanged";
+static const std::string sStream_GameCopyright = "GameCopyright";
+
+static const std::string sEvent_changeColor = "changeColor";
+static const std::string sEvent_reset = "reset";
+static const std::string sEvent_cheer = "cheer";
+
+static const std::string sCommand_speed = "speed";
+static const std::string sCommand_direction = "direction";
+static const std::string sCommand_reset = "reset";
+
+static std::string oldPopularityJSON;
+
+static void GenvidSubscriptionCallback(const GenvidEventSummary * summary, void * userData);
+
+static void GenvidSubscriptionCommandCallback(const GenvidCommandResult * summary, void * userData);
+
+GenvidTimecode           gCurrentTc = -1;
+GenvidTimecode           gPrevTc = -1;
+GenvidTimecode           gFirstFrameTc = -1;
+std::chrono::system_clock::time_point gStartTime = std::chrono::system_clock::now();
+double                   gWorldTime = 0.0;
+float                    gGenvidFramerate = 30.0f; // uses default value
+float                    gGameFramerate = 0.f;   // uses default value
+bool                     gEnableVSync = true;
+
+bool gSilent = false; // Global flag to kill all sounds.
+
+
+
+void GenvidSubscriptionCommandCallback(const GenvidCommandResult * result, void * /*userData*/)
+{
+	std::string id(result->id);
+	std::string value(result->value);
+
+	print("cmd:id:%s", id.c_str());
+	print("cmd:value:%s", value.c_str());
+
+}
+void GenvidSubscriptionCallback(const GenvidEventSummary * summary, void * /*userData*/)
+{
+	print("subscriptioncallback");
+	
+}
+
+
+HRESULT initGenvid() {
+	GenvidStatus gs;
+	gs = Genvid_Initialize();
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	gs = Genvid_CreateStream(sStream_Audio.c_str());
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	// Specify auto-capture video source.
+	gs = Genvid_SetParameterInt(sStream_Audio.c_str(), "Audio.Source.WASAPI", 1);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	// Create the video stream.
+	gs = Genvid_CreateStream(sStream_Video.c_str());
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	if (gGenvidFramerate > 0)
+	{
+		gs = Genvid_SetParameterFloat(sStream_Video.c_str(), "framerate", gGenvidFramerate);
+		if (GENVID_FAILED(gs))
+			return E_FAIL;
+	}
+
+#if GENVID_USE_DXGISWAPCHAIN
+	// Specify auto-capture video source.
+	gs = Genvid_SetParameterPointer(sStream_Video.c_str(), "Video.Source.IDXGISwapChain", g_pSwapChain);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+#endif
+
+	// Create stream for game data.
+	gs = Genvid_CreateStream(sStream_GameData.c_str());
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	gs = Genvid_CreateStream(sStream_GameCopyright.c_str());
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	// this frame is receive one time only by each viewer when genvid client is connected
+	const char copyright[] = "Copyright Genvid Technologies 2018";
+	Genvid_SubmitGameData(-1, sStream_GameCopyright.c_str(), copyright, (int)(sizeof copyright));
+
+	gs = Genvid_CreateStream(sStream_Popularity.c_str());
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	gs = Genvid_CreateStream(sStream_ColorChanged.c_str());
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	// Subscribe to events.
+	gs = Genvid_Subscribe(sEvent_changeColor.c_str(), &GenvidSubscriptionCallback, nullptr);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+	gs = Genvid_Subscribe(sEvent_reset.c_str(), &GenvidSubscriptionCallback, nullptr);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+	gs = Genvid_Subscribe(sEvent_cheer.c_str(), &GenvidSubscriptionCallback, nullptr);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	// Subscribe to commands.
+	gs = Genvid_SubscribeCommand(sCommand_speed.c_str(), &GenvidSubscriptionCommandCallback, nullptr);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+	gs = Genvid_SubscribeCommand(sCommand_direction.c_str(), &GenvidSubscriptionCommandCallback, nullptr);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+	gs = Genvid_SubscribeCommand(sCommand_reset.c_str(), &GenvidSubscriptionCommandCallback, nullptr);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	return S_OK;
+
+}
+
+void termGenvid()
+{
+	// Cancel command subscriptions.
+	Genvid_UnsubscribeCommand(sCommand_reset.c_str(), &GenvidSubscriptionCommandCallback, nullptr);
+	Genvid_UnsubscribeCommand(sCommand_direction.c_str(), &GenvidSubscriptionCommandCallback, nullptr);
+	Genvid_UnsubscribeCommand(sCommand_speed.c_str(), &GenvidSubscriptionCommandCallback, nullptr);
+
+	// Cancel event subscriptions.
+	Genvid_Unsubscribe(sEvent_cheer.c_str(), &GenvidSubscriptionCallback, nullptr);
+	Genvid_Unsubscribe(sEvent_reset.c_str(), &GenvidSubscriptionCallback, nullptr);
+	Genvid_Unsubscribe(sEvent_changeColor.c_str(), &GenvidSubscriptionCallback, nullptr);
+
+	// Destroy the streams.
+	Genvid_DestroyStream(sStream_ColorChanged.c_str());
+	Genvid_DestroyStream(sStream_Popularity.c_str());
+	Genvid_DestroyStream(sStream_GameData.c_str());
+	Genvid_DestroyStream(sStream_GameCopyright.c_str());
+	Genvid_DestroyStream(sStream_Video.c_str());
+	Genvid_DestroyStream(sStream_Audio.c_str());
+
+	// Terminate the Genvid Native SDK.
+	Genvid_Terminate();
+}
+
+#endif
+
+
 bool g_headless_mode=false;
 bool g_enable_videostream=false;
 bool g_enable_spritestream=true;
@@ -617,6 +779,7 @@ void comptest() {
 
 
 void winclose_callback( GLFWwindow *w ){
+	termGenvid();
     exit(0);
 }
 
@@ -667,6 +830,14 @@ void gameInit() {
 #ifdef WIN32    
     setlocale( LC_ALL, "jpn");
 #endif    
+
+#ifdef USE_GENVID
+	HRESULT gvres=initGenvid();
+	if (gvres != S_OK) {
+		print("initgenvid failed");
+		return;
+	}
+#endif
 
     g_sound_system = new SoundSystem();
     g_explosion_sound = g_sound_system->newSound("./assets/blobloblll.wav" );
