@@ -68,6 +68,7 @@ void GenvidSubscriptionCallback(const GenvidEventSummary * summary, void * /*use
 	
 }
 
+unsigned char g_pixels[320 * 240 * 3];//RGB
 
 HRESULT initGenvid() {
 	GenvidStatus gs;
@@ -146,10 +147,26 @@ HRESULT initGenvid() {
 	if (GENVID_FAILED(gs))
 		return E_FAIL;
 
+//	assert(description.Format == DXGI_FORMAT_R8G8B8A8_UNORM);
+	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.pixel_format", GenvidPixelFormat_R8G8B8A8);
+	assert(gs == GenvidStatus_Success);
+	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.width", 320); // description.Width);
+	assert(gs == GenvidStatus_Success);
+	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.height", 240); // description.Height);
+	assert(gs == GenvidStatus_Success);
+
 	return S_OK;
 
 }
 
+void updateGenvid() {
+	for (int i = 0; i < sizeof(g_pixels); i++) g_pixels[i++] = i & 0xff;
+	GenvidStatus gs;
+	gs = Genvid_SubmitVideoData(-1, sStream_Video.c_str(), g_pixels, sizeof(g_pixels));
+		
+	if(gs != GenvidStatus_Success) print( "submit error:%s",Genvid_StatusToString(gs) );
+
+}
 void termGenvid()
 {
 	// Cancel command subscriptions.
@@ -753,7 +770,7 @@ void optest(){
 void comptestbig() {
     size_t sz=1024*1024;
     char *buf = (char*)MALLOC(sz);
-    for(int i=0;i<sz;i++) buf[i] = irange(0,8);
+    for(unsigned int i=0;i<sz;i++) buf[i] = irange(0,8);
     char *zipped = (char*)MALLOC(sz*2);
     char *inflated = (char*)MALLOC(sz);
     double t0 = now();
@@ -1206,6 +1223,9 @@ void gameInit() {
 
 void gameRender() {
     g_last_render_cnt = g_moyai_client->render();
+#ifdef USE_GENVID
+	updateGenvid();
+#endif
 }
 void gameFinish() {
     glfwTerminate();

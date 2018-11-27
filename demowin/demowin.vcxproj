@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -14,20 +14,21 @@
     <ProjectGuid>{59B96775-DB5D-462C-AA54-9DB288379BC6}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>demowin</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -41,8 +42,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-3.2\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)..\libuv-1.20.2\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2013;$(ProjectDir)\..\fmodwin\api\lib;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\libuv-1.20.2\debug\lib;$(ProjectDir)\..\libvorbis-1.3.5\lib\vs2013\Release;$(ProjectDir)\..\libogg-1.3.2\lib\vs2013\Release;$(ProjectDir)\..\openal-1.1\libs\Win32;$(ProjectDir)\..\jpeg-9b\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-3.2\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)..\libuv-1.20.2\include;C:\Genvid\Genvid Technologies SDK 1.19.0\api\native\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2013;$(ProjectDir)\..\fmodwin\api\lib;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\libuv-1.20.2\debug\lib;$(ProjectDir)\..\libvorbis-1.3.5\lib\vs2013\Release;$(ProjectDir)\..\libogg-1.3.2\lib\vs2013\Release;$(ProjectDir)\..\openal-1.1\libs\Win32;$(ProjectDir)\..\jpeg-9b\Release;C:\Genvid\Genvid Technologies SDK 1.19.0\api\native\win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -55,13 +56,13 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;USE_GENVID;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>moyai.lib;%(AdditionalDependencies);windeps_debug.lib;ws2_32.lib;libuv.lib;iphlpapi.lib;psapi.lib;userenv.lib;glfw3.lib;glut32.lib;glew32sd.lib;freetype2410_D.lib;dsound.lib;libvorbis_static.lib;libvorbisfile_static.lib;libogg_static.lib;strmiids.lib;OpenAL32.lib;jpeg.lib;legacy_stdio_definitions.lib</AdditionalDependencies>
+      <AdditionalDependencies>Genvid.lib;moyai.lib;%(AdditionalDependencies);windeps_debug.lib;ws2_32.lib;libuv.lib;iphlpapi.lib;psapi.lib;userenv.lib;glfw3.lib;glut32.lib;glew32sd.lib;freetype2410_D.lib;dsound.lib;libvorbis_static.lib;libvorbisfile_static.lib;libogg_static.lib;strmiids.lib;OpenAL32.lib;jpeg.lib;legacy_stdio_definitions.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries);libcmt.lib;msvcrt.lib</IgnoreSpecificDefaultLibraries>
