@@ -3,6 +3,9 @@
 #include <math.h>
 #include <locale.h>
 
+#include <iostream>
+#include <direct.h>
+
 #ifndef WIN32
 #include <strings.h>
 #endif
@@ -68,7 +71,9 @@ void GenvidSubscriptionCallback(const GenvidEventSummary * summary, void * /*use
 	
 }
 
-unsigned char g_pixels[320 * 240 * 3];//RGB
+#define GVSCRW 1280
+#define GVSCRH 768
+unsigned char g_pixels[GVSCRW * GVSCRH * 3];//RGB
 
 HRESULT initGenvid() {
 	GenvidStatus gs;
@@ -148,11 +153,11 @@ HRESULT initGenvid() {
 		return E_FAIL;
 
 //	assert(description.Format == DXGI_FORMAT_R8G8B8A8_UNORM);
-	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.pixel_format", GenvidPixelFormat_R8G8B8A8);
+	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.pixel_format", GenvidPixelFormat_R8G8B8);
 	assert(gs == GenvidStatus_Success);
-	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.width", 320); // description.Width);
+	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.width", GVSCRW); // description.Width);
 	assert(gs == GenvidStatus_Success);
-	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.height", 240); // description.Height);
+	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.height", GVSCRH); // description.Height);
 	assert(gs == GenvidStatus_Success);
 
 	return S_OK;
@@ -160,9 +165,12 @@ HRESULT initGenvid() {
 }
 
 void updateGenvid() {
-	for (int i = 0; i < sizeof(g_pixels); i++) g_pixels[i++] = i & 0xff;
+	int k = irange(0,256);
+	print("k:%d", k);
+	for (int i = 0; i < sizeof(g_pixels); i++) g_pixels[i] = (int)(i+k) & 0xff;
 	GenvidStatus gs;
-	gs = Genvid_SubmitVideoData(-1, sStream_Video.c_str(), g_pixels, sizeof(g_pixels));
+	GenvidTimecode tc = Genvid_GetCurrentTimecode();
+	gs = Genvid_SubmitVideoData(tc, sStream_Video.c_str(), g_pixels, sizeof(g_pixels));
 		
 	if(gs != GenvidStatus_Success) print( "submit error:%s",Genvid_StatusToString(gs) );
 
@@ -831,7 +839,23 @@ void onRemoteMouseButtonCallback( Client *cl, int btn, int act, int modshift, in
 void onRemoteMouseCursorCallback( Client *cl, int x, int y ) {
     g_mouse->updateCursorPosition(x,y);
 }
+
+void printExeFileName()
+{
+	TCHAR path[MAX_PATH + 1] = L"";
+	DWORD len = GetCurrentDirectory(MAX_PATH, path);
+
+	//OutputDebugString(path);
+	print("pppppppppppppppppppppppppppppppp");
+	std::wcout << L"path: " << path << '\n';
+	print("qqqqqqqqqqqqqqqqqqqqqqqqq");
+
+}
+
 void gameInit() {
+	_chdir("C:\\Genvid\\1.19.0\\samples\\tutorial\\app\\moyai\\demowin\\Debug");
+
+	printExeFileName();
     print("PacketProp2DSnapshot size:%d",sizeof(PacketProp2DSnapshot));
     qstest();
     optest();
