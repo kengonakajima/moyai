@@ -104,6 +104,9 @@ HRESULT initGenvid() {
 		if (GENVID_FAILED(gs))
 			return E_FAIL;
 	}
+	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.useopenglconvention", 1);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
 
 #if GENVID_USE_DXGISWAPCHAIN
 	// Specify auto-capture video source.
@@ -184,7 +187,7 @@ void updateGenvid() {
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo_id);
 		glReadPixels(0, 0, SCRW, SCRH, GL_RGB, GL_UNSIGNED_BYTE, 0);
 		GLubyte *ptr = (GLubyte*)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, pbo_size, GL_MAP_READ_BIT);
-#if 0
+#if 1
 		memcpy(g_pixels, ptr, pbo_size);
 #else
 		for (int y = 0; y < SCRH; y++) {
