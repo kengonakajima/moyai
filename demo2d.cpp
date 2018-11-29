@@ -18,6 +18,9 @@
 
 #include "client.h"
 
+
+static const int SCRW = 1280, SCRH = 768;
+
 #ifdef USE_GENVID
 #include "genvid.h"
 #include <chrono>
@@ -164,14 +167,43 @@ HRESULT initGenvid() {
 
 }
 
-void updateGenvid() {
-	int k = irange(0,256);
-	print("k:%d", k);
-	for (int i = 0; i < sizeof(g_pixels); i++) g_pixels[i] = (int)(i+k) & 0xff;
+void updateGenvid() {	
+		static bool init = false;
+		GLuint pbo_id;
+		size_t pbo_size = SCRW * SCRH * 3;
+		if (!init) {
+			init = true;
+			print("initialize pbo");
+			glGenBuffers(1, &pbo_id);
+			glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo_id);
+			glBufferData(GL_PIXEL_PACK_BUFFER, pbo_size, 0, GL_DYNAMIC_READ);
+			glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+		}
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo_id);
+		glReadPixels(0, 0, SCRW, SCRH, GL_RGB, GL_UNSIGNED_BYTE, 0);
+		GLubyte *ptr = (GLubyte*)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, pbo_size, GL_MAP_READ_BIT);
+#if 0
+		memcpy(g_pixels, ptr, pbo_size);
+#else
+		for (int y = 0; y < SCRH; y++) {
+			memcpy(g_pixels + y * SCRW * 3, ptr + (SCRH-1 - y) * SCRW * 3, 1280*3);
+		}
+#endif
+
+		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	
+//	int k = irange(0,256);
+//	for (int i = 0; i < sizeof(g_pixels)/8; i++) g_pixels[i] = (int)(i+k) & 0xff;
+
+//	print("zzzz%f %d", now(),k);
+
 	GenvidStatus gs;
 	GenvidTimecode tc = Genvid_GetCurrentTimecode();
 	gs = Genvid_SubmitVideoData(tc, sStream_Video.c_str(), g_pixels, sizeof(g_pixels));
-		
+
 	if(gs != GenvidStatus_Success) print( "submit error:%s",Genvid_StatusToString(gs) );
 
 }
@@ -267,8 +299,6 @@ enum {
 };
 
 // config
-
-static const int SCRW=960, SCRH=544;
 
 class Char : public Prop2D {
 public:
