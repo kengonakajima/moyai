@@ -609,6 +609,83 @@ function isPowerOf2(value) {
   return (value & (value - 1)) == 0;
 }
 
+/*
+  original idea
+
+  https://stackoverflow.com/questions/12836967/extracting-view-frustum-planes-hartmann-gribbs-method
+  
+  // Left clipping plane  
+  p_planes[0].a = comboMatrix._41 + comboMatrix._11;
+  p_planes[0].b = comboMatrix._42 + comboMatrix._12;
+  p_planes[0].c = comboMatrix._43 + comboMatrix._13;
+  p_planes[0].d = comboMatrix._44 + comboMatrix._14;
+  // Right clipping plane
+  p_planes[1].a = comboMatrix._41 - comboMatrix._11;
+  p_planes[1].b = comboMatrix._42 - comboMatrix._12;
+  p_planes[1].c = comboMatrix._43 - comboMatrix._13;
+  p_planes[1].d = comboMatrix._44 - comboMatrix._14;
+  // Top clipping plane
+  p_planes[2].a = comboMatrix._41 - comboMatrix._21;
+  p_planes[2].b = comboMatrix._42 - comboMatrix._22;
+  p_planes[2].c = comboMatrix._43 - comboMatrix._23;
+  p_planes[2].d = comboMatrix._44 - comboMatrix._24;
+  // Bottom clipping plane
+  p_planes[3].a = comboMatrix._41 + comboMatrix._21;
+  p_planes[3].b = comboMatrix._42 + comboMatrix._22;
+  p_planes[3].c = comboMatrix._43 + comboMatrix._23;
+  p_planes[3].d = comboMatrix._44 + comboMatrix._24;
+  // Near clipping plane
+  p_planes[4].a = comboMatrix._41 + comboMatrix._31;
+  p_planes[4].b = comboMatrix._42 + comboMatrix._32;
+  p_planes[4].c = comboMatrix._43 + comboMatrix._33;
+  p_planes[4].d = comboMatrix._44 + comboMatrix._34;
+  // Far clipping plane
+  p_planes[5].a = comboMatrix._41 - comboMatrix._31;
+  p_planes[5].b = comboMatrix._42 - comboMatrix._32;
+  p_planes[5].c = comboMatrix._43 - comboMatrix._33;
+  p_planes[5].d = comboMatrix._44 - comboMatrix._34;
+*/
+
+/*
+  threeはこんなふうになっている。
+  
+  			planes[ 0 ].setComponents( me3 - me0, me7 - me4, me11 - me8, me15 - me12 ).normalize();
+			planes[ 1 ].setComponents( me3 + me0, me7 + me4, me11 + me8, me15 + me12 ).normalize();
+			planes[ 2 ].setComponents( me3 + me1, me7 + me5, me11 + me9, me15 + me13 ).normalize();
+			planes[ 3 ].setComponents( me3 - me1, me7 - me5, me11 - me9, me15 - me13 ).normalize();
+			planes[ 4 ].setComponents( me3 - me2, me7 - me6, me11 - me10, me15 - me14 ).normalize();
+			planes[ 5 ].setComponents( me3 + me2, me7 + me6, me11 + me10, me15 + me14 ).normalize();
+
+ */
+function extractPlanes2(m) {
+    return [
+        [ m[3]-m[0], m[7]-m[4], m[11]-m[8], m[15]-m[12] ],
+        [ m[3]+m[0], m[7]+m[4], m[11]+m[8], m[15]+m[12] ],
+        [ m[3]+m[1], m[7]+m[5], m[11]+m[9], m[15]+m[13] ],
+        [ m[3]-m[1], m[7]-m[5], m[11]-m[9], m[15]-m[13] ],
+        [ m[3]-m[2], m[7]-m[6], m[11]-m[10], m[15]-m[14] ],
+        [ m[3]+m[2], m[7]+m[6], m[11]+m[10], m[15]+m[14] ]
+    ];
+}
+// [a,b,c,d] => ax+by+cz+d=0
+function extractPlanes(M, zNear, zFar) {
+  var z  = zNear || 0.0
+  var zf = zFar || 1.0
+  return [
+    [ M[12] + M[0], M[13] + M[1], M[14] + M[2], M[15] + M[3] ], // left
+    [ M[12] - M[0], M[13] - M[1], M[14] - M[2], M[15] - M[3] ], // right
+    [ M[12] + M[4], M[13] + M[5], M[14] + M[6], M[15] + M[7] ], // bottom
+    [ M[12] - M[4], M[13] - M[5], M[14] - M[6], M[15] - M[7] ], // top
+    [ z*M[12] + M[8], z*M[13] + M[9], z*M[14] + M[10], z*M[15] + M[11] ], // near
+      [ zf*M[12] - M[8], zf*M[13] - M[9], zf*M[14] - M[10], zf*M[15] - M[11] ] // far
+//    [ M[12] + M[8], M[13] + M[9], M[14] + M[10], M[15] + M[11] ], // near
+//    [ M[12] - M[8], M[13] - M[9], M[14] - M[10], M[15] - M[11] ] // far      
+  ]
+}
+
+
+//////////////////
+
 
 var g_t=0;
 
@@ -634,6 +711,7 @@ function start() {
     if(use_light) pg_use=programInfoLight; else pg_use=programInfoNolight;
     var then=0;
     var frame_cnt=0;
+    var total_frame_cnt=0;
     var n=1000;
     var mvMatArray=new Array(n);
     var locArray=new Array(n);
@@ -646,6 +724,7 @@ function start() {
     var last_print_at=0;
     function render(now) {
         frame_cnt++;
+        total_frame_cnt++;
         now*=0.001;
         const dt=now-then;
         then=now;
@@ -657,7 +736,7 @@ function start() {
             frame_cnt=0;
         }
         
-        const k=20,d=100;
+
         clearScene();
         
         gl.useProgram(pg_use.program);
@@ -668,28 +747,41 @@ function start() {
         const znear=0.1;
         const zfar=100;
 
+        // http://ogldev.atspace.co.uk/www/tutorial12/tutorial12.html
         var projMat=mat4.create();
         mat4.perspective(projMat, fov, aspect, znear, zfar );
-        
         gl.uniformMatrix4fv(
             pg_use.uniformLocations.projectionMatrix,
             false,
             projMat
         );
-        const xmargin=Math.sin(now/7)*130;
+
+        var planes=extractPlanes2(projMat,znear,zfar);        
+        const xmargin=Math.sin(now/3)*130  ;
         for(var i=0;i<n;i++) {
+            var k=10,d=80;
             locArray[i][0]=range(-k,k)*2+xmargin;
             locArray[i][1]=range(-k,k);
             locArray[i][2]=range(-d,-d/2);
             rotArray[i][0]=range(1,5);
             rotArray[i][1]=range(1,5);
 
+            // view frustum culling
+            // http://www.sousakuba.com/Programming/gs_dot_plane_distance.html
+            var to_skip=false;
+            for(var j=0;j<6;j++) {
+                var dot=vec3.dot(locArray[i],planes[j]);
+                var distance=dot+planes[j][3]
+                if(distance<0) to_skip=true; 
+            }
+            
+            if(to_skip)continue;
             mat4.identity(mvMatArray[i]);
             mat4.translate(mvMatArray[i], mvMatArray[i], locArray[i]);
             mat4.rotate(mvMatArray[i], mvMatArray[i], rotArray[i][0], v3_100 );
             mat4.rotate(mvMatArray[i], mvMatArray[i], rotArray[i][1], v3_010 );
             mat4.rotate(mvMatArray[i], mvMatArray[i], rotArray[i][2], v3_001 );
-            drawScene(gl.UNSIGNED_INT, bigbuf.vertexCount, use_light, projMat, mvMatArray[i], pg_use, bigbuf,tex);
+            drawScene(gl.UNSIGNED_INT, bigbuf.vertexCount, use_light, projMat, mvMatArray[i], pg_use, bigbuf,tex, range(0,1));
         }
         var mvMat0=mat4.create();
         mat4.identity(mvMat0);
