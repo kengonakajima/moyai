@@ -70,8 +70,12 @@ void GenvidSubscriptionCommandCallback(const GenvidCommandResult * result, void 
 }
 void GenvidSubscriptionCallback(const GenvidEventSummary * summary, void * /*userData*/)
 {
-	print("subscriptioncallback");
-	
+	if (summary->id == sEvent_cheer)
+	{
+		// Handle cube cheering.
+		const char * cubeName = summary->results[0].key.fields[0];
+		print("subscriptioncallback %s", cubeName);
+	}
 }
 
 #define GVSCRW 1280
@@ -571,6 +575,9 @@ void createRandomDigit() {
 }
 
 void gameUpdate(void) {
+#ifdef USE_GENVID
+	Genvid_CheckForEvents();
+#endif
     glfwPollEvents();            
     g_pad->readKeyboard(g_keyboard);
     
@@ -597,7 +604,12 @@ void gameUpdate(void) {
 
     g_linep->loc.y = sin( now() ) * 200;
 
-
+#ifdef USE_GENVID
+	char datastr[100];
+	snprintf(datastr, sizeof(datastr), "{\"x\":%f,\"y\":%f}", g_linep->loc.x, g_linep->loc.y);
+	GenvidStatus gs=Genvid_SubmitGameData(-1, sStream_GameData.c_str(), datastr, strlen(datastr));
+	if (GENVID_FAILED(gs)) print("submitgamedata fail: %s", Genvid_StatusToString(gs));
+#endif
     
     // update dynamic image
     if( (total_frame % 500 ) == 0 ) {
@@ -879,10 +891,7 @@ void printExeFileName()
 	DWORD len = GetCurrentDirectory(MAX_PATH, path);
 
 	//OutputDebugString(path);
-	print("pppppppppppppppppppppppppppppppp");
 	std::wcout << L"path: " << path << '\n';
-	print("qqqqqqqqqqqqqqqqqqqqqqqqq");
-
 }
 
 void gameInit() {
