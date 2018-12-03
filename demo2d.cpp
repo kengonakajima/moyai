@@ -574,11 +574,32 @@ void createRandomDigit() {
     Digit::create(at);
 }
 
+void checkJoystick() {
+    const float *pos;
+    int poscnt;
+    pos=glfwGetJoystickAxes(GLFW_JOYSTICK_1, &poscnt);
+    if(poscnt>0) {
+        const unsigned char *btn;
+        int btncnt;
+        btn=glfwGetJoystickButtons( GLFW_JOYSTICK_1, &btncnt );
+        int pressed=0;
+        for(int i=0;i<btncnt;i++) pressed+=(btn[i]?1:0);
+        float finalpos[6]={0,0,0,0,0,0};
+        for(int i=0;i<6&&i<poscnt;i++) {
+            finalpos[i]=pos[i];
+        }
+        if(pressed>0) {
+            print("joystick btnpressed:%d pos:%f %f %f %f %f %f",
+                  pressed, finalpos[0],finalpos[1],finalpos[2],finalpos[3],finalpos[4],finalpos[5]);
+        }
+    }
+}
 void gameUpdate(void) {
 #ifdef USE_GENVID
 	Genvid_CheckForEvents();
 #endif
     glfwPollEvents();            
+    checkJoystick();
     g_pad->readKeyboard(g_keyboard);
     
     static double last_print_at = 0;
