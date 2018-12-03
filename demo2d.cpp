@@ -891,7 +891,7 @@ void printExeFileName()
 	DWORD len = GetCurrentDirectory(MAX_PATH, path);
 
 	//OutputDebugString(path);
-	std::wcout << L"path: " << path << '\n';
+	std::wcerr << L"path: " << path << '\n';
 }
 
 void gameInit() {
