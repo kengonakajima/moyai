@@ -1,4 +1,6 @@
-﻿#include <stdio.h>
+﻿#define GL_SILENCE_DEPRECATION
+
+#include <stdio.h>
 #include <assert.h>
 #include <math.h>
 #include <locale.h>
@@ -779,7 +781,9 @@ void comptest() {
 
 
 void winclose_callback( GLFWwindow *w ){
+#ifdef USE_GENVID
 	termGenvid();
+#endif    
     exit(0);
 }
 
