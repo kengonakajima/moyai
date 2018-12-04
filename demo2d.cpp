@@ -1,13 +1,21 @@
-﻿#include <stdio.h>
+﻿#define GL_SILENCE_DEPRECATION
+
+#include <stdio.h>
+
 #include <assert.h>
 #include <math.h>
 #include <locale.h>
 
 #include <iostream>
+
+#ifdef WIN32
 #include <direct.h>
+#endif
+
 
 #ifndef WIN32
 #include <strings.h>
+#include <unistd.h>
 #endif
 
 #if defined(__APPLE__)
@@ -406,11 +414,11 @@ Explosion *createExplosion(float x, float y, float startScl ){
     assert(g_main_layer);
     Explosion *e = new Explosion(x,y,startScl);
     g_main_layer->insertProp(e);
-    if(range(0,100)>50) {
-        g_explosion_sound->play( range(0.1,1) );
-    } else {
-        g_mem_sound->play();
-    }
+    //    if(range(0,100)>50) {
+    //        g_explosion_sound->play( range(0.1,1) );
+    //    } else {
+    //        g_mem_sound->play();
+    //    }
     
     return e;
 }
@@ -425,7 +433,7 @@ public:
     
     Bullet( float x, float y, float aimx, float aimy, int level, bool isBig ) : Enemy( x,y, ATLAS_BULLET0, level ) {
         float vel = 30 + (10*level);
-        if(vel>250)vel=250;
+        if(vel>550)vel=550;
         aim(aimx, aimy, vel );
 
         setDeck( g_base_deck );
@@ -435,7 +443,7 @@ public:
     }
 
     virtual bool enemyPoll(double dt){
-        if( Vec2(0,0).len( loc) > 300 ) {
+        if( Vec2(0,0).len( loc) > 1000 ) {
             // 一定距離飛んだら消える
             createExplosion(loc.x,loc.y,3);
             return false;
@@ -525,15 +533,6 @@ public:
 
         float c = absolute(::sin( accum_time * 2 ) );
         setColor( Color(c,c,c,1));
-        if(cnt%200==0){
-            Bullet * b = createBullet(loc.x, loc.y, loc.x + range(-100,100), loc.y + range(-100,100), 1, false );
-            //
-            Vec2 aimv = b->v.rot(M_PI/8).normalize(100);
-            createBullet( loc.x, loc.y, loc.x + aimv.x, loc.y + aimv.y, 4, false );
-        }
-        if(g_camera){
-            g_camera->setLoc(loc.x, loc.y);
-        }
         return true;
     }
 };
@@ -648,6 +647,11 @@ void gameUpdate(void) {
         Blocks::create();
     }
 
+    if( g_keyboard->getKey('U') ) {
+        for(int i=0;i<50;i++) {
+            createBullet(0, 0,0 + range(-100,100), 0 + range(-100,100), irange(1,8), irange(0,2) );
+        }        
+    }
     if( g_keyboard->getKey('C') ) {
         Image *img = new Image();
         img->setSize( SCRW*RETINA, SCRH*RETINA );
@@ -870,7 +874,9 @@ void comptest() {
 
 
 void winclose_callback( GLFWwindow *w ){
+#ifdef USE_GENVID    
 	termGenvid();
+#endif    
     exit(0);
 }
 
@@ -908,16 +914,20 @@ void onRemoteMouseCursorCallback( Client *cl, int x, int y ) {
 
 void printExeFileName()
 {
+#ifdef USE_GENVID
 	TCHAR path[MAX_PATH + 1] = L"";
 	DWORD len = GetCurrentDirectory(MAX_PATH, path);
 
 	//OutputDebugString(path);
 	std::wcerr << L"path: " << path << '\n';
+#endif
 }
 
-void gameInit() {
-	_chdir("C:\\Genvid\\1.19.0\\samples\\tutorial\\app\\moyai\\demowin\\Debug");
 
+void gameInit() {
+#ifdef USE_GENVID    
+	_chdir("C:\\Genvid\\1.19.0\\samples\\tutorial\\app\\moyai\\demowin\\Debug");
+#endif
 	printExeFileName();
     print("PacketProp2DSnapshot size:%d",sizeof(PacketProp2DSnapshot));
     qstest();
@@ -1309,10 +1319,38 @@ void gameInit() {
 
 
 void gameRender() {
-    g_last_render_cnt = g_moyai_client->render();
 #ifdef USE_GENVID
 	updateGenvid();
 #endif
+
+    if(!g_camera)return;
+    
+#if 0
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
+    g_last_render_cnt = g_moyai_client->render();    
+#else
+    // 4 screens
+    float orig_sclx=g_viewport->scl.x, orig_scly=g_viewport->scl.y;
+    glViewport(0,0,SCRW/2*2,SCRH/2*2);
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
+    g_last_render_cnt = g_moyai_client->render(true,false);
+    
+    glViewport(SCRW/2*2,0,SCRW/2*2,SCRH/2*2);
+    g_viewport->setScale2D(orig_sclx*2,orig_scly*2);
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);        
+    g_last_render_cnt = g_moyai_client->render(false,false);
+    
+    glViewport(SCRW/2*2,SCRH/2*2,SCRW/2*2,SCRH/2*2);
+    g_viewport->setScale2D(orig_sclx/2,orig_scly/2);
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);    
+    g_last_render_cnt = g_moyai_client->render(false,false);
+    
+    glViewport(0,SCRH/2*2,SCRW/2*2,SCRH/2*2);
+    g_viewport->setScale2D(orig_sclx,orig_scly);
+    g_camera->setLoc(g_pc->loc.x+400, g_pc->loc.y-400);            
+    g_last_render_cnt = g_moyai_client->render(false,true);
+#endif
+
 }
 void gameFinish() {
     glfwTerminate();
