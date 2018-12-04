@@ -200,7 +200,7 @@ void updateGenvid() {
 		glReadPixels(0, 0, SCRW, SCRH, GL_RGB, GL_UNSIGNED_BYTE, 0);
 		GLubyte *ptr = (GLubyte*)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, pbo_size, GL_MAP_READ_BIT);
 #if 1
-		memcpy(g_pixels, ptr, pbo_size);
+		if(ptr) memcpy(g_pixels, ptr, pbo_size);
 #else
 		for (int y = 0; y < SCRH; y++) {
 			memcpy(g_pixels + y * SCRW * 3, ptr + (SCRH-1 - y) * SCRW * 3, 1280*3);
@@ -648,9 +648,12 @@ void gameUpdate(void) {
     }
 
     if( g_keyboard->getKey('U') ) {
-        for(int i=0;i<50;i++) {
-            createBullet(0, 0,0 + range(-100,100), 0 + range(-100,100), irange(1,8), irange(0,2) );
-        }        
+        for(int i=0;i<150;i++) {
+   
+			Bullet *b=         createBullet(0, 0,0 + range(-100,100), 0 + range(-100,100), irange(1,8), irange(0,2) );
+			if (range(0, 1) < 0.9) b->setVisible(false);
+        }
+        
     }
     if( g_keyboard->getKey('C') ) {
         Image *img = new Image();
@@ -753,7 +756,8 @@ void gameUpdate(void) {
         frame_counter = 0;
         last_print_at = t;
     }
-    
+ 
+#if 0
     double loop_end_at = now();
     double loop_time = loop_end_at - loop_start_at;
     double ideal_frame_time = 1.0f / 60.0f;
@@ -762,6 +766,7 @@ void gameUpdate(void) {
         int to_sleep_msec = (int) (to_sleep_sec*1000);
         if( to_sleep_msec > 0 ) sleepMilliSec(to_sleep_msec);
     }
+#endif
 }
 
 // direct rendering using callback function
@@ -980,7 +985,7 @@ void gameInit() {
     glfwMakeContextCurrent(g_window);    
     glfwSetWindowCloseCallback( g_window, winclose_callback );
     //    glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
-    glfwSwapInterval(0); // set 1 to use vsync. Use 0 for fast screen capturing and headless
+    glfwSwapInterval(1); // set 1 to use vsync. Use 0 for fast screen capturing and headless
 #ifdef WIN32
 	glewInit();
 #endif
@@ -1327,27 +1332,32 @@ void gameRender() {
     
 #if 0
     g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
-    g_last_render_cnt = g_moyai_client->render();    
+    g_last_render_cnt = g_moyai_client->render();
+    
 #else
     // 4 screens
+	int retina = 1;
     float orig_sclx=g_viewport->scl.x, orig_scly=g_viewport->scl.y;
-    glViewport(0,0,SCRW/2*2,SCRH/2*2);
+    glViewport(0,0,SCRW/2*retina,SCRH/2*retina);
     g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
     g_last_render_cnt = g_moyai_client->render(true,false);
     
-    glViewport(SCRW/2*2,0,SCRW/2*2,SCRH/2*2);
+    glViewport(SCRW/2*retina,0,SCRW/2*retina,SCRH/2*retina);
     g_viewport->setScale2D(orig_sclx*2,orig_scly*2);
-    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);        
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
+        
     g_last_render_cnt = g_moyai_client->render(false,false);
     
-    glViewport(SCRW/2*2,SCRH/2*2,SCRW/2*2,SCRH/2*2);
+    glViewport(SCRW/2*retina,SCRH/2*retina,SCRW/2*retina,SCRH/2*retina);
     g_viewport->setScale2D(orig_sclx/2,orig_scly/2);
-    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);    
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
+    
     g_last_render_cnt = g_moyai_client->render(false,false);
     
-    glViewport(0,SCRH/2*2,SCRW/2*2,SCRH/2*2);
+    glViewport(0,SCRH/2*retina,SCRW/2*retina,SCRH/2*retina);
     g_viewport->setScale2D(orig_sclx,orig_scly);
-    g_camera->setLoc(g_pc->loc.x+400, g_pc->loc.y-400);            
+    g_camera->setLoc(g_pc->loc.x+400, g_pc->loc.y-400);
+            
     g_last_render_cnt = g_moyai_client->render(false,true);
 #endif
 
@@ -1380,6 +1390,9 @@ int main(int argc, char **argv )
         gameRender();
     }
     gameFinish();
+#ifdef USE_GENVID
+	termGenvid();
+#endif
     print("program finished");
     return 0;
 }
