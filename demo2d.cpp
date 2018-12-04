@@ -1232,7 +1232,7 @@ void gameInit() {
 
 
 void gameRender() {
-#if 0
+#if 1
     g_last_render_cnt = g_moyai_client->render();
 #else    
     glViewport(0,0,SCRW/2*2,SCRH/2*2);
