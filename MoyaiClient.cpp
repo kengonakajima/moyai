@@ -2,13 +2,13 @@
 
 #include "MoyaiClient.h"
 
-int MoyaiClient::render(){
+int MoyaiClient::render( bool clear, bool swap_and_flush ){
 #if defined(__linux__)
     return 0;
 #else    
     batch_list.clear();
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    if(clear) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
     SorterEntry tosort[128];
@@ -30,9 +30,12 @@ int MoyaiClient::render(){
         render_n += l->render(&batch_list);
 	}
 
-    last_draw_call_count = batch_list.drawAll();    
-	glfwSwapBuffers(window);
-	glFlush();
+    last_draw_call_count = batch_list.drawAll();
+    if(swap_and_flush) {
+        glfwSwapBuffers(window);
+        glFlush();        
+    }
+    
 	return render_n;
 #endif    
 }

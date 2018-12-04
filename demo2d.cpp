@@ -1,13 +1,21 @@
-﻿#include <stdio.h>
+﻿#define GL_SILENCE_DEPRECATION
+
+#include <stdio.h>
+
 #include <assert.h>
 #include <math.h>
 #include <locale.h>
 
 #include <iostream>
+
+#ifdef WIN32
 #include <direct.h>
+#endif
+
 
 #ifndef WIN32
 #include <strings.h>
+#include <unistd.h>
 #endif
 
 #if defined(__APPLE__)
@@ -849,7 +857,9 @@ void comptest() {
 
 
 void winclose_callback( GLFWwindow *w ){
+#ifdef USE_GENVID    
 	termGenvid();
+#endif    
     exit(0);
 }
 
@@ -887,16 +897,20 @@ void onRemoteMouseCursorCallback( Client *cl, int x, int y ) {
 
 void printExeFileName()
 {
+#ifdef USE_GENVID
 	TCHAR path[MAX_PATH + 1] = L"";
 	DWORD len = GetCurrentDirectory(MAX_PATH, path);
 
 	//OutputDebugString(path);
 	std::wcerr << L"path: " << path << '\n';
+#endif
 }
 
-void gameInit() {
-	_chdir("C:\\Genvid\\1.19.0\\samples\\tutorial\\app\\moyai\\demowin\\Debug");
 
+void gameInit() {
+#ifdef USE_GENVID    
+	_chdir("C:\\Genvid\\1.19.0\\samples\\tutorial\\app\\moyai\\demowin\\Debug");
+#endif
 	printExeFileName();
     print("PacketProp2DSnapshot size:%d",sizeof(PacketProp2DSnapshot));
     qstest();
@@ -1288,10 +1302,20 @@ void gameInit() {
 
 
 void gameRender() {
-    g_last_render_cnt = g_moyai_client->render();
 #ifdef USE_GENVID
 	updateGenvid();
 #endif
+
+    glViewport(0,0,SCRW/2*2,SCRH/2*2);
+    g_last_render_cnt = g_moyai_client->render(true,false);
+    glViewport(SCRW/2*2,0,SCRW/2*2,SCRH/2*2);
+    g_last_render_cnt = g_moyai_client->render(false,false);
+    glViewport(SCRW/2*2,SCRH/2*2,SCRW/2*2,SCRH/2*2);
+    g_last_render_cnt = g_moyai_client->render(false,false);
+    glViewport(0,SCRH/2*2,SCRW/2*2,SCRH/2*2);
+    g_last_render_cnt = g_moyai_client->render(false,true);
+
+
 }
 void gameFinish() {
     glfwTerminate();
