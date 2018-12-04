@@ -414,11 +414,11 @@ Explosion *createExplosion(float x, float y, float startScl ){
     assert(g_main_layer);
     Explosion *e = new Explosion(x,y,startScl);
     g_main_layer->insertProp(e);
-    if(range(0,100)>50) {
-        g_explosion_sound->play( range(0.1,1) );
-    } else {
-        g_mem_sound->play();
-    }
+    //    if(range(0,100)>50) {
+    //        g_explosion_sound->play( range(0.1,1) );
+    //    } else {
+    //        g_mem_sound->play();
+    //    }
     
     return e;
 }
@@ -433,7 +433,7 @@ public:
     
     Bullet( float x, float y, float aimx, float aimy, int level, bool isBig ) : Enemy( x,y, ATLAS_BULLET0, level ) {
         float vel = 30 + (10*level);
-        if(vel>250)vel=250;
+        if(vel>550)vel=550;
         aim(aimx, aimy, vel );
 
         setDeck( g_base_deck );
@@ -443,7 +443,7 @@ public:
     }
 
     virtual bool enemyPoll(double dt){
-        if( Vec2(0,0).len( loc) > 300 ) {
+        if( Vec2(0,0).len( loc) > 1000 ) {
             // 一定距離飛んだら消える
             createExplosion(loc.x,loc.y,3);
             return false;
@@ -533,12 +533,6 @@ public:
 
         float c = absolute(::sin( accum_time * 2 ) );
         setColor( Color(c,c,c,1));
-        if(cnt%200==0){
-            Bullet * b = createBullet(loc.x, loc.y, loc.x + range(-100,100), loc.y + range(-100,100), 1, false );
-            //
-            Vec2 aimv = b->v.rot(M_PI/8).normalize(100);
-            createBullet( loc.x, loc.y, loc.x + aimv.x, loc.y + aimv.y, 4, false );
-        }
         return true;
     }
 };
@@ -632,6 +626,11 @@ void gameUpdate(void) {
         Blocks::create();
     }
 
+    if( g_keyboard->getKey('U') ) {
+        for(int i=0;i<50;i++) {
+            createBullet(0, 0,0 + range(-100,100), 0 + range(-100,100), irange(1,8), irange(0,2) );
+        }        
+    }
     if( g_keyboard->getKey('C') ) {
         Image *img = new Image();
         img->setSize( SCRW*RETINA, SCRH*RETINA );

@@ -59,7 +59,7 @@ CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreF
 
 OSX_C_FLAGS =  -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk -mmacosx-version-min=10.13 
 
-CFLAGS=-O0 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -Iuntz/src -Iuntz/include -I./freealut/include $(OSX_TARGET_FLAG) -I./$(LIBUV)/include -I./$(JPEG) $(OSX_C_FLAGS)
+CFLAGS=-O2 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -Iuntz/src -Iuntz/include -I./freealut/include $(OSX_TARGET_FLAG) -I./$(LIBUV)/include -I./$(JPEG) $(OSX_C_FLAGS)
 CFLAGS0X=-std=c++0x $(CFLAGS)
 
 ALUTCFLAGS=-DHAVE_STDINT_H -I./freealut/include -DHAVE_STAT -DHAVE_USLEEP -DHAVE_UNISTD_H $(OSX_TARGET_FLAG)
