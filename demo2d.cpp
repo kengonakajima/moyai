@@ -1,5 +1,6 @@
 ﻿#define GL_SILENCE_DEPRECATION
 
+
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
@@ -7,6 +8,7 @@
 
 #ifndef WIN32
 #include <strings.h>
+#include <unistd.h>
 #endif
 
 #if defined(__APPLE__)
@@ -1230,7 +1232,18 @@ void gameInit() {
 
 
 void gameRender() {
+#if 0
     g_last_render_cnt = g_moyai_client->render();
+#else    
+    glViewport(0,0,SCRW/2*2,SCRH/2*2);
+    g_last_render_cnt = g_moyai_client->render(true,false);
+    glViewport(SCRW/2*2,0,SCRW/2*2,SCRH/2*2);
+    g_last_render_cnt = g_moyai_client->render(false,false);
+    glViewport(SCRW/2*2,SCRH/2*2,SCRW/2*2,SCRH/2*2);
+    g_last_render_cnt = g_moyai_client->render(false,false);
+    glViewport(0,SCRH/2*2,SCRW/2*2,SCRH/2*2);
+    g_last_render_cnt = g_moyai_client->render(false,true);
+#endif    
 }
 void gameFinish() {
     glfwTerminate();
