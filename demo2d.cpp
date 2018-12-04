@@ -539,9 +539,6 @@ public:
             Vec2 aimv = b->v.rot(M_PI/8).normalize(100);
             createBullet( loc.x, loc.y, loc.x + aimv.x, loc.y + aimv.y, 4, false );
         }
-        if(g_camera){
-            g_camera->setLoc(loc.x, loc.y);
-        }
         return true;
     }
 };
@@ -1306,15 +1303,33 @@ void gameRender() {
 	updateGenvid();
 #endif
 
+    if(!g_camera)return;
+    
+#if 0
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
+    g_last_render_cnt = g_moyai_client->render();    
+#else
+    // 4 screens
+    float orig_sclx=g_viewport->scl.x, orig_scly=g_viewport->scl.y;
     glViewport(0,0,SCRW/2*2,SCRH/2*2);
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
     g_last_render_cnt = g_moyai_client->render(true,false);
+    
     glViewport(SCRW/2*2,0,SCRW/2*2,SCRH/2*2);
+    g_viewport->setScale2D(orig_sclx*2,orig_scly*2);
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);        
     g_last_render_cnt = g_moyai_client->render(false,false);
+    
     glViewport(SCRW/2*2,SCRH/2*2,SCRW/2*2,SCRH/2*2);
+    g_viewport->setScale2D(orig_sclx/2,orig_scly/2);
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);    
     g_last_render_cnt = g_moyai_client->render(false,false);
+    
     glViewport(0,SCRH/2*2,SCRW/2*2,SCRH/2*2);
+    g_viewport->setScale2D(orig_sclx,orig_scly);
+    g_camera->setLoc(g_pc->loc.x+400, g_pc->loc.y-400);            
     g_last_render_cnt = g_moyai_client->render(false,true);
-
+#endif
 
 }
 void gameFinish() {
