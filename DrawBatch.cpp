@@ -140,29 +140,31 @@ void DrawBatch::draw() {
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ib_use->gl_name );
     glBindBuffer( GL_ARRAY_BUFFER, vb_use->gl_name );    
 #endif    
-    glDisableClientState( GL_VERTEX_ARRAY );
-    glDisableClientState( GL_COLOR_ARRAY );
-    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-    glDisableClientState( GL_NORMAL_ARRAY );
-
-
     
     // 以下prop3dからのコピペ、動いたら共通化する
     if( vb_use->fmt->coord_offset >= 0 ){
         glEnableClientState( GL_VERTEX_ARRAY );        
         glVertexPointer( 3, GL_FLOAT, vert_sz, (char*)0 + vb_use->fmt->coord_offset * sizeof(float) );
+    } else {
+        glDisableClientState( GL_VERTEX_ARRAY );        
     }
     if( vb_use->fmt->color_offset >= 0 ){
         glEnableClientState( GL_COLOR_ARRAY );
         glColorPointer( 4, GL_FLOAT, vert_sz, (char*)0 + vb_use->fmt->color_offset * sizeof(float));
+    } else {
+        glDisableClientState( GL_COLOR_ARRAY );        
     }
     if( vb_use->fmt->texture_offset >= 0 ){
         glEnableClientState( GL_TEXTURE_COORD_ARRAY );                    
         glTexCoordPointer( 2, GL_FLOAT, vert_sz, (char*)0 + vb_use->fmt->texture_offset * sizeof(float) );
+    } else {
+        glDisableClientState( GL_TEXTURE_COORD_ARRAY );        
     }
     if( vb_use->fmt->normal_offset >= 0 ) {
         glEnableClientState( GL_NORMAL_ARRAY );
         glNormalPointer( GL_FLOAT, vert_sz, (char*)0 + vb_use->fmt->normal_offset * sizeof(float) );
+    } else {
+        glDisableClientState( GL_NORMAL_ARRAY );
     }
 
     glDisable(GL_LIGHTING); // TODO: may be outside of this function
