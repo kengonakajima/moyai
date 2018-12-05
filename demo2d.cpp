@@ -1333,8 +1333,23 @@ void gameRender() {
 #if 0
     g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
     g_last_render_cnt = g_moyai_client->render();
+#endif
+#if 1
+    // 4 screens
+    glViewport(0,0,SCRW/2*RETINA,SCRH*RETINA);
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
+    g_viewport->setScale2D(SCRW/2,SCRH);    
+    g_last_render_cnt = g_moyai_client->render(true,false);
     
-#else
+    glViewport(SCRW/2*RETINA,0,SCRW/2*RETINA,SCRH*RETINA);
+    g_viewport->setScale2D(SCRW/2,SCRH);
+    g_camera->setLoc(g_pc->loc.x+400, g_pc->loc.y-400);
+            
+    g_last_render_cnt = g_moyai_client->render(false,true);
+    
+#endif
+    
+#if 0
     // 4 screens
     float orig_sclx=g_viewport->scl.x, orig_scly=g_viewport->scl.y;
     glViewport(0,0,SCRW/2*RETINA,SCRH/2*RETINA);
