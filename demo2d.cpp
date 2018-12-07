@@ -184,7 +184,7 @@ HRESULT initGenvid() {
 
 void updateGenvid() {	
 		static bool init = false;
-		GLuint pbo_id;
+		static GLuint pbo_id;
 		size_t pbo_size = SCRW * SCRH * 3;
 		if (!init) {
 			init = true;
@@ -200,7 +200,8 @@ void updateGenvid() {
 		glReadPixels(0, 0, SCRW, SCRH, GL_RGB, GL_UNSIGNED_BYTE, 0);
 		GLubyte *ptr = (GLubyte*)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, pbo_size, GL_MAP_READ_BIT);
 #if 1
-		if(ptr) memcpy(g_pixels, ptr, pbo_size);
+		if (ptr) memcpy(g_pixels, ptr, pbo_size); else print("updategenvid ptr null error:%d %s",
+			glGetError(), gluErrorString(glGetError()));
 #else
 		for (int y = 0; y < SCRH; y++) {
 			memcpy(g_pixels + y * SCRW * 3, ptr + (SCRH-1 - y) * SCRW * 3, 1280*3);
@@ -1324,9 +1325,6 @@ void gameInit() {
 
 
 void gameRender() {
-#ifdef USE_GENVID
-	updateGenvid();
-#endif
 
     if(!g_camera)return;
     
@@ -1338,27 +1336,29 @@ void gameRender() {
     // 4 screens
 	int retina = 1;
     float orig_sclx=g_viewport->scl.x, orig_scly=g_viewport->scl.y;
-    glViewport(0,0,SCRW/2*retina,SCRH/2*retina);
+	
+	glViewport(0,0,SCRW/2*retina,SCRH/2*retina);
     g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
     g_last_render_cnt = g_moyai_client->render(true,false);
-    
-    glViewport(SCRW/2*retina,0,SCRW/2*retina,SCRH/2*retina);
+
+	glViewport(SCRW/2*retina,0,SCRW/2*retina,SCRH/2*retina);
     g_viewport->setScale2D(orig_sclx*2,orig_scly*2);
-    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
-        
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);        
     g_last_render_cnt = g_moyai_client->render(false,false);
-    
+   
     glViewport(SCRW/2*retina,SCRH/2*retina,SCRW/2*retina,SCRH/2*retina);
     g_viewport->setScale2D(orig_sclx/2,orig_scly/2);
-    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
-    
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);    
     g_last_render_cnt = g_moyai_client->render(false,false);
-    
+	
     glViewport(0,SCRH/2*retina,SCRW/2*retina,SCRH/2*retina);
     g_viewport->setScale2D(orig_sclx,orig_scly);
-    g_camera->setLoc(g_pc->loc.x+400, g_pc->loc.y-400);
-            
+    g_camera->setLoc(g_pc->loc.x+400, g_pc->loc.y-400);            
     g_last_render_cnt = g_moyai_client->render(false,true);
+#endif
+
+#ifdef USE_GENVID
+	updateGenvid();
 #endif
 
 }
