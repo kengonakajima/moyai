@@ -1331,28 +1331,41 @@ void gameRender() {
 #if 0
     g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
     g_last_render_cnt = g_moyai_client->render();
+#endif
+#if 0
+    // 2 screens
+    glViewport(0,0,SCRW/2*RETINA,SCRH*RETINA);
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
+    g_viewport->setScale2D(SCRW/2,SCRH);    
+    g_last_render_cnt = g_moyai_client->render(true,false);
     
-#else
+    glViewport(SCRW/2*RETINA,0,SCRW/2*RETINA,SCRH*RETINA);
+    g_viewport->setScale2D(SCRW/2,SCRH);
+    g_camera->setLoc(g_pc->loc.x+400, g_pc->loc.y-400);
+            
+    g_last_render_cnt = g_moyai_client->render(false,true);
+    
+#endif
+    
+#if 1
     // 4 screens
-	int retina = 1;
     float orig_sclx=g_viewport->scl.x, orig_scly=g_viewport->scl.y;
-	
-	glViewport(0,0,SCRW/2*retina,SCRH/2*retina);
+    glViewport(0,0,SCRW/2*RETINA,SCRH/2*RETINA);
     g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
     g_last_render_cnt = g_moyai_client->render(true,false);
-
-	glViewport(SCRW/2*retina,0,SCRW/2*retina,SCRH/2*retina);
+    
+    glViewport(SCRW/2*RETINA,0,SCRW/2*RETINA,SCRH/2*RETINA);
     g_viewport->setScale2D(orig_sclx*2,orig_scly*2);
     g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);        
     g_last_render_cnt = g_moyai_client->render(false,false);
-   
-    glViewport(SCRW/2*retina,SCRH/2*retina,SCRW/2*retina,SCRH/2*retina);
+
+	glViewport(SCRW/2*RETINA,SCRH/2*RETINA,SCRW/2*RETINA,SCRH/2*RETINA);
     g_viewport->setScale2D(orig_sclx/2,orig_scly/2);
     g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);    
     g_last_render_cnt = g_moyai_client->render(false,false);
-	
-    glViewport(0,SCRH/2*retina,SCRW/2*retina,SCRH/2*retina);
-    g_viewport->setScale2D(orig_sclx,orig_scly);
+
+	glViewport(0,SCRH/2*RETINA,SCRW/2*RETINA,SCRH/2*RETINA);
+	g_viewport->setScale2D(orig_sclx,orig_scly);
     g_camera->setLoc(g_pc->loc.x+400, g_pc->loc.y-400);            
     g_last_render_cnt = g_moyai_client->render(false,true);
 #endif
