@@ -1,5 +1,5 @@
 OSX_TARGET=10.13
-OSX_TARGET_FLAG=-mmacosx-version-min=$(OSX_TARGET)
+OSX_TARGET_FLAG= #-mmacosx-version-min=$(OSX_TARGET)
 OSX_TARGET_EXPORT=export MACOSX_DEPLOYMENT_TARGET=$(OSX_TARGET)
 
 PATH := /usr/local/bin:$(PATH)
@@ -56,7 +56,10 @@ ALUTLIB=libalut.a
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB) $(ALUTLIB) $(JPEGLIB) $(LIBUVLIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(GLFWLIB)
 CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64  fmod/api/lib/libfmodex.dylib -L/usr/local/lib -framework OpenAL $(OSX_TARGET_FLAG)
-CFLAGS=-O0 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -Iuntz/src -Iuntz/include -I./freealut/include $(OSX_TARGET_FLAG) -I./$(LIBUV)/include -I./$(JPEG)
+
+OSX_C_FLAGS =  -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk -mmacosx-version-min=10.13 
+
+CFLAGS=-O0 -I/usr/local/include -I$(FREETYPE)/include -g  -I./freetype-gl -Wall -m64  -I./$(GLFW)/include -Iuntz/src -Iuntz/include -I./freealut/include $(OSX_TARGET_FLAG) -I./$(LIBUV)/include -I./$(JPEG) $(OSX_C_FLAGS)
 CFLAGS0X=-std=c++0x $(CFLAGS)
 
 ALUTCFLAGS=-DHAVE_STDINT_H -I./freealut/include -DHAVE_STAT -DHAVE_USLEEP -DHAVE_UNISTD_H $(OSX_TARGET_FLAG)

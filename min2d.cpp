@@ -1,4 +1,6 @@
-﻿#include <stdio.h>
+﻿#define GL_SILENC_DEPRECATION
+
+#include <stdio.h>
 #include <assert.h>
 #include <math.h>
 #include <locale.h>

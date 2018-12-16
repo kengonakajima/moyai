@@ -1,10 +1,14 @@
-﻿#include <stdio.h>
+﻿#define GL_SILENCE_DEPRECATION
+
+
+#include <stdio.h>
 #include <assert.h>
 #include <math.h>
 #include <locale.h>
 
 #ifndef WIN32
 #include <strings.h>
+#include <unistd.h>
 #endif
 
 #if defined(__APPLE__)
@@ -14,6 +18,168 @@
 #endif
 
 #include "client.h"
+
+#ifdef USE_GENVID
+#include "genvid.h"
+#include <chrono>
+
+static const std::string sStream_Audio = "Audio";
+static const std::string sStream_Video = "Video";
+static const std::string sStream_GameData = "GameData";
+static const std::string sStream_Popularity = "Popularity";
+static const std::string sStream_ColorChanged = "ColorChanged";
+static const std::string sStream_GameCopyright = "GameCopyright";
+
+static const std::string sEvent_changeColor = "changeColor";
+static const std::string sEvent_reset = "reset";
+static const std::string sEvent_cheer = "cheer";
+
+static const std::string sCommand_speed = "speed";
+static const std::string sCommand_direction = "direction";
+static const std::string sCommand_reset = "reset";
+
+static std::string oldPopularityJSON;
+
+static void GenvidSubscriptionCallback(const GenvidEventSummary * summary, void * userData);
+
+static void GenvidSubscriptionCommandCallback(const GenvidCommandResult * summary, void * userData);
+
+GenvidTimecode           gCurrentTc = -1;
+GenvidTimecode           gPrevTc = -1;
+GenvidTimecode           gFirstFrameTc = -1;
+std::chrono::system_clock::time_point gStartTime = std::chrono::system_clock::now();
+double                   gWorldTime = 0.0;
+float                    gGenvidFramerate = 30.0f; // uses default value
+float                    gGameFramerate = 0.f;   // uses default value
+bool                     gEnableVSync = true;
+
+bool gSilent = false; // Global flag to kill all sounds.
+
+
+
+void GenvidSubscriptionCommandCallback(const GenvidCommandResult * result, void * /*userData*/)
+{
+	std::string id(result->id);
+	std::string value(result->value);
+
+	print("cmd:id:%s", id.c_str());
+	print("cmd:value:%s", value.c_str());
+
+}
+void GenvidSubscriptionCallback(const GenvidEventSummary * summary, void * /*userData*/)
+{
+	print("subscriptioncallback");
+	
+}
+
+
+HRESULT initGenvid() {
+	GenvidStatus gs;
+	gs = Genvid_Initialize();
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	gs = Genvid_CreateStream(sStream_Audio.c_str());
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	// Specify auto-capture video source.
+	gs = Genvid_SetParameterInt(sStream_Audio.c_str(), "Audio.Source.WASAPI", 1);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	// Create the video stream.
+	gs = Genvid_CreateStream(sStream_Video.c_str());
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	if (gGenvidFramerate > 0)
+	{
+		gs = Genvid_SetParameterFloat(sStream_Video.c_str(), "framerate", gGenvidFramerate);
+		if (GENVID_FAILED(gs))
+			return E_FAIL;
+	}
+
+#if GENVID_USE_DXGISWAPCHAIN
+	// Specify auto-capture video source.
+	gs = Genvid_SetParameterPointer(sStream_Video.c_str(), "Video.Source.IDXGISwapChain", g_pSwapChain);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+#endif
+
+	// Create stream for game data.
+	gs = Genvid_CreateStream(sStream_GameData.c_str());
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	gs = Genvid_CreateStream(sStream_GameCopyright.c_str());
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	// this frame is receive one time only by each viewer when genvid client is connected
+	const char copyright[] = "Copyright Genvid Technologies 2018";
+	Genvid_SubmitGameData(-1, sStream_GameCopyright.c_str(), copyright, (int)(sizeof copyright));
+
+	gs = Genvid_CreateStream(sStream_Popularity.c_str());
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	gs = Genvid_CreateStream(sStream_ColorChanged.c_str());
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	// Subscribe to events.
+	gs = Genvid_Subscribe(sEvent_changeColor.c_str(), &GenvidSubscriptionCallback, nullptr);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+	gs = Genvid_Subscribe(sEvent_reset.c_str(), &GenvidSubscriptionCallback, nullptr);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+	gs = Genvid_Subscribe(sEvent_cheer.c_str(), &GenvidSubscriptionCallback, nullptr);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	// Subscribe to commands.
+	gs = Genvid_SubscribeCommand(sCommand_speed.c_str(), &GenvidSubscriptionCommandCallback, nullptr);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+	gs = Genvid_SubscribeCommand(sCommand_direction.c_str(), &GenvidSubscriptionCommandCallback, nullptr);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+	gs = Genvid_SubscribeCommand(sCommand_reset.c_str(), &GenvidSubscriptionCommandCallback, nullptr);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
+
+	return S_OK;
+
+}
+
+void termGenvid()
+{
+	// Cancel command subscriptions.
+	Genvid_UnsubscribeCommand(sCommand_reset.c_str(), &GenvidSubscriptionCommandCallback, nullptr);
+	Genvid_UnsubscribeCommand(sCommand_direction.c_str(), &GenvidSubscriptionCommandCallback, nullptr);
+	Genvid_UnsubscribeCommand(sCommand_speed.c_str(), &GenvidSubscriptionCommandCallback, nullptr);
+
+	// Cancel event subscriptions.
+	Genvid_Unsubscribe(sEvent_cheer.c_str(), &GenvidSubscriptionCallback, nullptr);
+	Genvid_Unsubscribe(sEvent_reset.c_str(), &GenvidSubscriptionCallback, nullptr);
+	Genvid_Unsubscribe(sEvent_changeColor.c_str(), &GenvidSubscriptionCallback, nullptr);
+
+	// Destroy the streams.
+	Genvid_DestroyStream(sStream_ColorChanged.c_str());
+	Genvid_DestroyStream(sStream_Popularity.c_str());
+	Genvid_DestroyStream(sStream_GameData.c_str());
+	Genvid_DestroyStream(sStream_GameCopyright.c_str());
+	Genvid_DestroyStream(sStream_Video.c_str());
+	Genvid_DestroyStream(sStream_Audio.c_str());
+
+	// Terminate the Genvid Native SDK.
+	Genvid_Terminate();
+}
+
+#endif
+
 
 bool g_headless_mode=false;
 bool g_enable_videostream=false;
@@ -350,8 +516,29 @@ void createRandomDigit() {
     Digit::create(at);
 }
 
+void checkJoystick() {
+    const float *pos;
+    int poscnt;
+    pos=glfwGetJoystickAxes(GLFW_JOYSTICK_1, &poscnt);
+    if(poscnt>0) {
+        const unsigned char *btn;
+        int btncnt;
+        btn=glfwGetJoystickButtons( GLFW_JOYSTICK_1, &btncnt );
+        int pressed=0;
+        for(int i=0;i<btncnt;i++) pressed+=(btn[i]?1:0);
+        float finalpos[6]={0,0,0,0,0,0};
+        for(int i=0;i<6&&i<poscnt;i++) {
+            finalpos[i]=pos[i];
+        }
+        if(pressed>0) {
+            print("joystick btnpressed:%d pos:%f %f %f %f %f %f",
+                  pressed, finalpos[0],finalpos[1],finalpos[2],finalpos[3],finalpos[4],finalpos[5]);
+        }
+    }
+}
 void gameUpdate(void) {
     glfwPollEvents();            
+    checkJoystick();
     g_pad->readKeyboard(g_keyboard);
     
     static double last_print_at = 0;
@@ -617,6 +804,9 @@ void comptest() {
 
 
 void winclose_callback( GLFWwindow *w ){
+#ifdef USE_GENVID
+	termGenvid();
+#endif    
     exit(0);
 }
 
@@ -667,6 +857,14 @@ void gameInit() {
 #ifdef WIN32    
     setlocale( LC_ALL, "jpn");
 #endif    
+
+#ifdef USE_GENVID
+	HRESULT gvres=initGenvid();
+	if (gvres != S_OK) {
+		print("initgenvid failed");
+		return;
+	}
+#endif
 
     g_sound_system = new SoundSystem();
     g_explosion_sound = g_sound_system->newSound("./assets/blobloblll.wav" );
@@ -1034,7 +1232,18 @@ void gameInit() {
 
 
 void gameRender() {
+#if 1
     g_last_render_cnt = g_moyai_client->render();
+#else    
+    glViewport(0,0,SCRW/2*2,SCRH/2*2);
+    g_last_render_cnt = g_moyai_client->render(true,false);
+    glViewport(SCRW/2*2,0,SCRW/2*2,SCRH/2*2);
+    g_last_render_cnt = g_moyai_client->render(false,false);
+    glViewport(SCRW/2*2,SCRH/2*2,SCRW/2*2,SCRH/2*2);
+    g_last_render_cnt = g_moyai_client->render(false,false);
+    glViewport(0,SCRH/2*2,SCRW/2*2,SCRH/2*2);
+    g_last_render_cnt = g_moyai_client->render(false,true);
+#endif    
 }
 void gameFinish() {
     glfwTerminate();
