@@ -40,7 +40,7 @@ p.setDeck(deck);
 p.setIndex(1);
 p.setScl(48,48);
 p.setLoc(0,0);
-p.addRect( new Vec2(0,0), new Vec2(5,5), new Color(1,1,1,0.3));
+p.addRect( vec2.fromValues(0,0), vec2.fromValues(5,5), new Color(1,1,1,0.3));
 g_main_layer.insertProp(p);
 
 
@@ -63,7 +63,7 @@ if(1) {
     g.setDeck(g_base_deck);
     for(var y=0;y<4;y++) for(var x=0;x<4;x++) g.set(x,y,0);
     p_grid_under.addGrid(g);
-    p_grid_under.setScl(24);
+    p_grid_under.setScl(24,24);
     g_main_layer.insertProp(p_grid_under);
 
     var p_grid_over = new Prop2D();
@@ -72,12 +72,12 @@ if(1) {
     g.setDeck(g_base_deck);
     for(var y=0;y<4;y++) for(var x=0;x<4;x++) g.set(x,y,32);
     p_grid_over.addGrid(g);
-    p_grid_over.setScl(24);
+    p_grid_over.setScl(24,24);
     g_main_layer.insertProp(p_grid_over);
 }
 
 // custom mesh test
-if(1) {
+if(0) {
     var mat = createMeshBasicMaterial( { map: g_base_deck.moyai_tex.three_tex,
                                          depthTest:false,
                                          transparent:true,
