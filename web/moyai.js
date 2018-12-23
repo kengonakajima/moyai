@@ -276,7 +276,7 @@ function Prim(t,a,b,col,lw) {
     vec2.copy(this.a,a);
     this.b=vec2.create();
     vec2.copy(this.b,b);
-    this.color=col;
+    this.color=Color.fromValues(col[0],col[1],col[2],col[3]);
     if(!lw) lw=1;
     this.line_width=lw;
     this.geom=null;
@@ -295,7 +295,7 @@ Prim.prototype.updateMesh = function() {
         this.geom.vertices.push(new THREE.Vector3(this.b[0],this.b[1],0));
         this.geom.verticesNeedUpdate=true;
         if(!this.material) {
-            this.material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width, depthTest:true, transparent:true });
+            this.material = new THREE.LineBasicMaterial( { color: Color.toCode(this.color), linewidth: this.line_width, depthTest:true, transparent:true });
         }
         if(this.mesh) {
             this.mesh.geometry = this.geom;
@@ -324,12 +324,12 @@ Prim.prototype.updateMesh = function() {
             this.geom.faces.push(new THREE.Face3(0, 2, 1));
             this.geom.faces.push(new THREE.Face3(0, 3, 2));
         }
-        this.geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
-        this.geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
-        this.geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
-        this.geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
-        this.geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
-        this.geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
+        this.geom.faces[0].vertexColors[0] = Color.toTHREEColor(this.color);
+        this.geom.faces[0].vertexColors[1] = Color.toTHREEColor(this.color);
+        this.geom.faces[0].vertexColors[2] = Color.toTHREEColor(this.color);
+        this.geom.faces[1].vertexColors[0] = Color.toTHREEColor(this.color);
+        this.geom.faces[1].vertexColors[1] = Color.toTHREEColor(this.color);
+        this.geom.faces[1].vertexColors[2] = Color.toTHREEColor(this.color);
         
         if(this.need_material_update ) {
             if(!this.material) {
@@ -478,7 +478,7 @@ class Prop2D extends Prop {
         this.rot = 0;
         this.deck = null;
         this.uvrot = false;
-        this.color = new Color(1,1,1,1);
+        this.color = Color.fromValues(1,1,1,1);
         this.prim_drawer = null;
         this.grids=null;
         this.visible=true;
@@ -503,14 +503,14 @@ class Prop2D extends Prop {
     setRot(r) { this.rot=r; }
     setUVRot(flg) { this.uvrot=flg; this.need_uv_update = true; }
     setColor(r,g,b,a) {
-        if(this.color.equals(r,g,b,a)==false) {
+        if(Color.exactEqualsToValues(this.color,r,g,b,a)==false) {
             this.need_color_update = true;
             if(this.fragment_shader) this.need_material_update = true;
         }
         if(typeof r == 'object' ) {
-            this.color = r ;
+            Color.copy(this.color,r);
         } else {
-            this.color = new Color(r,g,b,a); 
+            Color.set(this.color,r,g,b,a); 
         }
     }
     setXFlip(flg) { this.xflip=flg; this.need_uv_update = true; }
@@ -647,12 +647,12 @@ class Prop2D extends Prop {
         }
         if( this.need_color_update ) {
             //        this.color.r = this.color.g = this.color.b = this.color.a = 1;
-            this.geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
-            this.geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
-            this.geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
-            this.geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
-            this.geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
-            this.geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
+            this.geom.faces[0].vertexColors[0] = Color.toTHREEColor(this.color);
+            this.geom.faces[0].vertexColors[1] = Color.toTHREEColor(this.color);
+            this.geom.faces[0].vertexColors[2] = Color.toTHREEColor(this.color);
+            this.geom.faces[1].vertexColors[0] = Color.toTHREEColor(this.color);
+            this.geom.faces[1].vertexColors[1] = Color.toTHREEColor(this.color);
+            this.geom.faces[1].vertexColors[2] = Color.toTHREEColor(this.color);
             this.need_color_update = false;
         }
 
@@ -828,12 +828,21 @@ Grid.prototype.getUVRot = function(x,y) {
 }
 Grid.prototype.setColor = function(x,y,col) {
     if(!this.color_table) this.color_table=[];
-    this.color_table[this.index(x,y)]=col;
+    if(this.color_table[this.index(x,y)]) {
+        Color.copy(this.color_table[this.index(x,y)],col);
+    } else {
+        this.color_table[this.index(x,y)]=Color.fromValues(col[0],col[1],col[2],col[3]);
+    }
     this.need_geometry_update = true;
 }
-Grid.prototype.getColor = function(x,y) {
-    if(!this.color_table) return new Color(1,1,1,1);
-    return this.color_table[this.index(x,y)];
+Grid.prototype.getColor = function(outary,x,y) {
+    if(!this.color_table) outary[0]=outary[1]=outary[2]=outary[3]=1;
+    var col=this.color_table[this.index(x,y)];
+    if(col) {
+        Color.copy(outary,col);
+    } else {
+        outary[0]=outary[1]=outary[2]=outary[3]=1;
+    }
 }
 Grid.prototype.setVisible = function(flg) { this.visible=flg; }
 Grid.prototype.getVisible = function() { return this.visible; }
@@ -849,7 +858,7 @@ Grid.prototype.fillColor = function(c) {
     if(this.color_table) {
         for(var y=0;y<this.height;y++) {
             for(var x=0;x<this.width;x++) {
-                this.color_table[this.index(x,y)] = new Color(c.r,c.g,c.b,c.a);
+                this.color_table[this.index(x,y)] = Color.fromValues(c[0],c[1],c[2],c[3]);
             }
         }
     }
@@ -952,7 +961,7 @@ Grid.prototype.updateMesh = function() {
                 geom.faceVertexUvs[0].push([uv_q,uv_p,uv_s]);
                 var col; 
                 if( this.color_table && this.color_table[ind] ) {
-                    col = this.color_table[ind].toTHREEColor();
+                    col = Color.toTHREEColor(this.color_table[ind]);
                     if(this.color_table[ind].a < 1.0 ) {
                         if(!g_debug_grid_alpha_message) {
                             console.log("alpha blending in grid cell is not implemented yet (THREE.js dont have vert color alpha)");
@@ -1246,12 +1255,12 @@ class TextBox extends Prop2D {
                                          new THREE.Vector2(glyph.u0,glyph.v1),
                                          new THREE.Vector2(glyph.u1,glyph.v1)]);
 
-            geom.faces[used_chind*2+0].vertexColors[0] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+0].vertexColors[1] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+0].vertexColors[2] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+1].vertexColors[0] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+1].vertexColors[1] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+1].vertexColors[2] = this.color.toTHREEColor();
+            geom.faces[used_chind*2+0].vertexColors[0] = Color.toTHREEColor(this.color);
+            geom.faces[used_chind*2+0].vertexColors[1] = Color.toTHREEColor(this.color);
+            geom.faces[used_chind*2+0].vertexColors[2] = Color.toTHREEColor(this.color);
+            geom.faces[used_chind*2+1].vertexColors[0] = Color.toTHREEColor(this.color);
+            geom.faces[used_chind*2+1].vertexColors[1] = Color.toTHREEColor(this.color);
+            geom.faces[used_chind*2+1].vertexColors[2] = Color.toTHREEColor(this.color);
             cur_x += glyph.advance;
             used_chind++;
         }
@@ -1392,7 +1401,7 @@ function ColorReplacerShader() {
     this.setColor(new THREE.Vector3(0,0,0),new THREE.Vector3(0,1,0),0.01);
 }
 // updateUniforms(tex) called when render
-ColorReplacerShader.prototype.updateUniforms = function(texture,moyaicolor) {
+ColorReplacerShader.prototype.updateUniforms = function(texture) {
     if(this.uniforms) {
         if(texture) this.uniforms["texture"]["value"] = texture;
         this.uniforms["color1"]["value"] = this.from_color;
@@ -1411,8 +1420,8 @@ ColorReplacerShader.prototype.updateUniforms = function(texture,moyaicolor) {
 }
 ColorReplacerShader.prototype.setColor = function(from,to,eps) {
     this.epsilon = eps;
-    this.from_color = new THREE.Vector3(from.r,from.g,from.b);
-    this.to_color = new THREE.Vector3(to.r,to.g,to.b);
+    this.from_color = new THREE.Vector3(from[0],from[1],from[2]);
+    this.to_color = new THREE.Vector3(to[0],to[1],to[2]);
     this.updateUniforms();
 }
 DefaultColorShader.prototype = Object.create(FragmentShader.prototype);
@@ -1424,11 +1433,11 @@ function DefaultColorShader() {
 DefaultColorShader.prototype.updateUniforms = function(texture,moyaicolor) {
     if(this.uniforms) {
         if(texture) this.uniforms["texture"]["value"] = texture;
-        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a );
+        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor[0], moyaicolor[1], moyaicolor[2], moyaicolor[3] );
     } else {
         this.uniforms = {
             "texture" : { type: "t", value: texture },
-            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a ) }
+            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor[0], moyaicolor[1], moyaicolor[2], moyaicolor[3] ) }
         };
     }
     this.updateMaterial();
@@ -1442,10 +1451,10 @@ function PrimColorShader() {
 }
 PrimColorShader.prototype.updateUniforms = function(moyaicolor) {
     if(this.uniforms) {
-        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a );
+        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor[0], moyaicolor[1], moyaicolor[2], moyaicolor[3] );
     } else {
         this.uniforms = {
-            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a ) }
+            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor[0], moyaicolor[1], moyaicolor[2], moyaicolor[3] ) }
         };
     }
     this.updateMaterial();    

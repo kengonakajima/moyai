@@ -107,7 +107,7 @@ if(1) {
     statprimp.setDeck(g_base_deck);
     statprimp.setIndex(1);
     statprimp.setColor(0,0,1,1);
-    statprimp.addLine(vec2.fromValues(-1,1),vec2.fromValues(1,-1),new Color(1,1,1,1), 3);
+    statprimp.addLine(vec2.fromValues(-1,1),vec2.fromValues(1,-1),Color.fromValues(1,1,1,1), 3);
     statprimp.setLoc(100,-100);
     statprimp.debug = true;
     g_main_layer.insertProp(statprimp);
@@ -127,7 +127,7 @@ if(1) {
         for(var y=0;y<8;y++){
             if(y==6||x==6) continue;
             g.set(x,y,iii % 3);
-            g.setColor( x,y, new Color(range(0.5,1), range(0.5,1), range(0.5,1), range(0.2,1) ));
+            g.setColor( x,y, Color.fromValues(range(0.5,1), range(0.5,1), range(0.5,1), range(0.2,1) ));
             if(x==0) g.setXFlip(x,y,true);
             if(x==1) g.setYFlip(x,y,true);
             if(x==2) g.setUVRot(x,y,true);
@@ -263,9 +263,9 @@ scorep.setLoc( -SCRW/2+32,SCRH/2-100 );
 var scoregrid = new CharGrid(8,8);
 scoregrid.setDeck(g_bmpfont_deck );
 scoregrid.setAsciiOffset(-32);
-scoregrid.print( 0,0, new Color(1,1,1,1), "SCORE: 1234" );
-scoregrid.print( 0,1, new Color(1,1,0,1), "$#!?()[hoge]" );
-scoregrid.setColor( 3,0, new Color(0,1,1,1));
+scoregrid.print( 0,0, Color.fromValues(1,1,1,1), "SCORE: 1234" );
+scoregrid.print( 0,1, Color.fromValues(1,1,0,1), "$#!?()[hoge]" );
+scoregrid.setColor( 3,0, Color.fromValues(0,1,1,1));
 scorep.addGrid(scoregrid);
 g_main_layer.insertProp(scorep);
 
@@ -274,13 +274,13 @@ g_main_layer.insertProp(scorep);
 if(1) {
     // line prop
     var g_linep = new Prop2D();
-    var g_narrow_line_prim = g_linep.addLine( vec2.fromValues(0,0), vec2.fromValues(100,100), new Color(1,0,0,1) );
-    //g_linep.addLine( new Vec2(0,0), new Vec2(range(-100,100),range(-50,50)), new Color(range(0,1),range(0,1),range(0,1),1), 5 );
-    g_linep.addRect( vec2.fromValues(-100,-100), vec2.fromValues(0,0), new Color(1,1,1,1));
-    g_linep.addRect( vec2.fromValues(-100,100), vec2.fromValues(0,0), new Color(1,0,1,1));
-    g_linep.addRect( vec2.fromValues(100,-100), vec2.fromValues(0,0), new Color(0,1,1,1));    
-    g_linep.addRect( vec2.fromValues(100,100), vec2.fromValues(0,0), new Color(1,1,0,1));
-    g_linep.addLine( vec2.fromValues(0,0), vec2.fromValues(100,-50), new Color(0,1,1,1), 5 );
+    var g_narrow_line_prim = g_linep.addLine( vec2.fromValues(0,0), vec2.fromValues(100,100), Color.fromValues(1,0,0,1) );
+    //g_linep.addLine( new Vec2(0,0), new Vec2(range(-100,100),range(-50,50)), Color.fromValues(range(0,1),range(0,1),range(0,1),1), 5 );
+    g_linep.addRect( vec2.fromValues(-100,-100), vec2.fromValues(0,0), Color.fromValues(1,1,1,1));
+    g_linep.addRect( vec2.fromValues(-100,100), vec2.fromValues(0,0), Color.fromValues(1,0,1,1));
+    g_linep.addRect( vec2.fromValues(100,-100), vec2.fromValues(0,0), Color.fromValues(0,1,1,1));    
+    g_linep.addRect( vec2.fromValues(100,100), vec2.fromValues(0,0), Color.fromValues(1,1,0,1));
+    g_linep.addLine( vec2.fromValues(0,0), vec2.fromValues(100,-50), Color.fromValues(0,1,1,1), 5 );
 
     g_linep.setLoc(0,200);
     g_linep.setScl(1.0,1.0);
@@ -306,7 +306,7 @@ if(1) {
     var g_img = new MoyaiImage();
     g_img.setSize(256,256);
     for(var i=0;i<256;i++){
-        var c = new Color( Math.random(), Math.random(), Math.random(),1 );
+        var c = Color.fromValues( Math.random(), Math.random(), Math.random(),1 );
         g_img.setPixel( i,i, c );
     }
     //g_img.writePNG( "dynamic_out.png");
@@ -388,14 +388,14 @@ function animate() {
     if(g_img && g_dyn_texture) {
         if( (anim_cnt % 100 ) == 0 ) {
             for(var i=0;i<1000;i++){
-                g_img.setPixel( irange(0,256), irange(0,256), new Color( range(0,1), range(0,1), range(0,1),1 ));
+                g_img.setPixel( irange(0,256), irange(0,256), Color.fromValues( range(0,1), range(0,1), range(0,1),1 ));
             }
             g_dyn_texture.setImage(g_img);
         }
     }
 
 
-    g_replacer_shader.setColor( new Color(0xF7E26B), new Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
+    g_replacer_shader.setColor( Color.fromCode(0xF7E26B), Color.fromValues( range(0,1),range(0,1),range(0,1),1), 0.02 );
 
     if( g_keyboard.getKey('z') ) {
         g_viewport.setScale2D( g_viewport.scl[0] / 1.05, g_viewport.scl[1] / 1.05 );
@@ -443,7 +443,7 @@ function animate() {
     // add/del prims
     if(g_linep){
         if( anim_cnt/10%3 == 0 ){
-            var yl = g_linep.addLine(vec2.fromValues(0,0), vec2.fromValues( -30, -60), new Color(1,1,0,1), 3 );
+            var yl = g_linep.addLine(vec2.fromValues(0,0), vec2.fromValues( -30, -60), Color.fromValues(1,1,0,1), 3 );
             g_yellow_line_prim_id = yl.id;
         }else if( anim_cnt/10%3 == 1 ) {
             if( g_yellow_line_prim_id ) {

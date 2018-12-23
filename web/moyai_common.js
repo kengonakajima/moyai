@@ -156,49 +156,49 @@ lengthf = function(x0,y0,x1,y1) {
 //////////////
 
 // 0 ~ 1
-Color = function(r,g,b,a) {
-    if(g==undefined || g==null) {
-        var code = r; // color code
-        this.r = ((code & 0xff0000)>>16)/255;
-        this.g = ((code & 0xff00)>>8)/255;
-        this.b = (code & 0xff)/255;
-        this.a = 1.0;        
-    } else {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-        this.a = a;
-    }
+Color={};
+Color.fromValues= function(r,g,b,a) {
+    var out=new Float32Array(4);
+    out[0]=r; out[1]=g; out[2]=b; out[3]=a;
+    return out;
 }
-Color.prototype.toRGBA = function() {
-    return [ Math.floor(this.r*255), Math.floor(this.g*255), Math.floor(this.b*255), Math.floor(this.a*255) ];
+Color.fromCode = function(code) {
+    var r = ((code & 0xff0000)>>16)/255;
+    var g = ((code & 0xff00)>>8)/255;
+    var b = (code & 0xff)/255;
+    var a = 1.0;
+    return Color.fromValues(r,g,b,a);
 }
-Color.prototype.fromRGBA = function(r,g,b,a) {
-    this.r = r/255.0;
-    this.g = g/255.0;
-    this.b = b/255.0;    
-    this.a = a/255.0;
+Color.toRGBA = function(outary,col) {
+    outary[0]=Math.floor(this.r*255);
+    outary[1]=Math.floor(this.g*255);
+    outary[2]=Math.floor(this.b*255);
+    outary[3]=Math.floor(this.a*255);
 }
-    
-Color.prototype.toCode = function() {
-    return ( Math.floor(this.r * 255) << 16 ) + ( Math.floor(this.g * 255) << 8 ) + Math.floor(this.b * 255);
+Color.fromRGBA = function(outary,r,g,b,a) {
+    outary[0] = r/255.0;
+    outary[1] = g/255.0;
+    outary[2] = b/255.0;    
+    outary[3] = a/255.0;
 }
-Color.prototype.toTHREEColor = function() {
-    return new THREE.Color(this.toCode());
+Color.toCode = function(col) {
+    return ( Math.floor( col[0] * 255) << 16 ) + ( Math.floor(col[1] * 255) << 8 ) + Math.floor(col[2] * 255);
 }
-Color.prototype.equals = function(r,g,b,a) {
-    return (this.r==r && this.g==g && this.b==b && this.a==a);
+Color.toTHREEColor = function(col) {
+    return new THREE.Color(Color.toCode(col));
 }
-Color.prototype.adjust = function(v) {
-    var rr = this.r*v;
-    var gg = this.g*v;
-    var bb = this.b*v;
-    if(rr>1)rr=1;
-    if(gg>1)gg=1;
-    if(bb>1)bb=1;
-    return new Color(rr,gg,bb,this.a);
+Color.copy = function(out,input) {
+    out[0]=input[0]; out[1]=input[1]; out[2]=input[2]; out[3]=input[3];
 }
-
+Color.exactEquals = function(out,input) {
+    return (out[0]===input[0] && out[1]===input[1] && out[2]===input[2] && out[3]===input[3]);
+}
+Color.exactEqualsToValues = function(out,r,g,b,a) {
+    return (out[0]===r && out[1]===g && out[2]===b && out[3]===a);    
+}
+Color.set = function(out,r,g,b,a) {
+    out[0]=r; out[1]=g; out[2]=b; out[3]=a;
+}
 ///////////////////
 
 Viewport.prototype.id_gen=1;
@@ -397,9 +397,10 @@ MoyaiImage.prototype.setPixelRaw = function(x,y,r,g,b,a) {
     }    
 }
 MoyaiImage.prototype.setPixel = function(x,y,c) {
-    var colary = c.toRGBA();
+    var rgba = new Float32Array(4);
+    Color.toRGBA(rgba,c);
     var index = (x+y*this.width)*4;
-    this.setPixelRaw(x,y,colary[0],colary[1],colary[2],colary[3]);
+    this.setPixelRaw(x,y,rgba[0],rgba[1],rgba[2],rgba[3]);
 }
 MoyaiImage.prototype.getBufferSize = function() { return this.width * this.height * 4; }
 MoyaiImage.prototype.setAreaRaw = function(x0,y0,w,h, data_u8a, insz ) {
