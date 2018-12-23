@@ -931,8 +931,14 @@ void printExeFileName()
 
 
 void gameInit() {
-#ifdef USE_GENVID    
-	_chdir("C:\\Genvid\\1.19.0\\samples\\tutorial\\app\\moyai\\demowin\\Debug");
+#ifdef USE_GENVID
+	// Allow to run in a different directory to find the FX files.
+	const char * dir = getenv("TUTORIAL_CWD");
+	print("TUTORIAL_CWD: %s", dir);
+	if (dir)
+	{
+		_chdir(dir);
+	}
 #endif
 	printExeFileName();
     print("PacketProp2DSnapshot size:%d",sizeof(PacketProp2DSnapshot));
