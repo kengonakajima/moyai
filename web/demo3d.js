@@ -30,15 +30,15 @@ var g_main_layer = new Layer();
 g_moyai_client.insertLayer(g_main_layer);
 g_main_layer.setViewport(g_viewport3d);
 
-var g_main_camera = new Camera();
+var g_main_camera = new Camera(3);
 g_main_camera.setLoc(-4,4,20);
-g_main_camera.setLookAt(new Vec3(0,0,0), new Vec3(0,1,0));
+g_main_camera.setLookAt(vec3.fromValues(0,0,0), vec3.fromValues(0,1,0));
 g_main_layer.setCamera(g_main_camera);
 
 var g_hud_layer = new Layer();
 g_hud_layer.setViewport(g_viewport2d);
 g_moyai_client.insertLayer(g_hud_layer);
-g_hud_camera = new Camera();
+g_hud_camera = new Camera(2);
 g_hud_camera.setLoc(0,0);
 g_hud_layer.setCamera( g_hud_camera );
 
@@ -168,11 +168,13 @@ g_prop_col.setScl(1,1,1);
 g_prop_col.setLoc(0,0,0);
 g_main_layer.insertProp(g_prop_col);
 
+
 var g_prop_texcol = new Prop3D();
 g_prop_texcol.setMesh(g_texcolmesh);
 g_prop_texcol.setScl(1,1,1);
 g_prop_texcol.setLoc(1.4,2,2);
 g_main_layer.insertProp(g_prop_texcol);
+
 
 var AIR=0;
 var STONE=1;
@@ -200,7 +202,8 @@ function createFieldBlockData(sz) {
 var white=new Color(1,1,1,1).toTHREEColor();
 var dark=new Color(0.8,0.8,0.8,1).toTHREEColor();
 
-var uvrect=g_base_deck.getUVFromIndex(3,0,0,0);
+var uvrect=new Float32Array(4);
+g_base_deck.getUVFromIndex(uvrect,3,0,0,0);
 var uv_lt=new THREE.Vector2(uvrect[0],uvrect[1]);
 var uv_rt=new THREE.Vector2(uvrect[2],uvrect[1]);
 var uv_lb=new THREE.Vector2(uvrect[0],uvrect[3]);
@@ -300,6 +303,7 @@ var g_blockdata = createFieldBlockData(16);
 var g_chk_sz = 5;
 var g_chk_x = 0, g_chk_y = 0, g_chk_z = 0;
 
+/*
 setInterval(function() {
     if(g_chk_y==g_chk_sz)return;
     
@@ -320,6 +324,7 @@ setInterval(function() {
     }
     g_main_layer.insertProp(chkp);    
 }, 20 );
+*/
 
 // 1ボクセルあたり12triangle
 // 16voxel x 3000chk = 45fps (2.1GB)  (576000tri/frame)
@@ -338,7 +343,6 @@ function animate() {
 
     fps++;
 
-    //    print("propx:%f r:%f", g_prop_0->loc.x, g_prop_0->rot3d.z );
     var now_time = new Date().getTime();
     var dt = (now_time - last_anim_at) / 1000.0;
 
@@ -347,25 +351,26 @@ function animate() {
         document.getElementById("status").innerHTML = "FPS:"+fps+ "props:" + g_main_layer.props.length;
         fps=0;
     }
+
     // props
     if( g_prop_col ){
-        g_prop_col.loc.x += dt/10;
-        g_prop_col.rot.z += dt;
-        g_prop_col.rot.y += dt;
+        g_prop_col.loc[0] += dt/10;
+        g_prop_col.rot[2] += dt;
+        g_prop_col.rot[1] += dt;
     }
     if( g_prop_texcol ){
-        g_prop_texcol.rot.z += dt;
-        g_prop_texcol.rot.y += dt;
+        g_prop_texcol.rot[2] += dt;
+        g_prop_texcol.rot[1] += dt;
     }
     if(g_main_camera) {
-        g_main_camera.loc.y+=0.1;
-        g_main_camera.loc.x+=0.1;
-        g_main_camera.loc.z+=0.1;                
+        g_main_camera.loc[1]+=0.1;
+        g_main_camera.loc[0]+=0.1;
+        g_main_camera.loc[2]+=0.1;                
     }
 //    if( g_prop_voxel ){
-//        g_prop_voxel.loc.z -= dt/5;        
-//        g_prop_voxel.rot.z += dt;
-//        g_prop_voxel.rot.y += dt;
+//        g_prop_voxel.loc[2] -= dt/5;        
+//        g_prop_voxel.rot[2] += dt;
+//        g_prop_voxel.rot[1] += dt;
 //    }
     
     last_anim_at = now_time;    
@@ -373,7 +378,7 @@ function animate() {
     g_moyai_client.render();
 
 
-    //    g_main_camera.setLoc( g_main_camera.loc.x+0.1,0,3);
+    //    g_main_camera.setLoc( g_main_camera.loc[0]+0.1,0,3);
     
     
 }

@@ -80,7 +80,9 @@ MoyaiClient.prototype.render = function() {
             }
         }
     }
-    if(camera3d) this.renderer.render(this.scene3d, camera3d );            
+    if(camera3d) {
+        this.renderer.render(this.scene3d, camera3d );
+    }
 
 
     // then 2d            
@@ -1714,15 +1716,15 @@ FileDepo.prototype.ensure = function(path,data) {
 class Prop3D extends Prop {
     constructor() {
         super();
-        this.scl = new Vec3(1,1,1);
-        this.loc = new Vec3(0,0,0);
-        this.rot = new Vec3(0,0,0);
+        this.scl = vec3.fromValues(1,1,1);
+        this.loc = vec3.fromValues(0,0,0);
+        this.rot = vec3.fromValues(0,0,0);
         this.mesh=null;
-        this.sort_center = new Vec3(0,0,0);
+        this.sort_center = vec3.fromValues(0,0,0);
 	    this.depth_mask=true;
         this.alpha_test=false;
         this.cull_back_face=true;
-        this.draw_offset = new Vec3(0,0,0);
+        this.draw_offset = vec3.fromValues(0,0,0);
         this.priority=this.id;
         this.dimension=3;
         this.visible=true;        
@@ -1738,10 +1740,14 @@ class Prop3D extends Prop {
 Prop3D.prototype.setMesh = function(m) {this.mesh=m;}
 Prop3D.prototype.setGroup = function(g) { this.mesh=g;}
 Prop3D.prototype.setScl = function(x,y,z) {
-    if(y===undefined) vec3.copy(this.scl,x); else vec3.set(this.scl,x,y,z);
+    if(y===undefined) {
+        vec3.copy(this.scl,x);
+    } else {
+        vec3.set(this.scl,x,y,z);   
+    }
 }
 Prop3D.prototype.setLoc = function(x,y,z) {
-    if(y===undefined) vec3.copy(this.loc,x); else vec3.set(this.scl,x,y,z);
+    if(y===undefined) vec3.copy(this.loc,x); else vec3.set(this.loc,x,y,z);
 }
 Prop3D.prototype.setRot = function(x,y,z) {
     if(y===undefined) vec3.copy(this.rot,x); else vec3.set(this.rot,x,y,z); 
