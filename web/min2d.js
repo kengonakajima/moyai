@@ -19,7 +19,7 @@ g_viewport.setScale2D(SCRW,SCRH);
 var g_main_layer = new Layer();
 g_moyai_client.insertLayer(g_main_layer);
 g_main_layer.setViewport(g_viewport);
-var g_camera = new Camera();
+var g_camera = new Camera(2);
 g_camera.setLoc(0,0);
 g_main_layer.setCamera(g_camera);
 
@@ -40,7 +40,7 @@ p.setDeck(deck);
 p.setIndex(1);
 p.setScl(48,48);
 p.setLoc(0,0);
-p.addRect( new Vec2(0,0), new Vec2(5,5), new Color(1,1,1,0.3));
+p.addRect( vec2.fromValues(0,0), vec2.fromValues(5,5), Color.fromValues(1,1,1,0.3));
 g_main_layer.insertProp(p);
 
 
@@ -63,21 +63,21 @@ if(1) {
     g.setDeck(g_base_deck);
     for(var y=0;y<4;y++) for(var x=0;x<4;x++) g.set(x,y,0);
     p_grid_under.addGrid(g);
-    p_grid_under.setScl(24);
+    p_grid_under.setScl(24,24);
     g_main_layer.insertProp(p_grid_under);
 
     var p_grid_over = new Prop2D();
     p_grid_over.setLoc(-150,-50);
     g=new Grid(4,4);
     g.setDeck(g_base_deck);
-    for(var y=0;y<4;y++) for(var x=0;x<4;x++) g.set(x,y,32);
+    for(var y=0;y<4;y++) for(var x=0;x<4;x++) { g.set(x,y,32); g.setColor(x,y,Color.fromValues(1,1,0,1)); }
     p_grid_over.addGrid(g);
-    p_grid_over.setScl(24);
+    p_grid_over.setScl(24,24);
     g_main_layer.insertProp(p_grid_over);
 }
 
 // custom mesh test
-if(1) {
+if(0) {
     var mat = createMeshBasicMaterial( { map: g_base_deck.moyai_tex.three_tex,
                                          depthTest:false,
                                          transparent:true,
@@ -88,7 +88,7 @@ if(1) {
     geom.vertices.push(new THREE.Vector3(2,0,0));
     geom.vertices.push(new THREE.Vector3(0,2,0));
     geom.faces.push(new THREE.Face3(0,1,2));
-    geom.faces[0].vertexColors = [ new Color(1,1,1,1).toTHREEColor(), new Color(1,1,0,1).toTHREEColor(), new Color(0,1,1,1).toTHREEColor() ];
+    geom.faces[0].vertexColors = [ Color.fromValues(1,1,1,1).toTHREEColor(), Color.fromValues(1,1,0,1).toTHREEColor(), Color.fromValues(0,1,1,1).toTHREEColor() ];
     geom.faceVertexUvs[0].push([new THREE.Vector2(0,0), new THREE.Vector2(0.1,0), new THREE.Vector2(0,0.1)]);
     
     var mesh = new THREE.Mesh(geom,mat);

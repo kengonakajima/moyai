@@ -73,14 +73,16 @@ MoyaiClient.prototype.render = function() {
             if(camera3d==null) {
                 camera3d = new THREE.PerspectiveCamera( 45 , this.width / this.height , layer.viewport.near_clip , layer.viewport.far_clip );
                 var lcam = layer.camera;
-                camera3d.up.x = lcam.look_up.x; camera3d.up.y = lcam.look_up.y; camera3d.up.z = lcam.look_up.z;
-                camera3d.position.set( lcam.loc.x, lcam.loc.y, lcam.loc.z );
-                camera3d.lookAt(lcam.look_at.x, lcam.look_at.y, lcam.look_at.z );
+                camera3d.up[0] = lcam.look_up[0]; camera3d.up[1] = lcam.look_up[1]; camera3d.up[2] = lcam.look_up[2];
+                camera3d.position.set( lcam.loc[0], lcam.loc[1], lcam.loc[2] );
+                camera3d.lookAt(lcam.look_at[0], lcam.look_at[1], lcam.look_at[2] );
                 lcam.three_camera=camera3d; // for billboard                
             }
         }
     }
-    if(camera3d) this.renderer.render(this.scene3d, camera3d );            
+    if(camera3d) {
+        this.renderer.render(this.scene3d, camera3d );
+    }
 
 
     // then 2d            
@@ -105,24 +107,24 @@ MoyaiClient.prototype.render3D = function(scene,layer) {
         var prop = layer.props[pi];
         if(!prop.visible)continue;
         if(prop.to_clean)continue;
-        prop.mesh.position.set(prop.loc.x+prop.draw_offset.x, prop.loc.y+prop.draw_offset.y, prop.loc.z+prop.draw_offset.z);
-        if(!prop.skip_default_rotation) prop.mesh.rotation.set(prop.rot.x, prop.rot.y, prop.rot.z);
-        if(prop.scl.x!=1 || prop.scl.y!=1 || prop.scl.z!=1) {
-            prop.mesh.scale.set(prop.scl.x, prop.scl.y, prop.scl.z); 
+        prop.mesh.position.set(prop.loc[0]+prop.draw_offset[0], prop.loc[1]+prop.draw_offset[1], prop.loc[2]+prop.draw_offset[2]);
+        if(!prop.skip_default_rotation) prop.mesh.rotation.set(prop.rot[0], prop.rot[1], prop.rot[2]);
+        if(prop.scl[0]!=1 || prop.scl[1]!=1 || prop.scl[2]!=1) {
+            prop.mesh.scale.set(prop.scl[0], prop.scl[1], prop.scl[2]); 
         }
         scene.add(prop.mesh);
     }
 }
 MoyaiClient.prototype.render2D = function(scene, layer) {
-    var relscl = new Vec2(1,1);
-    var camloc;
+    if(!this.relscl) this.relscl=vec2.fromValues(1,1);
+    if(!this.camloc) this.camloc=vec2.create();
     if(layer.camera) {
-        camloc = layer.camera.loc;
+        vec2.copy(this.camloc,layer.camera.loc);
     } else {
-        camloc = new Vec2(0,0);
+        vec2.set(this.camloc,0,0);
     }
     if(layer.viewport) {
-        relscl = layer.viewport.getRelativeScale();
+        layer.viewport.getRelativeScale(this.relscl);
     }
     for(var pi=0;pi<layer.props.length;pi++ ) {                    
         var prop = layer.props[pi];
@@ -145,13 +147,13 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
                 if(!grid.deck)grid.setDeck(prop.deck);
                 grid.updateMesh();
                 if(!grid.mesh) {
-//                    console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
+                    console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
                 } else {
-                    grid.mesh.position.x = (prop.loc.x+prop.draw_offset.x-camloc.x)*relscl.x;
-                    grid.mesh.position.y = (prop.loc.y+prop.draw_offset.y-camloc.y)*relscl.y;
+                    grid.mesh.position.x = (prop.loc[0]+prop.draw_offset[0]-this.camloc[0])*this.relscl[0];
+                    grid.mesh.position.y = (prop.loc[1]+prop.draw_offset[1]-this.camloc[1])*this.relscl[1];
                     grid.mesh.position.z = prop_z + z_inside_prop;
-                    grid.mesh.scale.x = prop.scl.x * relscl.x;
-                    grid.mesh.scale.y = prop.scl.y * relscl.y;
+                    grid.mesh.scale.x = prop.scl[0] * this.relscl[0];
+                    grid.mesh.scale.y = prop.scl[1] * this.relscl[1];
                     grid.mesh.rotation.set(0,0,prop.rot);
                     scene.add(grid.mesh);
                     z_inside_prop += g_moyai_z_per_subprop;
@@ -169,11 +171,11 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
                     chp.updateMesh();
                 }
                 if( chp.mesh ) {
-                    chp.mesh.position.x = (chp.loc.x-camloc.x)*relscl.x;
-                    chp.mesh.position.y = (chp.loc.y-camloc.y)*relscl.y;
+                    chp.mesh.position.x = (chp.loc[0]-this.camloc[0])*this.relscl[0];
+                    chp.mesh.position.y = (chp.loc[1]-this.camloc[1])*this.relscl[1];
                     chp.mesh.position.z = prop_z + z_inside_prop;
-                    chp.mesh.scale.x = chp.scl.x * relscl.x;
-                    chp.mesh.scale.y = chp.scl.y * relscl.y;
+                    chp.mesh.scale.x = chp.scl[0] * this.relscl[0];
+                    chp.mesh.scale.y = chp.scl[1] * this.relscl[1];
                     chp.mesh.rotation.set(0,0,chp.rot);
                     if( chp.use_additive_blend ) chp.material.blending = THREE.AdditiveBlending; else chp.material.blending = THREE.NormalBlending;
                     scene.add(chp.mesh);
@@ -182,26 +184,25 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
             }
         }
         if(prop.mesh) {
-            prop.mesh.position.x = (prop.loc.x+prop.draw_offset.x - camloc.x)*relscl.x;
-            prop.mesh.position.y = (prop.loc.y+prop.draw_offset.y - camloc.y)*relscl.y;
+            prop.mesh.position.x = (prop.loc[0]+prop.draw_offset[0] - this.camloc[0])*this.relscl[0];
+            prop.mesh.position.y = (prop.loc[1]+prop.draw_offset[1] - this.camloc[1])*this.relscl[1];
             prop.mesh.position.z = prop_z + z_inside_prop;
-            prop.mesh.scale.x = prop.scl.x * relscl.x;
-            prop.mesh.scale.y = prop.scl.y * relscl.y;
+            prop.mesh.scale.x = prop.scl[0] * this.relscl[0];
+            prop.mesh.scale.y = prop.scl[1] * this.relscl[1];
             prop.mesh.rotation.set(0,0,prop.rot);
             if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
             scene.add(prop.mesh);
-            if(prop.debug)console.log("p:",prop);
             z_inside_prop += g_moyai_z_per_subprop;
         }            
         if(prop.prim_drawer) {
             for(var i=0;i<prop.prim_drawer.prims.length;i++) {
                 var prim = prop.prim_drawer.prims[i];
                 prim.updateMesh();
-                prim.mesh.position.x = (prop.loc.x+prop.draw_offset.x-camloc.x)*relscl.x;
-                prim.mesh.position.y = (prop.loc.y+prop.draw_offset.y-camloc.y)*relscl.y;
+                prim.mesh.position.x = (prop.loc[0]+prop.draw_offset[0]-this.camloc[0])*this.relscl[0];
+                prim.mesh.position.y = (prop.loc[1]+prop.draw_offset[1]-this.camloc[1])*this.relscl[1];
                 prim.mesh.position.z = prop_z + z_inside_prop;
-                prim.mesh.scale.x = prop.scl.x * relscl.x;
-                prim.mesh.scale.y = prop.scl.y * relscl.y;
+                prim.mesh.scale.x = prop.scl[0] * this.relscl[0];
+                prim.mesh.scale.y = prop.scl[1] * this.relscl[1];
                 prim.mesh.rotation.set(0,0,prop.rot);
                 //                    console.log("adding prim:", prim, prim.a, prim.b, prim.mesh.position );
                 scene.add(prim.mesh);
@@ -243,8 +244,8 @@ Texture.prototype.update = function() {
     }
     this.three_tex.needsUpdate = true;
 }
-Texture.prototype.getSize = function() {
-    return this.image.getSize();
+Texture.prototype.getSize = function(out) {
+    return this.image.getSize(out);
 }
 Texture.prototype.setImage = function(img) {
     this.image = img;
@@ -271,9 +272,11 @@ Prim.prototype.id_gen=1;
 function Prim(t,a,b,col,lw) {
     this.id=this.__proto__.id_gen++;
     this.type = t;
-    this.a=a;
-    this.b=b;
-    this.color=col;
+    this.a=vec2.create();
+    vec2.copy(this.a,a);
+    this.b=vec2.create();
+    vec2.copy(this.b,b);
+    this.color=Color.fromValues(col[0],col[1],col[2],col[3]);
     if(!lw) lw=1;
     this.line_width=lw;
     this.geom=null;
@@ -288,11 +291,11 @@ Prim.prototype.updateMesh = function() {
     if(this.type==PRIMTYPE_LINE) {
         if(this.geom) this.geom.dispose();
         this.geom = new THREE.Geometry();
-        this.geom.vertices.push(new THREE.Vector3(this.a.x,this.a.y,0));
-        this.geom.vertices.push(new THREE.Vector3(this.b.x,this.b.y,0));
+        this.geom.vertices.push(new THREE.Vector3(this.a[0],this.a[1],0));
+        this.geom.vertices.push(new THREE.Vector3(this.b[0],this.b[1],0));
         this.geom.verticesNeedUpdate=true;
         if(!this.material) {
-            this.material = new THREE.LineBasicMaterial( { color: this.color.toCode(), linewidth: this.line_width, depthTest:true, transparent:true });
+            this.material = new THREE.LineBasicMaterial( { color: Color.toCode(this.color), linewidth: this.line_width, depthTest:true, transparent:true });
         }
         if(this.mesh) {
             this.mesh.geometry = this.geom;
@@ -309,24 +312,24 @@ Prim.prototype.updateMesh = function() {
         */
         if(this.geom) this.geom.dispose();
         this.geom = new THREE.Geometry();
-        this.geom.vertices.push(new THREE.Vector3(this.a.x,this.a.y,0));
-        this.geom.vertices.push(new THREE.Vector3(this.b.x,this.a.y,0));
-        this.geom.vertices.push(new THREE.Vector3(this.b.x,this.b.y,0));
-        this.geom.vertices.push(new THREE.Vector3(this.a.x,this.b.y,0));
+        this.geom.vertices.push(new THREE.Vector3(this.a[0],this.a[1],0));
+        this.geom.vertices.push(new THREE.Vector3(this.b[0],this.a[1],0));
+        this.geom.vertices.push(new THREE.Vector3(this.b[0],this.b[1],0));
+        this.geom.vertices.push(new THREE.Vector3(this.a[0],this.b[1],0));
         this.geom.verticesNeedUpdate=true;
-        if( (this.a.x<this.b.x && this.a.y<this.b.y) || (this.a.x>this.b.x && this.a.y>this.b.y) ) {
+        if( (this.a[0]<this.b[0] && this.a[1]<this.b[1]) || (this.a[0]>this.b[0] && this.a[1]>this.b[1]) ) {
             this.geom.faces.push(new THREE.Face3(0, 1, 2));
             this.geom.faces.push(new THREE.Face3(0, 2, 3));
         } else {
             this.geom.faces.push(new THREE.Face3(0, 2, 1));
             this.geom.faces.push(new THREE.Face3(0, 3, 2));
         }
-        this.geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
-        this.geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
-        this.geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
-        this.geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
-        this.geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
-        this.geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
+        this.geom.faces[0].vertexColors[0] = Color.toTHREEColor(this.color);
+        this.geom.faces[0].vertexColors[1] = Color.toTHREEColor(this.color);
+        this.geom.faces[0].vertexColors[2] = Color.toTHREEColor(this.color);
+        this.geom.faces[1].vertexColors[0] = Color.toTHREEColor(this.color);
+        this.geom.faces[1].vertexColors[1] = Color.toTHREEColor(this.color);
+        this.geom.faces[1].vertexColors[2] = Color.toTHREEColor(this.color);
         
         if(this.need_material_update ) {
             if(!this.material) {
@@ -387,8 +390,8 @@ PrimDrawer.prototype.ensurePrim = function(p) {
     var existing = this.getPrimById(p.id);
     if(existing){
         existing.type = p.type;
-        existing.a=new Vec2(p.a.x,p.a.y);
-        existing.b=new Vec2(p.b.x,p.b.y);
+        vec2.copy(existing.a,p.a);
+        vec2.copy(existing.b,p.b);
         existing.color=p.color;
         existing.line_width=p.line_width;
         existing.updateMesh();
@@ -470,12 +473,12 @@ class Prop2D extends Prop {
     constructor() {
         super();
         this.index = 0;
-        this.scl = new Vec2(32,32);
-        this.loc = new Vec2(0,0);
+        this.scl = vec2.fromValues(32,32);
+        this.loc = vec2.create();
         this.rot = 0;
         this.deck = null;
         this.uvrot = false;
-        this.color = new Color(1,1,1,1);
+        this.color = Color.fromValues(1,1,1,1);
         this.prim_drawer = null;
         this.grids=null;
         this.visible=true;
@@ -490,24 +493,24 @@ class Prop2D extends Prop {
         this.yflip=false;
         this.fragment_shader= new DefaultColorShader();
         this.remote_vel=null;
-        this.draw_offset=new Vec2(0,0);
+        this.draw_offset=vec2.create();
     }
     setVisible(flg) { this.visible=flg; }
     setDeck(dk) { this.deck = dk; this.need_material_update = true; }
     setIndex(ind) { this.index = ind; this.need_uv_update = true; }
-    setScl(x,y) { this.scl.setWith2args(x,y);}
-    setLoc(x,y) { this.loc.setWith2args(x,y);}
+    setScl(x,y) { if(y===undefined) vec2.copy(this.scl,x); else vec2.set(this.scl,x,y); }
+    setLoc(x,y) { if(y===undefined) vec2.copy(this.loc,x); else vec2.set(this.loc,x,y); }
     setRot(r) { this.rot=r; }
     setUVRot(flg) { this.uvrot=flg; this.need_uv_update = true; }
     setColor(r,g,b,a) {
-        if(this.color.equals(r,g,b,a)==false) {
+        if(Color.exactEqualsToValues(this.color,r,g,b,a)==false) {
             this.need_color_update = true;
             if(this.fragment_shader) this.need_material_update = true;
         }
         if(typeof r == 'object' ) {
-            this.color = r ;
+            Color.copy(this.color,r);
         } else {
-            this.color = new Color(r,g,b,a); 
+            Color.set(this.color,r,g,b,a); 
         }
     }
     setXFlip(flg) { this.xflip=flg; this.need_uv_update = true; }
@@ -518,11 +521,11 @@ class Prop2D extends Prop {
     }
     addLine(p0,p1,col,w) {
         this.ensurePrimDrawer();
-        return this.prim_drawer.addLine(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
+        return this.prim_drawer.addLine(p0,p1,col,w);
     }
     addRect(p0,p1,col,w) {
         this.ensurePrimDrawer();
-        return this.prim_drawer.addRect(new Vec2(p0.x,p0.y),new Vec2(p1.x,p1.y),col,w);
+        return this.prim_drawer.addRect(p0,p1,col,w);
     }
     getPrimById(id) {
         if(!this.prim_drawer)return null;
@@ -544,7 +547,6 @@ class Prop2D extends Prop {
     addGrid(g) {
         if(!this.grids) this.grids=[];
         this.grids.push(g);
-        //    console.log("addGrid: grid id:",g.id,g.width, g.height, "propid:",this.id, "grids:",this.grids);
     }
     setGrid(g) {
         if(this.grids) {
@@ -559,8 +561,9 @@ class Prop2D extends Prop {
     setTexture(tex) {
         var td = new TileDeck();
         td.setTexture(tex);
-        var sz = tex.getSize();
-        td.setSize(1,1,sz.x,sz.y);
+        var sz = vec2.create();
+        tex.getSize(sz);
+        td.setSize(1,1,sz[0],sz[1]);
         this.setDeck(td);
         this.setIndex(0);
         this.need_material_update = true;
@@ -568,8 +571,8 @@ class Prop2D extends Prop {
     setFragmentShader(s) { this.fragment_shader = s;}
     propPoll(dt) { 
         if(this.remote_vel) {
-            this.loc.x += this.remote_vel.x*dt;
-            this.loc.y += this.remote_vel.y*dt;
+            this.loc[0] += this.remote_vel[0]*dt;
+            this.loc[1] += this.remote_vel[1]*dt;
         }
         if( this.prop2DPoll && this.prop2DPoll(dt) == false ) {
             return false;
@@ -596,8 +599,9 @@ class Prop2D extends Prop {
             this.need_material_update = false;
         }  
         if( this.need_uv_update ) {
-            var uvs = this.deck.getUVFromIndex(this.index,0,0,0);
-            var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
+            if(!this.uvwork) this.uvwork=new Float32Array(4);
+            this.deck.getUVFromIndex(this.uvwork,this.index,0,0,0);
+            var u0 = this.uvwork[0], v0 = this.uvwork[1], u1 = this.uvwork[2], v1 = this.uvwork[3];
             if(this.xflip ) {
                 var tmp = u1; u1 = u0; u0 = tmp;
             }
@@ -643,12 +647,12 @@ class Prop2D extends Prop {
         }
         if( this.need_color_update ) {
             //        this.color.r = this.color.g = this.color.b = this.color.a = 1;
-            this.geom.faces[0].vertexColors[0] = this.color.toTHREEColor();
-            this.geom.faces[0].vertexColors[1] = this.color.toTHREEColor();
-            this.geom.faces[0].vertexColors[2] = this.color.toTHREEColor();
-            this.geom.faces[1].vertexColors[0] = this.color.toTHREEColor();
-            this.geom.faces[1].vertexColors[1] = this.color.toTHREEColor();
-            this.geom.faces[1].vertexColors[2] = this.color.toTHREEColor();
+            this.geom.faces[0].vertexColors[0] = Color.toTHREEColor(this.color);
+            this.geom.faces[0].vertexColors[1] = Color.toTHREEColor(this.color);
+            this.geom.faces[0].vertexColors[2] = Color.toTHREEColor(this.color);
+            this.geom.faces[1].vertexColors[0] = Color.toTHREEColor(this.color);
+            this.geom.faces[1].vertexColors[1] = Color.toTHREEColor(this.color);
+            this.geom.faces[1].vertexColors[2] = Color.toTHREEColor(this.color);
             this.need_color_update = false;
         }
 
@@ -664,23 +668,21 @@ class Prop2D extends Prop {
     }
 	hit(at,margin) {
         if(margin==undefined)margin=0;
-		return ( at.x >= this.loc.x - this.scl.x/2 - margin ) && ( at.x <= this.loc.x + this.scl.x/2 + margin) && ( at.y >= this.loc.y - this.scl.y/2 - margin) && ( at.y <= this.loc.y + this.scl.y/2 + margin );
+		return ( at[0] >= this.loc[0] - this.scl[0]/2 - margin ) && ( at[0] <= this.loc[0] + this.scl[0]/2 + margin) && ( at[1] >= this.loc[1] - this.scl[1]/2 - margin) && ( at[1] <= this.loc[1] + this.scl[1]/2 + margin );
 	}
     hitGrid(at,margin) {
         if(margin==undefined)margin=0;
         for(var i in this.grids) {
             var g = this.grids[i];
-            var rt = new Vec2( this.scl.x * g.width, this.scl.y * g.height );
-            if( (at.x >= this.loc.x-margin) && (at.x <= this.loc.x+rt.x+margin) &&
-                (at.y >= this.loc.y-margin) && (at.y <= this.loc.y+rt.y+margin) ) {
+            var rt_x = this.scl[0] * g.width;
+            var rt_y = this.scl[1] * g.height;
+            if( (at[0] >= this.loc[0]-margin) && (at[0] <= this.loc[0]+rt_x+margin) &&
+                (at[1] >= this.loc[1]-margin) && (at[1] <= this.loc[1]+rt_y+margin) ) {
                 return true;
-                
             }
-            
         }
         return false;
     }
-    
 }
 
 ////////////////////////////
@@ -801,9 +803,13 @@ Grid.prototype.setTexOffset = function(x,y,uv) {
     if(!this.texofs_table) this.texofs_table=[];
     if(y==undefined) {
         // fill texofs
-        for(var i=0;i<this.width*this.height;i++) this.texofs_table[i]=uv;
+        for(var i=0;i<this.width*this.height;i++) {
+            if(this.texofs_table[i]) vec2.set(this.texofs_table[i],uv); else this.texofs_table[i]=vec2.fromValues(uv[0],uv[1]);
+        } 
     } else {
-        this.texofs_table[this.index(x,y)]=uv;
+        var uvout=vec2.create();
+        vec2.set(uvout,uv);
+        this.texofs_table[this.index(x,y)]=uvout;
     }
     this.need_geometry_update = true;
 }
@@ -822,12 +828,21 @@ Grid.prototype.getUVRot = function(x,y) {
 }
 Grid.prototype.setColor = function(x,y,col) {
     if(!this.color_table) this.color_table=[];
-    this.color_table[this.index(x,y)]=col;
+    if(this.color_table[this.index(x,y)]) {
+        Color.copy(this.color_table[this.index(x,y)],col);
+    } else {
+        this.color_table[this.index(x,y)]=Color.fromValues(col[0],col[1],col[2],col[3]);
+    }
     this.need_geometry_update = true;
 }
-Grid.prototype.getColor = function(x,y) {
-    if(!this.color_table) return new Color(1,1,1,1);
-    return this.color_table[this.index(x,y)];
+Grid.prototype.getColor = function(outary,x,y) {
+    if(!this.color_table) outary[0]=outary[1]=outary[2]=outary[3]=1;
+    var col=this.color_table[this.index(x,y)];
+    if(col) {
+        Color.copy(outary,col);
+    } else {
+        outary[0]=outary[1]=outary[2]=outary[3]=1;
+    }
 }
 Grid.prototype.setVisible = function(flg) { this.visible=flg; }
 Grid.prototype.getVisible = function() { return this.visible; }
@@ -843,7 +858,7 @@ Grid.prototype.fillColor = function(c) {
     if(this.color_table) {
         for(var y=0;y<this.height;y++) {
             for(var x=0;x<this.width;x++) {
-                this.color_table[this.index(x,y)] = new Color(c.r,c.g,c.b,c.a);
+                this.color_table[this.index(x,y)] = Color.fromValues(c[0],c[1],c[2],c[3]);
             }
         }
     }
@@ -912,16 +927,17 @@ Grid.prototype.updateMesh = function() {
                 geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+3, face_start_vert_ind+2));
                 
                 var left_bottom, right_top;
-                var uvs = this.deck.getUVFromIndex(this.index_table[ind],0,0,0);
-                var u0 = uvs[0], v0 = uvs[1], u1 = uvs[2], v1 = uvs[3];
+                if(!this.uvwork) this.uvwork=new Float32Array(4);
+                this.deck.getUVFromIndex(this.uvwork,this.index_table[ind],0,0,0);
+                var u0 = this.uvwork[0], v0 = this.uvwork[1], u1 = this.uvwork[2], v1 = this.uvwork[3];
 
                 if(this.texofs_table && this.texofs_table[ind]) {
                     var u_per_cell = this.deck.getUperCell();
                     var v_per_cell = this.deck.getVperCell();
-                    u0 += this.texofs_table[ind].x * u_per_cell;
-                    v0 += this.texofs_table[ind].y * v_per_cell;
-                    u1 += this.texofs_table[ind].x * u_per_cell;
-                    v1 += this.texofs_table[ind].y * v_per_cell;
+                    u0 += this.texofs_table[ind][0] * u_per_cell;
+                    v0 += this.texofs_table[ind][1] * v_per_cell;
+                    u1 += this.texofs_table[ind][0] * u_per_cell;
+                    v1 += this.texofs_table[ind][1] * v_per_cell;
                 }
 
                 if(this.xflip_table && this.xflip_table[ind]) {
@@ -945,7 +961,7 @@ Grid.prototype.updateMesh = function() {
                 geom.faceVertexUvs[0].push([uv_q,uv_p,uv_s]);
                 var col; 
                 if( this.color_table && this.color_table[ind] ) {
-                    col = this.color_table[ind].toTHREEColor();
+                    col = Color.toTHREEColor(this.color_table[ind]);
                     if(this.color_table[ind].a < 1.0 ) {
                         if(!g_debug_grid_alpha_message) {
                             console.log("alpha blending in grid cell is not implemented yet (THREE.js dont have vert color alpha)");
@@ -1174,7 +1190,7 @@ class TextBox extends Prop2D {
     constructor() {
         super();
         this.font = null;
-        this.scl = new Vec2(1,1);
+        this.scl = vec2.fromValues(1,1);
         this.str = null;
         this.geom=null;
         this.material=null;
@@ -1239,12 +1255,12 @@ class TextBox extends Prop2D {
                                          new THREE.Vector2(glyph.u0,glyph.v1),
                                          new THREE.Vector2(glyph.u1,glyph.v1)]);
 
-            geom.faces[used_chind*2+0].vertexColors[0] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+0].vertexColors[1] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+0].vertexColors[2] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+1].vertexColors[0] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+1].vertexColors[1] = this.color.toTHREEColor();
-            geom.faces[used_chind*2+1].vertexColors[2] = this.color.toTHREEColor();
+            geom.faces[used_chind*2+0].vertexColors[0] = Color.toTHREEColor(this.color);
+            geom.faces[used_chind*2+0].vertexColors[1] = Color.toTHREEColor(this.color);
+            geom.faces[used_chind*2+0].vertexColors[2] = Color.toTHREEColor(this.color);
+            geom.faces[used_chind*2+1].vertexColors[0] = Color.toTHREEColor(this.color);
+            geom.faces[used_chind*2+1].vertexColors[1] = Color.toTHREEColor(this.color);
+            geom.faces[used_chind*2+1].vertexColors[2] = Color.toTHREEColor(this.color);
             cur_x += glyph.advance;
             used_chind++;
         }
@@ -1385,7 +1401,7 @@ function ColorReplacerShader() {
     this.setColor(new THREE.Vector3(0,0,0),new THREE.Vector3(0,1,0),0.01);
 }
 // updateUniforms(tex) called when render
-ColorReplacerShader.prototype.updateUniforms = function(texture,moyaicolor) {
+ColorReplacerShader.prototype.updateUniforms = function(texture) {
     if(this.uniforms) {
         if(texture) this.uniforms["texture"]["value"] = texture;
         this.uniforms["color1"]["value"] = this.from_color;
@@ -1404,8 +1420,8 @@ ColorReplacerShader.prototype.updateUniforms = function(texture,moyaicolor) {
 }
 ColorReplacerShader.prototype.setColor = function(from,to,eps) {
     this.epsilon = eps;
-    this.from_color = new THREE.Vector3(from.r,from.g,from.b);
-    this.to_color = new THREE.Vector3(to.r,to.g,to.b);
+    this.from_color = new THREE.Vector3(from[0],from[1],from[2]);
+    this.to_color = new THREE.Vector3(to[0],to[1],to[2]);
     this.updateUniforms();
 }
 DefaultColorShader.prototype = Object.create(FragmentShader.prototype);
@@ -1417,11 +1433,11 @@ function DefaultColorShader() {
 DefaultColorShader.prototype.updateUniforms = function(texture,moyaicolor) {
     if(this.uniforms) {
         if(texture) this.uniforms["texture"]["value"] = texture;
-        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a );
+        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor[0], moyaicolor[1], moyaicolor[2], moyaicolor[3] );
     } else {
         this.uniforms = {
             "texture" : { type: "t", value: texture },
-            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a ) }
+            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor[0], moyaicolor[1], moyaicolor[2], moyaicolor[3] ) }
         };
     }
     this.updateMaterial();
@@ -1435,10 +1451,10 @@ function PrimColorShader() {
 }
 PrimColorShader.prototype.updateUniforms = function(moyaicolor) {
     if(this.uniforms) {
-        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a );
+        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor[0], moyaicolor[1], moyaicolor[2], moyaicolor[3] );
     } else {
         this.uniforms = {
-            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor.r, moyaicolor.g, moyaicolor.b, moyaicolor.a ) }
+            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor[0], moyaicolor[1], moyaicolor[2], moyaicolor[3] ) }
         };
     }
     this.updateMaterial();    
@@ -1516,15 +1532,15 @@ Keyboard.prototype.setPreventDefault = function(flg) { this.prevent_default=flg;
 
 /////////////////////
 function Mouse() {
-    this.cursor_pos=new Vec2(0,0);
-    this.movement=new Vec2(0,0);
+    this.cursor_pos=vec2.create();
+    this.movement=vec2.create();
     this.buttons={};
     this.toggled={};
     this.mod_shift=false;
     this.mod_ctrl=false;
     this.mod_alt=false;
 }
-Mouse.prototype.clearMovement = function() { this.movement.x=this.movement.y=0; }
+Mouse.prototype.clearMovement = function() { vec2.set(this.movement,0,0); }
 Mouse.prototype.setupBrowser = function(w,dom) {
     var _this = this;
     w.addEventListener("mousedown", function(e) {
@@ -1540,8 +1556,8 @@ Mouse.prototype.setupBrowser = function(w,dom) {
         var x = Math.floor(e.clientX - rect.left);
         var y = Math.floor(e.clientY - rect.top);
 //        e.preventDefault();
-        _this.cursor_pos = new Vec2(x,y);
-        _this.movement = new Vec2(e.movementX, e.movementY);
+        vec2.set(_this.cursor_pos,x,y);
+        vec2.set(_this.movement,e.movementX, e.movementY);
     },false);    
 }
 Mouse.prototype.readButtonEvent = function(e,pressed) {
@@ -1709,15 +1725,15 @@ FileDepo.prototype.ensure = function(path,data) {
 class Prop3D extends Prop {
     constructor() {
         super();
-        this.scl = new Vec3(1,1,1);
-        this.loc = new Vec3(0,0,0);
-        this.rot = new Vec3(0,0,0);
+        this.scl = vec3.fromValues(1,1,1);
+        this.loc = vec3.fromValues(0,0,0);
+        this.rot = vec3.fromValues(0,0,0);
         this.mesh=null;
-        this.sort_center = new Vec3(0,0,0);
+        this.sort_center = vec3.fromValues(0,0,0);
 	    this.depth_mask=true;
         this.alpha_test=false;
         this.cull_back_face=true;
-        this.draw_offset = new Vec3(0,0,0);
+        this.draw_offset = vec3.fromValues(0,0,0);
         this.priority=this.id;
         this.dimension=3;
         this.visible=true;        
@@ -1732,8 +1748,18 @@ class Prop3D extends Prop {
 }
 Prop3D.prototype.setMesh = function(m) {this.mesh=m;}
 Prop3D.prototype.setGroup = function(g) { this.mesh=g;}
-Prop3D.prototype.setScl = function(x,y,z) {this.scl.setWith3args(x,y,z); }
-Prop3D.prototype.setLoc = function(x,y,z) { this.loc.setWith3args(x,y,z); }
-Prop3D.prototype.setRot = function(x,y,z) { this.rot.setWith3args(x,y,z); }
+Prop3D.prototype.setScl = function(x,y,z) {
+    if(y===undefined) {
+        vec3.copy(this.scl,x);
+    } else {
+        vec3.set(this.scl,x,y,z);   
+    }
+}
+Prop3D.prototype.setLoc = function(x,y,z) {
+    if(y===undefined) vec3.copy(this.loc,x); else vec3.set(this.loc,x,y,z);
+}
+Prop3D.prototype.setRot = function(x,y,z) {
+    if(y===undefined) vec3.copy(this.rot,x); else vec3.set(this.rot,x,y,z); 
+}
 
 

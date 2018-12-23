@@ -34,7 +34,7 @@ var g_hud_layer = new Layer();
 g_moyai_client.insertLayer(g_hud_layer);
 g_hud_layer.setViewport(g_viewport);
 
-var g_camera = new Camera();
+var g_camera = new Camera(2);
 g_camera.setLoc(0,0);
 g_main_layer.setCamera(g_camera);
 
@@ -107,7 +107,7 @@ if(1) {
     statprimp.setDeck(g_base_deck);
     statprimp.setIndex(1);
     statprimp.setColor(0,0,1,1);
-    statprimp.addLine(new Vec2(-1,1),new Vec2(1,-1),new Color(1,1,1,1), 3);
+    statprimp.addLine(vec2.fromValues(-1,1),vec2.fromValues(1,-1),Color.fromValues(1,1,1,1), 3);
     statprimp.setLoc(100,-100);
     statprimp.debug = true;
     g_main_layer.insertProp(statprimp);
@@ -127,12 +127,12 @@ if(1) {
         for(var y=0;y<8;y++){
             if(y==6||x==6) continue;
             g.set(x,y,iii % 3);
-            g.setColor( x,y, new Color(range(0.5,1), range(0.5,1), range(0.5,1), range(0.2,1) ));
+            g.setColor( x,y, Color.fromValues(range(0.5,1), range(0.5,1), range(0.5,1), range(0.2,1) ));
             if(x==0) g.setXFlip(x,y,true);
             if(x==1) g.setYFlip(x,y,true);
             if(x==2) g.setUVRot(x,y,true);
             if(x==3) {
-                var ofs = new Vec2(0.5,0.5);
+                var ofs = vec2.fromValues(0.5,0.5);
                 g.setTexOffset(x,y,ofs);
             }
             iii++;
@@ -190,7 +190,7 @@ if(1)  {
     var g_tb = new TextBox();
     g_tb.setFont(g_font);
     g_tb.setString("!\"$%_-#dummyほげ");
-    g_tb.setScl(1);
+    g_tb.setScl(1,1);
     g_tb.setLoc(22,22);
     g_main_layer.insertProp(g_tb);
 
@@ -202,7 +202,7 @@ if(true) {
     t4.setFont(g_font);
     t4.setString( "ABC012あいうえお\nあいうえお(utf8)。" );
     t4.setLoc(-100,-90);
-    t4.setScl(0.75);
+    t4.setScl(0.75,0.75);
     g_main_layer.insertProp(t4);
 }
 
@@ -215,7 +215,7 @@ if(1) {
                   "THIS SHOULDN'T SINK UNDER BOTTOM LINE : このもじはしたにしずまない2ぎょうめ"
                 );
     t5.setLoc(-SCRW/2,-SCRH/2);
-    t5.setScl(1);
+    t5.setScl(1,1);
     g_main_layer.insertProp(t5);
 
 }
@@ -243,7 +243,7 @@ if(1)  {
     var dragonp1 = new Prop2D();
     dragonp1.setLoc( SCRW/2-80, 0);
     dragonp1.setTexture(dragontex1);
-    dragonp1.setScl(32);
+    dragonp1.setScl(32,32);
     g_main_layer.insertProp(dragonp1);    
 
 
@@ -251,7 +251,7 @@ if(1)  {
     var dragonp0 = new Prop2D();
     dragonp0.setLoc( SCRW/2-40, 0);
     dragonp0.setTexture( dragontex0 );
-    dragonp0.setScl(32);
+    dragonp0.setScl(32,32);
     g_main_layer.insertProp(dragonp0);
 }
 
@@ -263,9 +263,9 @@ scorep.setLoc( -SCRW/2+32,SCRH/2-100 );
 var scoregrid = new CharGrid(8,8);
 scoregrid.setDeck(g_bmpfont_deck );
 scoregrid.setAsciiOffset(-32);
-scoregrid.print( 0,0, new Color(1,1,1,1), "SCORE: 1234" );
-scoregrid.print( 0,1, new Color(1,1,0,1), "$#!?()[hoge]" );
-scoregrid.setColor( 3,0, new Color(0,1,1,1));
+scoregrid.print( 0,0, Color.fromValues(1,1,1,1), "SCORE: 1234" );
+scoregrid.print( 0,1, Color.fromValues(1,1,0,1), "$#!?()[hoge]" );
+scoregrid.setColor( 3,0, Color.fromValues(0,1,1,1));
 scorep.addGrid(scoregrid);
 g_main_layer.insertProp(scorep);
 
@@ -274,18 +274,16 @@ g_main_layer.insertProp(scorep);
 if(1) {
     // line prop
     var g_linep = new Prop2D();
-    var g_narrow_line_prim = g_linep.addLine( new Vec2(0,0), new Vec2(100,100), new Color(1,0,0,1) );
-    //g_linep.addLine( new Vec2(0,0), new Vec2(range(-100,100),range(-50,50)), new Color(range(0,1),range(0,1),range(0,1),1), 5 );
-    g_linep.addRect( new Vec2(-100,-100), new Vec2(0,0), new Color(1,1,1,1));
-    g_linep.addRect( new Vec2(-100,100), new Vec2(0,0), new Color(1,0,1,1));
-    g_linep.addRect( new Vec2(100,-100), new Vec2(0,0), new Color(0,1,1,1));    
-    g_linep.addRect( new Vec2(100,100), new Vec2(0,0), new Color(1,1,0,1));
-    g_linep.addLine( new Vec2(0,0), new Vec2(100,-50), new Color(0,1,1,1), 5 );
-//    for(var i=0;i<60;i++){
-//       g_linep.addRect( new Vec2(0,0), new Vec2(range(-150,100),range(-200,230)), new Color(0.2,range(0,1),1,0.5) );
-//    }
+    var g_narrow_line_prim = g_linep.addLine( vec2.fromValues(0,0), vec2.fromValues(100,100), Color.fromValues(1,0,0,1) );
+    //g_linep.addLine( new Vec2(0,0), new Vec2(range(-100,100),range(-50,50)), Color.fromValues(range(0,1),range(0,1),range(0,1),1), 5 );
+    g_linep.addRect( vec2.fromValues(-100,-100), vec2.fromValues(0,0), Color.fromValues(1,1,1,1));
+    g_linep.addRect( vec2.fromValues(-100,100), vec2.fromValues(0,0), Color.fromValues(1,0,1,1));
+    g_linep.addRect( vec2.fromValues(100,-100), vec2.fromValues(0,0), Color.fromValues(0,1,1,1));    
+    g_linep.addRect( vec2.fromValues(100,100), vec2.fromValues(0,0), Color.fromValues(1,1,0,1));
+    g_linep.addLine( vec2.fromValues(0,0), vec2.fromValues(100,-50), Color.fromValues(0,1,1,1), 5 );
+
     g_linep.setLoc(0,200);
-    g_linep.setScl(1.0);
+    g_linep.setScl(1.0,1.0);
     g_main_layer.insertProp(g_linep);
 
 
@@ -308,7 +306,7 @@ if(1) {
     var g_img = new MoyaiImage();
     g_img.setSize(256,256);
     for(var i=0;i<256;i++){
-        var c = new Color( Math.random(), Math.random(), Math.random(),1 );
+        var c = Color.fromValues( Math.random(), Math.random(), Math.random(),1 );
         g_img.setPixel( i,i, c );
     }
     //g_img.writePNG( "dynamic_out.png");
@@ -332,7 +330,7 @@ if(1) {
 var g_bullet = new Prop2D();
 g_bullet.setDeck(g_base_deck);
 g_bullet.setIndex(32);
-g_bullet.setScl(32);
+g_bullet.setScl(32,32);
 g_bullet.setLoc(0,0);
 g_main_layer.insertProp(g_bullet);
 
@@ -384,33 +382,33 @@ function animate() {
     g_bullet.setIndex(32+(Math.floor(anim_cnt/2)%4));
 
 
-    if(g_linep) g_linep.loc.y = Math.sin( anim_cnt/50 ) * 200;
+    if(g_linep) g_linep.loc[1] = Math.sin( anim_cnt/50 ) * 200;
 
     
     if(g_img && g_dyn_texture) {
         if( (anim_cnt % 100 ) == 0 ) {
             for(var i=0;i<1000;i++){
-                g_img.setPixel( irange(0,256), irange(0,256), new Color( range(0,1), range(0,1), range(0,1),1 ));
+                g_img.setPixel( irange(0,256), irange(0,256), Color.fromValues( range(0,1), range(0,1), range(0,1),1 ));
             }
             g_dyn_texture.setImage(g_img);
         }
     }
 
 
-    g_replacer_shader.setColor( new Color(0xF7E26B), new Color( range(0,1),range(0,1),range(0,1),1), 0.02 );
+    g_replacer_shader.setColor( Color.fromCode(0xF7E26B), Color.fromValues( range(0,1),range(0,1),range(0,1),1), 0.02 );
 
     if( g_keyboard.getKey('z') ) {
-        g_viewport.setScale2D( g_viewport.scl.x / 1.05, g_viewport.scl.y / 1.05 );
+        g_viewport.setScale2D( g_viewport.scl[0] / 1.05, g_viewport.scl[1] / 1.05 );
     }
     if( g_keyboard.getKey('x') ) {
-        g_viewport.setScale2D( g_viewport.scl.x * 1.05, g_viewport.scl.y * 1.05 );
+        g_viewport.setScale2D( g_viewport.scl[0] * 1.05, g_viewport.scl[1] * 1.05 );
     }
     if( g_keyboard.getKey('a') ) {
         console.log(g_camera.loc);
-        g_camera.setLoc( g_camera.loc.x-5, g_camera.loc.y );
+        g_camera.setLoc( g_camera.loc[0]-5, g_camera.loc[1] );
     }
     if( g_keyboard.getKey('d') ) {
-        g_camera.setLoc( g_camera.loc.x+5, g_camera.loc.y );
+        g_camera.setLoc( g_camera.loc[0]+5, g_camera.loc[1] );
     }
 
     if( g_keyboard.getToggled( 'u' ) ) {
@@ -435,17 +433,17 @@ function animate() {
     }
 
     if(g_narrow_line_prim) {
-        g_narrow_line_prim.a.x = 0;
-        g_narrow_line_prim.a.y = 0;    
-        g_narrow_line_prim.b.x = 100;
-        g_narrow_line_prim.b.y = range(100,150);
+        g_narrow_line_prim.a[0] = 0;
+        g_narrow_line_prim.a[1] = 0;    
+        g_narrow_line_prim.b[0] = 100;
+        g_narrow_line_prim.b[1] = range(100,150);
     }
 
 
     // add/del prims
     if(g_linep){
         if( anim_cnt/10%3 == 0 ){
-            var yl = g_linep.addLine( new Vec2(0,0), new Vec2( -30, -60), new Color(1,1,0,1), 3 );
+            var yl = g_linep.addLine(vec2.fromValues(0,0), vec2.fromValues( -30, -60), Color.fromValues(1,1,0,1), 3 );
             g_yellow_line_prim_id = yl.id;
         }else if( anim_cnt/10%3 == 1 ) {
             if( g_yellow_line_prim_id ) {

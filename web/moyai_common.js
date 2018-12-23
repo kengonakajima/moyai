@@ -155,140 +155,50 @@ lengthf = function(x0,y0,x1,y1) {
 
 //////////////
 
-Vec2 = function(x,y) {
-    this.x = x;
-    this.y = y;
-}
-Vec2.prototype.setWith2args = function(x,y) {
-    if(y==undefined) {
-        if( (typeof x) == "number" ) {
-            this.x=x;
-            this.y=x;
-        } else if( x.__proto__ == Vec2.prototype ) {
-            this.x=x.x;
-            this.y=x.y;            
-        }
-    } else {
-        this.x=x;
-        this.y=y;
-    }
-}
-Vec2.prototype.normalize = function(l) {
-    if(l==undefined)l=1;    
-    var ll = Math.sqrt(this.x*this.x+this.y*this.y);
-    if(ll==0) return new Vec2(0,0);
-    return new Vec2(this.x/ll*l,this.y/ll*l);
-}
-Vec2.prototype.add = function(to_add) {
-    return new Vec2( this.x + to_add.x, this.y + to_add.y );
-}
-Vec2.prototype.mul = function(to_mul) {
-    return new Vec2( this.x * to_mul, this.y * to_mul );
-}
-Vec2.prototype.randomize = function(r) {
-    if(r==undefined)r=1;    
-    return new Vec2( this.x - r + range(0,r*2), this.y - r + range(0,r*2) );
-}
-Vec2.prototype.isEqual = function(v) {
-    return (v.x!=this.x) || (v.y!=this.y);
-}
-
-Vec3 = function(x,y,z) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-}
-Vec3.prototype.setWith3args = function(x,y,z) {
-    if(x.constructor==Vec3){
-        this.x=x.x; this.y=x.y; this.z=x.z;
-    } else {
-        this.x=x; this.y=y;this.z=z;
-    }
-}
-Vec3.prototype.modify = function(v) {
-    this.x += v.x;
-    this.y += v.y;
-    this.z += v.z;
-}
-Vec3.prototype.add = function(to_add) {
-    return new Vec3( this.x + to_add.x, this.y + to_add.y, this.z + to_add.z );
-}
-Vec3.prototype.mul = function(m) {
-    return new Vec3( this.x*m, this.y*m, this.z*m );
-}
-Vec3.prototype.set = function(x,y,z) {
-    this.setWith3args(x,y,z);
-    return this;
-}
-Vec3.prototype.randomize = function(r) {
-    if(r==undefined)r=1;
-    return new Vec3( this.x - r + range(0,r*2), this.y - r + range(0,r*2), this.z - r + range(0,r*2) );
-}
-Vec3.prototype.to_i = function() {
-    return new Vec3( to_i(this.x), to_i(this.y), to_i(this.z) );
-}
-Vec3.prototype.normalize = function(l) {
-    if(l==undefined)l=1;
-    var ll = Math.sqrt(this.x*this.x+this.y*this.y+this.z*this.z);
-    if(ll==0) return new Vec3(0,0,0);
-    return new Vec3(this.x/ll*l,this.y/ll*l,this.z/ll*l);
-}
-Vec3.prototype.to = function(target) {
-    return new Vec3(target.x-this.x, target.y-this.y, target.z-this.z);
-}
-Vec3.prototype.toTHREEVector3 = function() {
-    return new THREE.Vector3(this.x,this.y,this.z);
-}
-Vec3.prototype.lengthf = function() {
-    return Math.sqrt( this.x*this.x + this.y*this.y + this.z*this.z );
-}
-Vec3.prototype.dot = function(v3) {
-    return this.x*v3.x + this.y*v3.y + this.z*v3.z;
-}
 // 0 ~ 1
-Color = function(r,g,b,a) {
-    if(g==undefined || g==null) {
-        var code = r; // color code
-        this.r = ((code & 0xff0000)>>16)/255;
-        this.g = ((code & 0xff00)>>8)/255;
-        this.b = (code & 0xff)/255;
-        this.a = 1.0;        
-    } else {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-        this.a = a;
-    }
+Color={};
+Color.fromValues= function(r,g,b,a) {
+    var out=new Float32Array(4);
+    out[0]=r; out[1]=g; out[2]=b; out[3]=a;
+    return out;
 }
-Color.prototype.toRGBA = function() {
-    return [ Math.floor(this.r*255), Math.floor(this.g*255), Math.floor(this.b*255), Math.floor(this.a*255) ];
+Color.fromCode = function(code) {
+    var r = ((code & 0xff0000)>>16)/255;
+    var g = ((code & 0xff00)>>8)/255;
+    var b = (code & 0xff)/255;
+    var a = 1.0;
+    return Color.fromValues(r,g,b,a);
 }
-Color.prototype.fromRGBA = function(r,g,b,a) {
-    this.r = r/255.0;
-    this.g = g/255.0;
-    this.b = b/255.0;    
-    this.a = a/255.0;
+Color.toRGBA = function(outary,col) {
+    outary[0]=Math.floor(this.r*255);
+    outary[1]=Math.floor(this.g*255);
+    outary[2]=Math.floor(this.b*255);
+    outary[3]=Math.floor(this.a*255);
 }
-    
-Color.prototype.toCode = function() {
-    return ( Math.floor(this.r * 255) << 16 ) + ( Math.floor(this.g * 255) << 8 ) + Math.floor(this.b * 255);
+Color.fromRGBA = function(outary,r,g,b,a) {
+    outary[0] = r/255.0;
+    outary[1] = g/255.0;
+    outary[2] = b/255.0;    
+    outary[3] = a/255.0;
 }
-Color.prototype.toTHREEColor = function() {
-    return new THREE.Color(this.toCode());
+Color.toCode = function(col) {
+    return ( Math.floor( col[0] * 255) << 16 ) + ( Math.floor(col[1] * 255) << 8 ) + Math.floor(col[2] * 255);
 }
-Color.prototype.equals = function(r,g,b,a) {
-    return (this.r==r && this.g==g && this.b==b && this.a==a);
+Color.toTHREEColor = function(col) {
+    return new THREE.Color(Color.toCode(col));
 }
-Color.prototype.adjust = function(v) {
-    var rr = this.r*v;
-    var gg = this.g*v;
-    var bb = this.b*v;
-    if(rr>1)rr=1;
-    if(gg>1)gg=1;
-    if(bb>1)bb=1;
-    return new Color(rr,gg,bb,this.a);
+Color.copy = function(out,input) {
+    out[0]=input[0]; out[1]=input[1]; out[2]=input[2]; out[3]=input[3];
 }
-
+Color.exactEquals = function(out,input) {
+    return (out[0]===input[0] && out[1]===input[1] && out[2]===input[2] && out[3]===input[3]);
+}
+Color.exactEqualsToValues = function(out,r,g,b,a) {
+    return (out[0]===r && out[1]===g && out[2]===b && out[3]===a);    
+}
+Color.set = function(out,r,g,b,a) {
+    out[0]=r; out[1]=g; out[2]=b; out[3]=a;
+}
 ///////////////////
 
 Viewport.prototype.id_gen=1;
@@ -305,7 +215,7 @@ Viewport.prototype.setSize = function(sw,sh) {
     this.screen_height = sh;
 }
 Viewport.prototype.setScale2D = function(sx,sy) {
-    this.scl = new Vec2(sx,sy);
+    this.scl = vec2.fromValues(sx,sy);
     this.dimension = 2;
 }
 Viewport.prototype.setClip3D = function(near,far) {
@@ -313,34 +223,39 @@ Viewport.prototype.setClip3D = function(near,far) {
     this.far_clip = far;
     this.dimension = 3;
 }
-Viewport.prototype.getMinMax = function() {
-    return [ new Vec2(-this.scl.x/2,-this.scl.y/2), new Vec2(this.scl.x/2,this.scl.y/2) ];
+Viewport.prototype.getMinMax = function(outary) {
+    var x0=-this.scl[0]/2, y0=-this.scl[1]/2, x1=this.scl[0]/2, y1=this.scl[1]/2;
+    vec2.set(outary[0],x0,y0);
+    vec2.set(outary[1],x1,y1);
 }
-Viewport.prototype.getRelativeScale = function() {
-    return new Vec2(this.screen_width/this.scl.x,this.screen_height/this.scl.y);
+Viewport.prototype.getRelativeScale = function(outvec2) {
+    vec2.set(outvec2,this.screen_width/this.scl[0],this.screen_height/this.scl[1]);
 }
 
 ////////////////////
 Camera.prototype.id_gen=1;
-function Camera() {
+function Camera(dimension) {
+    if(!dimension) console.trace("Camera: need dimension");
     this.id = this.__proto__.id_gen++;
-    this.loc = null; // vec2 or vec3
-    this.dimension=null;    
+    this.dimension=dimension;
+    if(dimension==2) {
+        this.loc=vec2.fromValues(0,0);
+    } else {
+        this.loc=vec3.fromValues(0,0,0);
+	    this.look_at = vec3.create();
+	    this.look_up = vec3.create();
+    }
 }
 Camera.prototype.setLoc = function(x,y,z) {
-    if(x.constructor==Vec3){ this.loc=x; this.dimension=3; }
-    else if(x.constructor==Vec2){ this.loc=x; this.dimension=2; }
-    else if(z==undefined) {
-        this.loc=new Vec2(x,y);
-        this.dimension=2;
-    } else {
-        this.loc = new Vec3(x,y,z);
-        this.dimension=3;
+    if(this.dimension==2) {
+        vec2.set(this.loc,x,y);
+    } else if(this.dimension==3) {
+        vec3.set(this.loc,x,y,z);
     }
 }
 Camera.prototype.setLookAt = function(at,up) {
-	this.look_at = at;
-	this.look_up = up;
+    vec3.copy(this.look_at,at);
+    vec3.copy(this.look_up,up);
 }
 
 
@@ -457,8 +372,8 @@ MoyaiImage.prototype.setSize = function(w,h) {
         this.data = new Uint8Array(w*h*4);
     }
 }
-MoyaiImage.prototype.getSize = function() {
-    return new Vec2(this.width,this.height);
+MoyaiImage.prototype.getSize = function(out) {
+    vec2.set(out,this.width,this.height);
 }
 MoyaiImage.prototype.getPixelRaw = function(x,y) {
 // int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a ) {
@@ -482,9 +397,10 @@ MoyaiImage.prototype.setPixelRaw = function(x,y,r,g,b,a) {
     }    
 }
 MoyaiImage.prototype.setPixel = function(x,y,c) {
-    var colary = c.toRGBA();
+    var rgba = new Float32Array(4);
+    Color.toRGBA(rgba,c);
     var index = (x+y*this.width)*4;
-    this.setPixelRaw(x,y,colary[0],colary[1],colary[2],colary[3]);
+    this.setPixelRaw(x,y,rgba[0],rgba[1],rgba[2],rgba[3]);
 }
 MoyaiImage.prototype.getBufferSize = function() { return this.width * this.height * 4; }
 MoyaiImage.prototype.setAreaRaw = function(x0,y0,w,h, data_u8a, insz ) {
@@ -523,7 +439,7 @@ TileDeck.prototype.setSize = function(sprw,sprh,cellw,cellh) {
 TileDeck.prototype.setTexture = function(tex) {
     this.moyai_tex = tex;
 }
-TileDeck.prototype.getUVFromIndex = function(ind,uofs,vofs,eps) {
+TileDeck.prototype.getUVFromIndex = function(outary, ind,uofs,vofs,eps) {
 	var uunit = this.cell_width / this.moyai_tex.image.width;
 	var vunit = this.cell_height / this.moyai_tex.image.height;
 	var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
@@ -532,16 +448,22 @@ TileDeck.prototype.getUVFromIndex = function(ind,uofs,vofs,eps) {
     var v0 = start_y / this.moyai_tex.image.height + eps + vofs * vunit;
     var u1 = u0 + uunit - eps*2;  // *2 because adding eps once for u0 and v0
 	var v1 = v0 + vunit - eps*2;
-    return [u0,v0,u1,v1];
+    outary[0]=u0;
+    outary[1]=v0;
+    outary[2]=u1;
+    outary[3]=v1;
 }
-TileDeck.prototype.getUVOfPixel = function(ind,x_in_cell,y_in_cell) {
+TileDeck.prototype.getUVOfPixel = function(outary,ind,x_in_cell,y_in_cell) {
     ind=Math.floor(ind);
     var x0=Math.floor(ind%this.tile_width)*this.cell_width;
     var y0=Math.floor(ind/this.tile_width)*this.cell_height;
     var fin_x=x0+x_in_cell, fin_y=y0+y_in_cell;
     var u_per_pixel = 1.0/this.moyai_tex.image.width;
     var v_per_pixel = 1.0/this.moyai_tex.image.height;
-    return [fin_x*u_per_pixel, fin_y*v_per_pixel, (fin_x+1)*u_per_pixel, (fin_y+1)*v_per_pixel];
+    outary[0]=fin_x*u_per_pixel;
+    outary[1]=fin_y*v_per_pixel;
+    outary[2]=(fin_x+1)*u_per_pixel;
+    outary[3]=(fin_y+1)*v_per_pixel;
 }
 TileDeck.prototype.getUperCell = function() { return this.cell_width / this.moyai_tex.image.width; }
 TileDeck.prototype.getVperCell = function() { return this.cell_height / this.moyai_tex.image.height; }    
@@ -561,42 +483,13 @@ TileDeck.prototype.getPixelsFromIndex = function(ind) {
     return out;
 }
 
-///////////////////////////
 
-function UVRect(u0,v0,u1,v1) {
-    this.u0=u0;
-    this.u1=u1;
-    this.v0=v0;
-    this.v1=v1;
-};
-PackDeck.prototype.id_gen = 1;
-function PackDeck() {
-    this.id = this.__proto__.id_gen++;
-}
-PackDeck.prototype.setTexture = function(tex) {
-    this.moyai_tex=tex;
-}
-PackDeck.prototype.getUVFromIndex = function(ind,uofs,vofs,eps) {
-    var uvrect = this.rects[ind];
-    if(!uvrect) return [0,0,1,1];
-    return uvrect;
-}
-PackDeck.prototype.getUperCell = function() {
-    return this.rects[0].u1 - this.rects[0].u0;
-}
-PackDeck.prototype.getVperCell = function() {
-    return this.rects[0].v1 - this.rects[0].v0;    
-}
-PackDeck.prototype.setRects = function(uvrects) {
-    this.rects=uvrects;
-}
 
 ////////////////////////
 
 try {
     if(global) {
         // classes
-        global.Vec2=Vec2;
         global.Color=Color;
         global.Viewport=Viewport;
         global.Camera=Camera;
