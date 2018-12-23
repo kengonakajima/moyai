@@ -303,7 +303,6 @@ var g_blockdata = createFieldBlockData(16);
 var g_chk_sz = 5;
 var g_chk_x = 0, g_chk_y = 0, g_chk_z = 0;
 
-/*
 setInterval(function() {
     if(g_chk_y==g_chk_sz)return;
     
@@ -324,7 +323,7 @@ setInterval(function() {
     }
     g_main_layer.insertProp(chkp);    
 }, 20 );
-*/
+
 
 // 1ボクセルあたり12triangle
 // 16voxel x 3000chk = 45fps (2.1GB)  (576000tri/frame)
