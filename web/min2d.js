@@ -24,13 +24,13 @@ g_camera.setLoc(0,0);
 g_main_layer.setCamera(g_camera);
 
 var g_base_atlas = new Texture();
-g_base_atlas.loadPNG( "./assets/base.png" );
+g_base_atlas.loadPNG( "./assets/base.png", 256,256 );
 g_base_deck = new TileDeck();
 g_base_deck.setTexture(g_base_atlas);
 g_base_deck.setSize(32,32,8,8 );
 
 var t = new Texture();
-t.loadPNG( "./assets/base.png" );
+t.loadPNG( "./assets/base.png", 256,256 );
 var deck = new TileDeck();
 deck.setTexture(t);
 deck.setSize(32,32,8,8);
@@ -45,7 +45,7 @@ g_main_layer.insertProp(p);
 
 
 
-
+/*
 var p_over = new Prop2D();
 p_over.setDeck(deck);
 p_over.setIndex(0);
@@ -53,7 +53,7 @@ p_over.setScl(48,48);
 p_over.setLoc(20,20);
 p_over.setColor(1,1,1,1);
 g_main_layer.insertProp(p_over);
-
+*/
 
 // grid test
 if(0) {

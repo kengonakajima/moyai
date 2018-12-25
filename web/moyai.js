@@ -79,6 +79,8 @@ Moyai.render = function() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);        
     
     // 3d first
     var camera3d=null; // 最初の3Dレイヤのカメラを採用する。(TODO:レイヤごとに別のカメラで描画できるようにする)
@@ -209,11 +211,7 @@ Moyai.render2D = function(layer,camera) {
                 prop.mvMat=mat4.create();
             }
             mat4.identity(prop.mvMat);
-            mat4.translate(prop.mvMat,prop.mvMat,vec3.fromValues(prop.loc[0]+prop.draw_offset[0], prop.loc[1]+prop.draw_offset[1], 0) ); //TODO:noalloc
-
-            
-//            mat4.rotate(prop.mvMat,prop.mvMat,prop.rot[0],vec3.fromValues(1,0,0));//TODO: noalloc
-//            mat4.rotate(prop.mvMat,prop.mvMat,prop.rot[1],vec3.fromValues(0,1,0));//TODO: noalloc
+            mat4.translate(prop.mvMat,prop.mvMat,vec3.fromValues(prop.loc[0]+prop.draw_offset[0], prop.loc[1]+prop.draw_offset[1], 0) ); //TODO:noalloc           
             mat4.rotate(prop.mvMat,prop.mvMat,prop.rot,vec3.fromValues(0,0,1));//TODO: noalloc
             mat4.scale(prop.mvMat,prop.mvMat,vec3.fromValues(prop.scl[0],prop.scl[1],1));  //TODO: noalloc
             z_inside_prop += g_moyai_z_per_subprop;
@@ -261,7 +259,7 @@ Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv) {
     gl.uniform1i(material.uniformLocations.texture,0);
     gl.uniform4fv(material.uniformLocations.meshcolor, colv);
     // draw
-    console.log("draw:",geom,material,mvMat,projMat);
+//    console.log("draw:",geom,material);
     gl.drawElements(gl.TRIANGLES, geom.vn, gl.UNSIGNED_SHORT, 0);
 }
     
@@ -280,6 +278,7 @@ function Texture() {
     this.id = this.__proto__.id_gen++;
     this.image = null;
     this.gltex = null;
+
 }
 function isPowerOf2(value) {
   return (value & (value - 1)) == 0;
@@ -291,24 +290,30 @@ function isPowerOf2(value) {
 //    this.image.loadPNGMem(u8adata);
 //    this.update();
 //}
-Texture.prototype.loadPNG = function(url) {
+Texture.prototype.loadPNG = function(url,w,h) {
+    if(w===undefined||h===undefined) console.warn("loadPNG require width and height");
     var gl=Moyai.gl;
     var texture=gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
     const level = 0;
     const internalFormat = gl.RGBA;
-    const width = 1;
-    const height = 1;
     const border = 0;
     const srcFormat = gl.RGBA;
     const srcType = gl.UNSIGNED_BYTE;
-    const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
-    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-                  width, height, border, srcFormat, srcType,
-                  pixel);
-
+    const pixel = new Uint8Array(w*h*4);
+    for(var i=0;i<w*h;i++) { // opaque blue
+        pixel[i*4]=0;
+        pixel[i*4+1]=0;
+        pixel[i*4+2]=0xff;
+        pixel[i*4+3]=0xff;
+    }
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, w, h, border, srcFormat, srcType, pixel);
+    
+    var moyai_tex=this;
     var image = new Image();
+    image.width=w;
+    image.height=h;
     image.onload = function() {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
@@ -327,7 +332,8 @@ Texture.prototype.loadPNG = function(url) {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         }
-        console.log("loadpng: onload:",texture);
+        if(moyai_tex.onLoad)moyai_tex.onLoad();
+        console.log("loadpng: onload:",texture,image,moyai_tex);
     };
     image.src = url;
     this.gltex=texture;
