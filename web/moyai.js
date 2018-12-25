@@ -150,7 +150,7 @@ Moyai.render2D = function(layer,camera) {
         layer.projMat=mat4.create();
     }
 //    mat4.perspective(projMat, fov, aspect, znear, zfar );
-    mat4.ortho(layer.projMat, camera.left, camera.right, camera.top, camera.bottom, camera.near, camera.far );
+    mat4.ortho(layer.projMat, camera.left, camera.right, camera.bottom, camera.top, camera.near, camera.far );
     
     
     for(var pi=0;pi<layer.props.length;pi++ ) {                    
@@ -260,7 +260,7 @@ Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv) {
     gl.uniform4fv(material.uniformLocations.meshcolor, colv);
     // draw
 //    console.log("draw:",geom,material);
-    gl.drawElements(gl.TRIANGLES, geom.vn, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, geom.fn*3, gl.UNSIGNED_SHORT, 0);
 }
     
 Moyai.insertLayer = function(l) {
@@ -640,6 +640,7 @@ function createRectGeometry(width,height) {
     geometry.setColor(3,1,1,1,1);    
     geometry.setFaceInds(0, 0,2,1);
     geometry.setFaceInds(1, 0,3,2);
+    console.log("GEOM:",geometry);
     return geometry;
 }
 
