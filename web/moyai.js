@@ -259,7 +259,7 @@ Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv) {
     gl.uniform1i(material.uniformLocations.texture,0);
     gl.uniform4fv(material.uniformLocations.meshcolor, colv);
     // draw
-//    console.log("draw:",geom,material);
+    console.log("draw:",geom);
     gl.drawElements(gl.TRIANGLES, geom.fn*3, gl.UNSIGNED_SHORT, 0);
 }
     
@@ -778,15 +778,15 @@ class Prop2D extends Prop {
             //      |           |                        
             // P (u0,v1) - S (u1,v1)        
             if(this.uvrot) {
-                this.geom.setUV(0,this.uv_s[0],this.uv_s[1]);
-                this.geom.setUV(1,this.uv_p[0],this.uv_p[1]);
-                this.geom.setUV(2,this.uv_q[0],this.uv_q[1]);
-                this.geom.setUV(3,this.uv_r[0],this.uv_r[1]);
-            } else {
                 this.geom.setUV(0,this.uv_p[0],this.uv_p[1]);
                 this.geom.setUV(1,this.uv_q[0],this.uv_q[1]);
                 this.geom.setUV(2,this.uv_r[0],this.uv_r[1]);
                 this.geom.setUV(3,this.uv_s[0],this.uv_s[1]);
+            } else {
+                this.geom.setUV(0,this.uv_q[0],this.uv_q[1]);
+                this.geom.setUV(1,this.uv_r[0],this.uv_r[1]);
+                this.geom.setUV(2,this.uv_s[0],this.uv_s[1]);
+                this.geom.setUV(3,this.uv_p[0],this.uv_p[1]);
             }            
             this.geom.need_uvs_update=true;
             this.need_uv_update = false;

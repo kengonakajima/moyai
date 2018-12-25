@@ -40,12 +40,11 @@ p.setDeck(deck);
 p.setIndex(1);
 p.setScl(48,48);
 p.setLoc(0,0);
+//p.setUVRot(true);
 //p.addRect( vec2.fromValues(0,0), vec2.fromValues(5,5), Color.fromValues(1,1,1,0.3));
 g_main_layer.insertProp(p);
 
 
-
-/*
 var p_over = new Prop2D();
 p_over.setDeck(deck);
 p_over.setIndex(0);
@@ -53,7 +52,7 @@ p_over.setScl(48,48);
 p_over.setLoc(20,20);
 p_over.setColor(1,1,1,1);
 g_main_layer.insertProp(p_over);
-*/
+
 
 // grid test
 if(0) {
