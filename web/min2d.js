@@ -1,4 +1,4 @@
-var g_moyai_client;
+
 
 var g_stop_render=false;
 function stopRender() {
@@ -8,29 +8,29 @@ function stopRender() {
 /////////// testing
 
 var SCRW=960, SCRH=544;
-g_moyai_client = new MoyaiClient(SCRW,SCRH,window.devicePixelRatio);
+Moyai.init(SCRW,SCRH);
 var screen = document.getElementById("screen");
-screen.appendChild( g_moyai_client.renderer.domElement );
+screen.appendChild( Moyai.getDomElement() );
 
 var g_viewport = new Viewport();
 g_viewport.setSize(SCRW,SCRH);
 g_viewport.setScale2D(SCRW,SCRH);
 
 var g_main_layer = new Layer();
-g_moyai_client.insertLayer(g_main_layer);
+Moyai.insertLayer(g_main_layer);
 g_main_layer.setViewport(g_viewport);
 var g_camera = new Camera(2);
 g_camera.setLoc(0,0);
 g_main_layer.setCamera(g_camera);
 
 var g_base_atlas = new Texture();
-g_base_atlas.loadPNGMem( base_png );
+g_base_atlas.loadPNG( "./assets/base.png" );
 g_base_deck = new TileDeck();
 g_base_deck.setTexture(g_base_atlas);
 g_base_deck.setSize(32,32,8,8 );
 
 var t = new Texture();
-t.loadPNGMem( base_png );
+t.loadPNG( "./assets/base.png" );
 var deck = new TileDeck();
 deck.setTexture(t);
 deck.setSize(32,32,8,8);
@@ -40,7 +40,7 @@ p.setDeck(deck);
 p.setIndex(1);
 p.setScl(48,48);
 p.setLoc(0,0);
-p.addRect( vec2.fromValues(0,0), vec2.fromValues(5,5), Color.fromValues(1,1,1,0.3));
+//p.addRect( vec2.fromValues(0,0), vec2.fromValues(5,5), Color.fromValues(1,1,1,0.3));
 g_main_layer.insertProp(p);
 
 
@@ -56,7 +56,7 @@ g_main_layer.insertProp(p_over);
 
 
 // grid test
-if(1) {
+if(0) {
     var p_grid_under = new Prop2D();
     p_grid_under.setLoc(-200,-100);
     var g=new Grid(4,4);
@@ -106,9 +106,8 @@ function animate() {
     var now_time = new Date().getTime();
     var dt = now_time - last_anim_at;
     last_anim_at = now_time;
-    g_moyai_client.poll(dt/1000.0);
-    g_moyai_client.render();
-    
+    Moyai.poll(dt/1000.0);
+    Moyai.render();    
 }
     
 animate();

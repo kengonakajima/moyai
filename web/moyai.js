@@ -11,33 +11,56 @@ function createMeshBasicMaterial(objarg) {
 }
 
 
+class OrthographicCamera {
+    constructor(left,right,top,bottom,near,far) {
+        this.left=left;
+        this.right=right;
+        this.top=top;
+        this.bottom=bottom;
+        this.near=near;
+        this.far=far;
+        this.position=vec3.create();
+    }
+};
+
+
 
 ///////////////
-var g_moyais=[];
-function MoyaiClient(w,h,pixratio){
+Moyai ={}
+Moyai.init = function(w,h){
     this.width=w;
     this.height=h;
-    this.renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true});
-    this.renderer.setPixelRatio( pixratio);
-    this.renderer.setSize(w,h);
-    this.renderer.setClearColor("#000");
-    this.renderer.autoClear = false;
+    this.canvas=document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
+    this.canvas.width=w;
+    this.canvas.height=h;
+    this.gl=this.canvas.getContext("webgl2",{antialias: false});
+    if(!this.gl) {
+        console.warn("no WebGL support");
+        this.gl = null;
+    }
+    this.clearColor=Color.fromValues(0.1,0.1,0.1,1);    
     this.enable_clear=true;
-    
     this.layers=[];
-    g_moyais.push(this);
+    console.log("Moyai:",this);
 }
-MoyaiClient.prototype.resize = function(w,h) {
-    this.renderer.setSize(w,h);
+Moyai.setSize = function(w,h) {
+    this.width=w;
+    this.height=h;
 }
-MoyaiClient.prototype.getHighestPriority = function() {
+Moyai.setClearColor = function(col) {
+    Color.fromValues(this.clearColor, col[0],col[1],col[2],col[3]);
+}
+Moyai.getDomElement = function() {
+    return this.canvas;
+}
+Moyai.getHighestPriority = function() {
     var highp=0;
     for(var i=0;i<this.layers.length;i++) {
         if(this.layers[i].priority>highp) highp = this.layers[i].priority;
     }
     return highp;
 }
-MoyaiClient.prototype.poll = function(dt) {
+Moyai.poll = function(dt) {
     var cnt=0;
     for(var i=0;i<this.layers.length;i++) {
         var layer = this.layers[i];
@@ -45,25 +68,18 @@ MoyaiClient.prototype.poll = function(dt) {
     }
     return cnt;   
 }
-MoyaiClient.prototype.clearAll = function() {
-    this.renderer.clear();
-    this.renderer.clearDepth();            
-}
-
-MoyaiClient.prototype.render = function() {
-    // clear
-/*    
-    for(var i=0;i<this.scene2d.children.length;i++) this.scene2d.remove( this.scene2d.children[i]);
-    for(var i=0;i<this.scene3d.children.length;i++) this.scene3d.remove( this.scene3d.children[i]);
-    
-    if( this.scene2d.children.length>0) this.scene2d.remove( this.scene2d.children[0] ); // confirm remove all.. (TODO refactor)
-    if( this.scene3d.children.length>0) this.scene3d.remove( this.scene3d.children[0] ); // confirm remove all.. (TODO refactor)    
-*/
-    this.scene2d=new THREE.Scene();
-    this.scene3d=new THREE.Scene();
+Moyai.render = function() {
+    var gl=this.gl;
     if(this.enable_clear) {
-        this.clearAll();
-    }    
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearDepth(1.0);        
+    }
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);// 近くにある物体は、遠くにある物体を覆い隠す
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+    
     // 3d first
     var camera3d=null; // 最初の3Dレイヤのカメラを採用する。(TODO:レイヤごとに別のカメラで描画できるようにする)
     for(var li=0;li<this.layers.length;li++) {
@@ -84,19 +100,21 @@ MoyaiClient.prototype.render = function() {
         this.renderer.render(this.scene3d, camera3d );
     }
 
-
+    if(!this.camera2d) {
+        this.camera2d=new OrthographicCamera( -this.width/2, this.width/2, this.height/2, -this.height/2,-1, g_moyai_max_z);
+        this.camera2d.position[2] = g_moyai_max_z;
+    }
+    
+    
     // then 2d            
     for(var li=0;li<this.layers.length;li++) {
         var layer = this.layers[li];
         if(layer.viewport.dimension==2) {
-            this.render2D(this.scene2d, layer);
+            this.render2D(layer,this.camera2d);
         }
     }
-    var camera2d = new THREE.OrthographicCamera( -this.width/2, this.width/2, this.height/2, -this.height/2,-1, g_moyai_max_z);
-    camera2d.position.z = g_moyai_max_z;
-    this.renderer.render( this.scene2d, camera2d );
 }
-MoyaiClient.prototype.render3D = function(scene,layer) {
+Moyai.render3D = function(scene,layer) {
     if(layer.light) {
         scene.add(layer.light);
     }
@@ -115,27 +133,30 @@ MoyaiClient.prototype.render3D = function(scene,layer) {
         scene.add(prop.mesh);
     }
 }
-MoyaiClient.prototype.render2D = function(scene, layer) {
+Moyai.render2D = function(layer,camera) {
     if(!this.relscl) this.relscl=vec2.fromValues(1,1);
     if(!this.camloc) this.camloc=vec2.create();
-    if(layer.camera) {
-        vec2.copy(this.camloc,layer.camera.loc);
+    if(camera) {
+        vec2.copy(this.camloc,camera.position);
     } else {
         vec2.set(this.camloc,0,0);
     }
     if(layer.viewport) {
         layer.viewport.getRelativeScale(this.relscl);
     }
+    if(!layer.projMat) {
+        layer.projMat=mat4.create();
+    }
+//    mat4.perspective(projMat, fov, aspect, znear, zfar );
+    mat4.ortho(layer.projMat, camera.left, camera.right, camera.top, camera.bottom, camera.near, camera.far );
+    
+    
     for(var pi=0;pi<layer.props.length;pi++ ) {                    
         var prop = layer.props[pi];
         if(!prop.visible)continue;
 
-        if(prop.custom_mesh) {
-            prop.mesh=prop.custom_mesh;
-            prop.material=prop.custom_mesh.material;
-        } else {
-            prop.updateMesh();
-        }
+        prop.updateGeom();
+        prop.geom.bless();        
         
         var z_inside_prop=0;
         
@@ -145,7 +166,7 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
                 var grid = prop.grids[gi];
                 if(!grid.visible)continue;
                 if(!grid.deck)grid.setDeck(prop.deck);
-                grid.updateMesh();
+                grid.updateGeom();
                 if(!grid.mesh) {
                     console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
                 } else {
@@ -183,16 +204,20 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
                 }
             }
         }
-        if(prop.mesh) {
-            prop.mesh.position.x = (prop.loc[0]+prop.draw_offset[0] - this.camloc[0])*this.relscl[0];
-            prop.mesh.position.y = (prop.loc[1]+prop.draw_offset[1] - this.camloc[1])*this.relscl[1];
-            prop.mesh.position.z = prop_z + z_inside_prop;
-            prop.mesh.scale.x = prop.scl[0] * this.relscl[0];
-            prop.mesh.scale.y = prop.scl[1] * this.relscl[1];
-            prop.mesh.rotation.set(0,0,prop.rot);
-            if( prop.use_additive_blend ) prop.material.blending = THREE.AdditiveBlending; else prop.material.blending = THREE.NormalBlending;
-            scene.add(prop.mesh);
+        if(prop.geom) {
+            if(!prop.mvMat) {
+                prop.mvMat=mat4.create();
+            }
+            mat4.identity(prop.mvMat);
+            mat4.translate(prop.mvMat,prop.mvMat,vec3.fromValues(prop.loc[0]+prop.draw_offset[0], prop.loc[1]+prop.draw_offset[1], 0) ); //TODO:noalloc
+
+            
+//            mat4.rotate(prop.mvMat,prop.mvMat,prop.rot[0],vec3.fromValues(1,0,0));//TODO: noalloc
+//            mat4.rotate(prop.mvMat,prop.mvMat,prop.rot[1],vec3.fromValues(0,1,0));//TODO: noalloc
+            mat4.rotate(prop.mvMat,prop.mvMat,prop.rot,vec3.fromValues(0,0,1));//TODO: noalloc
+            mat4.scale(prop.mvMat,prop.mvMat,vec3.fromValues(prop.scl[0],prop.scl[1],1));  //TODO: noalloc
             z_inside_prop += g_moyai_z_per_subprop;
+            this.draw(prop.geom, prop.mvMat, layer.projMat, prop.material, prop.deck.moyai_tex.gltex,prop.color);
         }            
         if(prop.prim_drawer) {
             for(var i=0;i<prop.prim_drawer.prims.length;i++) {
@@ -211,8 +236,36 @@ MoyaiClient.prototype.render2D = function(scene, layer) {
         }            
     }
 }
-
-MoyaiClient.prototype.insertLayer = function(l) {
+Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv) {
+    var gl=Moyai.gl;
+    gl.useProgram(material.glprog);    
+    gl.uniformMatrix4fv( material.uniformLocations.projectionMatrix, false, projMat ); // TODO: put it out
+    // pos
+    gl.bindBuffer(gl.ARRAY_BUFFER, geom.positionBuffer);
+    gl.vertexAttribPointer( material.attribLocations.position, 3, gl.FLOAT, false,0,0);
+    gl.enableVertexAttribArray(material.attribLocations.position);
+    // color
+    gl.bindBuffer(gl.ARRAY_BUFFER, geom.colorBuffer);
+    gl.vertexAttribPointer( material.attribLocations.color, 4, gl.FLOAT, false,0,0 );
+    gl.enableVertexAttribArray(material.attribLocations.color);
+    // uv
+    gl.bindBuffer(gl.ARRAY_BUFFER, geom.uvBuffer);
+    gl.vertexAttribPointer(material.attribLocations.uv, 2, gl.FLOAT, false,0,0 );
+    gl.enableVertexAttribArray(material.attribLocations.uv );
+    // ind
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geom.indexBuffer);
+    // setup shader
+    gl.uniformMatrix4fv( material.uniformLocations.modelViewMatrix, false, mvMat);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, gltex);
+    gl.uniform1i(material.uniformLocations.texture,0);
+    gl.uniform4fv(material.uniformLocations.meshcolor, colv);
+    // draw
+    console.log("draw:",geom,material,mvMat,projMat);
+    gl.drawElements(gl.TRIANGLES, geom.vn, gl.UNSIGNED_SHORT, 0);
+}
+    
+Moyai.insertLayer = function(l) {
     if(l.priority==null) {
         var highp = this.getHighestPriority();
         l.priority = highp+1;
@@ -226,40 +279,80 @@ Texture.prototype.id_gen = 1;
 function Texture() {
     this.id = this.__proto__.id_gen++;
     this.image = null;
-    this.three_tex = null;
-    this.mat = null;
+    this.gltex = null;
 }
-Texture.prototype.loadPNGMem = function(u8adata) {
-    this.image = new MoyaiImage();
-    this.image.loadPNGMem(u8adata);
-    this.update();
+function isPowerOf2(value) {
+  return (value & (value - 1)) == 0;
 }
-Texture.prototype.update = function() {
-    if(!this.three_tex) {
-//        console.log("texture.update: creating datatexture from image:", this.image,this );
-        this.three_tex = new THREE.DataTexture( this.image.data, this.image.width, this.image.height, THREE.RGBAFormat );
-        this.three_tex.magFilter = THREE.NearestFilter;
-    } else {
-        this.three_tex.image.data = this.image.data;
-    }
-    this.three_tex.needsUpdate = true;
-}
+
+//TODO
+//Texture.prototype.loadPNGMem = function(u8adata) {
+//    this.image = new MoyaiImage();
+//    this.image.loadPNGMem(u8adata);
+//    this.update();
+//}
+Texture.prototype.loadPNG = function(url) {
+    var gl=Moyai.gl;
+    var texture=gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    const level = 0;
+    const internalFormat = gl.RGBA;
+    const width = 1;
+    const height = 1;
+    const border = 0;
+    const srcFormat = gl.RGBA;
+    const srcType = gl.UNSIGNED_BYTE;
+    const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                  width, height, border, srcFormat, srcType,
+                  pixel);
+
+    var image = new Image();
+    image.onload = function() {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                      srcFormat, srcType, image);
+
+        // WebGL1 has different requirements for power of 2 images
+        // vs non power of 2 images so check if the image is a
+        // power of 2 in both dimensions.
+        if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+            // Yes, it's a power of 2. Generate mips.
+            gl.generateMipmap(gl.TEXTURE_2D);
+        } else {
+            // No, it's not a power of 2. Turn of mips and set
+            // wrapping to clamp to edge
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        }
+        console.log("loadpng: onload:",texture);
+    };
+    image.src = url;
+    this.gltex=texture;
+    this.image=image;
+    console.log("gltex:",this.gltex,this.image);
+}    
+
 Texture.prototype.getSize = function(out) {
-    return this.image.getSize(out);
+    return vec2.fromValues(this.image.width,this.image.height);
 }
-Texture.prototype.setImage = function(img) {
-    this.image = img;
-    this.update();
-}
-Texture.prototype.updateImage = function(img) {
-    if(this.image.id == img.id ) {
-        console.log("Tex.updateimage id:",img.id );
-        this.three_tex.image.data = img.data;
-        this.three_tex.image.width = img.width;
-        this.three_tex.image.height = img.height;
-        this.three_tex.needsUpdate = true;
-    }
-}
+//TODO
+//Texture.prototype.setImage = function(img) {
+//    this.image = img;
+//    this.update();
+//}
+//TODO
+//Texture.prototype.updateImage = function(img) {
+//    if(this.image.id == img.id ) {
+//        console.log("Tex.updateimage id:",img.id );
+//        this.three_tex.image.data = img.data;
+//        this.three_tex.image.width = img.width;
+//        this.three_tex.image.height = img.height;
+//        this.three_tex.needsUpdate = true;
+//    }
+//}
 
 
 ///////
@@ -394,7 +487,7 @@ PrimDrawer.prototype.ensurePrim = function(p) {
         vec2.copy(existing.b,p.b);
         existing.color=p.color;
         existing.line_width=p.line_width;
-        existing.updateMesh();
+        existing.updateGeom();
     } else {
         if(p.type==PRIMTYPE_LINE) {
             var newprim = this.addLine(p.a,p.b,p.color,p.line_width);
@@ -450,8 +543,79 @@ class Prop {
     }    
 }
 
+
+class Geometry {
+    constructor(vn,fn) {
+        this.vn=vn;
+        this.fn=fn;
+        this.positions=new Float32Array(vn*3);
+        this.inds=new Uint16Array(fn*3)
+        this.uvs=new Float32Array(vn*2);
+        this.colors=new Float32Array(vn*4);
+
+        this.need_positions_update=true;
+        this.need_inds_update=true;
+        this.need_uvs_update=true;
+        this.need_colors_update=true;
+    }
+    setPosition(vind,x,y,z) {
+        this.positions[vind*3]=x;
+        this.positions[vind*3+1]=y;
+        this.positions[vind*3+2]=z;
+    }
+    setFaceInds(find,a,b,c) {
+        this.inds[find*3]=a;
+        this.inds[find*3+1]=b;
+        this.inds[find*3+2]=c;        
+    }
+    setUV(vind,u,v) {
+        this.uvs[vind*2]=u;
+        this.uvs[vind*2+1]=v;            
+    }
+    setColor(vind,r,g,b,a) {
+        this.colors[vind*4]=r;
+        this.colors[vind*4+1]=g;
+        this.colors[vind*4+2]=b;
+        this.colors[vind*4+3]=a;
+    }
+    setColorArray4(vind,v4) {
+        this.colors[vind*4]=v4[0];
+        this.colors[vind*4+1]=v4[1];
+        this.colors[vind*4+2]=v4[2];
+        this.colors[vind*4+3]=v4[3];        
+    }
+    bless() {
+        var gl=Moyai.gl;
+        if(this.need_positions_update) {
+            if(!this.positionBuffer) this.positionBuffer=gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER,this.positions, gl.STATIC_DRAW);
+            this.need_positions_update=false;
+        }
+        if(this.need_colors_update) {
+            if(!this.colorBuffer)this.colorBuffer=gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER,this.colorBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER,this.colors, gl.STATIC_DRAW);
+            this.need_colors_update=false;
+        }
+        if(this.need_inds_update) {
+            if(!this.indexBuffer)this.indexBuffer=gl.createBuffer();
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.inds, gl.STATIC_DRAW);
+            this.need_inds_update=false;
+        }
+        if(this.need_uvs_update) {
+            if(!this.uvBuffer)this.uvBuffer=gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.uvBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, this.uvs, gl.STATIC_DRAW);
+            this.need_uvs_update=false;
+        }
+    }
+};
+
+
 function createRectGeometry(width,height) {
-    var geometry = new THREE.Geometry();
+    var geometry = new Geometry(4,2);
     var sizeHalfX = width / 2;
     var sizeHalfY = height / 2;
     /*
@@ -460,12 +624,16 @@ function createRectGeometry(width,height) {
       | \|
       3--2
      */
-    geometry.vertices.push(new THREE.Vector3(-sizeHalfX, sizeHalfY, 0)); //0
-    geometry.vertices.push(new THREE.Vector3(sizeHalfX, sizeHalfY, 0)); //1
-    geometry.vertices.push(new THREE.Vector3(sizeHalfX, -sizeHalfY, 0)); //2
-    geometry.vertices.push(new THREE.Vector3(-sizeHalfX, -sizeHalfY, 0)); //3
-    geometry.faces.push(new THREE.Face3(0, 2, 1));
-    geometry.faces.push(new THREE.Face3(0, 3, 2));
+    geometry.setPosition(0, -sizeHalfX, sizeHalfY, 0);
+    geometry.setPosition(1, sizeHalfX, sizeHalfY, 0); 
+    geometry.setPosition(2, sizeHalfX, -sizeHalfY, 0);
+    geometry.setPosition(3, -sizeHalfX, -sizeHalfY, 0);
+    geometry.setColor(0,1,1,1,1);
+    geometry.setColor(1,1,1,1,1);
+    geometry.setColor(2,1,1,1,1);
+    geometry.setColor(3,1,1,1,1);    
+    geometry.setFaceInds(0, 0,2,1);
+    geometry.setFaceInds(1, 0,3,2);
     return geometry;
 }
 
@@ -483,20 +651,19 @@ class Prop2D extends Prop {
         this.grids=null;
         this.visible=true;
         this.use_additive_blend = false;
-        this.mesh=null;
         this.material=null;
         this.priority = null; // set when insertprop if kept null
-        this.need_material_update=false;
         this.need_color_update=false;
         this.need_uv_update=true;
         this.xflip=false;
         this.yflip=false;
-        this.fragment_shader= new DefaultColorShader();
+        this.material= new DefaultColorShaderMaterial();
         this.remote_vel=null;
         this.draw_offset=vec2.create();
+        this.geom=null;
     }
     setVisible(flg) { this.visible=flg; }
-    setDeck(dk) { this.deck = dk; this.need_material_update = true; }
+    setDeck(dk) { this.deck = dk; }
     setIndex(ind) { this.index = ind; this.need_uv_update = true; }
     setScl(x,y) { if(y===undefined) vec2.copy(this.scl,x); else vec2.set(this.scl,x,y); }
     setLoc(x,y) { if(y===undefined) vec2.copy(this.loc,x); else vec2.set(this.loc,x,y); }
@@ -505,7 +672,6 @@ class Prop2D extends Prop {
     setColor(r,g,b,a) {
         if(Color.exactEqualsToValues(this.color,r,g,b,a)==false) {
             this.need_color_update = true;
-            if(this.fragment_shader) this.need_material_update = true;
         }
         if(typeof r == 'object' ) {
             Color.copy(this.color,r);
@@ -537,13 +703,6 @@ class Prop2D extends Prop {
     clearPrims() {
         if(this.prim_drawer) this.prim_drawer.clear();
     }
-    clearMesh() {
-        this.custom_mesh=null;
-        this.mesh=null;
-    }
-    setMesh(mesh) {
-        this.custom_mesh=mesh;
-    }
     addGrid(g) {
         if(!this.grids) this.grids=[];
         this.grids.push(g);
@@ -566,7 +725,6 @@ class Prop2D extends Prop {
         td.setSize(1,1,sz[0],sz[1]);
         this.setDeck(td);
         this.setIndex(0);
-        this.need_material_update = true;
     }
     setFragmentShader(s) { this.fragment_shader = s;}
     propPoll(dt) { 
@@ -579,25 +737,9 @@ class Prop2D extends Prop {
         }
         return true;
     }
-    updateMesh() {
+    updateGeom() {
         if(!this.deck)return;
         if(this.index==-1)return;
-        if( this.need_material_update ) {
-            if(!this.material) {
-                if(this.fragment_shader) {
-                    this.fragment_shader.updateUniforms(this.deck.moyai_tex.three_tex,this.color);
-                    this.material = this.fragment_shader.material;
-                } else {
-                    this.material = createMeshBasicMaterial({ map: this.deck.moyai_tex.three_tex, depthTest:true, transparent: true, vertexColors:THREE.VertexColors, blending: THREE.NormalBlending });
-                }
-            } else {
-                this.material.map = this.deck.moyai_tex.three_tex;
-                if(this.fragment_shader) {
-                    this.fragment_shader.updateUniforms(this.deck.moyai_tex.three_tex,this.color);
-                }
-            }
-            this.need_material_update = false;
-        }  
         if( this.need_uv_update ) {
             if(!this.uvwork) this.uvwork=new Float32Array(4);
             this.deck.getUVFromIndex(this.uvwork,this.index,0,0,0);
@@ -608,62 +750,52 @@ class Prop2D extends Prop {
             if(this.yflip ) {
                 var tmp = v1; v1 = v0; v0 = tmp;
             }
-            var uv_p = new THREE.Vector2(u0,v1);
-            var uv_q = new THREE.Vector2(u0,v0);
-            var uv_r = new THREE.Vector2(u1,v0);
-            var uv_s = new THREE.Vector2(u1,v1);
+            if(!this.uv_p) {
+                this.uv_p = vec2.fromValues(u0,v1);
+                this.uv_q = vec2.fromValues(u0,v0);
+                this.uv_r = vec2.fromValues(u1,v0);
+                this.uv_s = vec2.fromValues(u1,v1);
+            } else {
+                vec2.set(this.uv_p,u0,v1);
+                vec2.set(this.uv_q,u0,v0);
+                vec2.set(this.uv_r,u1,v0);
+                vec2.set(this.uv_s,u1,v1);
+            }
+
+            if(!this.geom) {
+                this.geom = createRectGeometry(1,1);
+            }
+            
             // Q (u0,v0) - R (u1,v0)      top-bottom upside down.
             //      |           |
             //      |           |                        
             // P (u0,v1) - S (u1,v1)        
             if(this.uvrot) {
-                var tmp = uv_p;
-                uv_p = uv_s;
-                uv_s = uv_r;
-                uv_r = uv_q;
-                uv_q = tmp;
-            }
-            
-            if(!this.geom) {
-                this.geom = createRectGeometry(1,1);
-            }
-            var uvs = this.geom.faceVertexUvs[0][0];
-            if(!uvs) {
-                this.geom.faceVertexUvs[0].push([uv_q,uv_s,uv_r]);
-                this.geom.faceVertexUvs[0].push([uv_q,uv_p,uv_s]);
+                this.geom.setUV(0,this.uv_s[0],this.uv_s[1]);
+                this.geom.setUV(1,this.uv_p[0],this.uv_p[1]);
+                this.geom.setUV(2,this.uv_q[0],this.uv_q[1]);
+                this.geom.setUV(3,this.uv_r[0],this.uv_r[1]);
             } else {
-                uvs[0].x = uv_q.x; uvs[0].y = uv_q.y;
-                uvs[1].x = uv_s.x; uvs[1].y = uv_s.y;
-                uvs[2].x = uv_r.x; uvs[2].y = uv_r.y;
-                uvs = this.geom.faceVertexUvs[0][1];
-                uvs[0].x = uv_q.x; uvs[0].y = uv_q.y;
-                uvs[1].x = uv_p.x; uvs[1].y = uv_p.y;
-                uvs[2].x = uv_s.x; uvs[2].y = uv_s.y;
-            }
-            
-            this.geom.verticesNeedUpdate = true;
-            this.geom.uvsNeedUpdate = true;
+                this.geom.setUV(0,this.uv_p[0],this.uv_p[1]);
+                this.geom.setUV(1,this.uv_q[0],this.uv_q[1]);
+                this.geom.setUV(2,this.uv_r[0],this.uv_r[1]);
+                this.geom.setUV(3,this.uv_s[0],this.uv_s[1]);
+            }            
+            this.geom.need_uvs_update=true;
             this.need_uv_update = false;
         }
         if( this.need_color_update ) {
-            //        this.color.r = this.color.g = this.color.b = this.color.a = 1;
-            this.geom.faces[0].vertexColors[0] = Color.toTHREEColor(this.color);
-            this.geom.faces[0].vertexColors[1] = Color.toTHREEColor(this.color);
-            this.geom.faces[0].vertexColors[2] = Color.toTHREEColor(this.color);
-            this.geom.faces[1].vertexColors[0] = Color.toTHREEColor(this.color);
-            this.geom.faces[1].vertexColors[1] = Color.toTHREEColor(this.color);
-            this.geom.faces[1].vertexColors[2] = Color.toTHREEColor(this.color);
+            this.geom.setColorArray4(0,this.color);
+            this.geom.setColorArray4(1,this.color);
+            this.geom.setColorArray4(2,this.color);
+            this.geom.setColorArray4(3,this.color);
+            this.geom.need_colors_update=true;
             this.need_color_update = false;
-        }
-
-        if(!this.mesh) {
-            this.mesh = new THREE.Mesh(this.geom,this.material);
         }
     }
     onDelete() {
-        if(this.mesh){
-            if(this.mesh.geometry) this.mesh.geometry.dispose();
-            if(this.mesh.material) this.mesh.material.dispose();
+        if(this.geom){
+            this.geom.dispose();
         }
     }
 	hit(at,margin) {
@@ -702,7 +834,6 @@ function Grid(w,h) {
     this.visible=true;
     this.enfat_epsilon=0;
     this.parent_prop=null;
-    this.mesh=null;
     this.material=null;
     this.geom=null;
     this.need_material_update=false;
@@ -1314,17 +1445,14 @@ CharGrid.prototype.print = function(x,y,col,s) {
 
 /////////////////////////////
 var vertex_vcolor_glsl =
-    "varying vec4 vColor;\n"+
     "attribute vec3 color;\n"+
     "void main()\n"+
     "{\n"+
-    "  vColor = vec4(color,1);\n"+
     "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n"+
     "  gl_Position = projectionMatrix * mvPosition;\n"+
     "}\n";    
 var fragment_vcolor_glsl = 
     "uniform vec4 meshcolor;\n"+
-    "varying vec4 vColor;\n"+    
     "void main()\n"+
     "{\n"+
     "  gl_FragColor = meshcolor;//vec4(1,0,1,1);\n"+
@@ -1334,6 +1462,10 @@ var vertex_uv_color_glsl =
     "varying vec2 vUv;\n"+
     "varying vec4 vColor;\n"+
     "attribute vec3 color;\n"+
+    "attribute vec2 uv;\n"+
+    "attribute vec3 position;\n"+
+    "uniform mat4 modelViewMatrix;\n"+
+    "uniform mat4 projectionMatrix;\n"+    
     "void main()\n"+
     "{\n"+
     "  vUv = uv;\n"+
@@ -1343,12 +1475,12 @@ var vertex_uv_color_glsl =
     "}\n";
 var fragment_uv_color_glsl =
     "uniform sampler2D texture;\n"+
-    "uniform vec4 meshcolor;\n"+
-    "varying vec2 vUv;\n"+
-    "varying vec4 vColor;\n"+    
+    "uniform highp vec4 meshcolor;\n"+
+    "varying highp vec2 vUv;\n"+
+    "varying highp vec4 vColor;\n"+    
     "void main()\n"+
     "{\n"+
-    "  vec4 tc = texture2D(texture,vUv);\n"+
+    "  highp vec4 tc = texture2D(texture,vUv);\n"+
     "  gl_FragColor = vec4( tc.r * meshcolor.r, tc.g * meshcolor.g, tc.b * meshcolor.b, tc.a * meshcolor.a );\n"+
     "}\n";
 
@@ -1371,94 +1503,113 @@ var fragment_replacer_glsl =
 	"	gl_FragColor = pixel;\n"+
 	"}\n";
 
-FragmentShader.prototype.id_gen=1;
-function FragmentShader() {
-    this.id=this.__proto__.id_gen++;
-    this.uniforms=null;
-    this.material=null;
-    this.vsh_src=vertex_uv_color_glsl; 
-    this.fsh_src=null;
-}
-FragmentShader.prototype.updateMaterial = function() {
-    if(!this.material) {
-        this.material = new THREE.ShaderMaterial( {
-            uniforms : this.uniforms,
-            vertexShader : this.vsh_src,
-            fragmentShader : this.fsh_src,
-            blending : THREE.NormalBlending,
-            transparent: true
-        });
-    } else {
-        this.material.uniforms = this.uniforms;
-        this.material.needsUpdate = true;
+class ShaderMaterial {
+    constructor() {
+        var gl=Moyai.gl;
+        this.vsh_src=vertex_uv_color_glsl; 
+        this.fsh_src=null;
+        this.glprog=null;
+        this.vs=null;
+        this.fs=null;
     }
-}
-ColorReplacerShader.prototype = Object.create(FragmentShader.prototype);
-ColorReplacerShader.prototype.constructor = ColorReplacerShader;
-function ColorReplacerShader() {
-    FragmentShader.call(this);
-    this.fsh_src = fragment_replacer_glsl;
-    this.setColor(new THREE.Vector3(0,0,0),new THREE.Vector3(0,1,0),0.01);
-}
-// updateUniforms(tex) called when render
-ColorReplacerShader.prototype.updateUniforms = function(texture) {
-    if(this.uniforms) {
-        if(texture) this.uniforms["texture"]["value"] = texture;
-        this.uniforms["color1"]["value"] = this.from_color;
-        this.uniforms["replace1"]["value"] = this.to_color;
-        this.uniforms["eps"]["value"] = this.epsilon;
-    } else {
-        this.uniforms = {
-            "texture" : { type: "t", value: texture },        
-            "color1" : { type: "v3", value: this.from_color },
-            "replace1" : { type: "v3", value: this.to_color },
-            "eps" : { type: "f", value: this.epsilon }
+    createShader(src,type) {
+        var gl=Moyai.gl;
+        var sh=gl.createShader(type);
+        gl.shaderSource(sh,src);
+        gl.compileShader(sh);
+        if(!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {  
+            console.warn("shader compile error:" + gl.getShaderInfoLog(sh) + src);
+            return null;
         }
+        return sh;
+    }    
+    compileAndLink() {
+        var gl=Moyai.gl;
+        if(!this.fsh_src) {
+            console.warn("compileAndLink: need fs src set");
+            return;
+        }
+        this.vs=this.createShader(this.vsh_src,gl.VERTEX_SHADER);
+        this.fs=this.createShader(this.fsh_src,gl.FRAGMENT_SHADER);
+        this.glprog=gl.createProgram();
+        gl.attachShader(this.glprog,this.vs);
+        gl.attachShader(this.glprog,this.fs);
+        gl.linkProgram(this.glprog);
+        if (!gl.getProgramParameter(this.glprog, gl.LINK_STATUS)) {
+            console.warn("cant init shader program");
+        }        
     }
-//    console.log("colrep: updated uniforms. tex:", texture, this.from_color, this.to_color );    
-    this.updateMaterial();    
 }
-ColorReplacerShader.prototype.setColor = function(from,to,eps) {
-    this.epsilon = eps;
-    this.from_color = new THREE.Vector3(from[0],from[1],from[2]);
-    this.to_color = new THREE.Vector3(to[0],to[1],to[2]);
-    this.updateUniforms();
-}
-DefaultColorShader.prototype = Object.create(FragmentShader.prototype);
-DefaultColorShader.prototype.constructor = DefaultColorShader;
-function DefaultColorShader() {
-    FragmentShader.call(this);
-    this.fsh_src = fragment_uv_color_glsl;
-}
-DefaultColorShader.prototype.updateUniforms = function(texture,moyaicolor) {
-    if(this.uniforms) {
-        if(texture) this.uniforms["texture"]["value"] = texture;
-        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor[0], moyaicolor[1], moyaicolor[2], moyaicolor[3] );
-    } else {
-        this.uniforms = {
-            "texture" : { type: "t", value: texture },
-            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor[0], moyaicolor[1], moyaicolor[2], moyaicolor[3] ) }
+class ColorReplacerShaderMaterial extends ShaderMaterial {
+    constructor() {
+        super();        
+        this.fsh_src = fragment_replacer_glsl;
+        this.setColor(vec3.fromValues(0,0,0),vec3.fromValues(0,1,0),0.01);
+        this.epsilon=0.02;
+        this.from_color=vec3.fromValues(0,1,0,1);
+        this.to_color=vec3.fromValues(1,0,0,1);
+        this.compileAndLink();
+        this.attribLocations = {
+            position: gl.getAttribLocation(this.glprog,"position"),
+            color: gl.getAttribLocation(this.glprog,"color"),
+            uv: gl.getAttribLocation(this.glprog,"uv"),
+        };
+        this.uniformLocations = {
+            projectionMatrix: gl.getUniformLocation(this.glprog,"projectionMatrix"),
+            modelViewMatrix: gl.getUniformLocation(this.glprog,"modelViewMatrix"),
+            texture: gl.getUniformLocation(this.glprog, "texture"),
+            color1: gl.getUniformLocation(this.glprog,"color1"),
+            replace1: gl.getUniformLocation(this.glprog,"replace1"),
+            eps: gl.getUniformLocation(this.glprog,"eps"),
+        };        
+    }
+    setColor(from,to,eps) {
+        this.epsilon = eps;
+        vec3.copy(this.from_color,from);
+        vec3.copy(this.to_color,to);
+    }    
+};
+class DefaultColorShaderMaterial extends ShaderMaterial {
+    constructor() {
+        super();
+        var gl=Moyai.gl;
+        this.fsh_src = fragment_uv_color_glsl;
+        this.color=vec4.fromValues(1,0,0,1);
+        this.compileAndLink();
+        this.attribLocations = {
+            position: gl.getAttribLocation(this.glprog,"position"),
+            color: gl.getAttribLocation(this.glprog,"color"),
+            uv: gl.getAttribLocation(this.glprog,"uv"),
+        };
+        this.uniformLocations = {
+            projectionMatrix: gl.getUniformLocation(this.glprog,"projectionMatrix"),
+            modelViewMatrix: gl.getUniformLocation(this.glprog,"modelViewMatrix"),
+            texture: gl.getUniformLocation(this.glprog, "texture"),
+            meshcolor: gl.getUniformLocation(this.glprog,"meshcolor"),
         };
     }
-    this.updateMaterial();
-}
-PrimColorShader.prototype = Object.create(FragmentShader.prototype);
-PrimColorShader.prototype.constructor = PrimColorShader;
-function PrimColorShader() {
-    FragmentShader.call(this);
-    this.fsh_src = fragment_vcolor_glsl;
-    this.vsh_src = vertex_vcolor_glsl;
-}
-PrimColorShader.prototype.updateUniforms = function(moyaicolor) {
-    if(this.uniforms) {
-        this.uniforms["meshcolor"]["value"] = new THREE.Vector4(moyaicolor[0], moyaicolor[1], moyaicolor[2], moyaicolor[3] );
-    } else {
-        this.uniforms = {
-            "meshcolor" : { type: "v4", value: new THREE.Vector4(moyaicolor[0], moyaicolor[1], moyaicolor[2], moyaicolor[3] ) }
+};
+class PrimColorShaderMaterial extends ShaderMaterial {
+    constructor() {
+        super();        
+        this.fsh_src = fragment_vcolor_glsl;
+        this.vsh_src = vertex_vcolor_glsl;
+        this.color=vec4.fromValues(1,0,0,1);
+        this.compileAndLink();
+        this.attribLocations = {
+            position: gl.getAttribLocation(this.glprog,"position"),
         };
+        this.uniformLocations = {
+            projectionMatrix: gl.getUniformLocation(this.glprog,"projectionMatrix"),
+            modelViewMatrix: gl.getUniformLocation(this.glprog,"modelViewMatrix"),
+            meshcolor: gl.getUniformLocation(this.glprog, "meshcolor"),
+        };                
     }
-    this.updateMaterial();    
-}
+};
+
+    
+
+
 //////////////////////
 function Keyboard() {
     this.keys={};
