@@ -213,15 +213,19 @@ Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv,additive_blend) {
     }
     if(colv!==null) gl.uniform4fv(material.uniformLocations.meshcolor, colv);
     // draw
-    var fn=geom.fn_used;
-    if(fn===undefined) fn=geom.fn;
+    var indn=geom.indn_used;
+    if(indn===undefined) indn=geom.indn;
     //    console.log("draw:",geom,mvMat,projMat,material,gltex,colv,fn);
     if(additive_blend) {
         gl.blendFunc(gl.ONE,gl.ONE);
     } else {
         gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
     }
-    gl.drawElements(gl.TRIANGLES, fn*3, gl.UNSIGNED_SHORT, 0);
+    if(geom.primtype==gl.TRIANGLES) {
+        gl.drawElements(gl.TRIANGLES, indn, gl.UNSIGNED_SHORT, 0);        
+    } else if(geom.primtype==gl.LINES) {
+        gl.drawElements(gl.LINES, indn, gl.UNSIGNED_SHORT, 0);        
+    }
 }
     
 Moyai.insertLayer = function(l) {
@@ -355,7 +359,7 @@ Prim.prototype.updateModelViewMatrix = function(locv3,sclv3) {
 
 Prim.prototype.updateGeom = function() {
     if(this.type==PRIMTYPE_LINE) {
-        if(this.geom) this.geom.dispose();
+        if(!this.geom) this.geom=new LineGeometry();
         this.geom = new THREE.Geometry();
         this.geom.vertices.push(new THREE.Vector3(this.a[0],this.a[1],0));
         this.geom.vertices.push(new THREE.Vector3(this.b[0],this.b[1],0));
@@ -376,7 +380,7 @@ Prim.prototype.updateGeom = function() {
           | \|
           3--2
         */
-        if(!this.geom) this.geom=new Geometry(4,2);
+        if(!this.geom) this.geom=new FaceGeometry(4,2);
         this.geom.setPosition(0, this.a[0],this.a[1],0);
         this.geom.setPosition(1, this.b[0],this.a[1],0);
         this.geom.setPosition(2, this.b[0],this.b[1],0);
@@ -495,34 +499,21 @@ class Prop {
     }    
 }
 
-
 class Geometry {
-    constructor(vn,fn) {
+    constructor(vn,indn) {
         this.vn=vn;
-        this.fn=fn;
+        this.indn=indn;
         this.positions=new Float32Array(vn*3);
-        this.inds=new Uint16Array(fn*3)
-        this.uvs=new Float32Array(vn*2);
-        this.colors=new Float32Array(vn*4);
-
-        this.need_positions_update=true;
-        this.need_inds_update=true;
-        this.need_uvs_update=true;
-        this.need_colors_update=true;
+        this.colors=new Float32Array(vn*4);        
+        this.inds=new Uint16Array(indn*2);
     }
     setPosition(vind,x,y,z) {
         this.positions[vind*3]=x;
         this.positions[vind*3+1]=y;
         this.positions[vind*3+2]=z;
     }
-    setFaceInds(find,a,b,c) {
-        this.inds[find*3]=a;
-        this.inds[find*3+1]=b;
-        this.inds[find*3+2]=c;        
-    }
-    setUV(vind,u,v) {
-        this.uvs[vind*2]=u;
-        this.uvs[vind*2+1]=v;            
+    setIndex(ind,val) {
+        this.inds[ind]=val;
     }
     setColor(vind,r,g,b,a) {
         this.colors[vind*4]=r;
@@ -535,7 +526,7 @@ class Geometry {
         this.colors[vind*4+1]=v4[1];
         this.colors[vind*4+2]=v4[2];
         this.colors[vind*4+3]=v4[3];        
-    }
+    }    
     bless() {
         var gl=Moyai.gl;
         if(this.need_positions_update) {
@@ -563,11 +554,40 @@ class Geometry {
             this.need_uvs_update=false;
         }
     }
+}
+class LineGeometry extends Geometry {
+    constructor(vn,ln) {
+        super(vn,ln*2)
+        this.need_colors_update=true;
+        this.need_positions_update=true;
+        this.need_inds_update=true;
+        this.primtype=Moyai.gl.LINES;        
+    }
+};
+class FaceGeometry extends Geometry {
+    constructor(vn,fn) {
+        super(vn,fn*3);
+        this.uvs=new Float32Array(vn*2);
+        this.need_positions_update=true;
+        this.need_inds_update=true;
+        this.need_uvs_update=true;
+        this.need_colors_update=true;
+        this.primtype=Moyai.gl.TRIANGLES;        
+    }
+    setFaceInds(find,a,b,c) {
+        this.inds[find*3]=a;
+        this.inds[find*3+1]=b;
+        this.inds[find*3+2]=c;        
+    }
+    setUV(vind,u,v) {
+        this.uvs[vind*2]=u;
+        this.uvs[vind*2+1]=v;            
+    }
 };
 
 
 function createRectGeometry(width,height) {
-    var geometry = new Geometry(4,2);
+    var geometry = new FaceGeometry(4,2);
     var sizeHalfX = width / 2;
     var sizeHalfY = height / 2;
     /*
@@ -937,7 +957,7 @@ Grid.prototype.fillRect = function(x0,y0,x1,y1,ind) {
 var g_debug_grid_alpha_message=false;
 Grid.prototype.updateGeom = function() {
     if(!this.deck) return;
-    if(!this.geom) this.geom = new Geometry(this.width*this.height*4, this.width*this.height*2);
+    if(!this.geom) this.geom = new FaceGeometry(this.width*this.height*4, this.width*this.height*2);
     if(!this.need_geometry_update) return;
     this.need_geometry_update = false;
     var geom=this.geom, eps=this.enfat_epsilon;
@@ -1018,7 +1038,7 @@ Grid.prototype.updateGeom = function() {
             geom.setColor(quad_cnt*4+3,r,g,b,a);
             quad_cnt++;
         }
-        geom.fn_used=quad_cnt*2;
+        geom.indn_used=quad_cnt*2*3;
     }
     geom.need_positions_update=true;
     geom.need_inds_update=true;
