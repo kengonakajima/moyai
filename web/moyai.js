@@ -145,15 +145,7 @@ Moyai.render2D = function(layer,camera) {
     for(var pi=0;pi<layer.props.length;pi++ ) {                    
         var prop = layer.props[pi];
         if(!prop.visible)continue;
-
-        if(!prop.mvMat) {
-            prop.mvMat=mat4.create();
-        }
-        mat4.identity(prop.mvMat);
-        mat4.translate(prop.mvMat,prop.mvMat,vec3.fromValues(prop.loc[0]+prop.draw_offset[0], prop.loc[1]+prop.draw_offset[1], 0) ); //TODO:noalloc           
-        mat4.rotate(prop.mvMat,prop.mvMat,prop.rot,vec3.fromValues(0,0,1));//TODO: noalloc
-        mat4.scale(prop.mvMat,prop.mvMat,vec3.fromValues(prop.scl[0],prop.scl[1],1));  //TODO: noalloc
-
+        prop.updateModelViewMatrix();
         prop.updateGeom();
         if(prop.geom) prop.geom.bless();                    
         
@@ -174,22 +166,10 @@ Moyai.render2D = function(layer,camera) {
             for(var i=0;i<prop.children.length;i++) {
                 var chp = prop.children[i];
                 if(!chp.visible)continue;
-                if(chp.custom_mesh) {
-                    chp.mesh=chp.custom_mesh;
-                    chp.material=chp.custom_mesh.material;
-                } else {
-                    chp.updateMesh();
-                }
-                if( chp.mesh ) {
-                    chp.mesh.position.x = (chp.loc[0]-this.camloc[0])*this.relscl[0];
-                    chp.mesh.position.y = (chp.loc[1]-this.camloc[1])*this.relscl[1];
-                    chp.mesh.position.z = prop_z;
-                    chp.mesh.scale.x = chp.scl[0] * this.relscl[0];
-                    chp.mesh.scale.y = chp.scl[1] * this.relscl[1];
-                    chp.mesh.rotation.set(0,0,chp.rot);
-                    if( chp.use_additive_blend ) chp.material.blending = THREE.AdditiveBlending; else chp.material.blending = THREE.NormalBlending;
-                    scene.add(chp.mesh);
-                }
+                chp.updateModelViewMatrix();                
+                chp.updateGeom();
+                if(chp.geom) chp.geom.bless();
+                this.draw(chp.geom, chp.mvMat, layer.projMat, chp.material, chp.deck.moyai_tex.gltex, chp.color, chp.use_additive_blend);
             }
         }
         if(prop.geom) {
@@ -727,6 +707,13 @@ class Prop2D extends Prop {
             return false;
         }
         return true;
+    }
+    updateModelViewMatrix() {
+        if(!this.mvMat) this.mvMat=mat4.create();
+        mat4.identity(this.mvMat);
+        mat4.translate(this.mvMat,this.mvMat,vec3.fromValues(this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],0)); //TODO:noalloc           
+        mat4.rotate(this.mvMat,this.mvMat,this.rot,vec3.fromValues(0,0,1));//TODO: noalloc
+        mat4.scale(this.mvMat,this.mvMat,vec3.fromValues(this.scl[0],this.scl[1],1));  //TODO: noalloc
     }
     updateGeom() {
         if(!this.deck)return;

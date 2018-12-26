@@ -54,6 +54,16 @@ p_over.setColor(0.7,0.7,0.7,1);
 p_over.use_additive_blend=true;
 g_main_layer.insertProp(p_over);
 
+// children test
+if(1) {
+    var childp = new Prop2D();
+    childp.setDeck(deck);
+    childp.setScl(16,16);
+    childp.setRot( Math.PI * 0.25 );
+    childp.setIndex(64);
+    childp.setLoc(40,40);
+    p_over.addChild(childp);
+}
 
 // grid test
 if(1) {
