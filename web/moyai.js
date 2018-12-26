@@ -157,10 +157,16 @@ Moyai.render2D = function(layer,camera) {
         var prop = layer.props[pi];
         if(!prop.visible)continue;
 
+        if(!prop.mvMat) {
+            prop.mvMat=mat4.create();
+        }
+        mat4.identity(prop.mvMat);
+        mat4.translate(prop.mvMat,prop.mvMat,vec3.fromValues(prop.loc[0]+prop.draw_offset[0], prop.loc[1]+prop.draw_offset[1], 0) ); //TODO:noalloc           
+        mat4.rotate(prop.mvMat,prop.mvMat,prop.rot,vec3.fromValues(0,0,1));//TODO: noalloc
+        mat4.scale(prop.mvMat,prop.mvMat,vec3.fromValues(prop.scl[0],prop.scl[1],1));  //TODO: noalloc
+
         prop.updateGeom();
-        prop.geom.bless();        
-        
-        var z_inside_prop=0;
+        if(prop.geom) prop.geom.bless();                    
         
         var prop_z = layer.priority * g_moyai_z_per_layer + prop.priority * g_moyai_z_per_prop;
         if(prop.grids) {
@@ -169,18 +175,10 @@ Moyai.render2D = function(layer,camera) {
                 if(!grid.visible)continue;
                 if(!grid.deck)grid.setDeck(prop.deck);
                 grid.updateGeom();
-                if(!grid.mesh) {
-                    console.log("grid.mesh is null. grid_id:", grid.id, " skipping render");
-                } else {
-                    grid.mesh.position.x = (prop.loc[0]+prop.draw_offset[0]-this.camloc[0])*this.relscl[0];
-                    grid.mesh.position.y = (prop.loc[1]+prop.draw_offset[1]-this.camloc[1])*this.relscl[1];
-                    grid.mesh.position.z = prop_z + z_inside_prop;
-                    grid.mesh.scale.x = prop.scl[0] * this.relscl[0];
-                    grid.mesh.scale.y = prop.scl[1] * this.relscl[1];
-                    grid.mesh.rotation.set(0,0,prop.rot);
-                    scene.add(grid.mesh);
-                    z_inside_prop += g_moyai_z_per_subprop;
-                }
+                if(grid.geom) grid.geom.bless();
+                var gltex;
+                if(grid.deck) gltex=grid.deck.moyai_tex.gltex; else gltex=prop.deck.moyai_tex.gltex;
+                this.draw(grid.geom, prop.mvMat, layer.projMat, prop.material, gltex,prop.color);
             }
         }
         if(prop.children.length>0) {
@@ -196,25 +194,16 @@ Moyai.render2D = function(layer,camera) {
                 if( chp.mesh ) {
                     chp.mesh.position.x = (chp.loc[0]-this.camloc[0])*this.relscl[0];
                     chp.mesh.position.y = (chp.loc[1]-this.camloc[1])*this.relscl[1];
-                    chp.mesh.position.z = prop_z + z_inside_prop;
+                    chp.mesh.position.z = prop_z;
                     chp.mesh.scale.x = chp.scl[0] * this.relscl[0];
                     chp.mesh.scale.y = chp.scl[1] * this.relscl[1];
                     chp.mesh.rotation.set(0,0,chp.rot);
                     if( chp.use_additive_blend ) chp.material.blending = THREE.AdditiveBlending; else chp.material.blending = THREE.NormalBlending;
                     scene.add(chp.mesh);
-                    z_inside_prop += g_moyai_z_per_subprop;
                 }
             }
         }
         if(prop.geom) {
-            if(!prop.mvMat) {
-                prop.mvMat=mat4.create();
-            }
-            mat4.identity(prop.mvMat);
-            mat4.translate(prop.mvMat,prop.mvMat,vec3.fromValues(prop.loc[0]+prop.draw_offset[0], prop.loc[1]+prop.draw_offset[1], 0) ); //TODO:noalloc           
-            mat4.rotate(prop.mvMat,prop.mvMat,prop.rot,vec3.fromValues(0,0,1));//TODO: noalloc
-            mat4.scale(prop.mvMat,prop.mvMat,vec3.fromValues(prop.scl[0],prop.scl[1],1));  //TODO: noalloc
-            z_inside_prop += g_moyai_z_per_subprop;
             this.draw(prop.geom, prop.mvMat, layer.projMat, prop.material, prop.deck.moyai_tex.gltex,prop.color);
         }            
         if(prop.prim_drawer) {
@@ -223,13 +212,13 @@ Moyai.render2D = function(layer,camera) {
                 prim.updateMesh();
                 prim.mesh.position.x = (prop.loc[0]+prop.draw_offset[0]-this.camloc[0])*this.relscl[0];
                 prim.mesh.position.y = (prop.loc[1]+prop.draw_offset[1]-this.camloc[1])*this.relscl[1];
-                prim.mesh.position.z = prop_z + z_inside_prop;
+                prim.mesh.position.z = prop_z;
                 prim.mesh.scale.x = prop.scl[0] * this.relscl[0];
                 prim.mesh.scale.y = prop.scl[1] * this.relscl[1];
                 prim.mesh.rotation.set(0,0,prop.rot);
                 //                    console.log("adding prim:", prim, prim.a, prim.b, prim.mesh.position );
                 scene.add(prim.mesh);
-                z_inside_prop += g_moyai_z_per_subprop;
+
             }
         }            
     }
@@ -259,8 +248,10 @@ Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv) {
     gl.uniform1i(material.uniformLocations.texture,0);
     gl.uniform4fv(material.uniformLocations.meshcolor, colv);
     // draw
-    console.log("draw:",geom);
-    gl.drawElements(gl.TRIANGLES, geom.fn*3, gl.UNSIGNED_SHORT, 0);
+    var fn=geom.fn_used;
+    if(fn===undefined) fn=geom.fn;
+//    console.log("draw:",geom,mvMat,projMat,material,gltex,colv,fn);
+    gl.drawElements(gl.TRIANGLES, fn*3, gl.UNSIGNED_SHORT, 0);
 }
     
 Moyai.insertLayer = function(l) {
@@ -640,7 +631,6 @@ function createRectGeometry(width,height) {
     geometry.setColor(3,1,1,1,1);    
     geometry.setFaceInds(0, 0,2,1);
     geometry.setFaceInds(1, 0,3,2);
-    console.log("GEOM:",geometry);
     return geometry;
 }
 
@@ -747,6 +737,7 @@ class Prop2D extends Prop {
     updateGeom() {
         if(!this.deck)return;
         if(this.index==-1)return;
+        if(!this.geom) this.geom = createRectGeometry(1,1);
         if( this.need_uv_update ) {
             if(!this.uvwork) this.uvwork=new Float32Array(4);
             this.deck.getUVFromIndex(this.uvwork,this.index,0,0,0);
@@ -769,9 +760,7 @@ class Prop2D extends Prop {
                 vec2.set(this.uv_s,u1,v1);
             }
 
-            if(!this.geom) {
-                this.geom = createRectGeometry(1,1);
-            }
+
             
             // Q (u0,v0) - R (u1,v0)      top-bottom upside down.
             //      |           |
@@ -831,12 +820,14 @@ function Grid(w,h) {
     this.id=this.__proto__.id_gen++;
     this.width=w;
     this.height=h;
-    this.index_table=null;
-    this.xflip_table=null;
-    this.yflip_table=null;
-    this.texofs_table=null;
-    this.rot_table=null;
-    this.color_table=null;
+    this.index_table=new Int16Array(w*h);
+    for(var i=0;i<w*h;i++) this.index_table[i]=GRID_NOT_USED;
+    this.xflip_table=new Uint8Array(w*h); // 0,1
+    this.yflip_table=new Uint8Array(w*h); // 0,1
+    this.texofs_table=new Float32Array(w*h*2); // u,v,u,v,u,v,..
+    this.rot_table=new Uint8Array(w*h); // 0,1
+    this.color_table=new Float32Array(w*h*4); // r,g,b,a,r,g,b,a,..
+    for(var i=0;i<w*h*4;i++) this.color_table[i]=1;
     this.deck=null;
     this.visible=true;
     this.enfat_epsilon=0;
@@ -844,39 +835,28 @@ function Grid(w,h) {
     this.material=null;
     this.geom=null;
     this.need_material_update=false;
-    this.need_geometry_update=false;
+    this.need_geometry_update=true;
     // this.fragment_shader  TODO:currently each vertex color alpha is not supported, because of three.js only have vec3 attribute color
 }
 Grid.prototype.setDeck =function(dk) { this.deck=dk; this.need_material_update=true;}
 Grid.prototype.index = function(x,y) { return x+y*this.width; }
 Grid.prototype.getCellNum = function() { return this.width * this.height; }
-Grid.prototype._fill = function(tbl,val) {
-    for(var y=0;y<this.height;y++) {
-        for(var x=0;x<this.width;x++) {
-            tbl[x+y*this.width] = val;
-        }
-    }
-    this.need_geometry_update = true;
-}
-var GRID_NOT_USED = -1;
+const GRID_NOT_USED = -1;
 Grid.prototype.set = function(x,y,ind) {
-    if(!this.index_table) this.index_table=[];
     this.index_table[this.index(x,y)] = ind;
     this.need_geometry_update = true;
 }
 Grid.prototype.get  =function(x,y) {
-    if(!this.index_table) return GRID_NOT_USED;
     return this.index_table[ this.index(x,y) ];
 }
 Grid.prototype.bulkSetIndex = function(inds) {
-    if(!this.index_table) this.index_table=[];
     var expect_len = this.width * this.height;
     if(inds.length < expect_len) {
-        console.log("bulksetindex: data not enough. expect:",expect_len, "got:",inds.length);
-    } else {
-        for(var i=0;i<expect_len;i++) this.index_table[i] = inds[i];
-        this.need_geometry_update = true;
+        console.warn("bulksetindex: data not enough. expect:",expect_len, "got:",inds.length);
+        return;
     }
+    for(var i=0;i<expect_len;i++) this.index_table[i] = inds[i];
+    this.need_geometry_update = true;
 }
 Grid.prototype.bulkSetFlipRotBits = function(xflbits,yflbits,uvrotbits) {
     var expect_len = this.width * this.height;
@@ -920,85 +900,65 @@ Grid.prototype.bulkSetColor = function(colsary) {
     }
 }
 Grid.prototype.setXFlip = function(x,y,flg) {
-    if(!this.xflip_table) this.xflip_table=[];
     this.xflip_table[this.index(x,y)]=flg;
     this.need_geometry_update = true;
 }
 Grid.prototype.getXFlip = function(x,y) {
-    if(!this.xflip_table) return false;
     return this.xflip_table[this.index(x,y)];
 }
 Grid.prototype.setYFlip = function(x,y,flg) {
-    if(!this.yflip_table) this.yflip_table=[];
-    this.yflip_table[this.index(x,y)]=flg;    
+    this.yflip_table[this.index(x,y)]=flg;
     this.need_geometry_update = true;
 }
 Grid.prototype.getYFlip = function(x,y) {
-    if(!this.yflip_table) return false;
     return this.yflip_table[this.index(x,y)];
 }
 Grid.prototype.setTexOffset = function(x,y,uv) {
-    if(!this.texofs_table) this.texofs_table=[];
-    if(y==undefined) {
-        // fill texofs
-        for(var i=0;i<this.width*this.height;i++) {
-            if(this.texofs_table[i]) vec2.set(this.texofs_table[i],uv); else this.texofs_table[i]=vec2.fromValues(uv[0],uv[1]);
-        } 
-    } else {
-        var uvout=vec2.create();
-        vec2.set(uvout,uv);
-        this.texofs_table[this.index(x,y)]=uvout;
-    }
+    this.texofs_table[this.index(x,y)*2+0]=uv[0];
+    this.texofs_table[this.index(x,y)*2+1]=uv[1];
     this.need_geometry_update = true;
 }
-Grid.prototype.getTexOffset = function(x,y) {
-    if(!this.texofs_table) return new Vec2(0,0);
-    return this.texofs_table[this.index(x,y)];
+Grid.prototype.getTexOffset = function(outv,x,y) {
+    outv[0]=this.texofs_table[this.index(x,y)*2+0];
+    outv[1]=this.texofs_table[this.index(x,y)*2+1];
 }
 Grid.prototype.setUVRot = function(x,y,flg) {
-    if(!this.rot_table) this.rot_table=[];
     this.rot_table[this.index(x,y)]=flg;
     this.need_geometry_update = true;
 }
 Grid.prototype.getUVRot = function(x,y) {
-    if(!this.rot_table) return false;
     return this.rot_table[this.index(x,y)];
 }
 Grid.prototype.setColor = function(x,y,col) {
-    if(!this.color_table) this.color_table=[];
-    if(this.color_table[this.index(x,y)]) {
-        Color.copy(this.color_table[this.index(x,y)],col);
-    } else {
-        this.color_table[this.index(x,y)]=Color.fromValues(col[0],col[1],col[2],col[3]);
-    }
+    var ind=this.index(x,y)*4;
+    this.color_table[ind]=col[0];
+    this.color_table[ind+1]=col[1];
+    this.color_table[ind+2]=col[2];
+    this.color_table[ind+3]=col[3];    
     this.need_geometry_update = true;
 }
 Grid.prototype.getColor = function(outary,x,y) {
-    if(!this.color_table) outary[0]=outary[1]=outary[2]=outary[3]=1;
-    var col=this.color_table[this.index(x,y)];
-    if(col) {
-        Color.copy(outary,col);
-    } else {
-        outary[0]=outary[1]=outary[2]=outary[3]=1;
-    }
+    var ind=this.index(x,y)*4;
+    outary[0]=this.color_table[ind];
+    outary[1]=this.color_table[ind+1];
+    outary[2]=this.color_table[ind+2];
+    outary[3]=this.color_table[ind+3];    
 }
 Grid.prototype.setVisible = function(flg) { this.visible=flg; }
 Grid.prototype.getVisible = function() { return this.visible; }
 Grid.prototype.clear = function(x,y) {
-    if(x== (void 0) ) {
-        if(this.index_table) this._fill(this.index_table,GRID_NOT_USED);
+    if(x===undefined){
+        for(var i=0;i<this.width*this.height;i++) this.index_table[i]=GRID_NOT_USED;
     } else {
         this.set(x,y,GRID_NOT_USED);
     }    
 }
-Grid.prototype.fillColor = function(c) {
-    if(!this.color_table)this.color_table=[];
-    if(this.color_table) {
-        for(var y=0;y<this.height;y++) {
-            for(var x=0;x<this.width;x++) {
-                this.color_table[this.index(x,y)] = Color.fromValues(c[0],c[1],c[2],c[3]);
-            }
-        }
+Grid.prototype.fillColor = function(col) {
+    for(var i=0;i<this.width*this.height;i++) {
+        this.color_table[i*4] = col[0];
+        this.color_table[i*4+1] = col[1];
+        this.color_table[i*4+2] = col[2];
+        this.color_table[i*4+3] = col[3];        
     }
     this.need_geometry_update = true;
 }
@@ -1014,118 +974,90 @@ Grid.prototype.fillRect = function(x0,y0,x1,y1,ind) {
 }
 
 var g_debug_grid_alpha_message=false;
-Grid.prototype.updateMesh = function() {
-    if(!this.deck) {
-//        console.log("grid.updateMesh: deck is null?", this.deck, this.id );
-        return;
-    }
-    if(!this.index_table) {
-//        console.log("grid.updateMesh: index_table is null?", this, "grid_id:",this.id );
-        return;
-    }
-    
-    if(this.need_material_update) {
-        this.need_material_update=false;
-        if(!this.material) {
-            this.material = createMeshBasicMaterial({map: this.deck.moyai_tex.three_tex, transparent:true, depthTest:true, vertexColors:THREE.VertexColors, blending: THREE.NormalBlending });
-        } else {
-            this.material.map = this.deck.moyai_tex.three_tex;
-        }
-    }
-    if(this.need_geometry_update) {
-        this.need_geometry_update = false;
-        if(this.geom) {
-            this.geom.dispose();
-        }
-        this.geom = new THREE.Geometry();
+Grid.prototype.updateGeom = function() {
+    if(!this.deck) return;
+    if(!this.geom) this.geom = new Geometry(this.width*this.height*4, this.width*this.height*2);
+    if(!this.need_geometry_update) return;
+    this.need_geometry_update = false;
+    var geom=this.geom, eps=this.enfat_epsilon;
+    var quad_cnt=0;
+    for(var y=0;y<this.height;y++) {
+        for(var x=0;x<this.width;x++) {
+            var ind = x+y*this.width;
+            if( this.index_table[ind] == GRID_NOT_USED )continue;
+            /*
+              0--1
+              |\ |
+              | \|
+              3--2
 
-        var geom = this.geom;
-        var quad_cnt=0;
-        for(var y=0;y<this.height;y++) {
-            for(var x=0;x<this.width;x++) {
-                var ind = x+y*this.width;
-                if( this.index_table[ind] == GRID_NOT_USED )continue;
-                /*
-                  0--1
-                  |\ |
-                  | \|
-                  3--2
+              3の位置が(0,0)
+            */
 
-                  3の位置が(0,0)
-                */
+            // 1セルあたり4頂点づつ
+            geom.setPosition(quad_cnt*4+0, x-eps,y+1+eps,0);
+            geom.setPosition(quad_cnt*4+1, x+eps+1,y+eps+1, 0);
+            geom.setPosition(quad_cnt*4+2, x+eps+1,y-eps, 0); 
+            geom.setPosition(quad_cnt*4+3, x-eps,y-eps, 0);
+            
+            // 1セルあたり2面づつ
+            var face_start_vert_ind = quad_cnt*4;
+            geom.setFaceInds(quad_cnt*2, face_start_vert_ind+0, face_start_vert_ind+2, face_start_vert_ind+1);
+            geom.setFaceInds(quad_cnt*2+1, face_start_vert_ind+0, face_start_vert_ind+3, face_start_vert_ind+2);
+            
+            var left_bottom, right_top;
+            if(!this.uvwork) this.uvwork=new Float32Array(4);
+            this.deck.getUVFromIndex(this.uvwork,this.index_table[ind],0,0,0);
+            var u0 = this.uvwork[0], v0 = this.uvwork[1], u1 = this.uvwork[2], v1 = this.uvwork[3];
 
-                // 1セルあたり4頂点づつ
-                geom.vertices.push(new THREE.Vector3(x-this.enfat_epsilon,y+1+this.enfat_epsilon,0)); //0
-                geom.vertices.push(new THREE.Vector3(x+this.enfat_epsilon+1,y+this.enfat_epsilon+1, 0)); //1
-                geom.vertices.push(new THREE.Vector3(x+this.enfat_epsilon+1,y-this.enfat_epsilon, 0)); //2
-                geom.vertices.push(new THREE.Vector3(x-this.enfat_epsilon,y-this.enfat_epsilon, 0)); //3
-                // 1セルあたり2面づつ
-                var face_start_vert_ind = quad_cnt*4;
-                geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+2, face_start_vert_ind+1));
-                geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+3, face_start_vert_ind+2));
-                
-                var left_bottom, right_top;
-                if(!this.uvwork) this.uvwork=new Float32Array(4);
-                this.deck.getUVFromIndex(this.uvwork,this.index_table[ind],0,0,0);
-                var u0 = this.uvwork[0], v0 = this.uvwork[1], u1 = this.uvwork[2], v1 = this.uvwork[3];
+            var u_per_cell = this.deck.getUperCell();
+            var v_per_cell = this.deck.getVperCell();
+            u0 += this.texofs_table[ind*2+0] * u_per_cell;
+            v0 += this.texofs_table[ind*2+1] * v_per_cell;
+            u1 += this.texofs_table[ind*2+0] * u_per_cell;
+            v1 += this.texofs_table[ind*2+1] * v_per_cell;
 
-                if(this.texofs_table && this.texofs_table[ind]) {
-                    var u_per_cell = this.deck.getUperCell();
-                    var v_per_cell = this.deck.getVperCell();
-                    u0 += this.texofs_table[ind][0] * u_per_cell;
-                    v0 += this.texofs_table[ind][1] * v_per_cell;
-                    u1 += this.texofs_table[ind][0] * u_per_cell;
-                    v1 += this.texofs_table[ind][1] * v_per_cell;
-                }
-
-                if(this.xflip_table && this.xflip_table[ind]) {
-                    var tmp = u1; u1 = u0; u0 = tmp;
-                }
-                if(this.yflip_table && this.yflip_table[ind]) {
-                    var tmp = v1; v1 = v0; v0 = tmp;
-                }
-                var uv_p = new THREE.Vector2(u0,v1);
-                var uv_q = new THREE.Vector2(u0,v0);
-                var uv_r = new THREE.Vector2(u1,v0);
-                var uv_s = new THREE.Vector2(u1,v1);
-                if(this.rot_table && this.rot_table[ind]) {
-                    var tmp = uv_p;
-                    uv_p = uv_s;
-                    uv_s = uv_r;
-                    uv_r = uv_q;
-                    uv_q = tmp;
-                }                
-                geom.faceVertexUvs[0].push([uv_q,uv_s,uv_r]);
-                geom.faceVertexUvs[0].push([uv_q,uv_p,uv_s]);
-                var col; 
-                if( this.color_table && this.color_table[ind] ) {
-                    col = Color.toTHREEColor(this.color_table[ind]);
-                    if(this.color_table[ind].a < 1.0 ) {
-                        if(!g_debug_grid_alpha_message) {
-                            console.log("alpha blending in grid cell is not implemented yet (THREE.js dont have vert color alpha)");
-                            g_debug_grid_alpha_message=true;
-                        }
-                    }
-                } else {
-                    col = new THREE.Color("#fff");
-                }
-                geom.faces[quad_cnt*2+0].vertexColors[0] = col;
-                geom.faces[quad_cnt*2+0].vertexColors[1] = col;
-                geom.faces[quad_cnt*2+0].vertexColors[2] = col;
-                geom.faces[quad_cnt*2+1].vertexColors[0] = col;
-                geom.faces[quad_cnt*2+1].vertexColors[1] = col;
-                geom.faces[quad_cnt*2+1].vertexColors[2] = col;
-                quad_cnt++;
+            if(this.xflip_table[ind]) {
+                var tmp = u1; u1 = u0; u0 = tmp;
             }
+            if(this.yflip_table[ind]) {
+                var tmp = v1; v1 = v0; v0 = tmp;
+            }
+            if(!this.uv_p) {
+                this.uv_p = vec2.create();
+                this.uv_q = vec2.create();
+                this.uv_r = vec2.create();
+                this.uv_s = vec2.create();
+            }
+            vec2.set(this.uv_p,u0,v1);
+            vec2.set(this.uv_q,u0,v0);
+            vec2.set(this.uv_r,u1,v0);
+            vec2.set(this.uv_s,u1,v1);
+            
+//            console.log("gridset:",x,y,this.uv_p,this.uv_q,this.uv_r, this.uv_s);
+            if(this.rot_table[ind]) {
+                geom.setUV(quad_cnt*4+0,this.uv_p[0],this.uv_p[1]);
+                geom.setUV(quad_cnt*4+1,this.uv_q[0],this.uv_q[1]);
+                geom.setUV(quad_cnt*4+2,this.uv_r[0],this.uv_r[1]);
+                geom.setUV(quad_cnt*4+3,this.uv_s[0],this.uv_s[1]);
+            } else {
+                geom.setUV(quad_cnt*4+0,this.uv_q[0],this.uv_q[1]);
+                geom.setUV(quad_cnt*4+1,this.uv_r[0],this.uv_r[1]);
+                geom.setUV(quad_cnt*4+2,this.uv_s[0],this.uv_s[1]);
+                geom.setUV(quad_cnt*4+3,this.uv_p[0],this.uv_p[1]);
+            } 
+            geom.setColorArray4(quad_cnt*4,this.color_table[ind*4]);
+            geom.setColorArray4(quad_cnt*4+1,this.color_table[ind*4+1]);
+            geom.setColorArray4(quad_cnt*4+2,this.color_table[ind*4+2]);
+            geom.setColorArray4(quad_cnt*4+3,this.color_table[ind*4+3]);
+            quad_cnt++;
         }
-        geom.verticesNeedUpdate = true;
-        geom.uvsNeedUpdate = true;
-        if(!this.mesh) {
-            this.mesh = new THREE.Mesh(this.geom,this.material);
-        } else {
-            this.mesh.geometry = this.geom;
-        }
-    }    
+        geom.fn_used=quad_cnt*2;
+    }
+    geom.need_positions_update=true;
+    geom.need_inds_update=true;
+    geom.need_uvs_update=true;
+    geom.need_colors_update=true;
 }
 
 /////////////////////

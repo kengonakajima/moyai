@@ -55,13 +55,15 @@ g_main_layer.insertProp(p_over);
 
 
 // grid test
-if(0) {
+if(1) {
     var p_grid_under = new Prop2D();
     p_grid_under.setLoc(-200,-100);
     var g=new Grid(4,4);
     g.setDeck(g_base_deck);
     for(var y=0;y<4;y++) for(var x=0;x<4;x++) g.set(x,y,0);
     p_grid_under.addGrid(g);
+    g.setXFlip(1,1,1);
+    g.setYFlip(2,2,1);    
     p_grid_under.setScl(24,24);
     g_main_layer.insertProp(p_grid_under);
 

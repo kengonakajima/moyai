@@ -184,9 +184,6 @@ Color.fromRGBA = function(outary,r,g,b,a) {
 Color.toCode = function(col) {
     return ( Math.floor( col[0] * 255) << 16 ) + ( Math.floor(col[1] * 255) << 8 ) + Math.floor(col[2] * 255);
 }
-Color.toTHREEColor = function(col) {
-    return new THREE.Color(Color.toCode(col));
-}
 Color.copy = function(out,input) {
     out[0]=input[0]; out[1]=input[1]; out[2]=input[2]; out[3]=input[3];
 }
