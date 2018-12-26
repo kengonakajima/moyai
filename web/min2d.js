@@ -42,7 +42,7 @@ p.setScl(48,48);
 p.setLoc(0,0);
 if(0)p.setUVRot(true);
 if(1)p.addRect(vec2.fromValues(0,0), vec2.fromValues(5,5), Color.fromValues(1,1,1,0.5));
-if(0)p.addLine(vec2.fromValues(0,0), vec2.fromValues(-5,5), Color.fromValues(1,0,1,0.5));
+if(1)p.addLine(vec2.fromValues(0,0), vec2.fromValues(-5,5), Color.fromValues(1,0,1,0.5));
 g_main_layer.insertProp(p);
 
 

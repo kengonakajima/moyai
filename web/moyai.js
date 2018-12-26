@@ -346,9 +346,7 @@ function Prim(t,a,b,col,lw) {
     this.geom=null;
     this.material=null;
     this.mesh=null;
-    if(t==PRIMTYPE_RECTANGLE) {
-        this.material = new PrimColorShaderMaterial();
-    }
+    this.material = new PrimColorShaderMaterial();
 }
 Prim.prototype.updateModelViewMatrix = function(locv3,sclv3) {
     if(!this.mvMat) this.mvMat=mat4.create();
@@ -359,20 +357,16 @@ Prim.prototype.updateModelViewMatrix = function(locv3,sclv3) {
 
 Prim.prototype.updateGeom = function() {
     if(this.type==PRIMTYPE_LINE) {
-        if(!this.geom) this.geom=new LineGeometry();
-        this.geom = new THREE.Geometry();
-        this.geom.vertices.push(new THREE.Vector3(this.a[0],this.a[1],0));
-        this.geom.vertices.push(new THREE.Vector3(this.b[0],this.b[1],0));
-        this.geom.verticesNeedUpdate=true;
-        if(!this.material) {
-            this.material = new THREE.LineBasicMaterial( { color: Color.toCode(this.color), linewidth: this.line_width, depthTest:true, transparent:true });
-        }
-        if(this.mesh) {
-            this.mesh.geometry = this.geom;
-            this.mesh.material = this.material;
-        } else {
-            this.mesh = new THREE.Line( this.geom, this.material);
-        }        
+        if(!this.geom) this.geom=new LineGeometry(2,1);
+        this.geom.setPosition(0, this.a[0],this.a[1],0);
+        this.geom.setPosition(1, this.b[0],this.b[1],0);
+        this.geom.need_positions_update=true;
+        this.geom.setColorArray4(0, this.color );
+        this.geom.setColorArray4(1, this.color );
+        this.geom.need_colors_update=true;
+        this.geom.setIndex(0,0);
+        this.geom.setIndex(1,1);
+        this.geom.need_inds_update=true;
     } else if(this.type==PRIMTYPE_RECTANGLE) {
         /*
           0--1
