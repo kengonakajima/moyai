@@ -178,16 +178,10 @@ Moyai.render2D = function(layer,camera) {
         if(prop.prim_drawer) {
             for(var i=0;i<prop.prim_drawer.prims.length;i++) {
                 var prim = prop.prim_drawer.prims[i];
-                prim.updateMesh();
-                prim.mesh.position.x = (prop.loc[0]+prop.draw_offset[0]-this.camloc[0])*this.relscl[0];
-                prim.mesh.position.y = (prop.loc[1]+prop.draw_offset[1]-this.camloc[1])*this.relscl[1];
-                prim.mesh.position.z = prop_z;
-                prim.mesh.scale.x = prop.scl[0] * this.relscl[0];
-                prim.mesh.scale.y = prop.scl[1] * this.relscl[1];
-                prim.mesh.rotation.set(0,0,prop.rot);
-                //                    console.log("adding prim:", prim, prim.a, prim.b, prim.mesh.position );
-                scene.add(prim.mesh);
-
+                prim.updateModelViewMatrix(vec3.fromValues(prop.loc[0],prop.loc[1],0),vec3.fromValues(prop.scl[0],prop.scl[1],1)); // TODO: noalloc
+                prim.updateGeom();
+                if(prim.geom) prim.geom.bless();
+                this.draw(prim.geom, prim.mvMat, layer.projMat, prim.material, null, null, prim.use_additive_blend);
             }
         }            
     }
@@ -204,18 +198,20 @@ Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv,additive_blend) {
     gl.bindBuffer(gl.ARRAY_BUFFER, geom.colorBuffer);
     gl.vertexAttribPointer( material.attribLocations.color, 4, gl.FLOAT, false,0,0 );
     gl.enableVertexAttribArray(material.attribLocations.color);
-    // uv
-    gl.bindBuffer(gl.ARRAY_BUFFER, geom.uvBuffer);
-    gl.vertexAttribPointer(material.attribLocations.uv, 2, gl.FLOAT, false,0,0 );
-    gl.enableVertexAttribArray(material.attribLocations.uv );
     // ind
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geom.indexBuffer);
     // setup shader
     gl.uniformMatrix4fv( material.uniformLocations.modelViewMatrix, false, mvMat);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, gltex);
-    gl.uniform1i(material.uniformLocations.texture,0);
-    gl.uniform4fv(material.uniformLocations.meshcolor, colv);
+    if(gltex!==null) {
+        // uv
+        gl.bindBuffer(gl.ARRAY_BUFFER, geom.uvBuffer);
+        gl.vertexAttribPointer(material.attribLocations.uv, 2, gl.FLOAT, false,0,0 );
+        gl.enableVertexAttribArray(material.attribLocations.uv );        
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, gltex);
+        gl.uniform1i(material.uniformLocations.texture,0);
+    }
+    if(colv!==null) gl.uniform4fv(material.uniformLocations.meshcolor, colv);
     // draw
     var fn=geom.fn_used;
     if(fn===undefined) fn=geom.fn;
@@ -347,11 +343,17 @@ function Prim(t,a,b,col,lw) {
     this.material=null;
     this.mesh=null;
     if(t==PRIMTYPE_RECTANGLE) {
-        this.fragment_shader = new PrimColorShader();
-        this.need_material_update = true;        
+        this.material = new PrimColorShaderMaterial();
     }
 }
-Prim.prototype.updateMesh = function() {
+Prim.prototype.updateModelViewMatrix = function(locv3,sclv3) {
+    if(!this.mvMat) this.mvMat=mat4.create();
+    mat4.identity(this.mvMat);
+    mat4.translate(this.mvMat,this.mvMat,locv3);
+    mat4.scale(this.mvMat,this.mvMat,sclv3);
+}
+
+Prim.prototype.updateGeom = function() {
     if(this.type==PRIMTYPE_LINE) {
         if(this.geom) this.geom.dispose();
         this.geom = new THREE.Geometry();
@@ -374,51 +376,30 @@ Prim.prototype.updateMesh = function() {
           | \|
           3--2
         */
-        if(this.geom) this.geom.dispose();
-        this.geom = new THREE.Geometry();
-        this.geom.vertices.push(new THREE.Vector3(this.a[0],this.a[1],0));
-        this.geom.vertices.push(new THREE.Vector3(this.b[0],this.a[1],0));
-        this.geom.vertices.push(new THREE.Vector3(this.b[0],this.b[1],0));
-        this.geom.vertices.push(new THREE.Vector3(this.a[0],this.b[1],0));
-        this.geom.verticesNeedUpdate=true;
-        if( (this.a[0]<this.b[0] && this.a[1]<this.b[1]) || (this.a[0]>this.b[0] && this.a[1]>this.b[1]) ) {
-            this.geom.faces.push(new THREE.Face3(0, 1, 2));
-            this.geom.faces.push(new THREE.Face3(0, 2, 3));
-        } else {
-            this.geom.faces.push(new THREE.Face3(0, 2, 1));
-            this.geom.faces.push(new THREE.Face3(0, 3, 2));
-        }
-        this.geom.faces[0].vertexColors[0] = Color.toTHREEColor(this.color);
-        this.geom.faces[0].vertexColors[1] = Color.toTHREEColor(this.color);
-        this.geom.faces[0].vertexColors[2] = Color.toTHREEColor(this.color);
-        this.geom.faces[1].vertexColors[0] = Color.toTHREEColor(this.color);
-        this.geom.faces[1].vertexColors[1] = Color.toTHREEColor(this.color);
-        this.geom.faces[1].vertexColors[2] = Color.toTHREEColor(this.color);
+        if(!this.geom) this.geom=new Geometry(4,2);
+        this.geom.setPosition(0, this.a[0],this.a[1],0);
+        this.geom.setPosition(1, this.b[0],this.a[1],0);
+        this.geom.setPosition(2, this.b[0],this.b[1],0);
+        this.geom.setPosition(3, this.a[0],this.b[1],0);
+        this.geom.need_positions_update=true;
         
-        if(this.need_material_update ) {
-            if(!this.material) {
-                this.fragment_shader.updateUniforms(this.color);
-                this.material = this.fragment_shader.material;
-            } else {
-                this.fragment_shader.updateUniforms(this.color);
-            }
-            this.need_material_update = false;
-        }
-        if(this.mesh) {
-            this.mesh.geometry = this.geom;
-            this.mesh.material = this.material;
+        if( (this.a[0]<this.b[0] && this.a[1]<this.b[1]) || (this.a[0]>this.b[0] && this.a[1]>this.b[1]) ) {
+            this.geom.setFaceInds(0, 0, 1, 2);
+            this.geom.setFaceInds(1, 0, 2, 3);
         } else {
-            this.mesh = new THREE.Mesh(this.geom,this.material);
-        }        
+            this.geom.setFaceInds(0, 0, 2, 1);
+            this.geom.setFaceInds(1, 0, 3, 2);
+        }
+        this.geom.setColorArray4(0,this.color);
+        this.geom.setColorArray4(1,this.color);
+        this.geom.setColorArray4(2,this.color);
+        this.geom.setColorArray4(3,this.color);        
     } else {
-        console.log("invalid prim type",this.type)
+        console.warn("invalid prim type",this.type)
     }
 }
 Prim.prototype.onDelete = function() {
-    if(this.mesh) {
-        this.mesh.geometry.dispose();
-        this.mesh.material.dispose();
-    }
+
 }
 
 //////////////////
@@ -815,7 +796,6 @@ function Grid(w,h) {
     this.parent_prop=null;
     this.material=null;
     this.geom=null;
-    this.need_material_update=false;
     this.need_geometry_update=true;
     // this.fragment_shader  TODO:currently each vertex color alpha is not supported, because of three.js only have vec3 attribute color
 }
@@ -1370,17 +1350,22 @@ CharGrid.prototype.print = function(x,y,col,s) {
 
 /////////////////////////////
 var vertex_vcolor_glsl =
-    "attribute vec3 color;\n"+
+    "attribute vec4 color;\n"+
+    "attribute vec3 position;\n"+
+    "varying vec4 vColor;\n"+    
+    "uniform mat4 modelViewMatrix;\n"+
+    "uniform mat4 projectionMatrix;\n"+    
     "void main()\n"+
     "{\n"+
+    "  vColor = color;\n"+    
     "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n"+
     "  gl_Position = projectionMatrix * mvPosition;\n"+
     "}\n";    
 var fragment_vcolor_glsl = 
-    "uniform vec4 meshcolor;\n"+
+    "varying highp vec4 vColor;\n"+        
     "void main()\n"+
     "{\n"+
-    "  gl_FragColor = meshcolor;//vec4(1,0,1,1);\n"+
+    "  gl_FragColor = vColor;//vec4(1,0,1,1);\n"+
     "}\n";
 //    
 var vertex_uv_color_glsl =
@@ -1516,16 +1501,17 @@ class DefaultColorShaderMaterial extends ShaderMaterial {
 class PrimColorShaderMaterial extends ShaderMaterial {
     constructor() {
         super();        
+        var gl=Moyai.gl;
         this.fsh_src = fragment_vcolor_glsl;
         this.vsh_src = vertex_vcolor_glsl;
         this.compileAndLink();
         this.attribLocations = {
             position: gl.getAttribLocation(this.glprog,"position"),
+            color: gl.getAttribLocation(this.glprog,"color"),            
         };
         this.uniformLocations = {
             projectionMatrix: gl.getUniformLocation(this.glprog,"projectionMatrix"),
             modelViewMatrix: gl.getUniformLocation(this.glprog,"modelViewMatrix"),
-            meshcolor: gl.getUniformLocation(this.glprog, "meshcolor"),
         };                
     }
 };

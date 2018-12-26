@@ -40,8 +40,8 @@ p.setDeck(deck);
 p.setIndex(1);
 p.setScl(48,48);
 p.setLoc(0,0);
-//p.setUVRot(true);
-//p.addRect( vec2.fromValues(0,0), vec2.fromValues(5,5), Color.fromValues(1,1,1,0.3));
+if(0)p.setUVRot(true);
+if(1)p.addRect( vec2.fromValues(0,0), vec2.fromValues(5,5), Color.fromValues(1,1,1,0.5));
 g_main_layer.insertProp(p);
 
 
