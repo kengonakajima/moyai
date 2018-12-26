@@ -50,7 +50,7 @@ p_over.setDeck(deck);
 p_over.setIndex(0);
 p_over.setScl(48,48);
 p_over.setLoc(20,20);
-p_over.setColor(1,1,1,1);
+p_over.setColor(1,0.3,1,1);
 g_main_layer.insertProp(p_over);
 
 
@@ -71,7 +71,9 @@ if(1) {
     p_grid_over.setLoc(-150,-50);
     g=new Grid(4,4);
     g.setDeck(g_base_deck);
-    for(var y=0;y<4;y++) for(var x=0;x<4;x++) { g.set(x,y,32); g.setColor(x,y,Color.fromValues(1,1,0,1)); }
+    for(var y=0;y<4;y++) for(var x=0;x<4;x++) g.set(x,y,32);
+    g.setColor(1,1,Color.fromValues(1,1,1,0.5)); 
+    g.setColor(2,2,Color.fromValues(0,1,0,1)); 
     p_grid_over.addGrid(g);
     p_grid_over.setScl(24,24);
     g_main_layer.insertProp(p_grid_over);

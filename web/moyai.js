@@ -1,15 +1,4 @@
 // moyai js port
-//////////////
-function createMeshBasicMaterial(objarg) {
-    var m = new THREE.MeshBasicMaterial(objarg);
-    //old    m.shading = THREE.FlatShading;
-    m.flatShading=true;
-    m.side = THREE.FrontSide;
-    m.alphaTest = 0;
-    m.needsUpdate = true;
-    return m;
-}
-
 
 class OrthographicCamera {
     constructor(left,right,top,bottom,near,far) {
@@ -934,7 +923,7 @@ Grid.prototype.setColor = function(x,y,col) {
     this.color_table[ind]=col[0];
     this.color_table[ind+1]=col[1];
     this.color_table[ind+2]=col[2];
-    this.color_table[ind+3]=col[3];    
+    this.color_table[ind+3]=col[3];
     this.need_geometry_update = true;
 }
 Grid.prototype.getColor = function(outary,x,y) {
@@ -1045,11 +1034,16 @@ Grid.prototype.updateGeom = function() {
                 geom.setUV(quad_cnt*4+1,this.uv_r[0],this.uv_r[1]);
                 geom.setUV(quad_cnt*4+2,this.uv_s[0],this.uv_s[1]);
                 geom.setUV(quad_cnt*4+3,this.uv_p[0],this.uv_p[1]);
-            } 
-            geom.setColorArray4(quad_cnt*4,this.color_table[ind*4]);
-            geom.setColorArray4(quad_cnt*4+1,this.color_table[ind*4+1]);
-            geom.setColorArray4(quad_cnt*4+2,this.color_table[ind*4+2]);
-            geom.setColorArray4(quad_cnt*4+3,this.color_table[ind*4+3]);
+            }
+            var r=this.color_table[ind*4];
+            var g=this.color_table[ind*4+1];
+            var b=this.color_table[ind*4+2];
+            var a=this.color_table[ind*4+3];
+            
+            geom.setColor(quad_cnt*4,r,g,b,a);
+            geom.setColor(quad_cnt*4+1,r,g,b,a);
+            geom.setColor(quad_cnt*4+2,r,g,b,a);
+            geom.setColor(quad_cnt*4+3,r,g,b,a);
             quad_cnt++;
         }
         geom.fn_used=quad_cnt*2;
@@ -1400,7 +1394,7 @@ var fragment_vcolor_glsl =
 var vertex_uv_color_glsl =
     "varying vec2 vUv;\n"+
     "varying vec4 vColor;\n"+
-    "attribute vec3 color;\n"+
+    "attribute vec4 color;\n"+
     "attribute vec2 uv;\n"+
     "attribute vec3 position;\n"+
     "uniform mat4 modelViewMatrix;\n"+
@@ -1408,7 +1402,7 @@ var vertex_uv_color_glsl =
     "void main()\n"+
     "{\n"+
     "  vUv = uv;\n"+
-    "  vColor = vec4(color,1);\n"+
+    "  vColor = color;\n"+
     "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n"+
     "  gl_Position = projectionMatrix * mvPosition;\n"+
     "}\n";
@@ -1420,7 +1414,7 @@ var fragment_uv_color_glsl =
     "void main()\n"+
     "{\n"+
     "  highp vec4 tc = texture2D(texture,vUv);\n"+
-    "  gl_FragColor = vec4( tc.r * meshcolor.r, tc.g * meshcolor.g, tc.b * meshcolor.b, tc.a * meshcolor.a );\n"+
+    "  gl_FragColor = vec4( tc.r * meshcolor.r * vColor.r, tc.g * meshcolor.g * vColor.g, tc.b * meshcolor.b * vColor.b, tc.a * meshcolor.a * vColor.a );\n"+
     "}\n";
 
 var fragment_replacer_glsl = 
@@ -1513,7 +1507,6 @@ class DefaultColorShaderMaterial extends ShaderMaterial {
         super();
         var gl=Moyai.gl;
         this.fsh_src = fragment_uv_color_glsl;
-        this.color=vec4.fromValues(1,0,0,1);
         this.compileAndLink();
         this.attribLocations = {
             position: gl.getAttribLocation(this.glprog,"position"),
@@ -1533,7 +1526,6 @@ class PrimColorShaderMaterial extends ShaderMaterial {
         super();        
         this.fsh_src = fragment_vcolor_glsl;
         this.vsh_src = vertex_vcolor_glsl;
-        this.color=vec4.fromValues(1,0,0,1);
         this.compileAndLink();
         this.attribLocations = {
             position: gl.getAttribLocation(this.glprog,"position"),
