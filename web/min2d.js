@@ -50,7 +50,8 @@ p_over.setDeck(deck);
 p_over.setIndex(0);
 p_over.setScl(48,48);
 p_over.setLoc(20,20);
-p_over.setColor(1,0.3,1,1);
+p_over.setColor(0.7,0.7,0.7,1);
+p_over.use_additive_blend=true;
 g_main_layer.insertProp(p_over);
 
 

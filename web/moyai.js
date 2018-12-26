@@ -67,7 +67,7 @@ Moyai.render = function() {
     gl.depthFunc(gl.LEQUAL);// 近くにある物体は、遠くにある物体を覆い隠す
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+//    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);        
     
@@ -167,7 +167,7 @@ Moyai.render2D = function(layer,camera) {
                 if(grid.geom) grid.geom.bless();
                 var gltex;
                 if(grid.deck) gltex=grid.deck.moyai_tex.gltex; else gltex=prop.deck.moyai_tex.gltex;
-                this.draw(grid.geom, prop.mvMat, layer.projMat, prop.material, gltex,prop.color);
+                this.draw(grid.geom, prop.mvMat, layer.projMat, prop.material, gltex,prop.color, prop.use_additive_blend);
             }
         }
         if(prop.children.length>0) {
@@ -193,7 +193,7 @@ Moyai.render2D = function(layer,camera) {
             }
         }
         if(prop.geom) {
-            this.draw(prop.geom, prop.mvMat, layer.projMat, prop.material, prop.deck.moyai_tex.gltex,prop.color);
+            this.draw(prop.geom, prop.mvMat, layer.projMat, prop.material, prop.deck.moyai_tex.gltex,prop.color,prop.use_additive_blend);
         }            
         if(prop.prim_drawer) {
             for(var i=0;i<prop.prim_drawer.prims.length;i++) {
@@ -212,7 +212,7 @@ Moyai.render2D = function(layer,camera) {
         }            
     }
 }
-Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv) {
+Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv,additive_blend) {
     var gl=Moyai.gl;
     gl.useProgram(material.glprog);    
     gl.uniformMatrix4fv( material.uniformLocations.projectionMatrix, false, projMat ); // TODO: put it out
@@ -239,7 +239,12 @@ Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv) {
     // draw
     var fn=geom.fn_used;
     if(fn===undefined) fn=geom.fn;
-//    console.log("draw:",geom,mvMat,projMat,material,gltex,colv,fn);
+    //    console.log("draw:",geom,mvMat,projMat,material,gltex,colv,fn);
+    if(additive_blend) {
+        gl.blendFunc(gl.ONE,gl.ONE);
+    } else {
+        gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+    }
     gl.drawElements(gl.TRIANGLES, fn*3, gl.UNSIGNED_SHORT, 0);
 }
     
@@ -1414,7 +1419,7 @@ var fragment_uv_color_glsl =
     "void main()\n"+
     "{\n"+
     "  highp vec4 tc = texture2D(texture,vUv);\n"+
-    "  gl_FragColor = vec4( tc.r * meshcolor.r * vColor.r, tc.g * meshcolor.g * vColor.g, tc.b * meshcolor.b * vColor.b, tc.a * meshcolor.a * vColor.a );\n"+
+    "  if(tc.a<0.01) discard; else gl_FragColor = vec4( tc.r * meshcolor.r * vColor.r, tc.g * meshcolor.g * vColor.g, tc.b * meshcolor.b * vColor.b, tc.a * meshcolor.a * vColor.a );\n"+
     "}\n";
 
 var fragment_replacer_glsl = 
