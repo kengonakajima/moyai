@@ -67,8 +67,7 @@ Moyai.render = function() {
     gl.depthFunc(gl.LEQUAL);// 近くにある物体は、遠くにある物体を覆い隠す
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);        
+
     
     // 3d first
     var camera3d=null; // 最初の3Dレイヤのカメラを採用する。(TODO:レイヤごとに別のカメラで描画できるようにする)
@@ -209,6 +208,8 @@ Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv,additive_blend) {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, gltex);
         gl.uniform1i(material.uniformLocations.texture,0);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);                
     }
     if(colv!==null) gl.uniform4fv(material.uniformLocations.meshcolor, colv);
     // draw
