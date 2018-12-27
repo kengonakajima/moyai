@@ -66,9 +66,7 @@ var d2 = new TileDeck();
 d2.setTexture(t2);
 d2.setSize(32,32,8,8 );
 
-
 if(1) {
-    var sclpary=[];
     for(var i=0;i<16;i++) {
         var sclp = new Prop2D();
         sclp.setDeck(deck);
@@ -90,7 +88,6 @@ if(1) {
             return true;
         }
         g_main_layer.insertProp(sclp);
-        sclpary.push(sclp);
     }
 }
 
