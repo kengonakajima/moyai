@@ -66,7 +66,7 @@ var d2 = new TileDeck();
 d2.setTexture(t2);
 d2.setSize(32,32,8,8 );
 
-if(1) {
+if(0) {
     for(var i=0;i<16;i++) {
         var sclp = new Prop2D();
         sclp.setDeck(deck);
@@ -173,7 +173,7 @@ if(0) {
     tmplayer.insertProp(p2);
 }
 
-if(1) {
+if(0) {
     // alpha
     var dragontex = new Texture();
     dragontex.loadPNG( "./assets/dragon8.png", 8,8 );
@@ -197,6 +197,7 @@ if(1) {
 
 var charcodes = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえおぁぃぅぇぉかきくけこがぎぐげごさしすせそざじずぜぞたちつてとだぢづでどなにぬねのはひふへほばびぶべぼぱぴぷぺぽまみむめもやゆよゃゅょらりるれろわをん、。アイウエオァィゥェォカキクケコガギグゲゴサシスセソザジズゼゾタチツテトダヂヅデドナニヌネノハヒフヘホバビブベボパピプペポマミムメモヤユヨャュョラリルレロワヲンーッっ　「」";
 
+var charcodes_dummy_to_save_emacs = " !\"#$%&\'";
 
 
 var g_font = new Font();
@@ -204,12 +205,16 @@ g_font.loadFromMemTTF( cinecaption227_ttf, charcodes, 12 );
 
 
 
-if(0)  {
+if(1)  {
     var g_tb = new TextBox();
     g_tb.setFont(g_font);
     g_tb.setString("!\"$%_-#dummyほげ");
     g_tb.setScl(1,1);
     g_tb.setLoc(22,22);
+g_tb.prop2DPoll = function(dt) {
+    this.setString("hoge:"+this.poll_count);
+    return true;
+}
     g_main_layer.insertProp(g_tb);
 
 }
@@ -392,7 +397,7 @@ function animate() {
 	    if(!g_stop_render) requestAnimationFrame( animate );
     }
 
-    if(g_tb) g_tb.setString("hoge:"+anim_cnt);
+
     
 
     if(g_bullet) {

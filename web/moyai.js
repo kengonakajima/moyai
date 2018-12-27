@@ -321,14 +321,41 @@ Texture.prototype.setMoyaiImage = function(moimg) {
     imgdata.data.set(moimg.data);
     ctx.putImageData(imgdata,0,0);
     var datauri=canvas.toDataURL();
-    var img=new Image();
-    img.width=moimg.width;
-    img.height=moimg.height;
-    img.onload = function() {
+    var image=new Image();
+    image.width=moimg.width;
+    image.height=moimg.height;
+
+    var gl=Moyai.gl;
+    var texture=gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, moimg.width, moimg.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, moimg.data);
+
+    var moyai_tex=this;
+    image.onload = function() {
         console.log("Texture.setmoyaiimage.onload");
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        // WebGL1 has different requirements for power of 2 images
+        // vs non power of 2 images so check if the image is a
+        // power of 2 in both dimensions.
+        if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+            // Yes, it's a power of 2. Generate mips.
+            gl.generateMipmap(gl.TEXTURE_2D);
+        } else {
+            // No, it's not a power of 2. Turn of mips and set
+            // wrapping to clamp to edge
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        }
+        if(moyai_tex.onLoad)moyai_tex.onLoad();
+//        console.log("loadpng: onload:",texture,image,moyai_tex);
+        
     }
-    img.src=datauri;
-    this.image = img;
+    image.src=datauri;
+    this.image = image;
+    this.gltex=texture;
 }
 //TODO
 //Texture.prototype.updateImage = function(img) {
@@ -1262,28 +1289,35 @@ class TextBox extends Prop2D {
     constructor() {
         super();
         this.font = null;
+        this.deck = null;
         this.scl = vec2.fromValues(1,1);
         this.str = null;
         this.geom=null;
-        this.material=null;
+        this.material=new DefaultColorShaderMaterial();
         this.need_geometry_update=false;
         this.need_material_update=false;
         this.dimension=2;
+        this.last_string_length=0;
     }
-    setFont(fnt) { this.font = fnt; this.need_material_update=true; }
+    setFont(fnt) { this.font = fnt; this.deck=fnt.atlas; this.need_material_update=true; }
     setString(s) {
+        if(this.str) this.last_string_length=this.str.length;
         this.str = s;
         this.need_geometry_update=true;
     }
     getString(s) { return str; }
-    updateMesh() {
+    updateGeom() {
         if(!this.font)return;
         if(!this.need_geometry_update)return;
         this.need_geometry_update = false;
         
-        if(this.geom) this.geom.dispose();
-        var geom = new THREE.Geometry();
-        this.geom = geom;
+        if(!this.geom || this.last_string_length < this.str.length ) {
+            console.log("textbox is expanding. new str:",this.str);
+            if(this.geom) this.geom.dispose();
+            this.geom = new FaceGeometry(this.str.length*4,this.str.length*2);
+        }
+        var geom=this.geom;
+
         var cur_x=0,cur_y=0;
         var used_chind=0;
         for(var chind = 0; chind <this.str.length;chind++) {
@@ -1312,51 +1346,37 @@ class TextBox extends Prop2D {
             var h = glyph.height;
             var l = glyph.left;
             var t = glyph.top;
-            geom.vertices.push(new THREE.Vector3(cur_x+l,cur_y+t,0)); //0
-            geom.vertices.push(new THREE.Vector3(cur_x+l+w,cur_y+t,0)); //1
-            geom.vertices.push(new THREE.Vector3(cur_x+l+w,cur_y+t-h,0)); //2
-            geom.vertices.push(new THREE.Vector3(cur_x+l,cur_y+t-h,0)); //3
+            geom.setPosition(used_chind*4, cur_x+l,cur_y+t,0); 
+            geom.setPosition(used_chind*4+1, cur_x+l+w,cur_y+t,0); 
+            geom.setPosition(used_chind*4+2, cur_x+l+w,cur_y+t-h,0);
+            geom.setPosition(used_chind*4+3, cur_x+l,cur_y+t-h,0); 
             var face_start_vert_ind = used_chind*4;
-            geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+2, face_start_vert_ind+1));
-            geom.faces.push(new THREE.Face3(face_start_vert_ind+0, face_start_vert_ind+3, face_start_vert_ind+2));
+            geom.setFaceInds(used_chind*2, face_start_vert_ind+0, face_start_vert_ind+2, face_start_vert_ind+1);
+            geom.setFaceInds(used_chind*2+1, face_start_vert_ind+0, face_start_vert_ind+3, face_start_vert_ind+2);
             // uvは左上が0,右下が1
-            geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),
-                                         new THREE.Vector2(glyph.u1,glyph.v1),
-                                         new THREE.Vector2(glyph.u1,glyph.v0)]);
-            geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),
-                                         new THREE.Vector2(glyph.u0,glyph.v1),
-                                         new THREE.Vector2(glyph.u1,glyph.v1)]);
+            geom.setUV(used_chind*4, glyph.u0,glyph.v0);
+            geom.setUV(used_chind*4+1, glyph.u1,glyph.v0);
+            geom.setUV(used_chind*4+2, glyph.u1,glyph.v1);
+            geom.setUV(used_chind*4+3, glyph.u0,glyph.v1);
+//            geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),//0
+//                                         new THREE.Vector2(glyph.u1,glyph.v1),//2
+//                                         new THREE.Vector2(glyph.u1,glyph.v0)]);//1
+//            geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),//0
+//                                         new THREE.Vector2(glyph.u0,glyph.v1),//3
+//                                         new THREE.Vector2(glyph.u1,glyph.v1)]);//2
 
-            geom.faces[used_chind*2+0].vertexColors[0] = Color.toTHREEColor(this.color);
-            geom.faces[used_chind*2+0].vertexColors[1] = Color.toTHREEColor(this.color);
-            geom.faces[used_chind*2+0].vertexColors[2] = Color.toTHREEColor(this.color);
-            geom.faces[used_chind*2+1].vertexColors[0] = Color.toTHREEColor(this.color);
-            geom.faces[used_chind*2+1].vertexColors[1] = Color.toTHREEColor(this.color);
-            geom.faces[used_chind*2+1].vertexColors[2] = Color.toTHREEColor(this.color);
+            geom.setColorArray4(used_chind*4, this.color);
+            geom.setColorArray4(used_chind*4+1, this.color);
+            geom.setColorArray4(used_chind*4+2, this.color);
+            geom.setColorArray4(used_chind*4+3, this.color);
+            
             cur_x += glyph.advance;
             used_chind++;
         }
-        geom.verticesNeedUpdate = true;
-        geom.uvsNeedUpdate = true;
-
-        if(this.need_material_update) {
-            this.need_material_update = false;
-            if(!this.material) {
-                this.material = createMeshBasicMaterial({ map: this.font.atlas.moyai_tex.three_tex,
-                                                          transparent: true,
-                                                          // antialias: true, three warns   'antialias' is not a property of this material.
-                                                          vertexColors:THREE.VertexColors,
-                                                          blending: THREE.NormalBlending });
-            } else {
-                this.material.map = this.font.atlas.moyai_tex.three_tex;
-            }
-        }
-        if(this.mesh) {
-            this.mesh.geometry = this.geom;
-            this.mesh.material = this.material;
-        } else {
-            this.mesh = new THREE.Mesh(geom,this.material);
-        }
+        geom.need_positions_update=true;
+        geom.need_uvs_update=true;
+        geom.need_colors_update=true;
+        geom.need_inds_update=true;
     }
 }
 
