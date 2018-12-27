@@ -219,18 +219,17 @@ g_tb.prop2DPoll = function(dt) {
 
 }
 
-if(0) {
+if(1) {
     var t4 = new TextBox();
-
     t4.setFont(g_font);
     t4.setString( "ABC012あいうえお\nあいうえお(utf8)。" );
     t4.setLoc(-100,-90);
-    t4.setScl(0.75,0.75);
+    t4.setScl(1.5,1.5);
     g_main_layer.insertProp(t4);
 }
 
 
-if(0) {
+if(1) {
     // Check bottom line
     var t5 = new TextBox();
     t5.setFont(g_font);
