@@ -298,16 +298,18 @@ Texture.prototype.loadPNG = function(url,w,h) {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         }
         if(moyai_tex.onLoad)moyai_tex.onLoad();
-        console.log("loadpng: onload:",texture,image,moyai_tex);
+//        console.log("loadpng: onload:",texture,image,moyai_tex);
     };
     image.src = url;
     this.gltex=texture;
     this.image=image;
-    console.log("gltex:",this.gltex,this.image);
+    var hoge=vec2.create();
+    this.getSize(hoge);
+    console.log("loadpng gltex:",this.gltex,this.image, "size:",this.image.width,this.image.height,hoge);
 }    
 
 Texture.prototype.getSize = function(out) {
-    return vec2.fromValues(this.image.width,this.image.height);
+    return vec2.set(out,this.image.width,this.image.height);
 }
 
 Texture.prototype.setMoyaiImage = function(moimg) {
@@ -323,7 +325,7 @@ Texture.prototype.setMoyaiImage = function(moimg) {
     img.width=moimg.width;
     img.height=moimg.height;
     img.onload = function() {
-        console.log("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK");
+        console.log("Texture.setmoyaiimage.onload");
     }
     img.src=datauri;
     this.image = img;

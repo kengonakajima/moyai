@@ -93,25 +93,26 @@ if(1) {
 
 if(0) {
     var sclprot = new Prop2D();
-    sclprot.setDeck(deck);
+    sclprot.setDeck(g_base_deck);
     sclprot.setIndex(0);
-    sclprot.setScl(16,16);
+    sclprot.setScl(32,32);
     sclprot.setLoc(-300,0);
     sclprot.setRot( Math.PI/8 );
     sclprot.setUVRot(true);
     g_main_layer.insertProp(sclprot);    
-
+}
+if(0) {
     var colp = new Prop2D();
-    colp.setColor(0,1,0,1);
+    colp.setColor(0.5,1,1,1);
     colp.setDeck(d2);
     colp.setIndex(1);
     colp.setScl(24,24);
     colp.setLoc(50,-20);
     g_main_layer.insertProp(colp);
-
-
+}
+if(0) {
     var statprimp = new Prop2D(); // a prop that has a prim with no changes
-    statprimp.setDeck(g_base_deck);
+    statprimp.setDeck(deck);
     statprimp.setIndex(1);
     statprimp.setColor(0,0,1,1);
     statprimp.addLine(vec2.fromValues(-1,1),vec2.fromValues(1,-1),Color.fromValues(1,1,1,1), 3);
@@ -147,8 +148,18 @@ if(0) {
     }
     g.setUVRot(7,7,true);
     gridp.addGrid(g);
+    gridp.prop2DPoll = function(dt) {
+        this.grids[0].set(4,4, this.poll_count%4);
+        if(this.poll_count%21==0) {
+            if(this.poll_count%2==0) {
+                this.grids[0].setDeck(g_base_deck);
+            } else {
+                this.grids[0].setDeck(g_bmpfont_deck);
+            }
+        }
+        return true;
+    }
     g_main_layer.insertProp(gridp);
-
 }
 
 
@@ -162,7 +173,7 @@ if(0) {
     tmplayer.insertProp(p2);
 }
 
-if(0) {
+if(1) {
     // alpha
     var dragontex = new Texture();
     dragontex.loadPNG( "./assets/dragon8.png", 8,8 );
@@ -171,11 +182,11 @@ if(0) {
         for(var i=0;i<6;i++) {
             var p = new Prop2D();
             p.setTexture(dragontex);
+            //p.setDeck(deck);
             p.setScl(32,32);
             p.setColor(1,1,1,0.3);
             p.setLoc(-SCRW/2+50 + i * 10,-SCRH/2+70 + (i%2)*10 + j*80);
             if(j==0) p.use_additive_blend = true;
-            //p->setLoc(-200,-200);
             g_main_layer.insertProp(p);
         }
     }
@@ -462,18 +473,6 @@ function animate() {
         }
     }
 
-
-    
-    if(gridp) {
-        gridp.grids[0].set(4,4, anim_cnt%4);
-        if(anim_cnt%21==0) {
-            if(anim_cnt%2==0) {
-                gridp.grids[0].setDeck(g_base_deck);
-            } else {
-                gridp.grids[0].setDeck(g_bmpfont_deck);
-            }
-        }
-    }
     if(0) {
         if(anim_cnt%9==0) {
             var pp = new Prop2D();
