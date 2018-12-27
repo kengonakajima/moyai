@@ -354,6 +354,28 @@ function MoyaiImage() {
     this.id = this.__proto__.id_gen++;
     this.data = null;
     this.png=null;
+    this.onload=null;
+}
+MoyaiImage.prototype.loadPNG = function(url,w,h) {
+    if(w===undefined||h===undefined) console.warn("loadPNG require width and height currently");    
+    var image = new Image();
+    image.width=w;
+    image.height=h;
+    this.width=w;
+    this.height=h;
+    var moyai_img=this;
+    image.onload = function() {
+        //        console.log("loadpng: onload:",texture,image,moyai_tex);
+        var canvas=document.createElement("canvas");
+        var ctx=canvas.getContext("2d");
+        ctx.drawImage(this,0,0);
+        var imgdata=ctx.getImageData(0,0,w,h);
+        console.log("MoyaiImage onload: imgdata",imgdata);
+        moyai_img.data=imgdata.data;
+        if(moyai_img.onload) moyai_img.onload();
+    }
+    image.src=url;
+    
 }
 MoyaiImage.prototype.loadPNGMem = function(u8adata) {
     var b = new Buffer(u8adata);

@@ -242,39 +242,43 @@ if(1) {
 
 }
 
-if(0)  {
+if(1)  {
     // Image manipulation
     var dragonimg = new MoyaiImage();
     dragonimg.loadPNG( "./assets/dragon8.png", 8,8 );
-    for(var y=0;y<8;y++){
-        for(var x=0;x<8;x++) {
-            var pc = dragonimg.getPixelRaw(x,y);
-            if( pc.r == 255 && pc.g == 255 && pc.b == 255 && pc.a == 255 ) {
-                //            console.log("setPixelRaw: replacing at: %d,%d",x,y);
-                dragonimg.setPixelRaw( x,y, 255,0,0,255 );
+    dragonimg.onload = function() {
+        console.log("dragonimg onload");
+        for(var y=0;y<8;y++){
+            for(var x=0;x<8;x++) {
+                var pc = this.getPixelRaw(x,y);
+                if( pc.r == 255 && pc.g == 255 && pc.b == 255 && pc.a == 255 ) {
+                    //            console.log("setPixelRaw: replacing at: %d,%d",x,y);
+                    this.setPixelRaw( x,y, 255,0,0,255 );
+                }
             }
         }
+        var dragontex0 = new Texture();
+        dragontex0.setMoyaiImage( dragonimg );
+        // red nose by replacing color
+        var dragonp0 = new Prop2D();
+        dragonp0.setLoc( SCRW/2-40, 0);
+        dragonp0.setTexture( dragontex0 );
+        dragonp0.setScl(32,32);
+        g_main_layer.insertProp(dragonp0);
+        
     }
-    var dragontex0 = new Texture();
-    dragontex0.setImage( dragonimg );
     var dragontex1 = new Texture();
-    dragontex1.loadPNG( "./assets/dragon8.png", 8,8 );
+    dragontex1.loadPNG( "./assets/dragon8.png", 8,8 );        
+    dragontex1.onload = function() {
+        console.log("dragontex1 onload");
+        // white nose
+        var dragonp1 = new Prop2D();
+        dragonp1.setLoc( SCRW/2-80, 0);
+        dragonp1.setTexture(dragontex1);
+        dragonp1.setScl(32,32);
+        g_main_layer.insertProp(dragonp1);
+    }
 
-
-    // white nose
-    var dragonp1 = new Prop2D();
-    dragonp1.setLoc( SCRW/2-80, 0);
-    dragonp1.setTexture(dragontex1);
-    dragonp1.setScl(32,32);
-    g_main_layer.insertProp(dragonp1);    
-
-
-    // red nose by replacing color
-    var dragonp0 = new Prop2D();
-    dragonp0.setLoc( SCRW/2-40, 0);
-    dragonp0.setTexture( dragontex0 );
-    dragonp0.setScl(32,32);
-    g_main_layer.insertProp(dragonp0);
 }
 
 

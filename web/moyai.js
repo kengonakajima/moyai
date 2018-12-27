@@ -250,7 +250,7 @@ function isPowerOf2(value) {
 }
 
 Texture.prototype.loadPNG = function(url,w,h) {
-    if(w===undefined||h===undefined) console.warn("loadPNG require width and height");
+    if(w===undefined||h===undefined) console.warn("loadPNG require width and height currently");
     var gl=Moyai.gl;
 
     const pixel = new Uint8Array(w*h*4);
@@ -263,14 +263,13 @@ Texture.prototype.loadPNG = function(url,w,h) {
     image.height=h;
     image.onload = function() {
         setImageToGLTexture(gl,texture,image);
-//        console.log("loadpng: onload:",texture,image,moyai_tex);
+        //        console.log("loadpng: onload:",texture,image,moyai_tex);
+        if(moyai_tex.onload) moyai_tex.onload();        
     };
     image.src = url;
     this.gltex=texture;
     this.image=image;
-    var hoge=vec2.create();
-    this.getSize(hoge);
-    console.log("loadpng gltex:",this.gltex,this.image, "size:",this.image.width,this.image.height,hoge);
+    console.log("loadpng gltex:",this.gltex,this.image);
 }    
 
 Texture.prototype.getSize = function(out) {
@@ -321,7 +320,8 @@ Texture.prototype.setMoyaiImage = function(moimg) {
     image.onload = function() {
         console.log("Texture.setmoyaiimage.onload");
         setImageToGLTexture(gl,texture,image);
-//        console.log("loadpng: onload:",texture,image,moyai_tex);        
+        //        console.log("loadpng: onload:",texture,image,moyai_tex);
+        if(moyai_tex.onload) moyai_tex.onload();
     }
     image.src=datauri;
     this.image = image;
