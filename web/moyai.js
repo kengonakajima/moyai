@@ -249,31 +249,13 @@ function isPowerOf2(value) {
   return (value & (value - 1)) == 0;
 }
 
-//TODO
-//Texture.prototype.loadPNGMem = function(u8adata) {
-//    this.image = new MoyaiImage();
-//    this.image.loadPNGMem(u8adata);
-//    this.update();
-//}
 Texture.prototype.loadPNG = function(url,w,h) {
     if(w===undefined||h===undefined) console.warn("loadPNG require width and height");
     var gl=Moyai.gl;
-    var texture=gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
 
-    const level = 0;
-    const internalFormat = gl.RGBA;
-    const border = 0;
-    const srcFormat = gl.RGBA;
-    const srcType = gl.UNSIGNED_BYTE;
     const pixel = new Uint8Array(w*h*4);
-    for(var i=0;i<w*h;i++) { // opaque blue
-        pixel[i*4]=0;
-        pixel[i*4+1]=0;
-        pixel[i*4+2]=0xff;
-        pixel[i*4+3]=0xff;
-    }
-    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, w, h, border, srcFormat, srcType, pixel);
+    for(var i=0;i<w*h*4;i++) pixel[i]=0xff;
+    var texture=createGLTextureFromPixels(gl, w,h,pixel);
     
     var moyai_tex=this;
     var image = new Image();
@@ -281,8 +263,7 @@ Texture.prototype.loadPNG = function(url,w,h) {
     image.height=h;
     image.onload = function() {
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-                      srcFormat, srcType, image);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
         // WebGL1 has different requirements for power of 2 images
         // vs non power of 2 images so check if the image is a
@@ -297,7 +278,6 @@ Texture.prototype.loadPNG = function(url,w,h) {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         }
-        if(moyai_tex.onLoad)moyai_tex.onLoad();
 //        console.log("loadpng: onload:",texture,image,moyai_tex);
     };
     image.src = url;
@@ -312,6 +292,12 @@ Texture.prototype.getSize = function(out) {
     return vec2.set(out,this.image.width,this.image.height);
 }
 
+function createGLTextureFromPixels(gl,w,h,data) {
+    var t=gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    return t;        
+}
 Texture.prototype.setMoyaiImage = function(moimg) {
     var canvas = document.createElement('canvas'),
     ctx = canvas.getContext('2d');
@@ -326,9 +312,7 @@ Texture.prototype.setMoyaiImage = function(moimg) {
     image.height=moimg.height;
 
     var gl=Moyai.gl;
-    var texture=gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, moimg.width, moimg.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, moimg.data);
+    var texture= createGLTextureFromPixels(gl,moimg.width, moimg.height, moimg.data);
 
     var moyai_tex=this;
     image.onload = function() {
@@ -349,7 +333,6 @@ Texture.prototype.setMoyaiImage = function(moimg) {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         }
-        if(moyai_tex.onLoad)moyai_tex.onLoad();
 //        console.log("loadpng: onload:",texture,image,moyai_tex);
         
     }

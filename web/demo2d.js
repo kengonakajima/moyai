@@ -173,7 +173,7 @@ if(0) {
     tmplayer.insertProp(p2);
 }
 
-if(0) {
+if(1) {
     // alpha
     var dragontex = new Texture();
     dragontex.loadPNG( "./assets/dragon8.png", 8,8 );
