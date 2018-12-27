@@ -67,7 +67,6 @@ Moyai.render = function() {
     gl.depthFunc(gl.LEQUAL);// 近くにある物体は、遠くにある物体を覆い隠す
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
-//    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);        
     
@@ -309,11 +308,25 @@ Texture.prototype.loadPNG = function(url,w,h) {
 Texture.prototype.getSize = function(out) {
     return vec2.fromValues(this.image.width,this.image.height);
 }
-//TODO
-//Texture.prototype.setImage = function(img) {
-//    this.image = img;
-//    this.update();
-//}
+
+Texture.prototype.setMoyaiImage = function(moimg) {
+    var canvas = document.createElement('canvas'),
+    ctx = canvas.getContext('2d');
+    canvas.width = moimg.width;
+    canvas.height = moimg.height;
+    var imgdata = ctx.createImageData(moimg.width,moimg.height);
+    imgdata.data.set(moimg.data);
+    ctx.putImageData(imgdata,0,0);
+    var datauri=canvas.toDataURL();
+    var img=new Image();
+    img.width=moimg.width;
+    img.height=moimg.height;
+    img.onload = function() {
+        console.log("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK");
+    }
+    img.src=datauri;
+    this.image = img;
+}
 //TODO
 //Texture.prototype.updateImage = function(img) {
 //    if(this.image.id == img.id ) {
@@ -500,6 +513,15 @@ class Geometry {
         this.positions=new Float32Array(vn*3);
         this.colors=new Float32Array(vn*4);        
         this.inds=new Uint16Array(indn*2);
+        //TODO: normalbuffer        
+    }
+    dispose() {
+        var gl=Moyai.gl;
+        if(this.positionBuffer) gl.deleteBuffer(this.positionBuffer);
+        if(this.colorBuffer) gl.deleteBuffer(this.colorBuffer);
+        if(this.indexBuffer) gl.deleteBuffer(this.indexBuffer);
+        if(this.uvBuffer) gl.deleteBuffer(this.uvBuffer);
+        //TODO: normalbuffer
     }
     setPosition(vind,x,y,z) {
         this.positions[vind*3]=x;
@@ -692,7 +714,6 @@ class Prop2D extends Prop {
         this.setDeck(td);
         this.setIndex(0);
     }
-    setFragmentShader(s) { this.fragment_shader = s;}
     propPoll(dt) { 
         if(this.remote_vel) {
             this.loc[0] += this.remote_vel[0]*dt;
@@ -811,7 +832,6 @@ function Grid(w,h) {
     this.material=null;
     this.geom=null;
     this.need_geometry_update=true;
-    // this.fragment_shader  TODO:currently each vertex color alpha is not supported, because of three.js only have vec3 attribute color
 }
 Grid.prototype.setDeck =function(dk) { this.deck=dk; this.need_material_update=true;}
 Grid.prototype.index = function(x,y) { return x+y*this.width; }
@@ -1067,7 +1087,7 @@ function TextureAtlas(w,h,depth) {
     this.height = h;
     this.depth = depth;
     this.data = new Uint8Array(w*h*depth);
-    this.image = null;
+    this.moyai_image = null;
     this.moyai_tex=null;
 }
 TextureAtlas.prototype.dump = function(ofsx,ofsy, w,h) {
@@ -1082,17 +1102,16 @@ TextureAtlas.prototype.dump = function(ofsx,ofsy, w,h) {
     console.log(this.data);
 }
 TextureAtlas.prototype.ensureTexture = function() {
-    this.image = new MoyaiImage();
-    this.image.setSize(this.width,this.height);
+    this.moyai_image = new MoyaiImage();
+    this.moyai_image.setSize(this.width,this.height);
     for(var y=0;y<this.height;y++) {
         for(var x=0;x<this.width;x++) {
             var pixdata = this.data[x+y*this.width]
-            this.image.setPixelRaw(x,y,pixdata,pixdata,pixdata,pixdata);
+            this.moyai_image.setPixelRaw(x,y,pixdata,pixdata,pixdata,pixdata);
         }
     }
     this.moyai_tex = new Texture();
-    this.moyai_tex.setImage(this.image);
-    this.moyai_tex.three_tex.magFilter = THREE.LinearFilter;
+    this.moyai_tex.setMoyaiImage(this.moyai_image);
 }
 
 Font.prototype.id_gen=1;
@@ -1410,13 +1429,13 @@ var fragment_uv_color_glsl =
 
 var fragment_replacer_glsl = 
 	"uniform sampler2D texture;\n"+
-    "varying vec2 vUv;\n"+
-	"varying vec4 vColor;\n"+
-	"uniform vec3 color1;\n"+    
-	"uniform vec3 replace1;\n"+
-	"uniform float eps;\n"+
+    "varying highp vec2 vUv;\n"+
+	"varying highp vec4 vColor;\n"+
+	"uniform highp vec3 color1;\n"+    
+	"uniform highp vec3 replace1;\n"+
+	"uniform highp float eps;\n"+
 	"void main() {\n"+
-	"	vec4 pixel = texture2D(texture, vUv); \n"+
+	"	highp vec4 pixel = texture2D(texture, vUv); \n"+
 	"	if( pixel.r > color1.r - eps && pixel.r < color1.r + eps && pixel.g > color1.g - eps && pixel.g < color1.g + eps && pixel.b > color1.b - eps && pixel.b < color1.b + eps ){\n"+
 	"		pixel = vec4(replace1, pixel.a );\n"+
 	"    }\n"+
@@ -1466,12 +1485,13 @@ class ShaderMaterial {
 }
 class ColorReplacerShaderMaterial extends ShaderMaterial {
     constructor() {
-        super();        
+        super();
+        var gl=Moyai.gl;
         this.fsh_src = fragment_replacer_glsl;
-        this.setColor(vec3.fromValues(0,0,0),vec3.fromValues(0,1,0),0.01);
         this.epsilon=0.02;
         this.from_color=vec3.fromValues(0,1,0,1);
         this.to_color=vec3.fromValues(1,0,0,1);
+        this.setColor(vec3.fromValues(0,0,0),vec3.fromValues(0,1,0),0.01);
         this.compileAndLink();
         this.attribLocations = {
             position: gl.getAttribLocation(this.glprog,"position"),

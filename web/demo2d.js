@@ -1,5 +1,5 @@
 
-var g_moyai_client;
+
 
 // button funcs
 
@@ -12,9 +12,9 @@ function stopRender() {
 /////////// testing
 
 var SCRW=960, SCRH=544;
-g_moyai_client = new MoyaiClient(SCRW,SCRH,window.devicePixelRatio);
+Moyai.init(SCRW,SCRH);
 var screen = document.getElementById("screen");
-screen.appendChild( g_moyai_client.renderer.domElement );
+screen.appendChild( Moyai.getDomElement());
 
 var g_keyboard = new Keyboard();
 g_keyboard.setupBrowser(window);
@@ -27,11 +27,11 @@ g_viewport.setSize(SCRW,SCRH);
 g_viewport.setScale2D(SCRW,SCRH);
 
 var g_main_layer = new Layer();
-g_moyai_client.insertLayer(g_main_layer);
+Moyai.insertLayer(g_main_layer);
 g_main_layer.setViewport(g_viewport);
 
 var g_hud_layer = new Layer();
-g_moyai_client.insertLayer(g_hud_layer);
+Moyai.insertLayer(g_hud_layer);
 g_hud_layer.setViewport(g_viewport);
 
 var g_camera = new Camera(2);
@@ -39,25 +39,25 @@ g_camera.setLoc(0,0);
 g_main_layer.setCamera(g_camera);
 
 var g_base_atlas = new Texture();
-g_base_atlas.loadPNGMem( base_png );
+g_base_atlas.loadPNG( "./assets/base.png", 256,256 );
 g_base_deck = new TileDeck();
 g_base_deck.setTexture(g_base_atlas);
 g_base_deck.setSize(32,32,8,8 );
 
 var g_bmpfont_atlas = new Texture();
-g_bmpfont_atlas.loadPNGMem(font_only_png);
+g_bmpfont_atlas.loadPNG("./assets/font_only.png", 256,256);
 g_bmpfont_deck = new TileDeck();
 g_bmpfont_deck.setTexture( g_bmpfont_atlas );
 g_bmpfont_deck.setSize(32,32, 8,8 );
 
 var tmplayer = new Layer();
-g_moyai_client.insertLayer(tmplayer);
+Moyai.insertLayer(tmplayer);
 tmplayer.setViewport(g_viewport);
 
 var t = new Texture();
-t.loadPNGMem( base_png );
+t.loadPNG( "./assets/base.png", 256,256 );
 var t2 = new Texture();
-t2.loadPNGMem( base_png );
+t2.loadPNG( "./assets/base.png", 256,256 );
 
 var deck = new TileDeck();
 deck.setTexture(t);
@@ -76,13 +76,25 @@ if(1) {
         sclp.setScl(16,16);
         sclp.setLoc(-200+20*i,0);
         sclp.setRot( Math.PI/8.0 );
+        sclp.prop2DPoll = function(dt) {
+            if(this.poll_count%3==0) {
+                if(this.poll_count%2==0) {
+                    this.setDeck(g_bmpfont_deck);
+                } else {
+                    this.setDeck(g_base_deck);
+                }
+            }
+            if(this.id%3==0) this.setXFlip(this.poll_count%2);
+            if(this.id%7==0) this.setYFlip(this.poll_count%2);
+            this.setIndex(this.poll_count%4);
+            return true;
+        }
         g_main_layer.insertProp(sclp);
         sclpary.push(sclp);
     }
+}
 
-
-
-    
+if(0) {
     var sclprot = new Prop2D();
     sclprot.setDeck(deck);
     sclprot.setIndex(0);
@@ -91,8 +103,6 @@ if(1) {
     sclprot.setRot( Math.PI/8 );
     sclprot.setUVRot(true);
     g_main_layer.insertProp(sclprot);    
-
-
 
     var colp = new Prop2D();
     colp.setColor(0,1,0,1);
@@ -114,7 +124,7 @@ if(1) {
 }
 
 
-if(1) {
+if(0) {
     // static grids
     var gridp = new Prop2D();
     gridp.setDeck(d2);
@@ -145,7 +155,7 @@ if(1) {
 }
 
 
-if(1) {
+if(0) {
     var p2 = new Prop2D(); // index is not set for this prop2d
     p2.setColor(1,1,0,0.5);
     p2.setDeck(d2);
@@ -155,10 +165,10 @@ if(1) {
     tmplayer.insertProp(p2);
 }
 
-if(1) {
+if(0) {
     // alpha
     var dragontex = new Texture();
-    dragontex.loadPNGMem( dragon8_png );
+    dragontex.loadPNG( "./assets/dragon8.png", 8,8 );
 
     for(var j=0;j<2;j++) {
         for(var i=0;i<6;i++) {
@@ -186,7 +196,7 @@ g_font.loadFromMemTTF( cinecaption227_ttf, charcodes, 12 );
 
 
 
-if(1)  {
+if(0)  {
     var g_tb = new TextBox();
     g_tb.setFont(g_font);
     g_tb.setString("!\"$%_-#dummyほげ");
@@ -196,7 +206,7 @@ if(1)  {
 
 }
 
-if(true) {
+if(0) {
     var t4 = new TextBox();
 
     t4.setFont(g_font);
@@ -207,7 +217,7 @@ if(true) {
 }
 
 
-if(1) {
+if(0) {
     // Check bottom line
     var t5 = new TextBox();
     t5.setFont(g_font);
@@ -220,10 +230,10 @@ if(1) {
 
 }
 
-if(1)  {
+if(0)  {
     // Image manipulation
     var dragonimg = new MoyaiImage();
-    dragonimg.loadPNGMem( dragon8_png );
+    dragonimg.loadPNG( "./assets/dragon8.png", 8,8 );
     for(var y=0;y<8;y++){
         for(var x=0;x<8;x++) {
             var pc = dragonimg.getPixelRaw(x,y);
@@ -236,7 +246,7 @@ if(1)  {
     var dragontex0 = new Texture();
     dragontex0.setImage( dragonimg );
     var dragontex1 = new Texture();
-    dragontex1.loadPNGMem( dragon8_png );
+    dragontex1.loadPNG( "./assets/dragon8.png", 8,8 );
 
 
     // white nose
@@ -256,22 +266,22 @@ if(1)  {
 }
 
 
+if(0) {
+    // bitmap font
+    var scorep = new Prop2D();
+    scorep.setLoc( -SCRW/2+32,SCRH/2-100 );
+    var scoregrid = new CharGrid(8,8);
+    scoregrid.setDeck(g_bmpfont_deck );
+    scoregrid.setAsciiOffset(-32);
+    scoregrid.print( 0,0, Color.fromValues(1,1,1,1), "SCORE: 1234" );
+    scoregrid.print( 0,1, Color.fromValues(1,1,0,1), "$#!?()[hoge]" );
+    scoregrid.setColor( 3,0, Color.fromValues(0,1,1,1));
+    scorep.addGrid(scoregrid);
+    g_main_layer.insertProp(scorep);
+}
 
-// bitmap font
-var scorep = new Prop2D();
-scorep.setLoc( -SCRW/2+32,SCRH/2-100 );
-var scoregrid = new CharGrid(8,8);
-scoregrid.setDeck(g_bmpfont_deck );
-scoregrid.setAsciiOffset(-32);
-scoregrid.print( 0,0, Color.fromValues(1,1,1,1), "SCORE: 1234" );
-scoregrid.print( 0,1, Color.fromValues(1,1,0,1), "$#!?()[hoge]" );
-scoregrid.setColor( 3,0, Color.fromValues(0,1,1,1));
-scorep.addGrid(scoregrid);
-g_main_layer.insertProp(scorep);
 
-
-
-if(1) {
+if(0) {
     // line prop
     var g_linep = new Prop2D();
     var g_narrow_line_prim = g_linep.addLine( vec2.fromValues(0,0), vec2.fromValues(100,100), Color.fromValues(1,0,0,1) );
@@ -301,7 +311,7 @@ if(1) {
 
 }
 
-if(1) {
+if(0) {
     // dynamic images
     var g_img = new MoyaiImage();
     g_img.setSize(256,256);
@@ -326,24 +336,25 @@ if(1) {
 }
 
 
+if(0) {
+    var g_bullet = new Prop2D();
+    g_bullet.setDeck(g_base_deck);
+    g_bullet.setIndex(32);
+    g_bullet.setScl(32,32);
+    g_bullet.setLoc(0,0);
+    g_main_layer.insertProp(g_bullet);
+}
 
-var g_bullet = new Prop2D();
-g_bullet.setDeck(g_base_deck);
-g_bullet.setIndex(32);
-g_bullet.setScl(32,32);
-g_bullet.setLoc(0,0);
-g_main_layer.insertProp(g_bullet);
-
-
-var g_replacer_shader = new ColorReplacerShader();
-var g_shader_prop = new Prop2D();
-g_shader_prop.setFragmentShader(g_replacer_shader);
-g_shader_prop.setDeck(g_base_deck);
-g_shader_prop.setIndex(0);
-g_shader_prop.setLoc(0,0);
-g_shader_prop.setUVRot(true);
-g_main_layer.insertProp(g_shader_prop);
-
+if(0) {
+    var g_replacer_shader_mat = new ColorReplacerShaderMaterial();
+    var g_shader_prop = new Prop2D();
+    g_shader_prop.material=g_replacer_shader_mat;
+    g_shader_prop.setDeck(g_base_deck);
+    g_shader_prop.setIndex(0);
+    g_shader_prop.setLoc(0,0);
+    g_shader_prop.setUVRot(true);
+    g_main_layer.insertProp(g_shader_prop);
+}
 
 
 
@@ -372,15 +383,14 @@ function animate() {
         anim_cnt++;
 	    if(!g_stop_render) requestAnimationFrame( animate );
     }
-    if(!g_moyai_client) return;
-
 
     if(g_tb) g_tb.setString("hoge:"+anim_cnt);
     
 
-    g_bullet.setLoc(0, 100*Math.sin(anim_cnt/10));
-    g_bullet.setIndex(32+(Math.floor(anim_cnt/2)%4));
-
+    if(g_bullet) {
+        g_bullet.setLoc(0, 100*Math.sin(anim_cnt/10));
+        g_bullet.setIndex(32+(Math.floor(anim_cnt/2)%4));
+    }
 
     if(g_linep) g_linep.loc[1] = Math.sin( anim_cnt/50 ) * 200;
 
@@ -395,7 +405,7 @@ function animate() {
     }
 
 
-    g_replacer_shader.setColor( Color.fromCode(0xF7E26B), Color.fromValues( range(0,1),range(0,1),range(0,1),1), 0.02 );
+    if(g_replacer_shader_mat) g_replacer_shader_mat.setColor( Color.fromCode(0xF7E26B), Color.fromValues( range(0,1),range(0,1),range(0,1),1), 0.02 );
 
     if( g_keyboard.getKey('z') ) {
         g_viewport.setScale2D( g_viewport.scl[0] / 1.05, g_viewport.scl[1] / 1.05 );
@@ -455,23 +465,6 @@ function animate() {
         }
     }
 
-    
-
-    if( anim_cnt % 3==0 ) {
-        if(anim_cnt%2==0) {
-            for(var i=0;i<sclpary.length;i++) sclpary[i].setDeck(g_bmpfont_deck);
-        } else {
-            for(var i=0;i<sclpary.length;i++) sclpary[i].setDeck(g_base_deck);
-        }
-        for(var i=0;i<sclpary.length;i++) {
-            if(i%5==0) sclpary[i].setXFlip(anim_cnt%2);
-            if(i%7==0) sclpary[i].setYFlip(anim_cnt%2);
-        }
-    }
-        
-    for(var i=0;i<sclpary.length;i++) {
-        sclpary[i].setIndex(anim_cnt%4);
-    }
 
     
     if(gridp) {
@@ -484,24 +477,25 @@ function animate() {
             }
         }
     }
-    
-    if(anim_cnt%9==0) {
-        var pp = new Prop2D();
-        pp.setDeck(g_base_deck);
-        pp.setIndex( Math.floor(range(0,4)));
-        pp.setScl(8,8);
-        pp.setLoc(range(-300,300),range(-300,300));;
-        pp.prop2DPoll = function(dt) {
-            if(pp.accum_time>3) return false; else return true;
+    if(0) {
+        if(anim_cnt%9==0) {
+            var pp = new Prop2D();
+            pp.setDeck(g_base_deck);
+            pp.setIndex( Math.floor(range(0,4)));
+            pp.setScl(8,8);
+            pp.setLoc(range(-300,300),range(-300,300));;
+            pp.prop2DPoll = function(dt) {
+                if(pp.accum_time>3) return false; else return true;
+            }
+            g_main_layer.insertProp(pp);                     
         }
-        g_main_layer.insertProp(pp);                     
     }
 
     var now_time = new Date().getTime();
     var dt = now_time - last_anim_at;
     last_anim_at = now_time;
-    g_moyai_client.poll(dt/1000.0);
-    g_moyai_client.render();
+    Moyai.poll(dt/1000.0);
+    Moyai.render();
     
 }
 
