@@ -384,13 +384,18 @@ if(1) {
 }
 
 
-if(0) {
+if(1) {
     var g_bullet = new Prop2D();
     g_bullet.setDeck(g_base_deck);
     g_bullet.setIndex(32);
     g_bullet.setScl(32,32);
     g_bullet.setLoc(0,0);
     g_main_layer.insertProp(g_bullet);
+
+    g_bullet.prop2DPoll = function(dt) {
+        this.setLoc(0, 100*Math.sin(this.poll_count/10));
+        this.setIndex(32+(Math.floor(this.poll_count/2)%4));
+    }
 }
 
 if(0) {
@@ -433,19 +438,8 @@ function animate() {
     }
 
 
-    
 
-    if(g_bullet) {
-        g_bullet.setLoc(0, 100*Math.sin(anim_cnt/10));
-        g_bullet.setIndex(32+(Math.floor(anim_cnt/2)%4));
-    }
-
-
-
-    
-
-
-    if(g_replacer_shader_mat) g_replacer_shader_mat.setColor( Color.fromCode(0xF7E26B), Color.fromValues( range(0,1),range(0,1),range(0,1),1), 0.02 );
+    if(g_replacer_shader_mat) g_replacer_shader_mat.setColor( Color.fromCode(0xF7E26B), Color.fromValues( range(0,1),range(0,1),range(0,1),1), 0.02 );    
 
     if( g_keyboard.getKey('z') ) {
         g_viewport.setScale2D( g_viewport.scl[0] / 1.05, g_viewport.scl[1] / 1.05 );
