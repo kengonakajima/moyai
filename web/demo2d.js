@@ -26,17 +26,18 @@ var g_viewport = new Viewport();
 g_viewport.setSize(SCRW,SCRH);
 g_viewport.setScale2D(SCRW,SCRH);
 
+var g_camera = new OrthographicCamera(-SCRW/2,SCRW/2,SCRH/2,-SCRH/2);
+g_camera.setLoc(0,0);
+
 var g_main_layer = new Layer();
 Moyai.insertLayer(g_main_layer);
+g_main_layer.setCamera(g_camera);
 g_main_layer.setViewport(g_viewport);
 
 var g_hud_layer = new Layer();
 Moyai.insertLayer(g_hud_layer);
+g_hud_layer.setCamera(g_camera);
 g_hud_layer.setViewport(g_viewport);
-
-var g_camera = new Camera(2);
-g_camera.setLoc(0,0);
-g_main_layer.setCamera(g_camera);
 
 var g_base_atlas = new Texture();
 g_base_atlas.loadPNG( "./assets/base.png", 256,256 );
@@ -53,6 +54,7 @@ g_bmpfont_deck.setSize(32,32, 8,8 );
 var tmplayer = new Layer();
 Moyai.insertLayer(tmplayer);
 tmplayer.setViewport(g_viewport);
+tmplayer.setCamera(g_camera);
 
 var t = new Texture();
 t.loadPNG( "./assets/base.png", 256,256 );
