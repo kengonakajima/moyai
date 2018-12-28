@@ -314,6 +314,10 @@ Texture.prototype.setMoyaiImage = function(moimg) {
     image.height=moimg.height;
 
     var gl=Moyai.gl;
+    if(this.gltex) {
+        gl.deleteTexture(this.gltex);
+        this.gltex=null;
+    }
     var texture= createGLTextureFromPixels(gl,moimg.width, moimg.height, moimg.data);
 
     var moyai_tex=this;
@@ -324,7 +328,8 @@ Texture.prototype.setMoyaiImage = function(moimg) {
         if(moyai_tex.onload) moyai_tex.onload();
     }
     image.src=datauri;
-    this.image = image;
+    this.image=image;
+    this.moyai_image=moimg;
     this.gltex=texture;
 }
 //TODO

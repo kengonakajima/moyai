@@ -416,10 +416,7 @@ MoyaiImage.prototype.setPixelRaw = function(x,y,r,g,b,a) {
     }    
 }
 MoyaiImage.prototype.setPixel = function(x,y,c) {
-    var rgba = new Float32Array(4);
-    Color.toRGBA(rgba,c);
-    var index = (x+y*this.width)*4;
-    this.setPixelRaw(x,y,rgba[0],rgba[1],rgba[2],rgba[3]);
+    this.setPixelRaw(x,y,Math.floor(c[0]*255),Math.floor(c[1]*255),Math.floor(c[2]*255),Math.floor(c[3]*255));
 }
 MoyaiImage.prototype.getBufferSize = function() { return this.width * this.height * 4; }
 MoyaiImage.prototype.setAreaRaw = function(x0,y0,w,h, data_u8a, insz ) {

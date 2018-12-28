@@ -173,7 +173,7 @@ if(0) {
     tmplayer.insertProp(p2);
 }
 
-if(1) {
+if(0) {
     // alpha
     var dragontex = new Texture();
     dragontex.loadPNG( "./assets/dragon8.png", 8,8 );
@@ -205,7 +205,7 @@ g_font.loadFromMemTTF( cinecaption227_ttf, charcodes, 12 );
 
 
 
-if(1)  {
+if(0)  {
     var g_tb = new TextBox();
     g_tb.setFont(g_font);
     g_tb.setString("!\"$%_-#dummyほげ");
@@ -219,7 +219,7 @@ g_tb.prop2DPoll = function(dt) {
 
 }
 
-if(1) {
+if(0) {
     var t4 = new TextBox();
     t4.setFont(g_font);
     t4.setString( "ABC012あいうえお\nあいうえお(utf8)。" );
@@ -229,7 +229,7 @@ if(1) {
 }
 
 
-if(1) {
+if(0) {
     // Check bottom line
     var t5 = new TextBox();
     t5.setFont(g_font);
@@ -242,7 +242,7 @@ if(1) {
 
 }
 
-if(1)  {
+if(0)  {
     // Image manipulation
     var dragonimg = new MoyaiImage();
     dragonimg.loadPNG( "./assets/dragon8.png", 8,8 );
@@ -300,34 +300,53 @@ if(0) {
 if(0) {
     // line prop
     var g_linep = new Prop2D();
-    var g_narrow_line_prim = g_linep.addLine( vec2.fromValues(0,0), vec2.fromValues(100,100), Color.fromValues(1,0,0,1) );
-    //g_linep.addLine( new Vec2(0,0), new Vec2(range(-100,100),range(-50,50)), Color.fromValues(range(0,1),range(0,1),range(0,1),1), 5 );
-    g_linep.addRect( vec2.fromValues(-100,-100), vec2.fromValues(0,0), Color.fromValues(1,1,1,1));
-    g_linep.addRect( vec2.fromValues(-100,100), vec2.fromValues(0,0), Color.fromValues(1,0,1,1));
-    g_linep.addRect( vec2.fromValues(100,-100), vec2.fromValues(0,0), Color.fromValues(0,1,1,1));    
-    g_linep.addRect( vec2.fromValues(100,100), vec2.fromValues(0,0), Color.fromValues(1,1,0,1));
-    g_linep.addLine( vec2.fromValues(0,0), vec2.fromValues(100,-50), Color.fromValues(0,1,1,1), 5 );
+    g_linep.addRect( vec2.fromValues(-10,-10), vec2.fromValues(0,0), Color.fromValues(1,1,1,1));
+    g_linep.addRect( vec2.fromValues(-10,10), vec2.fromValues(0,0), Color.fromValues(1,0,1,1));
+    g_linep.addRect( vec2.fromValues(10,-10), vec2.fromValues(0,0), Color.fromValues(0,1,1,1));    
+    g_linep.addRect( vec2.fromValues(10,10), vec2.fromValues(0,0), Color.fromValues(1,1,0,1));
+    g_linep.addLine( vec2.fromValues(0,0), vec2.fromValues(100,-50), Color.fromValues(0,1,0,1), 5 );
+    g_linep.line_prim = g_linep.addLine( vec2.fromValues(0,0), vec2.fromValues(100,100), Color.fromValues(1,0,0,1) );
+
 
     g_linep.setLoc(0,200);
     g_linep.setScl(1.0,1.0);
     g_main_layer.insertProp(g_linep);
 
-
-
-    // add child to line prop
-    for(var i=0;i<35;i++) {
-        var childp = new Prop2D();
-        childp.setDeck(g_base_deck);
-        childp.setScl(16,44);
-        childp.setRot( Math.PI * 0.25 );
-        childp.setIndex(0);
-        childp.setLoc(-322+10*i,-222);
-        g_linep.addChild(childp);
+    g_linep.prop2DPoll = function(dt) {
+        this.loc[1] = Math.sin( this.poll_count/50 ) * 200;        
+        this.line_prim.a[0] = 0;
+        this.line_prim.a[1] = 0;    
+        this.line_prim.b[0] = 100;
+        this.line_prim.b[1] = range(100,150);
+        if( this.poll_count/10%3 == 0 ){
+            this.yl = g_linep.addLine(vec2.fromValues(0,0), vec2.fromValues( -30, -60), Color.fromValues(1,1,0,1), 3 );
+        }else if( this.poll_count/10%3 == 1 ) {
+            if( this.yl ) {
+                var yl = g_linep.getPrimById(this.yl.id);
+                if(yl) {
+                    g_linep.deletePrim(yl.id);
+                }
+            }
+        }
+        return true;
     }
 
+    if(1) {
+        // add child to line prop
+        for(var i=0;i<35;i++) {
+            var childp = new Prop2D();
+            childp.setDeck(g_base_deck);
+            childp.setScl(16,44);
+            childp.setRot( Math.PI * 0.25 );
+            childp.setIndex(0);
+            childp.setLoc(-322+10*i,-222);
+            g_linep.addChild(childp);
+        }
+
+    }
 }
 
-if(0) {
+if(1) {
     // dynamic images
     var g_img = new MoyaiImage();
     g_img.setSize(256,256);
@@ -335,9 +354,12 @@ if(0) {
         var c = Color.fromValues( Math.random(), Math.random(), Math.random(),1 );
         g_img.setPixel( i,i, c );
     }
+    for(var i=0;i<1000;i++){
+        g_img.setPixel( irange(0,256), irange(0,256), Color.fromValues( range(0,1), range(0,1), range(0,1),1 ));
+    }
     //g_img.writePNG( "dynamic_out.png");
     var g_dyn_texture =  new Texture();
-    g_dyn_texture.setImage(g_img);
+    g_dyn_texture.setMoyaiImage(g_img);
 
 
     var p = new Prop2D();
@@ -349,6 +371,16 @@ if(0) {
     p.setScl(128,128);
     p.setIndex(0);
     g_main_layer.insertProp(p);
+
+    p.prop2DPoll = function(dt) {
+        if((this.poll_count % 100)==0) {
+            for(var i=0;i<1000;i++){
+                g_img.setPixel( irange(0,256), irange(0,256), Color.fromValues( range(0,1), range(0,1), range(0,1),1 ));
+            }
+            g_dyn_texture.setMoyaiImage(g_img);
+        }
+        return true;
+    }
 }
 
 
@@ -408,17 +440,9 @@ function animate() {
         g_bullet.setIndex(32+(Math.floor(anim_cnt/2)%4));
     }
 
-    if(g_linep) g_linep.loc[1] = Math.sin( anim_cnt/50 ) * 200;
+
 
     
-    if(g_img && g_dyn_texture) {
-        if( (anim_cnt % 100 ) == 0 ) {
-            for(var i=0;i<1000;i++){
-                g_img.setPixel( irange(0,256), irange(0,256), Color.fromValues( range(0,1), range(0,1), range(0,1),1 ));
-            }
-            g_dyn_texture.setImage(g_img);
-        }
-    }
 
 
     if(g_replacer_shader_mat) g_replacer_shader_mat.setColor( Color.fromCode(0xF7E26B), Color.fromValues( range(0,1),range(0,1),range(0,1),1), 0.02 );
@@ -458,28 +482,6 @@ function animate() {
         g_explosion_sound.play();
     }
 
-    if(g_narrow_line_prim) {
-        g_narrow_line_prim.a[0] = 0;
-        g_narrow_line_prim.a[1] = 0;    
-        g_narrow_line_prim.b[0] = 100;
-        g_narrow_line_prim.b[1] = range(100,150);
-    }
-
-
-    // add/del prims
-    if(g_linep){
-        if( anim_cnt/10%3 == 0 ){
-            var yl = g_linep.addLine(vec2.fromValues(0,0), vec2.fromValues( -30, -60), Color.fromValues(1,1,0,1), 3 );
-            g_yellow_line_prim_id = yl.id;
-        }else if( anim_cnt/10%3 == 1 ) {
-            if( g_yellow_line_prim_id ) {
-                var yl = g_linep.getPrimById(g_yellow_line_prim_id);
-                if(yl) {
-                    g_linep.deletePrim(yl.id);
-                }
-            }
-        }
-    }
 
     if(0) {
         if(anim_cnt%9==0) {
