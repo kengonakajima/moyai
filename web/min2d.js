@@ -19,7 +19,8 @@ g_viewport.setScale2D(SCRW,SCRH);
 var g_main_layer = new Layer();
 Moyai.insertLayer(g_main_layer);
 g_main_layer.setViewport(g_viewport);
-var g_camera = new Camera(2);
+
+var g_camera = new OrthographicCamera(-SCRW/2,SCRW/2,SCRH/2,-SCRH/2);
 g_camera.setLoc(0,0);
 g_main_layer.setCamera(g_camera);
 
@@ -92,7 +93,7 @@ if(1) {
 }
 
 // custom mesh test
-if(1) {
+if(0) {
     var mat = createMeshBasicMaterial( { map: g_base_deck.moyai_tex.three_tex,
                                          depthTest:false,
                                          transparent:true,

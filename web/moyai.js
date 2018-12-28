@@ -6,12 +6,28 @@ class OrthographicCamera {
         this.right=right;
         this.top=top;
         this.bottom=bottom;
-        this.near=near;
-        this.far=far;
-        this.position=vec3.create();
+        this.near= near ? near:-1;
+        this.far= far ? far : g_moyai_max_z;
+        this.loc=vec2.create();
+    }
+    setLoc(x,y) {
+        vec2.set(this.loc,x,y);
     }
 };
 
+class PerspectiveCamera {
+    constructor() {
+	    this.look_at = vec3.create();
+	    this.look_up = vec3.create();        
+    }
+    setLoc(x,y,z) {
+        vec3.set(this.loc,x,y,z);
+    }
+    setLookAt(at,up) {
+        vec3.copy(this.look_at,at);
+        vec3.copy(this.look_up,up);
+    }
+};
 
 
 ///////////////
@@ -68,38 +84,19 @@ Moyai.render = function() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
 
-    
-    // 3d first
-    var camera3d=null; // 最初の3Dレイヤのカメラを採用する。(TODO:レイヤごとに別のカメラで描画できるようにする)
+//            this.camera3d = new PerspectiveCamera( 45 , this.width / this.height , -1, 1000000);
     for(var li=0;li<this.layers.length;li++) {
         var layer = this.layers[li];
         if(layer.viewport.dimension==3) {
-            this.render3D(this.scene3d, layer);
-            if(camera3d==null) {
-                camera3d = new THREE.PerspectiveCamera( 45 , this.width / this.height , layer.viewport.near_clip , layer.viewport.far_clip );
-                var lcam = layer.camera;
-                camera3d.up[0] = lcam.look_up[0]; camera3d.up[1] = lcam.look_up[1]; camera3d.up[2] = lcam.look_up[2];
-                camera3d.position.set( lcam.loc[0], lcam.loc[1], lcam.loc[2] );
-                camera3d.lookAt(lcam.look_at[0], lcam.look_at[1], lcam.look_at[2] );
-                lcam.three_camera=camera3d; // for billboard                
-            }
+            this.render3D(layer);
         }
     }
-    if(camera3d) {
-        this.renderer.render(this.scene3d, camera3d );
-    }
-
-    if(!this.camera2d) {
-        this.camera2d=new OrthographicCamera( -this.width/2, this.width/2, this.height/2, -this.height/2,-1, g_moyai_max_z);
-        this.camera2d.position[2] = g_moyai_max_z;
-    }
-    
     
     // then 2d            
     for(var li=0;li<this.layers.length;li++) {
         var layer = this.layers[li];
         if(layer.viewport.dimension==2) {
-            this.render2D(layer,this.camera2d);
+            this.render2D(layer);
         }
     }
 }
@@ -122,17 +119,11 @@ Moyai.render3D = function(scene,layer) {
         scene.add(prop.mesh);
     }
 }
-Moyai.render2D = function(layer,camera) {
+Moyai.render2D = function(layer) {
     if(!this.relscl) this.relscl=vec2.fromValues(1,1);
     if(!this.camloc) this.camloc=vec2.create();
-    if(camera) {
-        vec2.copy(this.camloc,camera.position);
-    } else {
-        vec2.set(this.camloc,0,0);
-    }
-    if(layer.viewport) {
-        layer.viewport.getRelativeScale(this.relscl);
-    }
+    var camera=layer.camera;
+    layer.viewport.getRelativeScale(this.relscl);
     if(!layer.projMat) {
         layer.projMat=mat4.create();
     }
@@ -604,6 +595,10 @@ class FaceGeometry extends Geometry {
     setUV(vind,u,v) {
         this.uvs[vind*2]=u;
         this.uvs[vind*2+1]=v;            
+    }
+    setUVArray(vind,uv) {
+        this.uvs[vind*2]=uv[0];
+        this.uvs[vind*2+1]=uv[1];            
     }
 };
 
@@ -1334,12 +1329,6 @@ class TextBox extends Prop2D {
             geom.setUV(used_chind*4+1, glyph.u1,glyph.v0);
             geom.setUV(used_chind*4+2, glyph.u1,glyph.v1);
             geom.setUV(used_chind*4+3, glyph.u0,glyph.v1);
-//            geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),//0
-//                                         new THREE.Vector2(glyph.u1,glyph.v1),//2
-//                                         new THREE.Vector2(glyph.u1,glyph.v0)]);//1
-//            geom.faceVertexUvs[0].push([ new THREE.Vector2(glyph.u0,glyph.v0),//0
-//                                         new THREE.Vector2(glyph.u0,glyph.v1),//3
-//                                         new THREE.Vector2(glyph.u1,glyph.v1)]);//2
 
             geom.setColorArray4(used_chind*4, this.color);
             geom.setColorArray4(used_chind*4+1, this.color);
@@ -1826,7 +1815,8 @@ class Prop3D extends Prop {
         this.scl = vec3.fromValues(1,1,1);
         this.loc = vec3.fromValues(0,0,0);
         this.rot = vec3.fromValues(0,0,0);
-        this.mesh=null;
+        this.geom=null;
+        this.material=null;
         this.sort_center = vec3.fromValues(0,0,0);
 	    this.depth_mask=true;
         this.alpha_test=false;
@@ -1844,8 +1834,8 @@ class Prop3D extends Prop {
     }
     setVisible(flg) { this.visible=flg; }    
 }
-Prop3D.prototype.setMesh = function(m) {this.mesh=m;}
-Prop3D.prototype.setGroup = function(g) { this.mesh=g;}
+Prop3D.prototype.setGeom = function(g) {this.geom=g;}
+Prop3D.prototype.setMaterial = function(m) {this.material=m;}
 Prop3D.prototype.setScl = function(x,y,z) {
     if(y===undefined) {
         vec3.copy(this.scl,x);

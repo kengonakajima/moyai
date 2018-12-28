@@ -229,31 +229,6 @@ Viewport.prototype.getRelativeScale = function(outvec2) {
     vec2.set(outvec2,this.screen_width/this.scl[0],this.screen_height/this.scl[1]);
 }
 
-////////////////////
-Camera.prototype.id_gen=1;
-function Camera(dimension) {
-    if(!dimension) console.trace("Camera: need dimension");
-    this.id = this.__proto__.id_gen++;
-    this.dimension=dimension;
-    if(dimension==2) {
-        this.loc=vec2.fromValues(0,0);
-    } else {
-        this.loc=vec3.fromValues(0,0,0);
-	    this.look_at = vec3.create();
-	    this.look_up = vec3.create();
-    }
-}
-Camera.prototype.setLoc = function(x,y,z) {
-    if(this.dimension==2) {
-        vec2.set(this.loc,x,y);
-    } else if(this.dimension==3) {
-        vec3.set(this.loc,x,y,z);
-    }
-}
-Camera.prototype.setLookAt = function(at,up) {
-    vec3.copy(this.look_at,at);
-    vec3.copy(this.look_up,up);
-}
 
 
 ////////////////////
@@ -507,8 +482,7 @@ try {
     if(global) {
         // classes
         global.Color=Color;
-        global.Viewport=Viewport;
-        global.Camera=Camera;
+        global.Viewport=Viewport;       
         global.Image=MoyaiImage;
         global.TileDeck = TileDeck;
         global.Layer = Layer;
