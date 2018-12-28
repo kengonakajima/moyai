@@ -212,6 +212,7 @@ Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv,additive_blend) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);                
     }
     if(colv!==null) gl.uniform4fv(material.uniformLocations.meshcolor, colv);
+    if(material.applyUniforms) material.applyUniforms();
     // draw
     var indn=geom.indn_used;
     if(indn===undefined) indn=geom.indn;
@@ -1509,7 +1510,12 @@ class ColorReplacerShaderMaterial extends ShaderMaterial {
         this.epsilon = eps;
         vec3.copy(this.from_color,from);
         vec3.copy(this.to_color,to);
-    }    
+    }
+    applyUniforms() {
+        Moyai.gl.uniform3fv(this.uniformLocations.color1,this.from_color);
+        Moyai.gl.uniform3fv(this.uniformLocations.replace1,this.to_color);
+        Moyai.gl.uniform1f(this.uniformLocations.eps,this.epsilon);
+    }
 };
 class DefaultColorShaderMaterial extends ShaderMaterial {
     constructor() {

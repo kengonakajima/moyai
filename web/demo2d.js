@@ -398,15 +398,20 @@ if(1) {
     }
 }
 
-if(0) {
-    var g_replacer_shader_mat = new ColorReplacerShaderMaterial();
+if(1) {
+    var mat = new ColorReplacerShaderMaterial();
     var g_shader_prop = new Prop2D();
-    g_shader_prop.material=g_replacer_shader_mat;
+    g_shader_prop.material=mat;
     g_shader_prop.setDeck(g_base_deck);
     g_shader_prop.setIndex(0);
     g_shader_prop.setLoc(0,0);
     g_shader_prop.setUVRot(true);
     g_main_layer.insertProp(g_shader_prop);
+
+    g_shader_prop.prop2DPoll = function(dt) {
+        this.material.setColor( Color.fromCode(0xF7E26B), Color.fromValues( range(0,1),range(0,1),range(0,1),1), 0.02);
+        return true;
+    }
 }
 
 
@@ -437,9 +442,6 @@ function animate() {
 	    if(!g_stop_render) requestAnimationFrame( animate );
     }
 
-
-
-    if(g_replacer_shader_mat) g_replacer_shader_mat.setColor( Color.fromCode(0xF7E26B), Color.fromValues( range(0,1),range(0,1),range(0,1),1), 0.02 );    
 
     if( g_keyboard.getKey('z') ) {
         g_viewport.setScale2D( g_viewport.scl[0] / 1.05, g_viewport.scl[1] / 1.05 );
@@ -474,21 +476,6 @@ function animate() {
     if( g_keyboard.getToggled( 'y' ) ) {
         g_keyboard.clearToggled('y');
         g_explosion_sound.play();
-    }
-
-
-    if(0) {
-        if(anim_cnt%9==0) {
-            var pp = new Prop2D();
-            pp.setDeck(g_base_deck);
-            pp.setIndex( Math.floor(range(0,4)));
-            pp.setScl(8,8);
-            pp.setLoc(range(-300,300),range(-300,300));;
-            pp.prop2DPoll = function(dt) {
-                if(pp.accum_time>3) return false; else return true;
-            }
-            g_main_layer.insertProp(pp);                     
-        }
     }
 
     var now_time = new Date().getTime();
