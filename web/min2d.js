@@ -92,7 +92,7 @@ if(1) {
 }
 
 // custom mesh test
-if(0) {
+if(1) {
     var mat = createMeshBasicMaterial( { map: g_base_deck.moyai_tex.three_tex,
                                          depthTest:false,
                                          transparent:true,

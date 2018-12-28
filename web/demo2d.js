@@ -66,7 +66,7 @@ var d2 = new TileDeck();
 d2.setTexture(t2);
 d2.setSize(32,32,8,8 );
 
-if(0) {
+if(1) {
     for(var i=0;i<16;i++) {
         var sclp = new Prop2D();
         sclp.setDeck(deck);
@@ -91,7 +91,7 @@ if(0) {
     }
 }
 
-if(0) {
+if(1) {
     var sclprot = new Prop2D();
     sclprot.setDeck(g_base_deck);
     sclprot.setIndex(0);
@@ -101,7 +101,7 @@ if(0) {
     sclprot.setUVRot(true);
     g_main_layer.insertProp(sclprot);    
 }
-if(0) {
+if(1) {
     var colp = new Prop2D();
     colp.setColor(0.5,1,1,1);
     colp.setDeck(d2);
@@ -110,7 +110,7 @@ if(0) {
     colp.setLoc(50,-20);
     g_main_layer.insertProp(colp);
 }
-if(0) {
+if(1) {
     var statprimp = new Prop2D(); // a prop that has a prim with no changes
     statprimp.setDeck(deck);
     statprimp.setIndex(1);
@@ -122,7 +122,7 @@ if(0) {
 }
 
 
-if(0) {
+if(1) {
     // static grids
     var gridp = new Prop2D();
     gridp.setDeck(d2);
@@ -163,7 +163,7 @@ if(0) {
 }
 
 
-if(0) {
+if(1) {
     var p2 = new Prop2D(); // index is not set for this prop2d
     p2.setColor(1,1,0,0.5);
     p2.setDeck(d2);
@@ -173,7 +173,7 @@ if(0) {
     tmplayer.insertProp(p2);
 }
 
-if(0) {
+if(1) {
     // alpha
     var dragontex = new Texture();
     dragontex.loadPNG( "./assets/dragon8.png", 8,8 );
@@ -205,7 +205,7 @@ g_font.loadFromMemTTF( cinecaption227_ttf, charcodes, 12 );
 
 
 
-if(0)  {
+if(1)  {
     var g_tb = new TextBox();
     g_tb.setFont(g_font);
     g_tb.setString("!\"$%_-#dummyほげ");
@@ -219,7 +219,7 @@ g_tb.prop2DPoll = function(dt) {
 
 }
 
-if(0) {
+if(1) {
     var t4 = new TextBox();
     t4.setFont(g_font);
     t4.setString( "ABC012あいうえお\nあいうえお(utf8)。" );
@@ -229,7 +229,7 @@ if(0) {
 }
 
 
-if(0) {
+if(1) {
     // Check bottom line
     var t5 = new TextBox();
     t5.setFont(g_font);
@@ -242,7 +242,7 @@ if(0) {
 
 }
 
-if(0)  {
+if(1)  {
     // Image manipulation
     var dragonimg = new MoyaiImage();
     dragonimg.loadPNG( "./assets/dragon8.png", 8,8 );
@@ -282,7 +282,7 @@ if(0)  {
 }
 
 
-if(0) {
+if(1) {
     // bitmap font
     var scorep = new Prop2D();
     scorep.setLoc( -SCRW/2+32,SCRH/2-100 );
@@ -297,7 +297,7 @@ if(0) {
 }
 
 
-if(0) {
+if(1) {
     // line prop
     var g_linep = new Prop2D();
     g_linep.addRect( vec2.fromValues(-10,-10), vec2.fromValues(0,0), Color.fromValues(1,1,1,1));
