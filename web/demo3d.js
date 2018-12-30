@@ -114,19 +114,19 @@ if(1) {
     geom.setFaceInds(10, 7,2,3); // HCD
     geom.setFaceInds(11, 7,6,2); // HGC
 
-    var g_prop_col = new Prop3D();
-    g_prop_col.setGeom(geom);
-    g_prop_col.setMaterial(new PrimColorShaderMaterial());
-    g_prop_col.setScl(1,1,1);
-    g_prop_col.setLoc(0,0,0);
-    g_prop_col.prop3DPoll=function(dt) {
+    var p = new Prop3D();
+    p.setGeom(geom);
+    p.setMaterial(new PrimColorShaderMaterial());
+    p.setScl(1,1,1);
+    p.setLoc(0,0,0);
+    p.prop3DPoll=function(dt) {
 //        this.loc[1]+=0.02;//Math.cos(this.accum_time)*3;
 //        this.loc[1]=Math.sin(this.accum_time)*3;
 //        this.rot[0]+=0.1;
 //        this.rot[1]+=0.1;        
         return true;
     }
-    g_main_layer.insertProp(g_prop_col);
+    g_main_layer.insertProp(p);
 }
 
 function setNinja(geom) {
@@ -178,15 +178,17 @@ if(1) {
     geom.setColor(8, 1,0,0,1);
     geom.setColor(16, 1,1,1,0.1);    
     
-    var g_prop_texcol = new Prop3D();
-    g_prop_texcol.setGeom(geom);
-    g_prop_texcol.setMaterial(new DefaultColorShaderMaterial());
-    g_prop_texcol.setTexture(g_base_tex);
-    g_prop_texcol.setScl(1,1,1);
-    g_prop_texcol.setLoc(2,0,0);
-    g_prop_texcol.setColor(vec4.fromValues(1,1,1,1));
-    g_main_layer.insertProp(g_prop_texcol);
+    var p = new Prop3D();
+    p.setGeom(geom);
+    p.setMaterial(new DefaultColorShaderMaterial());
+    p.setTexture(g_base_tex);
+    p.setScl(1,1,1);
+    p.setLoc(2,0,0);
+    p.setColor(vec4.fromValues(1,1,1,1));
+    g_main_layer.insertProp(p);
 }
+
+
 
 if(0) {
     var AIR=0;
@@ -363,30 +365,15 @@ function animate() {
         fps=0;
     }
 
-    // props
-
-//    if( g_prop_texcol ){
-//        g_prop_texcol.rot[2] += dt;
-//        g_prop_texcol.rot[1] += dt;
-//    }
     if(g_main_camera) {
         var t=now();
         g_main_camera.loc[0]=Math.cos(t)*8;
         g_main_camera.loc[2]=Math.sin(t)*8;
     }
-//    if( g_prop_voxel ){
-//        g_prop_voxel.loc[2] -= dt/5;        
-//        g_prop_voxel.rot[2] += dt;
-//        g_prop_voxel.rot[1] += dt;
-//    }
     
     last_anim_at = now_time;    
     Moyai.poll(dt);
     Moyai.render();
-
-    //    g_main_camera.setLoc( g_main_camera.loc[0]+0.1,0,3);
-    
-    
 }
 
 animate();
