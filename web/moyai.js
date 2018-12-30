@@ -51,6 +51,9 @@ Moyai.init = function(w,h){
     this.clearColor=Color.fromValues(0.1,0.1,0.1,1);    
     this.enable_clear=true;
     this.layers=[];
+    this.x_axis=vec3.fromValues(1,0,0);
+    this.y_axis=vec3.fromValues(0,1,0);
+    this.z_axis=vec3.fromValues(0,0,1);    
     console.log("Moyai:",this);
 }
 Moyai.setSize = function(w,h) {
@@ -751,7 +754,7 @@ class Prop2D extends Prop {
         return true;
     }
     updateModelViewMatrix() {
-        if(!this.mvMat) this.mvMat=mat4.create();
+        if(!this.mvMat) this.mvMat=mat4.create(); // TODO to_cons
         mat4.identity(this.mvMat);
         mat4.translate(this.mvMat,this.mvMat,vec3.fromValues(this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],0)); //TODO:noalloc           
         mat4.rotate(this.mvMat,this.mvMat,this.rot,vec3.fromValues(0,0,1));//TODO: noalloc
@@ -1860,17 +1863,19 @@ class Prop3D extends Prop {
     }
     setVisible(flg) { this.visible=flg; }
     updateModelViewMatrix(parentMat) {
-        if(!this.mvMat) this.mvMat=mat4.create();
+        if(!this.mvMat) this.mvMat=mat4.create();//TODO: to_cons
         if(parentMat) {
             mat4.copy(this.mvMat,parentMat);
         } else {
             mat4.identity(this.mvMat);
         }
-        mat4.translate(this.mvMat,this.mvMat,vec3.fromValues(this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],this.loc[2]+this.draw_offset[2])); //TODO:noalloc           
-        mat4.rotate(this.mvMat,this.mvMat,this.rot[0],vec3.fromValues(1,0,0));//TODO: noalloc
-        mat4.rotate(this.mvMat,this.mvMat,this.rot[1],vec3.fromValues(0,1,0));//TODO: noalloc
-        mat4.rotate(this.mvMat,this.mvMat,this.rot[2],vec3.fromValues(0,0,1));//TODO: noalloc        
-        mat4.scale(this.mvMat,this.mvMat,vec3.fromValues(this.scl[0],this.scl[1],this.scl[2]));  //TODO: noalloc
+        if(!this.finloc) this.finloc=vec3.create();// TODO: to_cons
+        vec3.set(this.finloc, this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],this.loc[2]+this.draw_offset[2]); 
+        mat4.translate(this.mvMat,this.mvMat,this.finloc); 
+        mat4.rotate(this.mvMat,this.mvMat,this.rot[0],Moyai.x_axis);
+        mat4.rotate(this.mvMat,this.mvMat,this.rot[1],Moyai.y_axis);
+        mat4.rotate(this.mvMat,this.mvMat,this.rot[2],Moyai.z_axis);
+        mat4.scale(this.mvMat,this.mvMat,this.scl);
     }
     setTexture(moyai_tex) {
         this.moyai_tex=moyai_tex;
