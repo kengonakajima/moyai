@@ -153,6 +153,8 @@ if(1) {
     geom.setUV2v(20,uv_lb); geom.setUV2v(21,uv_rb); geom.setUV2v(22,uv_rt); geom.setUV2v(23,uv_lt); // daeh
     
     for(var i=0;i<24;i++) geom.setColor(i, 1,1,1,1);
+    geom.setColor(8, 1,0,0,1);
+    geom.setColor(16, 1,1,1,0.1);    
 
     
     // bottom
