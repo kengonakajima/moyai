@@ -122,7 +122,7 @@ Moyai.render3D = function(layer) {
         prop.updateModelViewMatrix();
         prop.geom.bless();
         var gltex=prop.moyai_tex ? prop.moyai_tex.gltex : null;
-        console.log("BBB:",prop.geom,prop.mvMat, this.viewProjMat, prop.material, gltex, prop.color );
+//        console.log("BBB:",prop.geom,prop.mvMat, this.viewProjMat, prop.material, gltex, prop.color );
         this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, gltex, prop.color, prop.use_additive_blend);
         
     }
@@ -527,6 +527,11 @@ class Geometry {
         if(this.uvBuffer) gl.deleteBuffer(this.uvBuffer);
         //TODO: normalbuffer
     }
+    setPosition3v(vind,p) {
+        this.positions[vind*3]=p[0];
+        this.positions[vind*3+1]=p[1];
+        this.positions[vind*3+2]=p[2];        
+    }
     setPosition(vind,x,y,z) {
         this.positions[vind*3]=x;
         this.positions[vind*3+1]=y;
@@ -603,7 +608,7 @@ class FaceGeometry extends Geometry {
         this.uvs[vind*2]=u;
         this.uvs[vind*2+1]=v;            
     }
-    setUVArray(vind,uv) {
+    setUV2v(vind,uv) {
         this.uvs[vind*2]=uv[0];
         this.uvs[vind*2+1]=uv[1];            
     }
