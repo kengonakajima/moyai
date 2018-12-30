@@ -88,6 +88,8 @@ Moyai.render = function() {
     gl.depthFunc(gl.LEQUAL);// 近くにある物体は、遠くにある物体を覆い隠す
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
 
     for(var li=0;li<this.layers.length;li++) {
         var layer = this.layers[li];

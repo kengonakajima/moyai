@@ -35,7 +35,7 @@ g_main_camera.setLookAt(vec3.fromValues(0,0,0), vec3.fromValues(0,1,0));
 g_main_layer.setCamera(g_main_camera);
 
 var g_base_tex = new Texture();
-g_base_tex.loadPNG( "./assets/base.png" );
+g_base_tex.loadPNG( "./assets/base.png", 256,256 );
 var g_base_deck = new TileDeck();
 g_base_deck.setTexture(g_base_tex);
 g_base_deck.setSize(32,32,8,8);
