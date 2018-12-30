@@ -129,9 +129,7 @@ if(1) {
     g_main_layer.insertProp(g_prop_col);
 }
 
-if(1) {
-    var geom = new FaceGeometry(6*4,6*2);
-    
+function setNinja(geom) {
     var kk=1.0/256.0*8;
     var uv_lt=vec2.fromValues(0,0);
     var uv_rt=vec2.fromValues(kk,0);
@@ -153,9 +151,6 @@ if(1) {
     geom.setUV2v(20,uv_lb); geom.setUV2v(21,uv_rb); geom.setUV2v(22,uv_rt); geom.setUV2v(23,uv_lt); // daeh
     
     for(var i=0;i<24;i++) geom.setColor(i, 1,1,1,1);
-    geom.setColor(8, 1,0,0,1);
-    geom.setColor(16, 1,1,1,0.1);    
-
     
     // bottom
     geom.setFaceInds(0, 0,3,1); // ADB
@@ -174,7 +169,14 @@ if(1) {
     geom.setFaceInds(9, 16,18,19); // EBF
     // rear
     geom.setFaceInds(10, 20,21,22); // HCD
-    geom.setFaceInds(11, 20,22,23); // HGC
+    geom.setFaceInds(11, 20,22,23); // HGC    
+}
+        
+if(1) {
+    var geom = new FaceGeometry(6*4,6*2);
+    setNinja(geom);
+    geom.setColor(8, 1,0,0,1);
+    geom.setColor(16, 1,1,1,0.1);    
     
     var g_prop_texcol = new Prop3D();
     g_prop_texcol.setGeom(geom);
