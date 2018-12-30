@@ -209,155 +209,106 @@ if(1) {
 
 
 
-if(0) {
-    var AIR=0;
-    var STONE=1;
-    function createFieldBlockData(sz) {
-        // ex. 16*16*16=4096.
-        // x>z>y 
-        // 0: (0,0,0) 1:(1,0,0)... 16:(0,0,1), ... 256:(0,1,0) 4095:(15,15,15)
-        var out=new Array(sz*sz*sz);
+if(1) {
+
+    function createNinjaChunk(sz) {
+        var kk=1.0/256.0*8;
+        var uv_lt=vec2.fromValues(0,0);
+        var uv_rt=vec2.fromValues(kk,0);
+        var uv_lb=vec2.fromValues(0,kk);
+        var uv_rb=vec2.fromValues(kk,kk);
+        
+        var geom = new FaceGeometry(6*4*sz*sz*sz,6*2*sz*sz*sz);
+
+        var a=vec3.create();
+        var b=vec3.create();
+        var c=vec3.create();
+        var d=vec3.create();
+        var e=vec3.create();
+        var f=vec3.create();
+        var g=vec3.create();
+        var h=vec3.create();
+        
+        var cubei=0;
         for(var y=0;y<sz;y++) {
             for(var z=0;z<sz;z++) {
                 for(var x=0;x<sz;x++) {
-                    var ind=x+z*sz+y*sz*sz;
-                    var val=AIR;
-                    if(y<8)val=STONE; // 2048vox per chunk
-                    // if(y==0)val=STONE; // 256vox per chunk
-                    //if(x==z && z==y)val=STONE; // 16vox per chunk
-                    out[ind]=val;  
-                }
-            }
-        }
-        return out;
-    }
+                    var vi=cubei*6*4;
+                    var fi=cubei*6*2;
 
-    // precalc
-    var white=new Color(1,1,1,1).toTHREEColor();
-    var dark=new Color(0.8,0.8,0.8,1).toTHREEColor();
+                    var  m=0.4;
+                    vec3.set(a,x-m,-y-m,z+m);
+                    vec3.set(b,x+m,-y-m,z+m);
+                    vec3.set(c,x+m,-y-m,z-m);
+                    vec3.set(d,x-m,-y-m,z-m);
+                    vec3.set(e,x-m,-y+m,z+m);
+                    vec3.set(f,x+m,-y+m,z+m);
+                    vec3.set(g,x+m,-y+m,z-m);
+                    vec3.set(h,x-m,-y+m,z-m);
 
-    var uvrect=new Float32Array(4);
-    g_base_deck.getUVFromIndex(uvrect,3,0,0,0);
-    var uv_lt=new THREE.Vector2(uvrect[0],uvrect[1]);
-    var uv_rt=new THREE.Vector2(uvrect[2],uvrect[1]);
-    var uv_lb=new THREE.Vector2(uvrect[0],uvrect[3]);
-    var uv_rb=new THREE.Vector2(uvrect[2],uvrect[3]);
-    var uv_adb=[uv_lb,uv_lt,uv_rb];// ADB
-    var uv_dcb=[uv_lt,uv_rt,uv_rb];// DCB
-    var uv_hfg=[uv_lt,uv_rb,uv_rt];// HFG
-    var uv_efh=[uv_lb,uv_rb,uv_lt];// EFH
-    var uv_eda=[uv_rt,uv_lb,uv_rb];//EDA
-    var uv_ehd=[uv_rt,uv_lt,uv_lb];//EHD
-    var uv_fbc=[uv_lt,uv_lb,uv_rb];//FBC
-    var uv_fcg=[uv_lt,uv_rb,uv_rt];//FCG
-    var uv_eab=[uv_lt,uv_lb,uv_rb];//EAB
-    var uv_ebf=[uv_lt,uv_rb,uv_rt];//EBF
-    var uv_hcd=[uv_lt,uv_rb,uv_lb];// HCD
-    var uv_hgc=[uv_lt,uv_rt,uv_rb];//HGC
-
-
-    function createChunkGeometry(blks,sz) {
-        var l=1.0;
-        var geom = new THREE.Geometry();
-        var vn=0, fn=0;
-        for(var y=0;y<sz;y++) {
-            for(var z=0;z<sz;z++) {
-                for(var x=0;x<sz;x++) {
-                    var block_ind=x+z*sz+y*sz*sz;
-                    var blk = blks[block_ind];
-                    if(blk==AIR)continue;
-                    geom.vertices.push(new THREE.Vector3(x,y,z+l));// A red
-                    geom.vertices.push(new THREE.Vector3(x+l,y,z+l) ); // B blue
-                    geom.vertices.push(new THREE.Vector3(x+l,y,z) ); // C yellow
-                    geom.vertices.push(new THREE.Vector3(x,y,z) ); // D green
-                    geom.vertices.push(new THREE.Vector3(x,y+l,z+l) ); // E white
-                    geom.vertices.push(new THREE.Vector3(x+l,y+l,z+l) ); // F purple
-                    geom.vertices.push(new THREE.Vector3(x+l,y+l,z) ); // G white
-                    geom.vertices.push(new THREE.Vector3(x,y+l,z) ); // H white
-
-
-                    // faces
-                    // bottom
-                    geom.faces.push(new THREE.Face3(vn+0,vn+3,vn+1)); // ADB
-                    geom.faces.push(new THREE.Face3(vn+3,vn+2,vn+1)); // DCB
-                    // top
-                    geom.faces.push(new THREE.Face3(vn+7,vn+5,vn+6)); // HFG
-                    geom.faces.push(new THREE.Face3(vn+4,vn+5,vn+7)); // EFH
-                    // left
-                    geom.faces.push(new THREE.Face3(vn+4,vn+3,vn+0)); // EDA
-                    geom.faces.push(new THREE.Face3(vn+4,vn+7,vn+3)); // EHD
-                    // right
-                    geom.faces.push(new THREE.Face3(vn+5,vn+1,vn+2)); // FBC
-                    geom.faces.push(new THREE.Face3(vn+5,vn+2,vn+6)); // FCG
-                    // front
-                    geom.faces.push(new THREE.Face3(vn+4,vn+0,vn+1)); // EAB
-                    geom.faces.push(new THREE.Face3(vn+4,vn+1,vn+5)); // EBF
-                    // rear
-                    geom.faces.push(new THREE.Face3(vn+7,vn+2,vn+3)); // HCD
-                    geom.faces.push(new THREE.Face3(vn+7,vn+6,vn+2)); // HGC
-
-                    // colors
-                    var cols=[ dark,dark,dark,  dark,dark,dark, white,white,white, white,white,white, // ADB DCB  HFG EFH
-                               white,dark,dark, white,white,dark, white,dark,dark, white,dark,white, // EDA EHD  FBC  FCG
-                               white,dark,dark, white,dark,white, white,dark,dark, white,white,dark // EAB EBF  HCD HGC
-                             ];
-                    for(var i=fn;i<fn+12;i++){
-                        for(var j=0;j<3;j++){
-                            geom.faces[i].vertexColors[j] = cols[j+(i-fn)*3];
-                            
-                        }
-                    }
-
-                    // uvs
-                    geom.faceVertexUvs[0].push(uv_adb);// ADB
-                    geom.faceVertexUvs[0].push(uv_dcb);// DCB
-                    geom.faceVertexUvs[0].push(uv_hfg);// HFG
-                    geom.faceVertexUvs[0].push(uv_efh);// EFH
-                    geom.faceVertexUvs[0].push(uv_eda);//EDA
-                    geom.faceVertexUvs[0].push(uv_ehd);//EHD
-                    geom.faceVertexUvs[0].push(uv_fbc);//FBC
-                    geom.faceVertexUvs[0].push(uv_fcg);//FCG
-                    geom.faceVertexUvs[0].push(uv_eab);//EAB
-                    geom.faceVertexUvs[0].push(uv_ebf);//EBF
-                    geom.faceVertexUvs[0].push(uv_hcd);// HCD
-                    geom.faceVertexUvs[0].push(uv_hgc);//HGC
-
-                    vn+=8;
-                    fn+=12;
                     
+                    geom.setPosition3v(vi+0,a); geom.setPosition3v(vi+1,b); geom.setPosition3v(vi+2,c); geom.setPosition3v(vi+3,d);//-y
+                    geom.setPosition3v(vi+4,e); geom.setPosition3v(vi+5,f); geom.setPosition3v(vi+6,g); geom.setPosition3v(vi+7,h);//+y
+                    geom.setPosition3v(vi+8,a); geom.setPosition3v(vi+9,b); geom.setPosition3v(vi+10,f); geom.setPosition3v(vi+11,e);//+z
+                    geom.setPosition3v(vi+12,c); geom.setPosition3v(vi+13,d); geom.setPosition3v(vi+14,h); geom.setPosition3v(vi+15,g);//-z
+                    geom.setPosition3v(vi+16,b); geom.setPosition3v(vi+17,c); geom.setPosition3v(vi+18,g); geom.setPosition3v(vi+19,f);//+x
+                    geom.setPosition3v(vi+20,d); geom.setPosition3v(vi+21,a); geom.setPosition3v(vi+22,e); geom.setPosition3v(vi+23,h);//-x
+
+                    geom.setUV2v(vi+0,uv_lb); geom.setUV2v(vi+1,uv_rb); geom.setUV2v(vi+2,uv_rt); geom.setUV2v(vi+3,uv_lt); // abcd
+                    geom.setUV2v(vi+4,uv_lb); geom.setUV2v(vi+5,uv_rb); geom.setUV2v(vi+6,uv_rt); geom.setUV2v(vi+7,uv_lt); // efgh
+                    geom.setUV2v(vi+8,uv_lb); geom.setUV2v(vi+9,uv_rb); geom.setUV2v(vi+10,uv_rt); geom.setUV2v(vi+11,uv_lt); // abfe
+                    geom.setUV2v(vi+12,uv_lb); geom.setUV2v(vi+13,uv_rb); geom.setUV2v(vi+14,uv_rt); geom.setUV2v(vi+15,uv_lt); // cdhg
+                    geom.setUV2v(vi+16,uv_lb); geom.setUV2v(vi+17,uv_rb); geom.setUV2v(vi+18,uv_rt); geom.setUV2v(vi+19,uv_lt); // bcgf
+                    geom.setUV2v(vi+20,uv_lb); geom.setUV2v(vi+21,uv_rb); geom.setUV2v(vi+22,uv_rt); geom.setUV2v(vi+23,uv_lt); // daeh
+
+                    var red=range(0,1), green=range(0,1), blue=range(0,1);
+                    for(var i=0;i<24;i++) geom.setColor(vi+i, red,green,blue,1);
+
+                    // bottom
+                    geom.setFaceInds(fi+0, vi+0,vi+3,vi+1); // ADB
+                    geom.setFaceInds(fi+1, vi+3,vi+2,vi+1); // DCB
+                    // top
+                    geom.setFaceInds(fi+2, vi+7,vi+5,vi+6); // HFG
+                    geom.setFaceInds(fi+3, vi+4,vi+5,vi+7); // EFH
+                    // +z abf, afe
+                    geom.setFaceInds(fi+4, vi+8,vi+9,vi+10); // abf
+                    geom.setFaceInds(fi+5, vi+8,vi+10,vi+11); // afe
+                    // -z cdh, chg
+                    geom.setFaceInds(fi+6, vi+12,vi+13,vi+14); // cdh
+                    geom.setFaceInds(fi+7, vi+12,vi+14,vi+15); // chg
+                    // front
+                    geom.setFaceInds(fi+8, vi+16,vi+17,vi+18); // EAB
+                    geom.setFaceInds(fi+9, vi+16,vi+18,vi+19); // EBF
+                    // rear
+                    geom.setFaceInds(fi+10, vi+20,vi+21,vi+22); // HCD
+                    geom.setFaceInds(fi+11, vi+20,vi+22,vi+23); // HGC    
+
+                    cubei++;
                 }
             }
         }
-        geom.verticesNeedUpdate=true;
-        geom.uvsNeedUpdate = true;
         return geom;
     }
-    var g_blockdata = createFieldBlockData(16);
 
-    var g_chk_sz = 5;
-    var g_chk_x = 0, g_chk_y = 0, g_chk_z = 0;
+    var sz=8;
+    var mat=new DefaultColorShaderMaterial();
+    var chunknum=1000;
+    for(var i=0;i<chunknum;i++) {
+        var chx=i%8;
+        var chy=Math.floor(i/8)%8;
+        var chz=Math.floor(i/64)%8;
 
-    setInterval(function() {
-        if(g_chk_y==g_chk_sz)return;
-        
-        var chgeom = createChunkGeometry(g_blockdata,16);
-        var chmesh = new THREE.Mesh(chgeom,g_mat2);
-        var chkp = new Prop3D();
-        chkp.setMesh(chmesh);
-        chkp.setScl(1,1,1);
-        chkp.setLoc(g_chk_x*16,g_chk_y*16,g_chk_z*16);
-        g_chk_x++;
-        if(g_chk_x==g_chk_sz) {
-            g_chk_x=0;
-            g_chk_z++;
-            if(g_chk_z==g_chk_sz) {
-                g_chk_y++;
-                g_chk_z=0;
-            }
-        }
-        g_main_layer.insertProp(chkp);    
-    }, 20 );
-
+        var p = new Prop3D();
+        var geom = createNinjaChunk(sz);
+        p.setGeom(geom);
+        p.setMaterial(mat);
+        p.setTexture(g_base_tex);
+        p.setScl(1,1,1);
+        p.setLoc(-33+chx*(sz+1),-chy*(sz+1),-33+chz*(sz+1));
+        p.setColor(vec4.fromValues(range(0,1),range(0,1),range(0,1),1));
+        g_main_layer.insertProp(p);        
+    }
+    
 
     // 1ボクセルあたり12triangle
     // 16voxel x 3000chk = 45fps (2.1GB)  (576000tri/frame)
@@ -387,7 +338,9 @@ function animate() {
     if(g_main_camera) {
         var t=now();
         g_main_camera.loc[0]=Math.cos(t)*8;
+        g_main_camera.loc[1]+=0.1;        
         g_main_camera.loc[2]=Math.sin(t)*8;
+
     }
     
     last_anim_at = now_time;    
