@@ -186,6 +186,10 @@ if(1) {
     p.setLoc(2,0,0);
     p.setColor(vec4.fromValues(1,1,1,1));
     g_main_layer.insertProp(p);
+    p.prop3DPoll=function(dt) {
+        this.setColor(1,1,1,0.5+Math.cos(this.accum_time)*0.5);
+        return true;
+    }
 }
 
 
