@@ -16,12 +16,17 @@ class OrthographicCamera {
 };
 
 class PerspectiveCamera {
-    constructor() {
-	    this.look_at = vec3.create();
-	    this.look_up = vec3.create();        
+    constructor(fov,aspect,near,far) {
+        this.fov=fov;
+        this.aspect=aspect;
+        this.near=near;
+        this.far=far;
+	    this.look_at=vec3.create();
+	    this.look_up=vec3.create();
+        this.loc=vec3.create();
     }
     setLoc(x,y,z) {
-        vec3.set(this.loc,x,y,z);
+        if(y===undefined) vec3.copy(this.loc,x); else vec3.set(this.loc,x,y,z);
     }
     setLookAt(at,up) {
         vec3.copy(this.look_at,at);
@@ -84,7 +89,6 @@ Moyai.render = function() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
 
-//            this.camera3d = new PerspectiveCamera( 45 , this.width / this.height , -1, 1000000);
     for(var li=0;li<this.layers.length;li++) {
         var layer = this.layers[li];
         if(layer.viewport.dimension==3) {
@@ -100,23 +104,27 @@ Moyai.render = function() {
         }
     }
 }
-Moyai.render3D = function(scene,layer) {
-    if(layer.light) {
-        scene.add(layer.light);
-    }
-    if(layer.ambient_light) {
-        scene.add(layer.ambient_light);
-    }
+Moyai.render3D = function(layer) {
+    if(!layer.projMat) layer.projMat=mat4.create();
+    var cam=layer.camera;
+    if(!cam.camMat) cam.camMat=mat4.create();
+    mat4.lookAt(cam.camMat,cam.loc,cam.look_at,cam.look_up);
+    mat4.perspective(layer.projMat, layer.camera.fov, layer.camera.aspect, layer.camera.near, layer.camera.far );
+    if(!this.viewProjMat)this.viewProjMat=mat4.create();
+    mat4.multiply(this.viewProjMat,layer.projMat,cam.camMat);
+    
+//    mat4.perspective(layer.projMat, 0.5, 1.3333, 1,1000);
+//    mat4.ortho(layer.projMat, -3, 3, -5, 5, -1, 1000);
     for(var pi=0;pi<layer.props.length;pi++ ) {                    
         var prop = layer.props[pi];
         if(!prop.visible)continue;
         if(prop.to_clean)continue;
-        prop.mesh.position.set(prop.loc[0]+prop.draw_offset[0], prop.loc[1]+prop.draw_offset[1], prop.loc[2]+prop.draw_offset[2]);
-        if(!prop.skip_default_rotation) prop.mesh.rotation.set(prop.rot[0], prop.rot[1], prop.rot[2]);
-        if(prop.scl[0]!=1 || prop.scl[1]!=1 || prop.scl[2]!=1) {
-            prop.mesh.scale.set(prop.scl[0], prop.scl[1], prop.scl[2]); 
-        }
-        scene.add(prop.mesh);
+        prop.updateModelViewMatrix();
+        prop.geom.bless();
+        var gltex=prop.moyai_tex ? prop.moyai_tex.gltex : null;
+        console.log("BBB:",prop.geom,prop.mvMat, this.viewProjMat, prop.material, gltex, prop.color );
+        this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, gltex, prop.color, prop.use_additive_blend);
+        
     }
 }
 Moyai.render2D = function(layer) {
@@ -124,16 +132,14 @@ Moyai.render2D = function(layer) {
     if(!this.camloc) this.camloc=vec2.create();
     var camera=layer.camera;
     layer.viewport.getRelativeScale(this.relscl);
-    if(!layer.projMat) {
-        layer.projMat=mat4.create();
-    }
-//    mat4.perspective(projMat, fov, aspect, znear, zfar );
+
+    if(!layer.projMat) layer.projMat=mat4.create();
     mat4.ortho(layer.projMat, camera.left, camera.right, camera.bottom, camera.top, camera.near, camera.far );
-    
     
     for(var pi=0;pi<layer.props.length;pi++ ) {                    
         var prop = layer.props[pi];
         if(!prop.visible)continue;
+        if(prop.to_clean)continue;        
         prop.updateModelViewMatrix();
         prop.updateGeom();
         if(prop.geom) prop.geom.bless();                    
@@ -176,6 +182,7 @@ Moyai.render2D = function(layer) {
     }
 }
 Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv,additive_blend) {
+//    console.log("draw:",geom,mvMat,projMat,material,gltex,colv,additive_blend);
     var gl=Moyai.gl;
     gl.useProgram(material.glprog);    
     gl.uniformMatrix4fv( material.uniformLocations.projectionMatrix, false, projMat ); // TODO: put it out
@@ -202,7 +209,7 @@ Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv,additive_blend) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);                
     }
-    if(colv!==null) gl.uniform4fv(material.uniformLocations.meshcolor, colv);
+    if(colv) gl.uniform4fv(material.uniformLocations.meshcolor, colv);
     if(material.applyUniforms) material.applyUniforms();
     // draw
     var indn=geom.indn_used;
@@ -371,8 +378,8 @@ Prim.prototype.updateGeom = function() {
         this.geom.setPosition(0, this.a[0],this.a[1],0);
         this.geom.setPosition(1, this.b[0],this.b[1],0);
         this.geom.need_positions_update=true;
-        this.geom.setColorArray4(0, this.color );
-        this.geom.setColorArray4(1, this.color );
+        this.geom.setColor4v(0, this.color );
+        this.geom.setColor4v(1, this.color );
         this.geom.need_colors_update=true;
         this.geom.setIndex(0,0);
         this.geom.setIndex(1,1);
@@ -398,10 +405,10 @@ Prim.prototype.updateGeom = function() {
             this.geom.setFaceInds(0, 0, 2, 1);
             this.geom.setFaceInds(1, 0, 3, 2);
         }
-        this.geom.setColorArray4(0,this.color);
-        this.geom.setColorArray4(1,this.color);
-        this.geom.setColorArray4(2,this.color);
-        this.geom.setColorArray4(3,this.color);        
+        this.geom.setColor4v(0,this.color);
+        this.geom.setColor4v(1,this.color);
+        this.geom.setColor4v(2,this.color);
+        this.geom.setColor4v(3,this.color);        
     } else {
         console.warn("invalid prim type",this.type)
     }
@@ -534,7 +541,7 @@ class Geometry {
         this.colors[vind*4+2]=b;
         this.colors[vind*4+3]=a;
     }
-    setColorArray4(vind,v4) {
+    setColor4v(vind,v4) {
         this.colors[vind*4]=v4[0];
         this.colors[vind*4+1]=v4[1];
         this.colors[vind*4+2]=v4[2];
@@ -720,7 +727,7 @@ class Prop2D extends Prop {
             this.loc[0] += this.remote_vel[0]*dt;
             this.loc[1] += this.remote_vel[1]*dt;
         }
-        if( this.prop2DPoll && this.prop2DPoll(dt) == false ) {
+        if( this.prop2DPoll && this.prop2DPoll(dt) === false ) {
             return false;
         }
         return true;
@@ -779,10 +786,10 @@ class Prop2D extends Prop {
             this.need_uv_update = false;
         }
         if( this.need_color_update ) {
-            this.geom.setColorArray4(0,this.color);
-            this.geom.setColorArray4(1,this.color);
-            this.geom.setColorArray4(2,this.color);
-            this.geom.setColorArray4(3,this.color);
+            this.geom.setColor4v(0,this.color);
+            this.geom.setColor4v(1,this.color);
+            this.geom.setColor4v(2,this.color);
+            this.geom.setColor4v(3,this.color);
             this.geom.need_colors_update=true;
             this.need_color_update = false;
         }
@@ -1330,10 +1337,10 @@ class TextBox extends Prop2D {
             geom.setUV(used_chind*4+2, glyph.u1,glyph.v1);
             geom.setUV(used_chind*4+3, glyph.u0,glyph.v1);
 
-            geom.setColorArray4(used_chind*4, this.color);
-            geom.setColorArray4(used_chind*4+1, this.color);
-            geom.setColorArray4(used_chind*4+2, this.color);
-            geom.setColorArray4(used_chind*4+3, this.color);
+            geom.setColor4v(used_chind*4, this.color);
+            geom.setColor4v(used_chind*4+1, this.color);
+            geom.setColor4v(used_chind*4+2, this.color);
+            geom.setColor4v(used_chind*4+3, this.color);
             
             cur_x += glyph.advance;
             used_chind++;
@@ -1817,6 +1824,7 @@ class Prop3D extends Prop {
         this.rot = vec3.fromValues(0,0,0);
         this.geom=null;
         this.material=null;
+        this.color=Color.fromValues(1,1,1,1);
         this.sort_center = vec3.fromValues(0,0,0);
 	    this.depth_mask=true;
         this.alpha_test=false;
@@ -1827,27 +1835,51 @@ class Prop3D extends Prop {
         this.visible=true;        
     }
     propPoll(dt) {
-        if(this.prop3DPoll && this.prop3DPoll(dt)==false) {
+        if(this.prop3DPoll && this.prop3DPoll(dt)===false) {
             return false;
         }
         return true;
     }
-    setVisible(flg) { this.visible=flg; }    
-}
-Prop3D.prototype.setGeom = function(g) {this.geom=g;}
-Prop3D.prototype.setMaterial = function(m) {this.material=m;}
-Prop3D.prototype.setScl = function(x,y,z) {
-    if(y===undefined) {
-        vec3.copy(this.scl,x);
-    } else {
-        vec3.set(this.scl,x,y,z);   
+    setVisible(flg) { this.visible=flg; }
+    updateModelViewMatrix() {
+        if(!this.mvMat) this.mvMat=mat4.create();
+        mat4.identity(this.mvMat);
+        mat4.translate(this.mvMat,this.mvMat,vec3.fromValues(this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],this.loc[2]+this.draw_offset[2])); //TODO:noalloc           
+        mat4.rotate(this.mvMat,this.mvMat,this.rot[0],vec3.fromValues(1,0,0));//TODO: noalloc
+        mat4.rotate(this.mvMat,this.mvMat,this.rot[1],vec3.fromValues(0,1,0));//TODO: noalloc
+        mat4.rotate(this.mvMat,this.mvMat,this.rot[2],vec3.fromValues(0,0,1));//TODO: noalloc        
+        mat4.scale(this.mvMat,this.mvMat,vec3.fromValues(this.scl[0],this.scl[1],1));  //TODO: noalloc
+    }
+    setTexture(moyai_tex) {
+        this.moyai_tex=moyai_tex;
+    }
+    setGeom(g) {this.geom=g;}
+    setMaterial(m) {this.material=m;}
+    setScl(x,y,z) {
+        if(y===undefined) {
+            vec3.copy(this.scl,x);
+        } else {
+            vec3.set(this.scl,x,y,z);   
+        }
+    }
+    setLoc(x,y,z) {
+        if(y===undefined) vec3.copy(this.loc,x); else vec3.set(this.loc,x,y,z);
+    }
+    setRot(x,y,z) {
+        if(y===undefined) vec3.copy(this.rot,x); else vec3.set(this.rot,x,y,z); 
+    }
+    setColor(r,g,b,a) {
+        if(Color.exactEqualsToValues(this.color,r,g,b,a)==false) {
+            this.need_color_update = true;
+        }
+        if(typeof r == 'object' ) {
+            Color.copy(this.color,r);
+        } else {
+            Color.set(this.color,r,g,b,a); 
+        }
     }
 }
-Prop3D.prototype.setLoc = function(x,y,z) {
-    if(y===undefined) vec3.copy(this.loc,x); else vec3.set(this.loc,x,y,z);
-}
-Prop3D.prototype.setRot = function(x,y,z) {
-    if(y===undefined) vec3.copy(this.rot,x); else vec3.set(this.rot,x,y,z); 
-}
+
+
 
 
