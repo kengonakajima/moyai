@@ -126,6 +126,17 @@ Moyai.render3D = function(layer) {
         var gltex=prop.moyai_tex ? prop.moyai_tex.gltex : null;
 //        console.log("BBB:",prop.geom,prop.mvMat, this.viewProjMat, prop.material, gltex, prop.color );
         this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, gltex, prop.color, prop.use_additive_blend);
+
+        if(prop.children.length>0) {
+            for(var i=0;i<prop.children.length;i++) {
+                var chp = prop.children[i];
+                if(!chp.visible)continue;
+                chp.updateModelViewMatrix(prop.mvMat);                
+                chp.geom.bless();
+                var gltex=chp.moyai_tex ? chp.moyai_tex.gltex : null;                
+                this.draw(chp.geom, chp.mvMat, this.viewProjMat, chp.material, gltex, chp.color, chp.use_additive_blend);
+            }
+        }
         
     }
 }
@@ -1848,14 +1859,18 @@ class Prop3D extends Prop {
         return true;
     }
     setVisible(flg) { this.visible=flg; }
-    updateModelViewMatrix() {
+    updateModelViewMatrix(parentMat) {
         if(!this.mvMat) this.mvMat=mat4.create();
-        mat4.identity(this.mvMat);
+        if(parentMat) {
+            mat4.copy(this.mvMat,parentMat);
+        } else {
+            mat4.identity(this.mvMat);
+        }
         mat4.translate(this.mvMat,this.mvMat,vec3.fromValues(this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],this.loc[2]+this.draw_offset[2])); //TODO:noalloc           
         mat4.rotate(this.mvMat,this.mvMat,this.rot[0],vec3.fromValues(1,0,0));//TODO: noalloc
         mat4.rotate(this.mvMat,this.mvMat,this.rot[1],vec3.fromValues(0,1,0));//TODO: noalloc
         mat4.rotate(this.mvMat,this.mvMat,this.rot[2],vec3.fromValues(0,0,1));//TODO: noalloc        
-        mat4.scale(this.mvMat,this.mvMat,vec3.fromValues(this.scl[0],this.scl[1],1));  //TODO: noalloc
+        mat4.scale(this.mvMat,this.mvMat,vec3.fromValues(this.scl[0],this.scl[1],this.scl[2]));  //TODO: noalloc
     }
     setTexture(moyai_tex) {
         this.moyai_tex=moyai_tex;

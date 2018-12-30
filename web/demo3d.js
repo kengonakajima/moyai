@@ -188,7 +188,22 @@ if(1) {
     g_main_layer.insertProp(p);
     p.prop3DPoll=function(dt) {
         this.setColor(1,1,1,0.5+Math.cos(this.accum_time)*0.5);
+        if(this.poll_count%100==0) {
+            this.setRot(0,0.6,0);
+        } else if(this.poll_count%100==50){
+            this.setRot(0,0,0);            
+        }
         return true;
+    }
+    if(1) {
+        var chp=new Prop3D();
+        chp.setGeom(geom);
+        chp.setMaterial(new DefaultColorShaderMaterial());
+        chp.setTexture(g_base_tex);
+        chp.setScl(0.3,0.3,0.3);
+        chp.setLoc(1,0,0); // relative to parent
+        chp.setColor(vec4.fromValues(1,1,1,1));
+        p.addChild(chp);
     }
 }
 
