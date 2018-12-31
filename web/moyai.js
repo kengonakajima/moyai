@@ -110,7 +110,7 @@ Moyai.render = function() {
     }
 }
 Moyai.render3D = function(layer) {
-    if(!layer.projMat) layer.projMat=mat4.create();
+    if(!layer.projMat) layer.projMat=mat4.create();// TODO: to_cons
     var cam=layer.camera;
     if(!cam.camMat) cam.camMat=mat4.create();
     mat4.lookAt(cam.camMat,cam.loc,cam.look_at,cam.look_up);
@@ -200,8 +200,15 @@ Moyai.render2D = function(layer) {
 Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv,additive_blend) {
 //    console.log("draw:",geom,mvMat,projMat,material,gltex,colv,additive_blend);
     var gl=Moyai.gl;
-    gl.useProgram(material.glprog);    
-    gl.uniformMatrix4fv( material.uniformLocations.projectionMatrix, false, projMat ); // TODO: put it out
+    if(this.last_material!=material) {
+//        console.log("new material:",material);
+        this.last_material=material;
+        gl.useProgram(material.glprog);
+        gl.uniformMatrix4fv( material.uniformLocations.projectionMatrix, false, projMat ); // TODO: put it out        
+    } else {
+//        console.log("skip uniformMatrix4fv");
+    }
+
     // pos
     gl.bindBuffer(gl.ARRAY_BUFFER, geom.positionBuffer);
     gl.vertexAttribPointer( material.attribLocations.position, 3, gl.FLOAT, false,0,0);
@@ -220,8 +227,11 @@ Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv,additive_blend) {
         gl.vertexAttribPointer(material.attribLocations.uv, 2, gl.FLOAT, false,0,0 );
         gl.enableVertexAttribArray(material.attribLocations.uv );        
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, gltex);
-        gl.uniform1i(material.uniformLocations.texture,0);
+        if(this.last_gltex!=gltex) {
+            gl.bindTexture(gl.TEXTURE_2D, gltex);
+            gl.uniform1i(material.uniformLocations.texture,0);
+            this.last_gltex=gltex;
+        }
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);                
     }
@@ -1461,7 +1471,7 @@ var fragment_replacer_glsl =
 	"   pixel.a = vColor.a * pixel.a;\n" +   
 	"	gl_FragColor = pixel;\n"+
 	"}\n";
-
+var g_shader_material_id_gen=1;
 class ShaderMaterial {
     constructor() {
         var gl=Moyai.gl;
@@ -1470,6 +1480,7 @@ class ShaderMaterial {
         this.glprog=null;
         this.vs=null;
         this.fs=null;
+        this.id=g_shader_material_id_gen++;        
     }
     createShader(src,type) {
         var gl=Moyai.gl;

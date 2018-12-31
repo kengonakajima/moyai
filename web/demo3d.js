@@ -290,7 +290,7 @@ if(1) {
         return geom;
     }
 
-    var sz=8;
+    var sz=8;// 8:512 9:729 10:1000
     var mat=new DefaultColorShaderMaterial();
     var chunknum=1000;
     for(var i=0;i<chunknum;i++) {
@@ -310,6 +310,7 @@ if(1) {
     }
     
 
+    // 8x8x8=512voxel *12tri=6Ktri x 1000chk = 6Mtri/frame
     // 1ボクセルあたり12triangle
     // 16voxel x 3000chk = 45fps (2.1GB)  (576000tri/frame)
     // 256voxel x 730chk = 60fps (2GB) (2242560tri/frame)
