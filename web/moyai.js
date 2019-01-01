@@ -43,7 +43,7 @@ Moyai.init = function(w,h){
     this.canvas=document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
     this.canvas.width=w;
     this.canvas.height=h;
-    this.gl=this.canvas.getContext("webgl2",{antialias: false});
+    this.gl=this.canvas.getContext("webgl",{antialias: false});
     if(!this.gl) {
         console.warn("no WebGL support");
         this.gl = null;

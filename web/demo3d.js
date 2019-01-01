@@ -290,7 +290,7 @@ if(1) {
         return geom;
     }
 
-    var sz=8;// 8:512 9:729 10:1000
+    var sz=6;// 8:512 9:729 10:1000
     var mat=new DefaultColorShaderMaterial();
     var chunknum=1000;
     for(var i=0;i<chunknum;i++) {

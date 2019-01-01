@@ -11,7 +11,7 @@ function stopRender() {
 
 /////////// testing
 
-var SCRW=960, SCRH=544;
+var SCRW=1024, SCRH=512;
 Moyai.init(SCRW,SCRH);
 var screen = document.getElementById("screen");
 screen.appendChild( Moyai.getDomElement());
