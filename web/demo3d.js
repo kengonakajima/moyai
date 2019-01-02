@@ -79,6 +79,7 @@ g_main_layer.setCamera(g_main_camera);
 
 var g_base_tex = new Texture();
 g_base_tex.loadPNG( "./assets/base.png", 256,256 );
+//g_base_tex.min_filter=Moyai.gl.NEAREST_MIPMAP_NEAREST;  almost no perfomance improvement
 var g_base_deck = new TileDeck();
 g_base_deck.setTexture(g_base_tex);
 g_base_deck.setSize(32,32,8,8);
@@ -333,7 +334,7 @@ if(1) {
         return geom;
     }
 
-    var sz=4;// 8:512 9:729 10:1000
+    var sz=8;// 8:512 9:729 10:1000
     var mat=new DefaultColorShaderMaterial();
     var chunknum=1000;
     for(var i=0;i<chunknum;i++) {
