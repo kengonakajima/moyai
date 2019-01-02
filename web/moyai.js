@@ -126,9 +126,8 @@ Moyai.render3D = function(layer) {
         if(prop.to_clean)continue;
         prop.updateModelViewMatrix();
         prop.geom.bless();
-        var gltex=prop.moyai_tex ? prop.moyai_tex.gltex : null;
-//        console.log("BBB:",prop.geom,prop.mvMat, this.viewProjMat, prop.material, gltex, prop.color );
-        this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, gltex, prop.color, prop.use_additive_blend);
+//        console.log("BBB:",prop.geom,prop.mvMat, this.viewProjMat, prop.material, prop.color );
+        this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend);
 
         if(prop.children.length>0) {
             for(var i=0;i<prop.children.length;i++) {
@@ -136,8 +135,7 @@ Moyai.render3D = function(layer) {
                 if(!chp.visible)continue;
                 chp.updateModelViewMatrix(prop.mvMat);                
                 chp.geom.bless();
-                var gltex=chp.moyai_tex ? chp.moyai_tex.gltex : null;                
-                this.draw(chp.geom, chp.mvMat, this.viewProjMat, chp.material, gltex, chp.color, chp.use_additive_blend);
+                this.draw(chp.geom, chp.mvMat, this.viewProjMat, chp.material, chp.moyai_tex, chp.color, chp.use_additive_blend);
             }
         }
         
@@ -168,9 +166,9 @@ Moyai.render2D = function(layer) {
                 if(!grid.deck)grid.setDeck(prop.deck);
                 grid.updateGeom();
                 if(grid.geom) grid.geom.bless();
-                var gltex;
-                if(grid.deck) gltex=grid.deck.moyai_tex.gltex; else gltex=prop.deck.moyai_tex.gltex;
-                this.draw(grid.geom, prop.mvMat, layer.projMat, prop.material, gltex,prop.color, prop.use_additive_blend);
+                var tex;
+                if(grid.deck) tex=grid.deck.moyai_tex; else tex=prop.deck.moyai_tex;
+                this.draw(grid.geom, prop.mvMat, layer.projMat, prop.material, tex, prop.color, prop.use_additive_blend);
             }
         }
         if(prop.children.length>0) {
@@ -180,11 +178,11 @@ Moyai.render2D = function(layer) {
                 chp.updateModelViewMatrix();                
                 chp.updateGeom();
                 if(chp.geom) chp.geom.bless();
-                this.draw(chp.geom, chp.mvMat, layer.projMat, chp.material, chp.deck.moyai_tex.gltex, chp.color, chp.use_additive_blend);
+                this.draw(chp.geom, chp.mvMat, layer.projMat, chp.material, chp.deck.moyai_tex, chp.color, chp.use_additive_blend);
             }
         }
         if(prop.geom) {
-            this.draw(prop.geom, prop.mvMat, layer.projMat, prop.material, prop.deck.moyai_tex.gltex,prop.color,prop.use_additive_blend);
+            this.draw(prop.geom, prop.mvMat, layer.projMat, prop.material, prop.deck.moyai_tex, prop.color,prop.use_additive_blend);
         }            
         if(prop.prim_drawer) {
             for(var i=0;i<prop.prim_drawer.prims.length;i++) {
@@ -197,7 +195,7 @@ Moyai.render2D = function(layer) {
         }            
     }
 }
-Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv,additive_blend) {
+Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend) {
 //    console.log("draw:",geom,mvMat,projMat,material,gltex,colv,additive_blend);
     var gl=Moyai.gl;
     if(this.last_material!=material) {
@@ -221,7 +219,8 @@ Moyai.draw = function(geom,mvMat,projMat,material,gltex,colv,additive_blend) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geom.indexBuffer);
     // setup shader
     gl.uniformMatrix4fv( material.uniformLocations.modelViewMatrix, false, mvMat);
-    if(gltex!==null) {
+    if(moyai_tex) {
+        var gltex=moyai_tex.gltex;
         // uv
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.uvBuffer);
         gl.vertexAttribPointer(material.attribLocations.uv, 2, gl.FLOAT, false,0,0 );

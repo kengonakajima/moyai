@@ -9,12 +9,14 @@ function stopRender() {
 }
 
 
-/////////// testing
+/////////// 
 
 var SCRW=1024, SCRH=512;
 Moyai.init(SCRW,SCRH);
 var screen = document.getElementById("screen");
-screen.appendChild( Moyai.getDomElement());
+var canvas=Moyai.getDomElement();
+screen.appendChild(canvas);
+
 
 var g_keyboard = new Keyboard();
 g_keyboard.setupBrowser(window);

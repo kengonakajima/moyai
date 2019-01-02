@@ -4,11 +4,54 @@ function stopRender() {
     g_stop_render = true;
 }
 
-var SCRW=1024, SCRH=512;
+var g_fullscreen=false;
 
+function makeFullscreen() {
+    var doc = window.document;
+    var docEl = doc.documentElement;
+    var requestFullScreen = docEl.requestFullscreen || docEl.requestFullScreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+    g_fullscreen=true;
+    var scr=document.getElementById("screen");
+    window.onresize=onResizeWindow;
+    requestFullScreen.call(scr);
+}
+
+function onResizeWindow() {
+    var w=window.innerWidth, h=window.innerHeight;
+    updateWindowSize(w,h);
+}
+
+function updateWindowSize(w,h){
+    window.onresize=null;
+    g_viewport3d.screen_width=w;
+    g_viewport3d.screen_height=h;
+    g_viewport2d.screen_width=w;
+    g_viewport2d.screen_height=h;
+    Moyai.width=w;
+    Moyai.height=h;
+
+//    Moyai.canvas.width=w;
+//    g_moyai_client.renderer.domElement.height=h;
+//    g_moyai_client.renderer.domElement.style="width:"+w+"px;height:"+w+"px;";
+//    g_moyai_client.renderer.setSize(w,h);
+}
+
+
+
+
+
+
+////////////
+var SCRW=window.innerWidth, SCRH=window.innerHeight;
+var pixelRatio = window.devicePixelRatio || 1;
+SCRW*=pixelRatio;
+SCRH*=pixelRatio;
+console.log("SSSSSSSSSSSSS:",SCRW,SCRH);
 Moyai.init(SCRW,SCRH);
 var screen = document.getElementById("screen");
-screen.appendChild( Moyai.getDomElement());
+var canvas=Moyai.getDomElement();
+canvas.style="width:100%; height:100%";
+screen.appendChild(canvas);
 
 
 var g_keyboard = new Keyboard();
@@ -290,7 +333,7 @@ if(1) {
         return geom;
     }
 
-    var sz=6;// 8:512 9:729 10:1000
+    var sz=4;// 8:512 9:729 10:1000
     var mat=new DefaultColorShaderMaterial();
     var chunknum=1000;
     for(var i=0;i<chunknum;i++) {
