@@ -229,10 +229,10 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend)
         if(this.last_gltex!=gltex) {
             gl.bindTexture(gl.TEXTURE_2D, gltex);
             gl.uniform1i(material.uniformLocations.texture,0);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, moyai_tex.min_filter);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, moyai_tex.mag_filter);                            
             this.last_gltex=gltex;
         }
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);                
     }
     if(colv) gl.uniform4fv(material.uniformLocations.meshcolor, colv);
     if(material.applyUniforms) material.applyUniforms();
@@ -267,7 +267,8 @@ function Texture() {
     this.id = this.__proto__.id_gen++;
     this.image = null;
     this.gltex = null;
-
+    this.min_filter=Moyai.gl.NEAREST;
+    this.mag_filter=Moyai.gl.NEAREST;
 }
 function isPowerOf2(value) {
   return (value & (value - 1)) == 0;
