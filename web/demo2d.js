@@ -454,7 +454,6 @@ function animate() {
         g_viewport.setScale2D( g_viewport.scl[0] * 1.05, g_viewport.scl[1] * 1.05 );
     }
     if( g_keyboard.getKey('a') ) {
-        console.log(g_camera.loc);
         g_camera.setLoc( g_camera.loc[0]-5, g_camera.loc[1] );
     }
     if( g_keyboard.getKey('d') ) {

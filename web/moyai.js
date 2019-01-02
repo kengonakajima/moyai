@@ -191,12 +191,19 @@ Moyai.render3D = function(layer) {
 Moyai.render2D = function(layer) {
     if(!this.relscl) this.relscl=vec2.fromValues(1,1);
     if(!this.camloc) this.camloc=vec2.create();
-    var camera=layer.camera;
+    var cam=layer.camera;
     layer.viewport.getRelativeScale(this.relscl);
 
     if(!layer.projMat) layer.projMat=mat4.create();
-    mat4.ortho(layer.projMat, camera.left, camera.right, camera.bottom, camera.top, camera.near, camera.far );
-    
+    mat4.ortho(layer.projMat, cam.left, cam.right, cam.bottom, cam.top, cam.near, cam.far );
+    if(!cam.camMat) cam.camMat=mat4.create();
+    mat4.identity(cam.camMat);
+    if(!cam.loc3) cam.loc3=vec3.create();
+    vec3.set(cam.loc3,cam.loc[0],cam.loc[1],0);
+    mat4.translate(cam.camMat,cam.camMat, cam.loc3);
+    if(!this.viewProjMat)this.viewProjMat=mat4.create();
+    mat4.multiply(this.viewProjMat,layer.projMat,cam.camMat);
+
     for(var pi=0;pi<layer.props.length;pi++ ) {                    
         var prop = layer.props[pi];
         if(!prop.visible)continue;
@@ -215,7 +222,7 @@ Moyai.render2D = function(layer) {
                 if(grid.geom) grid.geom.bless();
                 var tex;
                 if(grid.deck) tex=grid.deck.moyai_tex; else tex=prop.deck.moyai_tex;
-                this.draw(grid.geom, prop.mvMat, layer.projMat, prop.material, tex, prop.color, prop.use_additive_blend);
+                this.draw(grid.geom, prop.mvMat, this.viewProjMat, prop.material, tex, prop.color, prop.use_additive_blend);
             }
         }
         if(prop.children.length>0) {
@@ -225,11 +232,11 @@ Moyai.render2D = function(layer) {
                 chp.updateModelViewMatrix();                
                 chp.updateGeom();
                 if(chp.geom) chp.geom.bless();
-                this.draw(chp.geom, chp.mvMat, layer.projMat, chp.material, chp.deck.moyai_tex, chp.color, chp.use_additive_blend);
+                this.draw(chp.geom, chp.mvMat, this.viewProjMat, chp.material, chp.deck.moyai_tex, chp.color, chp.use_additive_blend);
             }
         }
         if(prop.geom) {
-            this.draw(prop.geom, prop.mvMat, layer.projMat, prop.material, prop.deck.moyai_tex, prop.color,prop.use_additive_blend);
+            this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, prop.deck.moyai_tex, prop.color,prop.use_additive_blend);
         }            
         if(prop.prim_drawer) {
             for(var i=0;i<prop.prim_drawer.prims.length;i++) {
@@ -237,7 +244,7 @@ Moyai.render2D = function(layer) {
                 prim.updateModelViewMatrix(vec3.fromValues(prop.loc[0],prop.loc[1],0),vec3.fromValues(prop.scl[0],prop.scl[1],1)); // TODO: noalloc
                 prim.updateGeom();
                 if(prim.geom) prim.geom.bless();
-                this.draw(prim.geom, prim.mvMat, layer.projMat, prim.material, null, null, prim.use_additive_blend);
+                this.draw(prim.geom, prim.mvMat, this.viewProjMat, prim.material, null, null, prim.use_additive_blend);
             }
         }            
     }
