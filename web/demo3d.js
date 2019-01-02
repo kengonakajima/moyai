@@ -337,7 +337,7 @@ if(1) {
 
     var sz=8;// 8:512 9:729 10:1000
     var mat=new DefaultColorShaderMaterial();
-    var chunknum=1000;
+    var chunknum=100;
     for(var i=0;i<chunknum;i++) {
         var chx=i%8;
         var chy=Math.floor(i/8)%8;
