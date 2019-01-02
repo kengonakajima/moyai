@@ -337,7 +337,7 @@ if(1) {
 
     var sz=8;// 8:512 9:729 10:1000
     var mat=new DefaultColorShaderMaterial();
-    var chunknum=30;
+    var chunknum=1000;
     for(var i=0;i<chunknum;i++) {
         var chx=i%8;
         var chy=Math.floor(i/8)%8;
@@ -378,7 +378,7 @@ function animate() {
 
     if(now_time > last_print_at+1000) {
         last_print_at=now_time;
-        document.getElementById("status").innerHTML = "FPS:"+fps+ "props:" + g_main_layer.props.length;
+        document.getElementById("status").innerHTML = "FPS:"+fps+ "props:" + g_main_layer.props.length + "draw3d:" + Moyai.draw_count_3d + " skip3d:" + Moyai.skip_count_3d;
         fps=0;
     }
 

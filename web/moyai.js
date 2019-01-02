@@ -94,6 +94,7 @@ Moyai.render = function() {
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
 
+    this.draw_count_3d=this.skip_count_3d=0;
     for(var li=0;li<this.layers.length;li++) {
         var layer = this.layers[li];
         if(layer.viewport.dimension==3) {
@@ -164,12 +165,16 @@ Moyai.render3D = function(layer) {
                 if(distance<0) { to_skip=true; break;}
             }
         }
-        if(to_skip)continue;
+        if(to_skip) {
+            this.skip_count_3d++;
+            continue;
+        }
         
         prop.updateModelViewMatrix();
         prop.geom.bless();
 //        console.log("BBB:",prop.geom,prop.mvMat, this.viewProjMat, prop.material, prop.color );
         this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend);
+        this.draw_count_3d++;
 
         if(prop.children.length>0) {
             for(var i=0;i<prop.children.length;i++) {
