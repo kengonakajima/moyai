@@ -46,7 +46,7 @@ var SCRW=window.innerWidth, SCRH=window.innerHeight;
 var pixelRatio = window.devicePixelRatio || 1;
 SCRW*=pixelRatio;
 SCRH*=pixelRatio;
-console.log("SSSSSSSSSSSSS:",SCRW,SCRH);
+console.log("Screen size:",SCRW,SCRH);
 Moyai.init(SCRW,SCRH);
 var screen = document.getElementById("screen");
 var canvas=Moyai.getDomElement();
@@ -72,7 +72,7 @@ var g_main_layer = new Layer();
 Moyai.insertLayer(g_main_layer);
 g_main_layer.setViewport(g_viewport3d);
 
-var g_main_camera = new PerspectiveCamera( 45*Math.PI/180 , SCRW / SCRH , 0.1, 100);
+var g_main_camera = new PerspectiveCamera( 45*Math.PI/180 , SCRW / SCRH , 0.1, 1000);
 g_main_camera.setLoc(3,5,0);
 g_main_camera.setLookAt(vec3.fromValues(0,0,0), vec3.fromValues(0,1,0));
 g_main_layer.setCamera(g_main_camera);
@@ -331,12 +331,13 @@ if(1) {
                 }
             }
         }
+        geom.setBoundingBox(-sz,sz*2,-sz,sz*2,-sz,sz*2);
         return geom;
     }
 
     var sz=8;// 8:512 9:729 10:1000
     var mat=new DefaultColorShaderMaterial();
-    var chunknum=1000;
+    var chunknum=30;
     for(var i=0;i<chunknum;i++) {
         var chx=i%8;
         var chy=Math.floor(i/8)%8;
@@ -348,7 +349,8 @@ if(1) {
         p.setMaterial(mat);
         p.setTexture(g_base_tex);
         p.setScl(1,1,1);
-        p.setLoc(-33+chx*(sz+1),-chy*(sz+1),-33+chz*(sz+1));
+        var gap=1;
+        p.setLoc(-33+chx*(sz+gap),-chy*(sz+gap),-33+chz*(sz+gap));
         p.setColor(vec4.fromValues(range(0,1),range(0,1),range(0,1),1));
         g_main_layer.insertProp(p);        
     }
@@ -382,9 +384,9 @@ function animate() {
 
     if(g_main_camera) {
         var t=now();
-        g_main_camera.loc[0]=Math.cos(t)*8;
-        g_main_camera.loc[1]+=0.1;        
-        g_main_camera.loc[2]=Math.sin(t)*8;
+        g_main_camera.loc[0]=Math.cos(t/3)*8;
+        g_main_camera.loc[1]+=0.01;        
+        g_main_camera.loc[2]=Math.sin(t/3)*8;
 
     }
     

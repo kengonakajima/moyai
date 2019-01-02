@@ -109,6 +109,16 @@ Moyai.render = function() {
         }
     }
 }
+// hartmann/gribbs loop expanded
+function extractPlanes2(out,m) {
+    out[0][0]=m[3]-m[0]; out[0][1]=m[7]-m[4]; out[0][2]=m[11]-m[8]; out[0][3]=m[15]-m[12]; // left
+    out[1][0]=m[3]+m[0]; out[1][1]=m[7]+m[4]; out[1][2]=m[11]+m[8]; out[1][3]=m[15]+m[12]; // right
+    out[2][0]=m[3]+m[1]; out[2][1]=m[7]+m[5]; out[2][2]=m[11]+m[9]; out[2][3]=m[15]+m[13]; // bottom
+    out[3][0]=m[3]-m[1]; out[3][1]=m[7]-m[5]; out[3][2]=m[11]-m[9]; out[3][3]=m[15]-m[13]; // top
+    out[4][0]=m[3]-m[2]; out[4][1]=m[7]-m[6]; out[4][2]=m[11]-m[10]; out[4][3]=m[15]-m[14]; // near
+    out[5][0]=m[3]+m[2]; out[5][1]=m[7]+m[6]; out[5][2]=m[11]+m[10]; out[5][3]=m[15]+m[14]; // far
+}
+
 Moyai.render3D = function(layer) {
     if(!layer.projMat) layer.projMat=mat4.create();// TODO: to_cons
     var cam=layer.camera;
@@ -117,6 +127,10 @@ Moyai.render3D = function(layer) {
     mat4.perspective(layer.projMat, layer.camera.fov, layer.camera.aspect, layer.camera.near, layer.camera.far );
     if(!this.viewProjMat)this.viewProjMat=mat4.create();
     mat4.multiply(this.viewProjMat,layer.projMat,cam.camMat);
+    if(!this.planes) { this.planes=[]; for(var i=0;i<6;i++) this.planes[i]=new Float32Array(4); }
+    extractPlanes2(this.planes,this.viewProjMat);
+
+    if(!Moyai.cullwork) Moyai.cullwork=[vec3.create(),vec3.create(),vec3.create(),vec3.create(),vec3.create(),vec3.create()];
     
 //    mat4.perspective(layer.projMat, 0.5, 1.3333, 1,1000);
 //    mat4.ortho(layer.projMat, -3, 3, -5, 5, -1, 1000);
@@ -124,6 +138,34 @@ Moyai.render3D = function(layer) {
         var prop = layer.props[pi];
         if(!prop.visible)continue;
         if(prop.to_clean)continue;
+        // view frustum culling http://www.sousakuba.com/Programming/gs_dot_plane_distance.html
+        var to_skip=false;
+        if(prop.geom.boundbox) {
+            var wk=Moyai.cullwork;
+            vec3.set(wk[0],prop.loc[0]+prop.geom.boundbox[0],prop.loc[1],prop.loc[2]);
+            vec3.set(wk[1],prop.loc[0]+prop.geom.boundbox[1],prop.loc[1],prop.loc[2]);
+            vec3.set(wk[2],prop.loc[0],prop.loc[1]+prop.geom.boundbox[2],prop.loc[2]);
+            vec3.set(wk[3],prop.loc[0],prop.loc[1]+prop.geom.boundbox[3],prop.loc[2]);
+            vec3.set(wk[4],prop.loc[0],prop.loc[1],prop.loc[2]+prop.geom.boundbox[4]);
+            vec3.set(wk[5],prop.loc[0],prop.loc[1],prop.loc[2]+prop.geom.boundbox[5]);
+            for(var j=0;j<6;j++) {
+                var outcnt=0;
+                for(var i=0;i<6;i++) {
+                    var dot=vec3.dot(wk[i],Moyai.planes[j]);
+                    var distance=dot+Moyai.planes[j][3];
+                    if(distance<0) outcnt++;
+                }
+                if(outcnt==6) {to_skip=true; break;}
+            }            
+        } else {
+            for(var j=0;j<6;j++) {
+                var dot=vec3.dot(prop.loc,Moyai.planes[j]);
+                var distance=dot+Moyai.planes[j][3];
+                if(distance<0) { to_skip=true; break;}
+            }
+        }
+        if(to_skip)continue;
+        
         prop.updateModelViewMatrix();
         prop.geom.bless();
 //        console.log("BBB:",prop.geom,prop.mvMat, this.viewProjMat, prop.material, prop.color );
@@ -543,7 +585,8 @@ class Geometry {
         this.positions=new Float32Array(vn*3);
         this.colors=new Float32Array(vn*4);        
         this.inds=new Uint16Array(indn*2);
-        //TODO: normalbuffer        
+        //TODO: normalbuffer
+        this.boundbox=null;
     }
     dispose() {
         var gl=Moyai.gl;
@@ -604,6 +647,22 @@ class Geometry {
             gl.bufferData(gl.ARRAY_BUFFER, this.uvs, gl.STATIC_DRAW);
             this.need_uvs_update=false;
         }
+    }
+    setBoundingBox(minx,maxx,miny,maxy,minz,maxz) {
+        if(!this.boundbox)this.boundbox=new Float32Array(6);
+        this.boundbox[0]=minx; this.boundbox[1]=maxx;
+        this.boundbox[2]=miny; this.boundbox[3]=maxy;
+        this.boundbox[4]=minz; this.boundbox[5]=maxz;                
+    }
+    calcBoundingBox() {
+        var minx=0,maxx=0,miny=0,maxy=0,minz=0,maxz=0;
+        for(var i=0;i<this.vn;i++) {
+            var x=this.positions[i*3], y=this.positions[i*3+1], z=this.positions[i*3+2];
+            if(x<minx)minx=x; else if(x>maxx)maxx=x;
+            if(y<miny)miny=y; else if(y>maxy)maxy=y;
+            if(z<minz)minz=z; else if(z>maxz)maxz=z;            
+        }
+        this.setBoundingBox(minx,maxx,miny,maxy,minz,maxz);
     }
 }
 class LineGeometry extends Geometry {
