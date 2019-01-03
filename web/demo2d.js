@@ -30,6 +30,8 @@ g_viewport.setScale2D(SCRW,SCRH);
 
 var g_camera = new OrthographicCamera(-SCRW/2,SCRW/2,SCRH/2,-SCRH/2);
 g_camera.setLoc(0,0);
+var g_hud_camera = new OrthographicCamera(-SCRW/2,SCRW/2,SCRH/2,-SCRH/2);
+g_hud_camera.setLoc(0,0);
 
 var g_main_layer = new Layer();
 Moyai.insertLayer(g_main_layer);
@@ -38,7 +40,7 @@ g_main_layer.setViewport(g_viewport);
 
 var g_hud_layer = new Layer();
 Moyai.insertLayer(g_hud_layer);
-g_hud_layer.setCamera(g_camera);
+g_hud_layer.setCamera(g_hud_camera);
 g_hud_layer.setViewport(g_viewport);
 
 var g_base_atlas = new Texture();
@@ -297,7 +299,7 @@ if(1) {
     scoregrid.print( 0,1, Color.fromValues(1,1,0,1), "$#!?()[hoge]" );
     scoregrid.setColor( 3,0, Color.fromValues(0,1,1,1));
     scorep.addGrid(scoregrid);
-    g_main_layer.insertProp(scorep);
+    g_hud_layer.insertProp(scorep);
 }
 
 
@@ -418,6 +420,73 @@ if(1) {
     }
 }
 
+if(1) {
+    function isMousePressed(prop) {
+        var x=g_mouse.cursor_pos[0]-SCRW/2;
+        var y=SCRH/2-g_mouse.cursor_pos[1];
+        if(g_mouse.getButton(0)) {
+            var at=vec2.fromValues(x,y);
+            return prop.hit(at,0);
+        }
+        return false;
+    }
+    // mobile controller pad
+    var scl=64;
+    var up=new Prop2D();
+    up.setDeck(g_base_deck);
+    up.setIndex(192);
+    up.setScl(scl,scl);
+    up.setColor(1,1,1,0.4);
+    up.setLoc(-SCRW/2+scl*2,-SCRH/2+scl*3);    
+    g_hud_layer.insertProp(up);
+    var down=new Prop2D();
+    down.setDeck(g_base_deck);
+    down.setIndex(192);
+    down.setScl(scl,scl);
+    down.setYFlip(true);
+    down.setColor(1,1,1,0.4);    
+    down.setLoc(-SCRW/2+scl*2,-SCRH/2+scl);
+    g_hud_layer.insertProp(down);
+    var left=new Prop2D();
+    left.setDeck(g_base_deck);
+    left.setIndex(192);
+    left.setScl(scl,scl);
+    left.setUVRot(true);
+    left.setYFlip(true);    
+    left.setColor(1,1,1,0.4);    
+    left.setLoc(-SCRW/2+scl,-SCRH/2+scl*2);
+    g_hud_layer.insertProp(left);
+    var right=new Prop2D();
+    right.setDeck(g_base_deck);
+    right.setIndex(192);
+    right.setScl(scl,scl);
+    right.setUVRot(true);
+    right.setColor(1,1,1,0.4);    
+    right.setLoc(-SCRW/2+scl*3,-SCRH/2+scl*2);
+    g_hud_layer.insertProp(right);
+
+    left.prop2DPoll=function(dt) {
+        if(isMousePressed(this)) g_camera.setLoc( g_camera.loc[0]-5, g_camera.loc[1] );
+        return true;
+    }
+    right.prop2DPoll=function(dt) {
+        if(isMousePressed(this)) g_camera.setLoc( g_camera.loc[0]+5, g_camera.loc[1] );
+        return true;
+    }
+    up.prop2DPoll=function(dt) {
+        if(isMousePressed(this)) g_camera.setLoc( g_camera.loc[0], g_camera.loc[1]-5 );
+        return true;
+    }
+    down.prop2DPoll=function(dt) {
+        if(isMousePressed(this)) g_camera.setLoc( g_camera.loc[0], g_camera.loc[1]+5 );
+        return true;
+    }    
+
+}
+
+
+
+///////////////
 
 
 var g_sound_system = new SoundSystem();
