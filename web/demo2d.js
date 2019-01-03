@@ -207,10 +207,8 @@ var charcodes = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\
 
 var charcodes_dummy_to_save_emacs = " !\"#$%&\'";
 
-
 var g_font = new Font();
-g_font.loadFromMemTTF( cinecaption227_ttf, charcodes, 12 );
-
+g_font.loadFromTTFFile( "./assets/cinecaption227.ttf", charcodes, 12 );
 
 
 if(1)  {

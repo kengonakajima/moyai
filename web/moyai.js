@@ -377,7 +377,6 @@ class Texture {
         image.src = url;
         this.gltex=texture;
         this.image=image;
-        console.log("loadpng gltex:",this.gltex,this.image);
     }    
     getSize(out) {
         return vec2.set(out,this.image.width,this.image.height);
@@ -942,7 +941,7 @@ class Grid {
         this.geom=null;
         this.need_geometry_update=true;
     }
-    setDeck(dk) { this.deck=dk; this.need_material_update=true;}
+    setDeck(dk) { this.deck=dk;}
     index(x,y) { return x+y*this.width; }
     getCellNum() { return this.width * this.height; }
     set(x,y,ind) {
@@ -1250,6 +1249,21 @@ class Font {
         this.glyphs={};
     }
     setCharCodes(codes_str) { this.charcode_table = codes_str; }
+
+    loadFromTTFFile(url,codes,pxsz) {
+        var _this=this;
+        var req=new XMLHttpRequest();
+        req.open("GET",url);
+        req.responseType="arraybuffer";
+        req.send();
+        req.onload = function() {
+            var res=req.response;
+            var u8a=new Uint8Array(res);
+            console.log("loadFromTTFFile res:",res,u8a);
+            _this.loadFromMemTTF(u8a,codes,pxsz);
+        }
+    }
+    
     loadFromMemTTF(u8a,codes,pxsz) {
         if(codes==null) codes = this.charcode_table; else this.charcode_table = codes;
         this.pixel_size = pxsz;
@@ -1377,11 +1391,10 @@ class TextBox extends Prop2D {
         this.geom=null;
         this.material=new DefaultColorShaderMaterial();
         this.need_geometry_update=false;
-        this.need_material_update=false;
         this.dimension=2;
         this.last_string_length=0;
     }
-    setFont(fnt) { this.font = fnt; this.deck=fnt.atlas; this.need_material_update=true; }
+    setFont(fnt) { this.font = fnt;  }
     setString(s) {
         if(this.str) this.last_string_length=this.str.length;
         this.str = s;
@@ -1390,7 +1403,9 @@ class TextBox extends Prop2D {
     getString(s) { return str; }
     updateGeom() {
         if(!this.font)return;
-        if(!this.need_geometry_update)return;
+        if(!this.font.atlas)return;
+        this.deck=this.font.atlas;        
+        if(!this.need_geometry_update)return;        
         this.need_geometry_update = false;
         
         if(!this.geom || this.last_string_length < this.str.length ) {
