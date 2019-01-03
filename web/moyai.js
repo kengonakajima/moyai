@@ -320,45 +320,9 @@ Moyai.insertLayer = function(l) {
 
 
 //////////////////////////
-Texture.prototype.id_gen = 1;
-function Texture() {
-    this.id = this.__proto__.id_gen++;
-    this.image = null;
-    this.gltex = null;
-    this.min_filter=Moyai.gl.NEAREST;
-    this.mag_filter=Moyai.gl.NEAREST;
-}
 function isPowerOf2(value) {
   return (value & (value - 1)) == 0;
 }
-
-Texture.prototype.loadPNG = function(url,w,h) {
-    if(w===undefined||h===undefined) console.warn("loadPNG require width and height currently");
-    var gl=Moyai.gl;
-
-    const pixel = new Uint8Array(w*h*4);
-    for(var i=0;i<w*h*4;i++) pixel[i]=0xff;
-    var texture=createGLTextureFromPixels(gl, w,h,pixel);
-    
-    var moyai_tex=this;
-    var image = new Image();
-    image.width=w;
-    image.height=h;
-    image.onload = function() {
-        setImageToGLTexture(gl,texture,image);
-        //        console.log("loadpng: onload:",texture,image,moyai_tex);
-        if(moyai_tex.onload) moyai_tex.onload();        
-    };
-    image.src = url;
-    this.gltex=texture;
-    this.image=image;
-    console.log("loadpng gltex:",this.gltex,this.image);
-}    
-
-Texture.prototype.getSize = function(out) {
-    return vec2.set(out,this.image.width,this.image.height);
-}
-
 function createGLTextureFromPixels(gl,w,h,data) {
     var t=gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, t);
@@ -383,48 +347,74 @@ function setImageToGLTexture(gl,texture,image) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     }
 }
-Texture.prototype.setMoyaiImage = function(moimg) {
-    var canvas = document.createElement('canvas'),
-    ctx = canvas.getContext('2d');
-    canvas.width = moimg.width;
-    canvas.height = moimg.height;
-    var imgdata = ctx.createImageData(moimg.width,moimg.height);
-    imgdata.data.set(moimg.data);
-    ctx.putImageData(imgdata,0,0);
-    var datauri=canvas.toDataURL();
-    var image=new Image();
-    image.width=moimg.width;
-    image.height=moimg.height;
 
-    var gl=Moyai.gl;
-    if(this.gltex) {
-        gl.deleteTexture(this.gltex);
-        this.gltex=null;
+var g_moyai_texture_id_gen = 1;
+class Texture {
+    constructor() {
+        this.id = g_moyai_texture_id_gen++;
+        this.image = null;
+        this.gltex = null;
+        this.min_filter=Moyai.gl.NEAREST;
+        this.mag_filter=Moyai.gl.NEAREST;
     }
-    var texture= createGLTextureFromPixels(gl,moimg.width, moimg.height, moimg.data);
+    loadPNG(url,w,h) {
+        if(w===undefined||h===undefined) console.warn("loadPNG require width and height currently");
+        var gl=Moyai.gl;
 
-    var moyai_tex=this;
-    image.onload = function() {
-        console.log("Texture.setmoyaiimage.onload");
-        setImageToGLTexture(gl,texture,image);
-        //        console.log("loadpng: onload:",texture,image,moyai_tex);
-        if(moyai_tex.onload) moyai_tex.onload();
+        const pixel = new Uint8Array(w*h*4);
+        for(var i=0;i<w*h*4;i++) pixel[i]=0xff;
+        var texture=createGLTextureFromPixels(gl, w,h,pixel);
+        
+        var moyai_tex=this;
+        var image = new Image();
+        image.width=w;
+        image.height=h;
+        image.onload = function() {
+            setImageToGLTexture(gl,texture,image);
+            //        console.log("loadpng: onload:",texture,image,moyai_tex);
+            if(moyai_tex.onload) moyai_tex.onload();        
+        };
+        image.src = url;
+        this.gltex=texture;
+        this.image=image;
+        console.log("loadpng gltex:",this.gltex,this.image);
+    }    
+    getSize(out) {
+        return vec2.set(out,this.image.width,this.image.height);
     }
-    image.src=datauri;
-    this.image=image;
-    this.moyai_image=moimg;
-    this.gltex=texture;
-}
-//TODO
-//Texture.prototype.updateImage = function(img) {
-//    if(this.image.id == img.id ) {
-//        console.log("Tex.updateimage id:",img.id );
-//        this.three_tex.image.data = img.data;
-//        this.three_tex.image.width = img.width;
-//        this.three_tex.image.height = img.height;
-//        this.three_tex.needsUpdate = true;
-//    }
-//}
+    setMoyaiImage(moimg) {
+        var canvas = document.createElement('canvas'),
+        ctx = canvas.getContext('2d');
+        canvas.width = moimg.width;
+        canvas.height = moimg.height;
+        var imgdata = ctx.createImageData(moimg.width,moimg.height);
+        imgdata.data.set(moimg.data);
+        ctx.putImageData(imgdata,0,0);
+        var datauri=canvas.toDataURL();
+        var image=new Image();
+        image.width=moimg.width;
+        image.height=moimg.height;
+
+        var gl=Moyai.gl;
+        if(this.gltex) {
+            gl.deleteTexture(this.gltex);
+            this.gltex=null;
+        }
+        var texture= createGLTextureFromPixels(gl,moimg.width, moimg.height, moimg.data);
+
+        var moyai_tex=this;
+        image.onload = function() {
+            console.log("Texture.setmoyaiimage.onload");
+            setImageToGLTexture(gl,texture,image);
+            //        console.log("loadpng: onload:",texture,image,moyai_tex);
+            if(moyai_tex.onload) moyai_tex.onload();
+        }
+        image.src=datauri;
+        this.image=image;
+        this.moyai_image=moimg;
+        this.gltex=texture;
+    }
+};
 
 
 ///////
