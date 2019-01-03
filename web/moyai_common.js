@@ -328,96 +328,98 @@ class Layer {
 };
 
 /////////////////////
-MoyaiImage.prototype.id_gen = 1;
-function MoyaiImage() {
-    this.id = this.__proto__.id_gen++;
-    this.data = null;
-    this.png=null;
-    this.onload=null;
-}
-MoyaiImage.prototype.loadPNG = function(url,w,h) {
-    if(w===undefined||h===undefined) console.warn("loadPNG require width and height currently");    
-    var image = new Image();
-    image.width=w;
-    image.height=h;
-    this.width=w;
-    this.height=h;
-    var moyai_img=this;
-    image.onload = function() {
-        //        console.log("loadpng: onload:",texture,image,moyai_tex);
-        var canvas=document.createElement("canvas");
-        var ctx=canvas.getContext("2d");
-        ctx.drawImage(this,0,0);
-        var imgdata=ctx.getImageData(0,0,w,h);
-        console.log("MoyaiImage onload: imgdata",imgdata);
-        moyai_img.data=imgdata.data;
-        if(moyai_img.onload) moyai_img.onload();
+var g_moyai_image_id_gen = 1;
+class MoyaiImage {
+    constructor() {
+        this.id = g_moyai_image_id_gen++;
+        this.data = null;
+        this.png=null;
+        this.onload=null;
     }
-    image.src=url;
-    
-}
-MoyaiImage.prototype.loadPNGMem = function(u8adata) {
-    var b = new Buffer(u8adata);
-    this.png = pngParse(b);
-    this.width = this.png.width;
-    this.height = this.png.height;
-    this.data = this.png.data;
-}
-MoyaiImage.prototype.setSize = function(w,h) {
-    this.width = w;
-    this.height = h;
-    if(!this.data) {
-        this.data = new Uint8Array(w*h*4);
-    }
-}
-MoyaiImage.prototype.getSize = function(out) {
-    vec2.set(out,this.width,this.height);
-}
-MoyaiImage.prototype.getPixelRaw = function(x,y) {
-// int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a ) {
-    var out={};
-    if(x>=0&&y>=0&&x<this.width&&y<this.height){
-        var index = ( x + y * this.width ) * 4;
-        out.r = this.data[index];
-        out.g = this.data[index+1];
-        out.b = this.data[index+2];
-        out.a = this.data[index+3];
-    }
-    return out;
-}
-MoyaiImage.prototype.setPixelRaw = function(x,y,r,g,b,a) {
-    if(x>=0&&y>=0&&x<this.width&&y<this.height){
-        var index = ( x + y * this.width ) * 4;
-        this.data[index] = r;
-        this.data[index+1] = g;
-        this.data[index+2] = b;
-        this.data[index+3] = a;
-    }    
-}
-MoyaiImage.prototype.setPixel = function(x,y,c) {
-    this.setPixelRaw(x,y,Math.floor(c[0]*255),Math.floor(c[1]*255),Math.floor(c[2]*255),Math.floor(c[3]*255));
-}
-MoyaiImage.prototype.getBufferSize = function() { return this.width * this.height * 4; }
-MoyaiImage.prototype.setAreaRaw = function(x0,y0,w,h, data_u8a, insz ) {
-    var reqsize = w*h*4;
-    if( insz < reqsize ) {
-        console.log("image.prototype.setAreaRaw input size too small required:",reqsize, "got:",insz);
-        return;
-    }
-    for(var dy=0;dy<h;dy++) {
-        for(var dx=0;dx<w;dx++) {
-            var x = x0+dx;
-            var y = y0+dy;
-            if(x<0||y<0||x>=this.width||y>=this.height)continue;            
-            var out_index = ( x + y * this.width ) * 4;
-            var in_index = ( dx + dy * w ) * 4;
-            this.data[out_index] = data_u8a[in_index]; // r
-            this.data[out_index+1] = data_u8a[in_index+1]; // g
-            this.data[out_index+2] = data_u8a[in_index+2]; // b
-            this.data[out_index+3] = data_u8a[in_index+3]; // a            
+    loadPNG(url,w,h) {
+        if(w===undefined||h===undefined) console.warn("loadPNG require width and height currently");    
+        var image = new Image();
+        image.width=w;
+        image.height=h;
+        this.width=w;
+        this.height=h;
+        var moyai_img=this;
+        image.onload = function() {
+            //        console.log("loadpng: onload:",texture,image,moyai_tex);
+            var canvas=document.createElement("canvas");
+            var ctx=canvas.getContext("2d");
+            ctx.drawImage(this,0,0);
+            var imgdata=ctx.getImageData(0,0,w,h);
+            console.log("MoyaiImage onload: imgdata",imgdata);
+            moyai_img.data=imgdata.data;
+            if(moyai_img.onload) moyai_img.onload();
         }
-    }      
-}
+        image.src=url;
+    }
+    loadPNGMem(u8adata) {
+        var b = new Buffer(u8adata);
+        this.png = pngParse(b);
+        this.width = this.png.width;
+        this.height = this.png.height;
+        this.data = this.png.data;
+    }
+    setSize(w,h) {
+        this.width = w;
+        this.height = h;
+        if(!this.data) {
+            this.data = new Uint8Array(w*h*4);
+        }
+    }
+    getSize(out) {
+        vec2.set(out,this.width,this.height);
+    }
+    getPixelRaw(x,y) {
+        // int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a ) {
+        var out={};
+        if(x>=0&&y>=0&&x<this.width&&y<this.height){
+            var index = ( x + y * this.width ) * 4;
+            out.r = this.data[index];
+            out.g = this.data[index+1];
+            out.b = this.data[index+2];
+            out.a = this.data[index+3];
+        }
+        return out;
+    }
+    setPixelRaw(x,y,r,g,b,a) {
+        if(x>=0&&y>=0&&x<this.width&&y<this.height){
+            var index = ( x + y * this.width ) * 4;
+            this.data[index] = r;
+            this.data[index+1] = g;
+            this.data[index+2] = b;
+            this.data[index+3] = a;
+        }    
+    }
+    setPixel(x,y,c) {
+        this.setPixelRaw(x,y,Math.floor(c[0]*255),Math.floor(c[1]*255),Math.floor(c[2]*255),Math.floor(c[3]*255));
+    }
+    getBufferSize() { return this.width * this.height * 4; }
+    setAreaRaw(x0,y0,w,h, data_u8a, insz ) {
+        var reqsize = w*h*4;
+        if( insz < reqsize ) {
+            console.log("image.prototype.setAreaRaw input size too small required:",reqsize, "got:",insz);
+            return;
+        }
+        for(var dy=0;dy<h;dy++) {
+            for(var dx=0;dx<w;dx++) {
+                var x = x0+dx;
+                var y = y0+dy;
+                if(x<0||y<0||x>=this.width||y>=this.height)continue;            
+                var out_index = ( x + y * this.width ) * 4;
+                var in_index = ( dx + dy * w ) * 4;
+                this.data[out_index] = data_u8a[in_index]; // r
+                this.data[out_index+1] = data_u8a[in_index+1]; // g
+                this.data[out_index+2] = data_u8a[in_index+2]; // b
+                this.data[out_index+3] = data_u8a[in_index+3]; // a            
+            }
+        }      
+    }
+};
+
 
 
 ///////////////////
