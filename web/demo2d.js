@@ -499,8 +499,8 @@ if(1) {
 
 
 var g_sound_system = new SoundSystem();
-var g_explosion_sound = g_sound_system.newSoundFromMemory(blobloblll_wav,"wav");
-var g_bgm_sound = g_sound_system.newBGMFromMemory(gymno1short_wav,"wav");
+var g_explosion_sound = g_sound_system.newSoundFromFile("./assets/blobloblll.wav","wav");
+var g_bgm_sound = g_sound_system.newBGMFromFile("./assets/gymno1short.wav","wav");
 var samples = new Array(44100/4);
 for(var i=0;i<samples.length;i++) samples[i] = Math.cos(i/20.0);
 var g_mem_sound = g_sound_system.newSoundFromMemory(samples,"float");

@@ -1850,6 +1850,37 @@ class SoundSystem {
         this.sounds[snd.id] = snd;
         return snd;
     }
+    newSoundFromFile(url,type) {
+        var snd = this.createSoundFromFile(url,true,type);
+        this.sounds[snd.id]=snd;
+        return snd;
+    }
+    newBGMFromFile(url,type) {
+        var snd = this.createSoundFromFile(url,false,type);
+        this.sounds[snd.id]=snd;
+        return snd;
+    }
+    createSoundFromFile(url,loop,type) {
+        var context=this.context;
+        var request=new XMLHttpRequest();
+        request.open("GET",url,true);
+        request.responseType="arraybuffer";
+        request.send();
+        request.onload = function() {
+            var res=request.response;
+            console.log("newsoundfromfile: res:",res);
+            context.decodeAudioData(res,function(buf) {
+                console.log("newsoundfromfile decode done.buf:",buf);
+                snd.audiobuffer=buf;
+            });
+        }
+        
+        var snd=new Sound();
+        snd.sound_system=this;
+        snd.context=this.context;
+        snd.setLoop(loop);
+        return snd;
+    }
     createSound(data,loop,type) {
         var snd = new Sound();
         snd.sound_system = this;
