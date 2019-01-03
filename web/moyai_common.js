@@ -198,37 +198,38 @@ Color.set = function(out,r,g,b,a) {
 }
 ///////////////////
 
-Viewport.prototype.id_gen=1;
-function Viewport() {
-    this.id = this.__proto__.id_gen++;
-    this.screen_width = null;
-    this.screen_height = null;
-    this.near_clip = null;
-    this.far_clip = null;
-    this.dimension = null;
+var g_moyai_viewport_id_gen=1;
+class Viewport {
+    constructor() {
+        this.id = g_moyai_viewport_id_gen++;
+        this.screen_width = null;
+        this.screen_height = null;
+        this.near_clip = null;
+        this.far_clip = null;
+        this.dimension = null;
+    }
+    setSize(sw,sh) {
+        this.screen_width = sw;
+        this.screen_height = sh;
+    }
+    setScale2D(sx,sy) {
+        this.scl = vec2.fromValues(sx,sy);
+        this.dimension = 2;
+    }
+    setClip3D(near,far) {
+        this.near_clip = near;
+        this.far_clip = far;
+        this.dimension = 3;
+    }
+    getMinMax(outary) {
+        var x0=-this.scl[0]/2, y0=-this.scl[1]/2, x1=this.scl[0]/2, y1=this.scl[1]/2;
+        vec2.set(outary[0],x0,y0);
+        vec2.set(outary[1],x1,y1);
+    }
+    getRelativeScale(outvec2) {
+        vec2.set(outvec2,this.screen_width/this.scl[0],this.screen_height/this.scl[1]);
+    }
 }
-Viewport.prototype.setSize = function(sw,sh) {
-    this.screen_width = sw;
-    this.screen_height = sh;
-}
-Viewport.prototype.setScale2D = function(sx,sy) {
-    this.scl = vec2.fromValues(sx,sy);
-    this.dimension = 2;
-}
-Viewport.prototype.setClip3D = function(near,far) {
-    this.near_clip = near;
-    this.far_clip = far;
-    this.dimension = 3;
-}
-Viewport.prototype.getMinMax = function(outary) {
-    var x0=-this.scl[0]/2, y0=-this.scl[1]/2, x1=this.scl[0]/2, y1=this.scl[1]/2;
-    vec2.set(outary[0],x0,y0);
-    vec2.set(outary[1],x1,y1);
-}
-Viewport.prototype.getRelativeScale = function(outvec2) {
-    vec2.set(outvec2,this.screen_width/this.scl[0],this.screen_height/this.scl[1]);
-}
-
 
 
 ////////////////////
@@ -236,92 +237,95 @@ g_moyai_z_per_layer = 100000;
 g_moyai_z_per_prop = 1;
 g_moyai_z_per_subprop = 1; // this causes some issue when dense sprites.. but no way to implement correct draw order
 g_moyai_max_z = g_moyai_z_per_layer*100; // use z to confirm render order ( renderOrder dont work for line prims..)
-    
-Layer.prototype.id_gen = 1;
-function Layer() {
-    this.id = this.__proto__.id_gen++;
-    this.props=[];
-    this.priority=null;// update when insert to moyai
-    this.camera=null;
-    this.viewport=null;
-    this.light=null;
-}
-Layer.prototype.setViewport = function(vp) { this.viewport = vp; }
-Layer.prototype.setCamera = function(cam) { this.camera = cam; }
-Layer.prototype.setLight = function(lgt) { this.light = lgt; }
-Layer.prototype.setAmbientLight = function(lgt) { this.ambient_light = lgt; }
-Layer.prototype.insertProp = function(p) {
-    if(p.priority==null) {
-        var highp = this.getHighestPriority();
-        p.priority = highp+1;
-        p.parent_layer=this;
+
+
+g_moyai_layer_id_gen=1;
+class Layer {
+    constructor() {
+        this.id = g_moyai_layer_id_gen++;
+        this.props=[];
+        this.priority=null;// update when insert to moyai
+        this.camera=null;
+        this.viewport=null;
+        this.light=null;
     }
-    this.props.push(p);
-}
-Layer.prototype.hasProp = function(p) {
-    for(var i=0;i<this.props.length;i++) {
-        if(this.props[i].id==p.id) return true;
+    setViewport(vp) { this.viewport = vp; }
+    setCamera(cam) { this.camera = cam; }
+    setLight(lgt) { this.light = lgt; }
+    setAmbientLight(lgt) { this.ambient_light = lgt; }
+    insertProp(p) {
+        if(p.priority==null) {
+            var highp = this.getHighestPriority();
+            p.priority = highp+1;
+            p.parent_layer=this;
+        }
+        this.props.push(p);
     }
-    return false;
-}
-Layer.prototype.delProp = function(p) {
-    for(var i=0;i<this.props.length;i++) {
-        if(this.props[i].id==p.id) {
-            this.props.splice(i,1);
-            return true;
+    hasProp(p) {
+        for(var i=0;i<this.props.length;i++) {
+            if(this.props[i].id==p.id) return true;
+        }
+        return false;
+    }
+    delProp(p) {
+        for(var i=0;i<this.props.length;i++) {
+            if(this.props[i].id==p.id) {
+                this.props.splice(i,1);
+                return true;
+            }
+        }
+        return false;
+    }
+    pollAllProps(dt) {
+        var keep=[];
+        for(var i=0;i<this.props.length;i++) {
+            var prop = this.props[i];
+            var to_keep = prop.basePoll(dt);
+            if(to_keep) {
+                keep.push(prop);
+            } else {
+                if(prop.onDelete) prop.onDelete();
+            }
+        }
+        this.props = keep;
+        return this.props.length;
+    }
+    getHighestPriority() {
+        var highp=0;
+        for(var i=0;i<this.props.length;i++) {
+            if(this.props[i].priority>highp) highp = this.props[i].priority;
+        }
+        return highp;    
+    }
+    getLowesetPriority() {
+        var lowp=0;
+        for(var i=0;i<this.props.length;i++) {
+            if(this.props[i].priority<lowp) lowp = this.props[i].priority;
+        }
+        return lowp;
+    }
+    getPropById(id) {
+        for(var i=0;i<this.props.length;i++) {
+            if( this.props[i].id == id ) return this.props[i];
+        }
+        return null;
+    }
+    findByKey(keyname,val) {
+        for(var i=0;i<this.props.length;i++) {
+            var p = this.props[i];
+            if( p[keyname] == val ) return p;
+        }
+        return null;
+    }
+    scan(cb) {
+        for(var i=0;i<this.props.length;i++) {
+            cb(this.props[i]);
         }
     }
-    return false;
-}
-Layer.prototype.pollAllProps = function(dt) {
-    var keep=[];
-    for(var i=0;i<this.props.length;i++) {
-        var prop = this.props[i];
-        var to_keep = prop.basePoll(dt);
-        if(to_keep) {
-            keep.push(prop);
-        } else {
-            if(prop.onDelete) prop.onDelete();
-        }
+    clean() {
+        this.props=[];
     }
-    this.props = keep;
-    return this.props.length;
-}
-Layer.prototype.getHighestPriority = function() {
-    var highp=0;
-    for(var i=0;i<this.props.length;i++) {
-        if(this.props[i].priority>highp) highp = this.props[i].priority;
-    }
-    return highp;    
-}
-Layer.prototype.getLowesetPriority = function() {
-    var lowp=0;
-    for(var i=0;i<this.props.length;i++) {
-        if(this.props[i].priority<lowp) lowp = this.props[i].priority;
-    }
-    return lowp;
-}
-Layer.prototype.getPropById = function(id) {
-    for(var i=0;i<this.props.length;i++) {
-        if( this.props[i].id == id ) return this.props[i];
-    }
-    return null;
-}
-Layer.prototype.findByKey = function(keyname,val) {
-    for(var i=0;i<this.props.length;i++) {
-        var p = this.props[i];
-        if( p[keyname] == val ) return p;
-    }
-    return null;
-}
-Layer.prototype.scan = function(cb) {
-    for(var i=0;i<this.props.length;i++) {
-        cb(this.props[i]);
-    }
-}
-Layer.prototype.clean = function() {
-    this.props=[];
-}
+};
 
 /////////////////////
 MoyaiImage.prototype.id_gen = 1;
