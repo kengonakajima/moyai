@@ -1654,37 +1654,6 @@ class PrimColorShaderMaterial extends ShaderMaterial {
 
 
 //////////////////////
-function Keyboard() {
-    this.keys={};
-    this.toggled={};
-    this.mod_shift=false;
-    this.mod_ctrl=false;
-    this.mod_alt=false;
-    this.prevent_default=false;
-    this.to_read_event=true;
-}
-Keyboard.prototype.enableReadEvent = function(flg) { this.to_read_event=flg; }
-Keyboard.prototype.setKey = function(keycode,pressed) {
-    this.keys[keycode] = pressed;
-    if(!pressed) {
-        this.keys[keycode.toUpperCase()]=false;
-        this.keys[keycode.toLowerCase()]=false;        
-    }
-    if(pressed &&  (!this.toggled[keycode]) ) {
-        this.toggled[keycode]=true;
-    } else {
-        this.toggled[keycode]=false;
-    }
-}
-Keyboard.prototype.getKey = function(keycode) {
-    return this.keys[keycode];
-}
-Keyboard.prototype.getToggled = function(keycode) {
-    return this.toggled[keycode];
-}
-Keyboard.prototype.clearToggled = function(keycode) {
-    this.toggled[keycode]=false;
-}
 function safariKey(e) {
     console.log("safari:",e);    
     if(e.keyIdentifier=="Enter") return "Enter";
@@ -1698,81 +1667,118 @@ function safariKey(e) {
     if(!e.shiftKey)k=k.toLowerCase();
     return k;
 }
-Keyboard.prototype.readBrowserEvent = function(e,pressed) {
-    var id=e.key;
-    if(!id)id=safariKey(e);
-    if(this.onKeyEvent) {
-        var keep=this.onKeyEvent(id,pressed,e);
-        if(!keep)return;
-    }
-    this.setKey(id,pressed);
-    if(e.key=="Control") this.mod_ctrl = pressed;
-    if(e.key=="Shift") this.mod_shift = pressed;
-    if(e.key=="Alt") this.mod_alt = pressed;
 
-}
-Keyboard.prototype.setupBrowser = function(w) {
-    var _this = this;
-    w.addEventListener("keydown", function(e) {
-        if(_this.prevent_default) e.preventDefault();
-        if(_this.to_read_event) _this.readBrowserEvent(e,true);
-    }, false);
-    w.addEventListener("keyup", function(e) {
-        if(_this.preventDefault) e.preventDefault();
-        if(_this.to_read_event) _this.readBrowserEvent(e,false);    
-    });
-}
-Keyboard.prototype.setPreventDefault = function(flg) { this.prevent_default=flg; }
+class Keyboard {
+    constructor() {
+        this.keys={};
+        this.toggled={};
+        this.mod_shift=false;
+        this.mod_ctrl=false;
+        this.mod_alt=false;
+        this.prevent_default=false;
+        this.to_read_event=true;
+    }
+    enableReadEvent(flg) { this.to_read_event=flg; }
+    setKey(keycode,pressed) {
+        this.keys[keycode] = pressed;
+        if(!pressed) {
+            this.keys[keycode.toUpperCase()]=false;
+            this.keys[keycode.toLowerCase()]=false;        
+        }
+        if(pressed &&  (!this.toggled[keycode]) ) {
+            this.toggled[keycode]=true;
+        } else {
+            this.toggled[keycode]=false;
+        }
+    }
+    getKey(keycode) {
+        return this.keys[keycode];
+    }
+    getToggled(keycode) {
+        return this.toggled[keycode];
+    }
+    clearToggled(keycode) {
+        this.toggled[keycode]=false;
+    }
+    readBrowserEvent(e,pressed) {
+        var id=e.key;
+        if(!id)id=safariKey(e);
+        if(this.onKeyEvent) {
+            var keep=this.onKeyEvent(id,pressed,e);
+            if(!keep)return;
+        }
+        this.setKey(id,pressed);
+        if(e.key=="Control") this.mod_ctrl = pressed;
+        if(e.key=="Shift") this.mod_shift = pressed;
+        if(e.key=="Alt") this.mod_alt = pressed;
+    }
+    setupBrowser(w) {
+        var _this = this;
+        w.addEventListener("keydown", function(e) {
+            if(_this.prevent_default) e.preventDefault();
+            if(_this.to_read_event) _this.readBrowserEvent(e,true);
+        }, false);
+        w.addEventListener("keyup", function(e) {
+            if(_this.preventDefault) e.preventDefault();
+            if(_this.to_read_event) _this.readBrowserEvent(e,false);    
+        });
+    }
+    setPreventDefault(flg) { this.prevent_default=flg; }
+};
+
 
 /////////////////////
-function Mouse() {
-    this.cursor_pos=vec2.create();
-    this.movement=vec2.create();
-    this.buttons={};
-    this.toggled={};
-    this.mod_shift=false;
-    this.mod_ctrl=false;
-    this.mod_alt=false;
-}
-Mouse.prototype.clearMovement = function() { vec2.set(this.movement,0,0); }
-Mouse.prototype.setupBrowser = function(w,dom) {
-    var _this = this;
-    w.addEventListener("mousedown", function(e) {
-//        e.preventDefault();
-        _this.readButtonEvent(e,true);
-    },false);
-    w.addEventListener("mouseup", function(e)  {
-//        e.preventDefault();
-        _this.readButtonEvent(e,false);        
-    },false);
-    w.addEventListener("mousemove", function(e)  {
-        var rect = dom.getBoundingClientRect();
-        var x = Math.floor(e.clientX - rect.left);
-        var y = Math.floor(e.clientY - rect.top);
-//        e.preventDefault();
-        vec2.set(_this.cursor_pos,x,y);
-        vec2.set(_this.movement,e.movementX, e.movementY);
-    },false);    
-}
-Mouse.prototype.readButtonEvent = function(e,pressed) {
-    if(pressed) {
-        if(!this.buttons[e.button]) this.toggled[e.button] = true;
+class Mouse {
+    constructor() {
+        this.cursor_pos=vec2.create();
+        this.movement=vec2.create();
+        this.buttons={};
+        this.toggled={};
+        this.mod_shift=false;
+        this.mod_ctrl=false;
+        this.mod_alt=false;
     }
-    this.buttons[e.button] = pressed;
-    this.mod_shift = e.shiftKey;
-    this.mod_alt = e.altKey;
-    this.mod_ctrl = e.ctrlKey;
-}
-Mouse.prototype.getButton = function(btn_ind) {
-    return this.buttons[btn_ind];
-}
-Mouse.prototype.getToggled = function(btn_ind) {
-    return this.toggled[btn_ind];
-}
-Mouse.prototype.clearToggled = function(btn_ind) {
-    this.toggled[btn_ind] = false;        
-}
-Mouse.prototype.getCursorPos = function() { return this.cursor_pos; }
+    clearMovement() { vec2.set(this.movement,0,0); }
+    setupBrowser(w,dom) {
+        var _this = this;
+        w.addEventListener("mousedown", function(e) {
+            //        e.preventDefault();
+            _this.readButtonEvent(e,true);
+        },false);
+        w.addEventListener("mouseup", function(e)  {
+            //        e.preventDefault();
+            _this.readButtonEvent(e,false);        
+        },false);
+        w.addEventListener("mousemove", function(e)  {
+            var rect = dom.getBoundingClientRect();
+            var x = Math.floor(e.clientX - rect.left);
+            var y = Math.floor(e.clientY - rect.top);
+            //        e.preventDefault();
+            vec2.set(_this.cursor_pos,x,y);
+            vec2.set(_this.movement,e.movementX, e.movementY);
+        },false);    
+    }
+    readButtonEvent(e,pressed) {
+        if(pressed) {
+            if(!this.buttons[e.button]) this.toggled[e.button] = true;
+        }
+        this.buttons[e.button] = pressed;
+        this.mod_shift = e.shiftKey;
+        this.mod_alt = e.altKey;
+        this.mod_ctrl = e.ctrlKey;
+    }
+    getButton(btn_ind) {
+        return this.buttons[btn_ind];
+    }
+    getToggled(btn_ind) {
+        return this.toggled[btn_ind];
+    }
+    clearToggled(btn_ind) {
+        this.toggled[btn_ind] = false;        
+    }
+    getCursorPos() { return this.cursor_pos; }
+};
+
 
 /////////////////////////
 class Touch {
