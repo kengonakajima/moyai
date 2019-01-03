@@ -1779,6 +1779,41 @@ Mouse.prototype.clearToggled = function(btn_ind) {
 Mouse.prototype.getCursorPos = function() { return this.cursor_pos; }
 
 /////////////////////////
+class Touch {
+    constructor() {
+        this.last_touch_pos=vec2.create();
+        this.touching=false;        
+    }
+    readTouchEvent(e) {
+        var rect=this.dom.getBoundingClientRect();        
+        var x = Math.floor(e.touches[0].clientX - rect.left);
+        var y = Math.floor(e.touches[0].clientY - rect.top);
+        //        e.preventDefault();
+   e.preventDefault();
+   e.stopPropagation();
+        
+        vec2.set(this.last_touch_pos,x,y);
+        //        vec2.set(this.movement,e.movementX, e.movementY);
+        console.log("RRRR:",this.last_touch_pos,e);
+    }
+    
+    setupBrowser(w,dom) {
+        this.dom=dom;
+        var _this=this;
+        w.addEventListener("touchstart",function(e) {
+            _this.touching=true;
+            _this.readTouchEvent(e);
+        },{passive: false, capture:false});
+        w.addEventListener("touchend",function(e) {
+            _this.touching=false;
+        },{passive: false, capture:false});
+        w.addEventListener("touchmove",function(e) {
+            _this.readTouchEvent(e);
+        },{passive: false, capture:false});
+    }
+}
+
+/////////////////////////
 
 function SoundSystem() {
     var AudioContext = window.AudioContext // Default

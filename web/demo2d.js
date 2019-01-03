@@ -1,6 +1,4 @@
 
-
-
 // button funcs
 
 var g_stop_render=false;
@@ -22,7 +20,8 @@ var g_keyboard = new Keyboard();
 g_keyboard.setupBrowser(window);
 var g_mouse = new Mouse();
 g_mouse.setupBrowser(window,screen);
-
+var g_touch = new Touch();
+g_touch.setupBrowser(window,screen);
 
 var g_viewport = new Viewport();
 g_viewport.setSize(SCRW,SCRH);
@@ -422,22 +421,29 @@ if(1) {
 
 if(1) {
     function isMousePressed(prop) {
-        var x=g_mouse.cursor_pos[0]-SCRW/2;
-        var y=SCRH/2-g_mouse.cursor_pos[1];
         if(g_mouse.getButton(0)) {
+            var x=g_mouse.cursor_pos[0]-SCRW/2;
+            var y=SCRH/2-g_mouse.cursor_pos[1];
             var at=vec2.fromValues(x,y);
-            return prop.hit(at,0);
+            if(prop.hit(at,0)) return true;
+        }
+        if(g_touch.touching) {
+            var x=g_touch.last_touch_pos[0]-SCRW/2;
+            var y=SCRH/2-g_touch.last_touch_pos[1];
+            var at=vec2.fromValues(x,y);
+            if(prop.hit(at,0)) return true;
         }
         return false;
     }
     // mobile controller pad
     var scl=64;
+    var ymgn=-100;
     var up=new Prop2D();
     up.setDeck(g_base_deck);
     up.setIndex(192);
     up.setScl(scl,scl);
     up.setColor(1,1,1,0.4);
-    up.setLoc(-SCRW/2+scl*2,-SCRH/2+scl*3);    
+    up.setLoc(-SCRW/2+scl*2,scl*3 + ymgn);    
     g_hud_layer.insertProp(up);
     var down=new Prop2D();
     down.setDeck(g_base_deck);
@@ -445,7 +451,7 @@ if(1) {
     down.setScl(scl,scl);
     down.setYFlip(true);
     down.setColor(1,1,1,0.4);    
-    down.setLoc(-SCRW/2+scl*2,-SCRH/2+scl);
+    down.setLoc(-SCRW/2+scl*2,scl + ymgn);
     g_hud_layer.insertProp(down);
     var left=new Prop2D();
     left.setDeck(g_base_deck);
@@ -454,7 +460,7 @@ if(1) {
     left.setUVRot(true);
     left.setYFlip(true);    
     left.setColor(1,1,1,0.4);    
-    left.setLoc(-SCRW/2+scl,-SCRH/2+scl*2);
+    left.setLoc(-SCRW/2+scl,scl*2 + ymgn);
     g_hud_layer.insertProp(left);
     var right=new Prop2D();
     right.setDeck(g_base_deck);
@@ -462,7 +468,7 @@ if(1) {
     right.setScl(scl,scl);
     right.setUVRot(true);
     right.setColor(1,1,1,0.4);    
-    right.setLoc(-SCRW/2+scl*3,-SCRH/2+scl*2);
+    right.setLoc(-SCRW/2+scl*3,scl*2+ymgn);
     g_hud_layer.insertProp(right);
 
     left.prop2DPoll=function(dt) {
@@ -495,12 +501,6 @@ var g_bgm_sound = g_sound_system.newBGMFromMemory(gymno1short_wav,"wav");
 var samples = new Array(44100/4);
 for(var i=0;i<samples.length;i++) samples[i] = Math.cos(i/20.0);
 var g_mem_sound = g_sound_system.newSoundFromMemory(samples,"float");
-
-////////////////////
-screen.addEventListener( "touchend", function(event) {
-    console.log("touch");
-    g_explosion_sound.play();
-}, false);
 
 
 ////////////////////
