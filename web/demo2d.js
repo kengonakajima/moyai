@@ -26,6 +26,9 @@ g_touch.setupBrowser(window,screen);
 var g_viewport = new Viewport();
 g_viewport.setSize(SCRW,SCRH);
 g_viewport.setScale2D(SCRW,SCRH);
+var g_hud_viewport = new Viewport();
+g_hud_viewport.setSize(SCRW,SCRH);
+g_hud_viewport.setScale2D(SCRW,SCRH);
 
 var g_camera = new OrthographicCamera(-SCRW/2,SCRW/2,SCRH/2,-SCRH/2);
 g_camera.setLoc(0,0);
@@ -40,7 +43,7 @@ g_main_layer.setViewport(g_viewport);
 var g_hud_layer = new Layer();
 Moyai.insertLayer(g_hud_layer);
 g_hud_layer.setCamera(g_hud_camera);
-g_hud_layer.setViewport(g_viewport);
+g_hud_layer.setViewport(g_hud_viewport);
 
 var g_base_atlas = new Texture();
 g_base_atlas.loadPNG( "./assets/base.png", 256,256 );

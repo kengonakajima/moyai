@@ -201,6 +201,10 @@ Moyai.render2D = function(layer) {
     if(!cam.loc3) cam.loc3=vec3.create();
     vec3.set(cam.loc3,cam.loc[0],cam.loc[1],0);
     mat4.translate(cam.camMat,cam.camMat, cam.loc3);
+    var vp=layer.viewport;
+    if(!vp.scl3) vp.scl3=vec3.create();
+    vec3.set(vp.scl3,vp.scl[0]/vp.screen_width,vp.scl[1]/vp.screen_height,1);
+    mat4.scale(cam.camMat,cam.camMat,vp.scl3);
     if(!this.viewProjMat)this.viewProjMat=mat4.create();
     mat4.multiply(this.viewProjMat,layer.projMat,cam.camMat);
 
