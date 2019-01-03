@@ -401,7 +401,7 @@ class MoyaiImage {
     setAreaRaw(x0,y0,w,h, data_u8a, insz ) {
         var reqsize = w*h*4;
         if( insz < reqsize ) {
-            console.log("image.prototype.setAreaRaw input size too small required:",reqsize, "got:",insz);
+            console.log("setAreaRaw input size too small required:",reqsize, "got:",insz);
             return;
         }
         for(var dy=0;dy<h;dy++) {

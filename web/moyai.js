@@ -426,7 +426,7 @@ var PRIMTYPE_RECTANGLE = 2;
 var g_moyai_prim_id_gen=1;
 class Prim {
     constructor(t,a,b,col,lw) {
-        this.id=this.__proto__.id_gen++;
+        this.id=g_moyai_prim_id_gen++;
         this.type = t;
         this.a=vec2.create();
         vec2.copy(this.a,a);
@@ -923,7 +923,7 @@ const GRID_NOT_USED = -1;
 var g_moyai_grid_id_gen=1;
 class Grid {
     constructor(w,h) {
-        this.id=this.__proto__.id_gen++;
+        this.id=g_moyai_grid_id_gen++;
         this.width=w;
         this.height=h;
         this.index_table=new Int16Array(w*h);
