@@ -1817,132 +1817,137 @@ class Touch {
 
 /////////////////////////
 
-function SoundSystem() {
-    var AudioContext = window.AudioContext // Default
-    || window.webkitAudioContext // Safari and old versions of Chrome
-    || false; 
+class SoundSystem {
+    constructor() {
+        var AudioContext = window.AudioContext // Default
+            || window.webkitAudioContext // Safari and old versions of Chrome
+            || false; 
 
-    if (AudioContext) {
-        this.context = new AudioContext();
-    } else {
-        console.log("AudioContext is not available in this browser");
-        this.context = null;
-    }
-    this.sounds={};
-    this.master_volume = 1;
-}
-SoundSystem.prototype.setMasterVolume = function(vol) { this.master_volume=vol; }
-SoundSystem.prototype.getMasterVolume = function() { return this.master_volume; }
-// type: "float" or other, "wav", "mp3"..
-SoundSystem.prototype.newBGMFromMemory = function(data,type) {
-    var snd = this.createSound(data,true,type);
-    this.sounds[snd.id] = snd;
-    return snd;
-}
-SoundSystem.prototype.newSoundFromMemory = function(data,type) {
-    var snd = this.createSound(data,false,type);
-    this.sounds[snd.id] = snd;
-    return snd;
-}
-SoundSystem.prototype.createSound = function(data,loop,type) {
-    var snd = new Sound();
-    snd.sound_system = this;
-    snd.context=this.context;
-    snd.setLoop(loop);
-    snd.setData(data,type);
-    return snd;
-}
-
-Sound.prototype.id_gen=1;
-function Sound(data,loop,type) {
-    this.id = this.__proto__.id_gen++;
-    this.type=null;
-    this.data=null;
-    this.loop=false;
-    this.audiobuffer=null;
-    this.context=null;
-    this.default_volume=1;
-    this.source=null;
-    this.play_volume=null;
-    this.sound_system=null;
-}
-Sound.prototype.setLoop = function(loop) { this.loop=loop; }
-Sound.prototype.isReady = function() { return this.audiobuffer; }
-Sound.prototype.setDefaultVolume = function(v) { this.default_volume=v;}
-Sound.prototype.setData = function(data,type) {
-    if(!this.context)return;
-    this.type = type;
-    this.data = data;
-    if(type=="float") {
-        this.audiobuffer = this.context.createBuffer( 1, data.length, this.context.sampleRate );
-        var b = this.audiobuffer.getChannelData(0); // channel 0
-        for (var i = 0; i < data.length; i++) {
-            b[i] = data[i];
-        }
-    } else {
-        var _this = this;
-        this.context.decodeAudioData(data.buffer, function(decoded) {
-            _this.audiobuffer = decoded;
-        })
-    }
-}
-Sound.prototype.prepareSource = function(vol,detune) {
-    if(!this.context)return;
-    if(!detune)detune=0;
-    
-    if(this.source) {
-        this.source.stop();
-    }
-    this.source = this.context.createBufferSource();
-    this.source.buffer = this.audiobuffer;
-    if(this.source.detune) this.source.detune.value=detune; // browser dependent
-    var thissnd=this;
-    this.source.onended = function() { thissnd.source.ended=true; }
-    this.gain_node = this.context.createGain();
-    this.source.connect(this.gain_node);
-    this.gain_node.connect(this.context.destination);
-    this.gain_node.gain.value = this.default_volume * vol * this.sound_system.master_volume;
-}
-Sound.prototype.play = function(vol,detune) {
-    if(!this.context)return;
-    if(vol==undefined)vol=1;
-    if(this.audiobuffer) {
-        this.prepareSource(vol,detune);
-        this.source.start(0);
-        this.play_volume=vol;
-    } else {
-        console.log("Sound.play: audiobuffer is not ready");
-    }
-}
-Sound.prototype.setTimePositionSec = function( pos_sec ) {
-    if(!this.context)return;    
-    if(this.source) {
-        if(this.source.paused) {
-            return;
+        if (AudioContext) {
+            this.context = new AudioContext();
         } else {
-            this.source.stop();
-            this.prepareSource(this.play_volume);
-            this.source.start(0,pos_sec);
+            console.log("AudioContext is not available in this browser");
+            this.context = null;
+        }
+        this.sounds={};
+        this.master_volume = 1;
+    }
+    setMasterVolume(vol) { this.master_volume=vol; }
+    getMasterVolume() { return this.master_volume; }
+    // type: "float" or other, "wav", "mp3"..
+    newBGMFromMemory(data,type) {
+        var snd = this.createSound(data,true,type);
+        this.sounds[snd.id] = snd;
+        return snd;
+    }
+    newSoundFromMemory(data,type) {
+        var snd = this.createSound(data,false,type);
+        this.sounds[snd.id] = snd;
+        return snd;
+    }
+    createSound(data,loop,type) {
+        var snd = new Sound();
+        snd.sound_system = this;
+        snd.context=this.context;
+        snd.setLoop(loop);
+        snd.setData(data,type);
+        return snd;
+    }
+};
+
+var g_sound_id_gen=1;
+class Sound {
+    constructor() {
+        this.id = g_sound_id_gen++;
+        this.type=null;
+        this.data=null;
+        this.loop=false;
+        this.audiobuffer=null;
+        this.context=null;
+        this.default_volume=1;
+        this.source=null;
+        this.play_volume=null;
+        this.sound_system=null;
+    }
+    setLoop(loop) { this.loop=loop; }
+    isReady() { return this.audiobuffer; }
+    setDefaultVolume(v) { this.default_volume=v;}
+    setData(data,type) {
+        if(!this.context)return;
+        this.type = type;
+        this.data = data;
+        if(type=="float") {
+            this.audiobuffer = this.context.createBuffer( 1, data.length, this.context.sampleRate );
+            var b = this.audiobuffer.getChannelData(0); // channel 0
+            for (var i = 0; i < data.length; i++) {
+                b[i] = data[i];
+            }
+        } else {
+            var _this = this;
+            this.context.decodeAudioData(data.buffer, function(decoded) {
+                _this.audiobuffer = decoded;
+            })
         }
     }
-}
-Sound.prototype.isPlaying = function() {
-    if(!this.context)return false;    
-    if(this.source) {
-        if(this.source.paused) return false;
-        if(this.source.ended ) return false;  // set by moyai
-        return true;
-    } else {
-        return false;
-    }        
-}
-Sound.prototype.stop = function() {
-    if(!this.context)return;    
-    if(this.source) {
-        console.log("stopping..", this.source);
-        this.source.stop(0);
-    } 
-}
+    prepareSource(vol,detune) {
+        if(!this.context)return;
+        if(!detune)detune=0;
+        
+        if(this.source) {
+            this.source.stop();
+        }
+        this.source = this.context.createBufferSource();
+        this.source.buffer = this.audiobuffer;
+        if(this.source.detune) this.source.detune.value=detune; // browser dependent
+        var thissnd=this;
+        this.source.onended = function() { thissnd.source.ended=true; }
+        this.gain_node = this.context.createGain();
+        this.source.connect(this.gain_node);
+        this.gain_node.connect(this.context.destination);
+        this.gain_node.gain.value = this.default_volume * vol * this.sound_system.master_volume;
+    }
+    play(vol,detune) {
+        if(!this.context)return;
+        if(vol==undefined)vol=1;
+        if(this.audiobuffer) {
+            this.prepareSource(vol,detune);
+            this.source.start(0);
+            this.play_volume=vol;
+        } else {
+            console.log("Sound.play: audiobuffer is not ready");
+        }
+    }
+    setTimePositionSec( pos_sec ) {
+        if(!this.context)return;    
+        if(this.source) {
+            if(this.source.paused) {
+                return;
+            } else {
+                this.source.stop();
+                this.prepareSource(this.play_volume);
+                this.source.start(0,pos_sec);
+            }
+        }
+    }
+    isPlaying() {
+        if(!this.context)return false;    
+        if(this.source) {
+            if(this.source.paused) return false;
+            if(this.source.ended ) return false;  // set by moyai
+            return true;
+        } else {
+            return false;
+        }        
+    }
+    stop() {
+        if(!this.context)return;    
+        if(this.source) {
+            console.log("stopping..", this.source);
+            this.source.stop(0);
+        } 
+    }
+};
+
 ///////////////////////
 
 function FileDepo() {
