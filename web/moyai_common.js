@@ -423,73 +423,74 @@ class MoyaiImage {
 
 
 ///////////////////
-TileDeck.prototype.id_gen = 1;
-function TileDeck() {
-    this.id = this.__proto__.id_gen++;
-}
-TileDeck.prototype.setSize = function(sprw,sprh,cellw,cellh) {
-    this.tile_width = sprw;
-    this.tile_height = sprh;
-    this.cell_width = cellw;
-    this.cell_height = cellh;
-}
-TileDeck.prototype.setTexture = function(tex) {
-    this.moyai_tex = tex;
-}
-TileDeck.prototype.getUVFromIndex = function(outary, ind,uofs,vofs,eps) {
-	var uunit = this.cell_width / this.moyai_tex.image.width;
-	var vunit = this.cell_height / this.moyai_tex.image.height;
-	var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
-	var start_y = this.cell_height * Math.floor( Math.floor(ind) / Math.floor(this.tile_width ) );
-    var u0 = start_x / this.moyai_tex.image.width + eps + uofs * uunit;
-    var v0 = start_y / this.moyai_tex.image.height + eps + vofs * vunit;
-    var u1 = u0 + uunit - eps*2;  // *2 because adding eps once for u0 and v0
-	var v1 = v0 + vunit - eps*2;
-    outary[0]=u0;
-    outary[1]=v0;
-    outary[2]=u1;
-    outary[3]=v1;
-}
-TileDeck.prototype.getUVOfPixel = function(outary,ind,x_in_cell,y_in_cell) {
-    ind=Math.floor(ind);
-    var x0=Math.floor(ind%this.tile_width)*this.cell_width;
-    var y0=Math.floor(ind/this.tile_width)*this.cell_height;
-    var fin_x=x0+x_in_cell, fin_y=y0+y_in_cell;
-    var u_per_pixel = 1.0/this.moyai_tex.image.width;
-    var v_per_pixel = 1.0/this.moyai_tex.image.height;
-    outary[0]=fin_x*u_per_pixel;
-    outary[1]=fin_y*v_per_pixel;
-    outary[2]=(fin_x+1)*u_per_pixel;
-    outary[3]=(fin_y+1)*v_per_pixel;
-}
-TileDeck.prototype.getUperCell = function() { return this.cell_width / this.moyai_tex.image.width; }
-TileDeck.prototype.getVperCell = function() { return this.cell_height / this.moyai_tex.image.height; }    
-
-TileDeck.prototype.getPixelsFromIndex = function(ind) {
-	var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
-	var start_y = this.cell_height * Math.floor( Math.floor(ind) / Math.floor(this.tile_width ) );
-    var out=[];
-    for(var y=start_y;y<start_y+this.cell_height;y++) {
-        for(var x=start_x;x<start_x+this.cell_width;x++) {
-            var di=x*4+y*(this.cell_width*this.tile_width)*4;
-            for(var i=0;i<4;i++) {
-                out.push(this.moyai_tex.image.data[di+i]);
+var g_moyai_tiledeck_id_gen=1;
+class TileDeck {
+    constructor() {
+        this.id = g_moyai_tiledeck_id_gen++;
+    }
+    setSize(sprw,sprh,cellw,cellh) {
+        this.tile_width = sprw;
+        this.tile_height = sprh;
+        this.cell_width = cellw;
+        this.cell_height = cellh;
+    }
+    setTexture(tex) {
+        this.moyai_tex = tex;
+    }
+    getUVFromIndex(outary, ind,uofs,vofs,eps) {
+	    var uunit = this.cell_width / this.moyai_tex.image.width;
+	    var vunit = this.cell_height / this.moyai_tex.image.height;
+	    var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
+	    var start_y = this.cell_height * Math.floor( Math.floor(ind) / Math.floor(this.tile_width ) );
+        var u0 = start_x / this.moyai_tex.image.width + eps + uofs * uunit;
+        var v0 = start_y / this.moyai_tex.image.height + eps + vofs * vunit;
+        var u1 = u0 + uunit - eps*2;  // *2 because adding eps once for u0 and v0
+	    var v1 = v0 + vunit - eps*2;
+        outary[0]=u0;
+        outary[1]=v0;
+        outary[2]=u1;
+        outary[3]=v1;
+    }
+    getUVOfPixel(outary,ind,x_in_cell,y_in_cell) {
+        ind=Math.floor(ind);
+        var x0=Math.floor(ind%this.tile_width)*this.cell_width;
+        var y0=Math.floor(ind/this.tile_width)*this.cell_height;
+        var fin_x=x0+x_in_cell, fin_y=y0+y_in_cell;
+        var u_per_pixel = 1.0/this.moyai_tex.image.width;
+        var v_per_pixel = 1.0/this.moyai_tex.image.height;
+        outary[0]=fin_x*u_per_pixel;
+        outary[1]=fin_y*v_per_pixel;
+        outary[2]=(fin_x+1)*u_per_pixel;
+        outary[3]=(fin_y+1)*v_per_pixel;
+    }
+    getUperCell() { return this.cell_width / this.moyai_tex.image.width; }
+    getVperCell() { return this.cell_height / this.moyai_tex.image.height; }    
+    getPixelsFromIndex(ind) {
+	    var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
+	    var start_y = this.cell_height * Math.floor( Math.floor(ind) / Math.floor(this.tile_width ) );
+        var out=[];
+        for(var y=start_y;y<start_y+this.cell_height;y++) {
+            for(var x=start_x;x<start_x+this.cell_width;x++) {
+                var di=x*4+y*(this.cell_width*this.tile_width)*4;
+                for(var i=0;i<4;i++) {
+                    out.push(this.moyai_tex.image.data[di+i]);
+                }
             }
         }
+        return out;
     }
-    return out;
-}
-
+};
 
 
 ////////////////////////
 
+// for node
 try {
     if(global) {
         // classes
         global.Color=Color;
         global.Viewport=Viewport;       
-        global.Image=MoyaiImage;
+        global.MoyaiImage=MoyaiImage;
         global.TileDeck = TileDeck;
         global.Layer = Layer;
 
