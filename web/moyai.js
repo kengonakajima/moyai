@@ -139,6 +139,7 @@ Moyai.render3D = function(layer) {
         var prop = layer.props[pi];
         if(!prop.visible)continue;
         if(prop.to_clean)continue;
+        if(!prop.geom)continue;
         // view frustum culling http://www.sousakuba.com/Programming/gs_dot_plane_distance.html
         var to_skip=false;
         if(prop.geom.boundbox) {
@@ -158,13 +159,14 @@ Moyai.render3D = function(layer) {
                 }
                 if(outcnt==6) {to_skip=true; break;}
             }            
-        } else {
+        } else if(prop.enable_frustum_culling ){
             for(var j=0;j<6;j++) {
                 var dot=vec3.dot(prop.loc,Moyai.planes[j]);
                 var distance=dot+Moyai.planes[j][3];
                 if(distance<0) { to_skip=true; break;}
             }
         }
+        
         if(to_skip) {
             this.skip_count_3d++;
             continue;
@@ -270,9 +272,11 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend)
     gl.vertexAttribPointer( material.attribLocations.position, 3, gl.FLOAT, false,0,0);
     gl.enableVertexAttribArray(material.attribLocations.position);
     // color
-    gl.bindBuffer(gl.ARRAY_BUFFER, geom.colorBuffer);
-    gl.vertexAttribPointer( material.attribLocations.color, 4, gl.FLOAT, false,0,0 );
-    gl.enableVertexAttribArray(material.attribLocations.color);
+    if(geom.colorBuffer) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, geom.colorBuffer);
+        gl.vertexAttribPointer( material.attribLocations.color, 4, gl.FLOAT, false,0,0 );
+        gl.enableVertexAttribArray(material.attribLocations.color);
+    }
     // ind
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geom.indexBuffer);
     // setup shader
@@ -293,6 +297,7 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend)
         }
     }
     if(colv) gl.uniform4fv(material.uniformLocations.meshcolor, colv);
+
     if(material.applyUniforms) material.applyUniforms();
     // draw
     var indn=geom.indn_used;
@@ -707,6 +712,66 @@ class FaceGeometry extends Geometry {
         this.uvs[vind*2+1]=uv[1];            
     }
 };
+
+class BoxGeometry extends Geometry {
+    constructor(backface) {
+        super(24,12);
+        this.positions=new Float32Array([ 0.5, 0.5, 0.5,
+                                          0.5, 0.5, -0.5,
+                                          0.5, -0.5, 0.5,
+                                          0.5, -0.5, -0.5,
+                                          -0.5, 0.5, -0.5,
+                                          -0.5, 0.5, 0.5,
+                                          -0.5, -0.5, -0.5,
+                                          -0.5,-0.5, 0.5,
+                                          -0.5, 0.5, -0.5,
+                                          0.5, 0.5, -0.5,
+                                          -0.5, 0.5, 0.5,
+                                          0.5, 0.5, 0.5,
+                                          -0.5, -0.5, 0.5,
+                                          0.5, -0.5, 0.5,
+                                          -0.5, -0.5, -0.5,
+                                          0.5, -0.5, -0.5,
+                                          -0.5, 0.5, 0.5,
+                                          0.5, 0.5, 0.5,
+                                          -0.5, -0.5, 0.5,
+                                          0.5, -0.5, 0.5,
+                                          0.5, 0.5, -0.5,
+                                          -0.5, 0.5, -0.5,
+                                          0.5, -0.5, -0.5,
+                                          -0.5, -0.5, -0.5,
+                                        ]);
+        this.inds=new Uint16Array([
+            0, 2, 1,
+            2, 3, 1,
+            4, 6, 5,
+            6, 7, 5,
+            8, 10, 9,
+            10, 11, 9,
+
+            12, 14, 13,
+            14, 15, 13,
+            16, 18, 17,
+            18, 19, 17,
+            20, 22, 21,
+            22, 23, 21,
+        ]);
+        if(backface) {
+            for(var i=0;i<12;i++) {
+                var tmp=this.inds[i*3+2];
+                this.inds[i*3+2]=this.inds[i*3+1];
+                this.inds[i*3+1]=tmp;
+            }
+        }
+        
+        this.need_positions_update=true;
+        this.need_inds_update=true;
+        this.primtype=Moyai.gl.TRIANGLES;        
+    }
+}
+
+
+
 
 
 function createRectGeometry(width,height) {
@@ -1883,9 +1948,7 @@ class SoundSystem {
         request.send();
         request.onload = function() {
             var res=request.response;
-            console.log("newsoundfromfile: res:",res);
             context.decodeAudioData(res,function(buf) {
-                console.log("newsoundfromfile decode done.buf:",buf);
                 snd.audiobuffer=buf;
             });
         }
@@ -2031,7 +2094,8 @@ class Prop3D extends Prop {
         this.draw_offset = vec3.fromValues(0,0,0);
         this.priority=this.id;
         this.dimension=3;
-        this.visible=true;        
+        this.visible=true;
+        this.enable_frustum_culling=true;
     }
     propPoll(dt) {
         if(this.prop3DPoll && this.prop3DPoll(dt)===false) {
