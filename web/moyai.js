@@ -825,8 +825,20 @@ class Prop2D extends Prop {
     setVisible(flg) { this.visible=flg; }
     setDeck(dk) { this.deck = dk; }
     setIndex(ind) { this.index = ind; this.need_uv_update = true; }
-    setScl(x,y) { if(y===undefined) vec2.copy(this.scl,x); else vec2.set(this.scl,x,y); }
-    setLoc(x,y) { if(y===undefined) vec2.copy(this.loc,x); else vec2.set(this.loc,x,y); }
+    setScl(x,y) {
+        if(y===undefined) {
+            if(isNaN(x) ) vec2.copy(this.scl,x); else vec2.set(this.scl,x,x);
+        } else {
+            vec2.set(this.scl,x,y);
+        }
+    }
+    setLoc(x,y) {
+        if(y===undefined) {
+            if(isNaN(x)) vec2.copy(this.loc,x); else vec2.set(this.loc,x,x);
+        } else {
+            vec2.set(this.loc,x,y);
+        }
+    }
     setRot(r) { this.rot=r; }
     setUVRot(flg) { this.uvrot=flg; this.need_uv_update = true; }
     setColor(r,g,b,a) {
