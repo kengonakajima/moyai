@@ -1,4 +1,3 @@
-var g_moyai_client;
 
 var g_stop_render=false;
 function stopRender() {
@@ -7,9 +6,9 @@ function stopRender() {
 
 var SCRW=800, SCRH=600;
 
-g_moyai_client = new MoyaiClient(SCRW,SCRH,window.devicePixelRatio);
+Moyai.init(SCRW,SCRH);
 var screen = document.getElementById("screen");
-screen.appendChild( g_moyai_client.renderer.domElement );
+screen.appendChild( Moyai.getDomElement() );
 
 
 var g_keyboard = new Keyboard();
@@ -27,41 +26,41 @@ g_viewport2d.setSize(SCRW,SCRH);
 g_viewport2d.setScale2D(SCRW,SCRH);
 
 var g_main_layer = new Layer();
-g_moyai_client.insertLayer(g_main_layer);
+Moyai.insertLayer(g_main_layer);
 g_main_layer.setViewport(g_viewport3d);
 
-var g_main_camera = new Camera();
+var g_main_camera = new PerspectiveCamera( 45*Math.PI/180 , SCRW / SCRH , 0.1, 1000);
 g_main_camera.setLoc(-4,4,20);
-g_main_camera.setLookAt(new Vec3(0,0,0), new Vec3(0,1,0));
+g_main_camera.setLookAt(vec3.fromValues(0,0,0), vec3.fromValues(0,1,0));
 g_main_layer.setCamera(g_main_camera);
 
 var g_hud_layer = new Layer();
 g_hud_layer.setViewport(g_viewport2d);
-g_moyai_client.insertLayer(g_hud_layer);
-g_hud_camera = new Camera();
+Moyai.insertLayer(g_hud_layer);
+var g_hud_camera = new OrthographicCamera(-SCRW/2,SCRW/2,SCRH/2,-SCRH/2);
 g_hud_camera.setLoc(0,0);
 g_hud_layer.setCamera( g_hud_camera );
 
 var g_skyblue_tex = new Texture();
-g_skyblue_tex.loadPNGMem( skyblue_png );
+g_skyblue_tex.loadPNG( "./assets/skyblue.png",64,64 );
 var g_skyblue_deck = new TileDeck();
 g_skyblue_deck.setTexture(g_skyblue_tex);
 g_skyblue_deck.setSize(4,4,16,16);
 
 var g_skydawn_tex = new Texture();
-g_skydawn_tex.loadPNGMem( skydawn_png );
+g_skydawn_tex.loadPNG( "./assets/skydawn.png", 64,64 );
 var g_skydawn_deck = new TileDeck();
 g_skydawn_deck.setTexture(g_skydawn_tex);
 g_skydawn_deck.setSize(4,4,16,16);
 
 var g_skynight_tex = new Texture();
-g_skynight_tex.loadPNGMem( skynight_png );
+g_skynight_tex.loadPNG( "./assets/skynight.png", 64,64 );
 var g_skynight_deck = new TileDeck();
 g_skynight_deck.setTexture(g_skynight_tex);
 g_skynight_deck.setSize(4,4,16,16);
 
 var g_sun_tex = new Texture();
-g_sun_tex.loadPNGMem(sun_png);
+g_sun_tex.loadPNG("./assets/sun.png",32,32);
 
 
 var g_blue_prop = new Prop2D();
@@ -202,12 +201,12 @@ function updateSkyColor() {
 
     console.log("hour:",h, "blue:",blue_alpha, "dawn:",dawn_alpha, "sun_rgb:",sun_r,sun_g,sun_b);        
 
-    g_sunp.setColor(new Color(sun_r,sun_g,sun_b,1));
-    g_sun_sample.setColor(new Color(sun_r,sun_g,sun_b,1));
+    g_sunp.setColor(Color.fromValues(sun_r,sun_g,sun_b,1));
+    g_sun_sample.setColor(Color.fromValues(sun_r,sun_g,sun_b,1));
     
-    g_outp0.setColor(new Color(1,1,1,night_alpha));
-    g_outp1.setColor(new Color(1,1,1,dawn_alpha));
-    g_outp2.setColor(new Color(1,1,1,blue_alpha));
+    g_outp0.setColor(Color.fromValues(1,1,1,night_alpha));
+    g_outp1.setColor(Color.fromValues(1,1,1,dawn_alpha));
+    g_outp2.setColor(Color.fromValues(1,1,1,blue_alpha));
 }
 
 var last_anim_at = new Date().getTime();
@@ -215,7 +214,6 @@ var last_anim_at = new Date().getTime();
 var fps=0;
 function animate() {
     if(!g_stop_render) requestAnimationFrame(animate);
-    if(!g_moyai_client)return;
 
     fps++;
 
@@ -228,13 +226,8 @@ function animate() {
 
     
     last_anim_at = now_time;    
-    g_moyai_client.poll(dt);
-    g_moyai_client.render();
-
-
-    //    g_main_camera.setLoc( g_main_camera.loc.x+0.1,0,3);
-    
-    
+    Moyai.poll(dt);
+    Moyai.render();
 }
 
 animate();
