@@ -1337,7 +1337,7 @@ void gameInit() {
 void gameRender() {
     if(!g_camera)return;
     
-#if 0
+#if 1
     g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
     g_last_render_cnt = g_moyai_client->render();
 #endif
@@ -1356,7 +1356,7 @@ void gameRender() {
     
 #endif
     
-#if 1
+#if 0
     // 4 screens
     float orig_sclx=g_viewport->scl.x, orig_scly=g_viewport->scl.y;
     glViewport(0,0,SCRW/2*RETINA,SCRH/2*RETINA);
