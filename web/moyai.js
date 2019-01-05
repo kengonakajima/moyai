@@ -36,7 +36,7 @@ class PerspectiveCamera {
 
 
 ///////////////
-Moyai ={}
+Moyai ={ initialized:false }
 Moyai.init = function(w,h){
     this.width=w;
     this.height=h;
@@ -53,7 +53,8 @@ Moyai.init = function(w,h){
     this.layers=[];
     this.x_axis=vec3.fromValues(1,0,0);
     this.y_axis=vec3.fromValues(0,1,0);
-    this.z_axis=vec3.fromValues(0,0,1);    
+    this.z_axis=vec3.fromValues(0,0,1);
+    this.initialized=true;
     console.log("Moyai:",this);
 }
 Moyai.setSize = function(w,h) {
@@ -74,6 +75,7 @@ Moyai.getHighestPriority = function() {
     return highp;
 }
 Moyai.poll = function(dt) {
+    if(!this.initialized)return 0;
     var cnt=0;
     for(var i=0;i<this.layers.length;i++) {
         var layer = this.layers[i];
@@ -82,6 +84,7 @@ Moyai.poll = function(dt) {
     return cnt;   
 }
 Moyai.render = function() {
+    if(!this.initialized)return;
     var gl=this.gl;
     if(this.enable_clear) {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -194,6 +197,7 @@ Moyai.render2D = function(layer) {
     if(!this.relscl) this.relscl=vec2.fromValues(1,1);
     if(!this.camloc) this.camloc=vec2.create();
     var cam=layer.camera;
+    if(!cam)return;
     layer.viewport.getRelativeScale(this.relscl);
 
     if(!layer.projMat) layer.projMat=mat4.create();
@@ -824,6 +828,7 @@ class Prop2D extends Prop {
     }
     setVisible(flg) { this.visible=flg; }
     setDeck(dk) { this.deck = dk; }
+    setMaterial(mat) { this.material=mat;}
     setIndex(ind) { this.index = ind; this.need_uv_update = true; }
     setScl(x,y) {
         if(y===undefined) {
@@ -1507,6 +1512,7 @@ class TextBox extends Prop2D {
             var glyph = this.font.getGlyph( char_code );
             if(!glyph) {
                 console.log("glyph not found for:", char_code, "char:", this.str.charAt(chind) );
+                continue;
             }
             // 座標の大きさはピクセルサイズ
             /*
@@ -2073,21 +2079,6 @@ class Sound {
         } 
     }
 };
-
-///////////////////////
-
-class FileDepo {
-    constructor() {
-        this.files = {};        
-    }
-    get(path) {
-        return this.files[path];
-    }
-    ensure(path,data) {
-        return this.files[path] = data;
-    }
-};
-
 
 /////////////////////////
 class Prop3D extends Prop {
