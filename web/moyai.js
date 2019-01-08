@@ -373,7 +373,7 @@ class Texture {
         const pixel = new Uint8Array(w*h*4);
         for(var i=0;i<w*h*4;i++) pixel[i]=0xff;
         var texture=createGLTextureFromPixels(gl, w,h,pixel);
-        
+        var _this=this;
         var moyai_tex=this;
         var image = new Image();
         image.width=w;
@@ -381,7 +381,13 @@ class Texture {
         image.onload = function() {
             setImageToGLTexture(gl,texture,image);
             //        console.log("loadpng: onload:",texture,image,moyai_tex);
-            if(moyai_tex.onload) moyai_tex.onload();        
+            if(moyai_tex.onload) moyai_tex.onload();
+            // get pixel data and store
+            var canvas=document.createElement("canvas");
+            var ctx=canvas.getContext("2d");
+            ctx.drawImage(this,0,0);
+            var imgdata=ctx.getImageData(0,0,w,h);
+            image.data=imgdata.data;
         };
         image.src = url;
         this.gltex=texture;
@@ -919,6 +925,10 @@ class Prop2D extends Prop {
         mat4.translate(this.mvMat,this.mvMat,vec3.fromValues(this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],0)); //TODO:noalloc           
         mat4.rotate(this.mvMat,this.mvMat,this.rot,vec3.fromValues(0,0,1));//TODO: noalloc
         mat4.scale(this.mvMat,this.mvMat,vec3.fromValues(this.scl[0],this.scl[1],1));  //TODO: noalloc
+    }
+    clearGeom() {
+        this.geom=null;
+        this.need_uv_update=this.need_color_update=true;
     }
     updateGeom() {
         if(!this.deck)return;

@@ -466,6 +466,7 @@ class TileDeck {
     getUperCell() { return this.cell_width / this.moyai_tex.image.width; }
     getVperCell() { return this.cell_height / this.moyai_tex.image.height; }    
     getPixelsFromIndex(ind) {
+        if(isNaN(ind))console.warn("getPixelsFromIndex:invalid arg:",ind);
 	    var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
 	    var start_y = this.cell_height * Math.floor( Math.floor(ind) / Math.floor(this.tile_width ) );
         var out=[];
