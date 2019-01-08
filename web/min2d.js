@@ -93,26 +93,27 @@ if(1) {
 }
 
 // custom mesh test
-if(0) {
-    var mat = createMeshBasicMaterial( { map: g_base_deck.moyai_tex.three_tex,
-                                         depthTest:false,
-                                         transparent:true,
-                                         vertexColors: THREE.VertexColors,
-                                         blending: THREE.NormalBlending } );
-    var geom = new THREE.Geometry();
-    geom.vertices.push(new THREE.Vector3(0,0,0));
-    geom.vertices.push(new THREE.Vector3(2,0,0));
-    geom.vertices.push(new THREE.Vector3(0,2,0));
-    geom.faces.push(new THREE.Face3(0,1,2));
-    geom.faces[0].vertexColors = [ Color.fromValues(1,1,1,1).toTHREEColor(), Color.fromValues(1,1,0,1).toTHREEColor(), Color.fromValues(0,1,1,1).toTHREEColor() ];
-    geom.faceVertexUvs[0].push([new THREE.Vector2(0,0), new THREE.Vector2(0.1,0), new THREE.Vector2(0,0.1)]);
-    
-    var mesh = new THREE.Mesh(geom,mat);
+if(1) {
+    var geom = new FaceGeometry();
+    geom.setPosition(0, 0,0,0);
+    geom.setPosition(1, 2,0,0);
+    geom.setPosition(2, 0,2,0);
+    geom.setFaceInds(0, 0,1,2);
+    geom.setColor(0, Color.fromValues(1,1,1,1));
+    geom.setColor(1, Color.fromValues(1,1,0,1));
+    geom.setColor(2, Color.fromValues(0,1,1,1));
+    geom.setUV(0, 0,0);
+    geom.setUV(1, 0.1,0);
+    geom.setUV(2, 0,0.1);
+
     var p_custom = new Prop2D();
-    p_custom.setLoc(200,-100);
-    p_custom.setMesh(mesh);
-    g_main_layer.insertProp(p_custom);
-    
+    var mat = new DefaultColorShaderMaterial();
+    p_custom.setMaterial(mat);
+    p_custom.setTexture(g_base_atlas);
+    p_custom.setLoc(200,-130);
+    p_custom.setRot(0.3);
+    p_custom.setScl(200);
+    g_main_layer.insertProp(p_custom);    
 }
 ////////////////////
 
