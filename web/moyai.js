@@ -245,7 +245,7 @@ Moyai.render2D = function(layer) {
                 this.draw(chp.geom, chp.mvMat, this.viewProjMat, chp.material, chp.deck.moyai_tex, chp.color, chp.use_additive_blend);
             }
         }
-        if(prop.geom) {
+        if(prop.geom && prop.deck) {
             this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, prop.deck.moyai_tex, prop.color,prop.use_additive_blend);
         }            
         if(prop.prim_drawer) {
@@ -834,6 +834,7 @@ class Prop2D extends Prop {
     }
     setVisible(flg) { this.visible=flg; }
     setDeck(dk) { this.deck = dk; }
+    setGeom(g) {this.geom=g;}    
     setMaterial(mat) { this.material=mat;}
     setIndex(ind) { this.index = ind; this.need_uv_update = true; }
     setScl(x,y) {
