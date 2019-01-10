@@ -457,7 +457,7 @@ class Prim {
         this.geom=null;
         this.material=null;
         this.mesh=null;
-        this.material = new PrimColorShaderMaterial();
+        this.material = getPrimColorShaderMaterial();
     }
     updateModelViewMatrix(locv3,sclv3) {
         if(!this.mvMat) this.mvMat=mat4.create();
@@ -832,7 +832,7 @@ class Prop2D extends Prop {
         this.need_uv_update=true;
         this.xflip=false;
         this.yflip=false;
-        this.material= new DefaultColorShaderMaterial();
+        this.material= getDefaultColorShaderMaterial();
         this.remote_vel=null;
         this.draw_offset=vec2.create();
         this.geom=null;
@@ -1487,7 +1487,7 @@ class TextBox extends Prop2D {
         this.scl = vec2.fromValues(1,1);
         this.str = null;
         this.geom=null;
-        this.material=new DefaultColorShaderMaterial();
+        this.material=getDefaultColorShaderMaterial();
         this.need_geometry_update=false;
         this.dimension=2;
         this.last_string_length=0;
@@ -1751,6 +1751,13 @@ class DefaultColorShaderMaterial extends ShaderMaterial {
         };
     }
 };
+var g_moyai_default_color_shader_material;
+function getDefaultColorShaderMaterial() {
+    if(!g_moyai_default_color_shader_material) {
+        g_moyai_default_color_shader_material=new DefaultColorShaderMaterial();
+    }
+    return g_moyai_default_color_shader_material;
+}
 class PrimColorShaderMaterial extends ShaderMaterial {
     constructor() {
         super();        
@@ -1768,7 +1775,13 @@ class PrimColorShaderMaterial extends ShaderMaterial {
         };                
     }
 };
-
+var g_moyai_prim_color_shader_material;
+function getPrimColorShaderMaterial() {
+    if(!g_moyai_prim_color_shader_material) {
+        g_moyai_prim_color_shader_material=new PrimColorShaderMaterial();
+    }
+    return g_moyai_prim_color_shader_material;
+}
     
 
 
@@ -2171,3 +2184,4 @@ class Prop3D extends Prop {
 
 
 
+////////////////////
