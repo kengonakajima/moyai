@@ -219,9 +219,9 @@ Moyai.render2D = function(layer) {
         if(!prop.visible)continue;
         if(prop.to_clean)continue;        
         prop.updateModelViewMatrix();
-        prop.updateGeom();
+        if(!prop.use_custom_geometry) prop.updateGeom();
         if(prop.geom) prop.geom.bless();                    
-        
+
         var prop_z = layer.priority * g_moyai_z_per_layer + prop.priority * g_moyai_z_per_prop;
         if(prop.grids) {
             for(var gi=0;gi<prop.grids.length;gi++) {
@@ -245,6 +245,11 @@ Moyai.render2D = function(layer) {
                 this.draw(chp.geom, chp.mvMat, this.viewProjMat, chp.material, chp.deck.moyai_tex, chp.color, chp.use_additive_blend);
             }
         }
+            if(prop.debug) {
+                console.log("debug_moyai_prop:",prop.geom,prop.deck);
+            }        
+        
+        
         if(prop.geom && prop.deck) {
             this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, prop.deck.moyai_tex, prop.color,prop.use_additive_blend);
         }            
@@ -608,7 +613,7 @@ class Geometry {
         this.indn=indn;
         this.positions=new Float32Array(vn*3);
         this.colors=new Float32Array(vn*4);        
-        this.inds=new Uint16Array(indn*2);
+        this.inds=new Uint16Array(indn);
         //TODO: normalbuffer
         this.boundbox=null;
     }
