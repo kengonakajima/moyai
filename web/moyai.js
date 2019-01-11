@@ -839,9 +839,9 @@ class Prop2D extends Prop {
     }
     setVisible(flg) { this.visible=flg; }
     setDeck(dk) { this.deck = dk; }
-    setGeom(g) {this.geom=g;}    
+    setGeom(g) {this.geom=g; this.use_custom_geometry=true; }    
     setMaterial(mat) { this.material=mat;}
-    setIndex(ind) { this.index = ind; this.need_uv_update = true; }
+    setIndex(ind) { this.index = ind; this.need_uv_update = true; this.use_custom_geometry=false; }
     setScl(x,y) {
         if(y===undefined) {
             if(isNaN(x) ) vec2.copy(this.scl,x); else vec2.set(this.scl,x,x);
