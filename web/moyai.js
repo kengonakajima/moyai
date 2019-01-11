@@ -629,6 +629,10 @@ class Geometry {
         if(this.uvBuffer) gl.deleteBuffer(this.uvBuffer);
         //TODO: normalbuffer
     }
+    setPositionArray(ary) { this.positions=ary; this.need_positions_update=true;}
+    setColorArray(ary,stride) {this.colors=ary; this.stride_colors=stride; this.need_colors_update=true;}
+    setUVArray(ary) { this.uvs=ary; this.need_uvs_update=true; }
+    setIndexArray(ary) { this.inds=ary; this.need_inds_update=true; }
     setPosition3v(vind,p) {
         this.positions[vind*3]=p[0];
         this.positions[vind*3+1]=p[1];
