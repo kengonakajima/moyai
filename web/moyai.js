@@ -283,7 +283,7 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend)
     // color
     if(geom.colorBuffer) {
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.colorBuffer);
-        gl.vertexAttribPointer( material.attribLocations.color, 4, gl.FLOAT, false,0,0 );
+        gl.vertexAttribPointer( material.attribLocations.color, geom.stride_colors, gl.FLOAT, false,0,0 );
         gl.enableVertexAttribArray(material.attribLocations.color);
     }
     // ind
@@ -608,10 +608,15 @@ class Prop {
 
 class Geometry {
     constructor(vn,indn) {
+        if(vn===undefined || indn===undefined) return; // size is specified later
+        this.ensureSize(vn,indn);
+    }
+    ensureSize(vn,indn) {
         this.vn=vn;
         this.indn=indn;
         this.positions=new Float32Array(vn*3);
-        this.colors=new Float32Array(vn*4);        
+        this.colors=new Float32Array(vn*4);
+        this.stride_colors=4;
         this.inds=new Uint16Array(indn);
         //TODO: normalbuffer
         this.boundbox=null;
@@ -652,24 +657,28 @@ class Geometry {
     bless() {
         var gl=Moyai.gl;
         if(this.need_positions_update) {
+            if(!this.positions) console.warn("bless: need positions!");
             if(!this.positionBuffer) this.positionBuffer=gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER,this.positions, gl.STATIC_DRAW);
             this.need_positions_update=false;
         }
         if(this.need_colors_update) {
+            if(!this.colors) console.warn("bless: need colors!");
             if(!this.colorBuffer)this.colorBuffer=gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER,this.colorBuffer);
             gl.bufferData(gl.ARRAY_BUFFER,this.colors, gl.STATIC_DRAW);
             this.need_colors_update=false;
         }
         if(this.need_inds_update) {
+            if(!this.inds) console.warn("bless: need inds!");
             if(!this.indexBuffer)this.indexBuffer=gl.createBuffer();
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.inds, gl.STATIC_DRAW);
             this.need_inds_update=false;
         }
         if(this.need_uvs_update) {
+            if(!this.uvs) console.warn("bless: need uvs!");
             if(!this.uvBuffer)this.uvBuffer=gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, this.uvBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, this.uvs, gl.STATIC_DRAW);
