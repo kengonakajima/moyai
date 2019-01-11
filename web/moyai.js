@@ -423,7 +423,6 @@ class Texture {
 
         var moyai_tex=this;
         image.onload = function() {
-            console.log("Texture.setmoyaiimage.onload");
             setImageToGLTexture(gl,texture,image);
             //        console.log("loadpng: onload:",texture,image,moyai_tex);
             if(moyai_tex.onload) moyai_tex.onload();
