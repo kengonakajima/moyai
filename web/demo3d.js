@@ -332,7 +332,7 @@ if(1) {
                 }
             }
         }
-        geom.setBoundingBox(-sz,sz*2,-sz,sz*2,-sz,sz*2);
+        geom.setCullSize(vec3.fromValues(sz/2,sz/2,sz/2),sz/2*1.41);
         return geom;
     }
 
