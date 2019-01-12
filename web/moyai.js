@@ -177,7 +177,7 @@ Moyai.render3D = function(layer) {
         
         prop.updateModelViewMatrix();
         prop.geom.bless();
-//        console.log("BBB:",prop.geom,prop.material,prop.moyai_tex);
+        if(prop.debug) console.log("debug:",prop);
         this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend);
         this.draw_count_3d++;
 
