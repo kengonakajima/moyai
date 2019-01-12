@@ -149,35 +149,17 @@ Moyai.render3D = function(layer) {
         if(prop.enable_frustum_culling ){
             if(prop.geom.cull_center) {
                 vec3.add(this.workv0, prop.loc, prop.geom.cull_center);
+//                console.log("cc:", this.workv0, prop.loc, prop.geom.cull_center);
+                var outcnt=0;
                 for(var j=0;j<6;j++) {
                     var dot=vec3.dot(this.workv0,this.planes[j]);
                     var distance=dot+this.planes[j][3];
-                    if(distance<-prop.geom.cull_diameter) { to_skip=true; break;}
-                }
-            } else if(prop.geom.boundbox) {
-                vec3.set(this.cull_min_loc,
-                         prop.loc[0]+prop.geom.boundbox[0],
-                         prop.loc[1]+prop.geom.boundbox[2],
-                         prop.loc[2]+prop.geom.boundbox[4]);
-                vec3.set(this.cull_max_loc,
-                         prop.loc[0]+prop.geom.boundbox[1],
-                         prop.loc[1]+prop.geom.boundbox[3],
-                         prop.loc[2]+prop.geom.boundbox[5]);
-                var min_outcnt=0;
-                for(var i=0;i<6;i++) {
-                    var dot=vec3.dot(this.cull_min_loc,this.planes[i]);
-                    var distance=dot+this.planes[i][3];
-                    if(distance<0) min_outcnt++;
-                }
-                var max_outcnt=0;
-                for(var i=0;i<6;i++) {
-                    var dot=vec3.dot(this.cull_max_loc,this.planes[i]);
-                    var distance=dot+this.planes[i][3];
-                    if(distance<0) max_outcnt++;
-                }
-                if(min_outcnt==6 && max_outcnt==6)to_skip=true;
-//                console.log("c:",min_outcnt,max_outcnt,prop.id);
 
+                    if(distance<-prop.geom.cull_diameter*prop.geom.cull_diameter) {
+                        to_skip=true;
+                        break;
+                    }
+                }
             } else {
                 for(var j=0;j<6;j++) {
                     var dot=vec3.dot(prop.loc,this.planes[j]);
@@ -622,6 +604,8 @@ class Prop {
 
 class Geometry {
     constructor(vn,indn) {
+        this.cull_center=vec3.create();
+        this.cull_diameter=1;        
         if(vn===undefined || indn===undefined) return; // size is specified later
         this.ensureSize(vn,indn);
     }
@@ -633,7 +617,6 @@ class Geometry {
         this.stride_colors=4;
         this.inds=new Uint16Array(indn);
         //TODO: normalbuffer
-        this.boundbox=null;
     }
     dispose() {
         var gl=Moyai.gl;
@@ -717,7 +700,7 @@ class Geometry {
         }
     }
     setCullSize(center,diameter) {
-        this.cull_center=center;
+        vec3.copy(this.cull_center,center);
         this.cull_diameter=diameter;
     }
 }
