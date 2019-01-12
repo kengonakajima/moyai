@@ -177,7 +177,10 @@ Moyai.render3D = function(layer) {
         
         prop.updateModelViewMatrix();
         prop.geom.bless();
-        if(prop.debug) console.log("debug:",prop);
+        if(prop.debug) {
+            console.log("debug:",prop, this.viewProjMat);
+        }
+        
         this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend);
         this.draw_count_3d++;
 
@@ -617,16 +620,28 @@ class Geometry {
     }
     dispose() {
         var gl=Moyai.gl;
-        if(this.positionBuffer) gl.deleteBuffer(this.positionBuffer);
-        if(this.colorBuffer) gl.deleteBuffer(this.colorBuffer);
-        if(this.indexBuffer) gl.deleteBuffer(this.indexBuffer);
-        if(this.uvBuffer) gl.deleteBuffer(this.uvBuffer);
+        if(this.positionBuffer) {
+            gl.deleteBuffer(this.positionBuffer);
+            this.positionBuffer=null;
+        }
+        if(this.colorBuffer) {
+            gl.deleteBuffer(this.colorBuffer);
+            this.colorBuffer=null;
+        }
+        if(this.indexBuffer) {
+            gl.deleteBuffer(this.indexBuffer);
+            this.indexBuffer=null;
+        }
+        if(this.uvBuffer) {
+            gl.deleteBuffer(this.uvBuffer);
+            this.uvBuffer=null;
+        }
         //TODO: normalbuffer
     }
     setPositionArray(ary,vn) { this.positions=ary; this.need_positions_update=true; this.vn=vn; }
     setColorArray(ary,stride) {this.colors=ary; this.stride_colors=stride; this.need_colors_update=true;}
     setUVArray(ary) { this.uvs=ary; this.need_uvs_update=true; }
-    setIndexArray(ary) { this.inds=ary; this.need_inds_update=true; }
+    setIndexArray(ary) { this.inds=ary; this.indn=ary.length; this.need_inds_update=true; }
     setPosition3v(vind,p) {
         this.positions[vind*3]=p[0];
         this.positions[vind*3+1]=p[1];
@@ -655,6 +670,7 @@ class Geometry {
     bless() {
         var gl=Moyai.gl;
         if(this.need_positions_update) {
+            if(this.debug) console.log("bless position:", this );
             if(!this.positions) console.warn("bless: need positions!");
             if(!this.positionBuffer) this.positionBuffer=gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
