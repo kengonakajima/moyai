@@ -48,6 +48,7 @@ SCRW*=pixelRatio;
 SCRH*=pixelRatio;
 console.log("Screen size:",SCRW,SCRH);
 Moyai.init(SCRW,SCRH);
+Moyai.clearColor=Color.fromValues(0.5,0.5,0.5,1);
 var screen = document.getElementById("screen");
 var canvas=Moyai.getDomElement();
 canvas.style="width:100%; height:100%";
@@ -365,9 +366,22 @@ if(1) {
     // 2GB超えるとだめ。 300万tri (1triあたり700byte食うのでメモリがボトルネックになった。)
 }
 
+tangentMax = function(theta,absmax) {
+    var cs=Math.cos(theta);
+    var sn=Math.sin(theta);
+    if(cs==0) {
+        if(theta>0)return absmax; else return -absmax;
+    } else {
+        return Math.tan(theta);
+    }
+}
+
+
 var last_anim_at = new Date().getTime();
 var last_print_at = new Date().getTime();
 var fps=0;
+var started_at=now();
+var pitch=0, yaw=0;
 function animate() {
     if(!g_stop_render) requestAnimationFrame(animate);
 
@@ -383,12 +397,38 @@ function animate() {
     }
 
     if(g_main_camera) {
-        var t=now();
-        g_main_camera.loc[0]=Math.cos(t/3)*8;
-        g_main_camera.loc[1]+=0.01;        
-        g_main_camera.loc[2]=Math.sin(t/3)*8;
+        var t=now()-started_at;
+        if(0) {
+            g_main_camera.loc[0]=Math.cos(t/3)*8;
+            g_main_camera.loc[1]+=0.01;        
+            g_main_camera.loc[2]=Math.sin(t/3)*8;
+        }
+        if(g_keyboard) {
+            if(g_keyboard.getKey('a')) g_main_camera.loc[0]-=0.3;
+            if(g_keyboard.getKey('d')) g_main_camera.loc[0]+=0.3;
+            if(g_keyboard.getKey('w')) g_main_camera.loc[2]-=0.3;
+            if(g_keyboard.getKey('s')) g_main_camera.loc[2]+=0.3;
+            if(g_keyboard.getKey('k')) g_main_camera.loc[1]+=0.3;
+            if(g_keyboard.getKey('l')) g_main_camera.loc[1]-=0.3;                        
+        }
+        
+        if(g_mouse) {
+            var dx=g_mouse.movement[0];
+            var dy=g_mouse.movement[1];
+            g_mouse.clearMovement();
+            yaw-=dy/250;
+            if(yaw>Math.PI/2) yaw=Math.PI/2;
+            if(yaw<-Math.PI/2) yaw=-Math.PI/2;
+            pitch+=dx/250;
 
+            var nose=vec3.fromValues( g_main_camera.loc[0] + 1.0 * Math.cos(pitch),
+                                      g_main_camera.loc[1] + tangentMax(yaw),
+                                      g_main_camera.loc[2] + 1.0 * Math.sin(this.pitch) );
+
+            g_main_camera.setLookAt(nose, vec3.fromValues(0,1,0));            
+        }
     }
+    
     
     last_anim_at = now_time;    
     Moyai.poll(dt);
