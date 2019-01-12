@@ -177,7 +177,7 @@ Moyai.render3D = function(layer) {
         
         prop.updateModelViewMatrix();
         prop.geom.bless();
-//        console.log("BBB:",prop.geom,prop.mvMat, this.viewProjMat, prop.material, prop.color );
+//        console.log("BBB:",prop.geom,prop.material,prop.moyai_tex);
         this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend);
         this.draw_count_3d++;
 
@@ -265,7 +265,7 @@ Moyai.render2D = function(layer) {
     }
 }
 Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend) {
-//    console.log("draw:",geom,mvMat,projMat,material,gltex,colv,additive_blend);
+//    if(geom.stride_colors==3)  console.warn("draw:",geom,mvMat,projMat,material,moyai_tex,colv,additive_blend);
     var gl=Moyai.gl;
     gl.useProgram(material.glprog);
     gl.uniformMatrix4fv( material.uniformLocations.projectionMatrix, false, projMat ); // TODO: put it out        
@@ -623,7 +623,7 @@ class Geometry {
         if(this.uvBuffer) gl.deleteBuffer(this.uvBuffer);
         //TODO: normalbuffer
     }
-    setPositionArray(ary) { this.positions=ary; this.need_positions_update=true;}
+    setPositionArray(ary,vn) { this.positions=ary; this.need_positions_update=true; this.vn=vn; }
     setColorArray(ary,stride) {this.colors=ary; this.stride_colors=stride; this.need_colors_update=true;}
     setUVArray(ary) { this.uvs=ary; this.need_uvs_update=true; }
     setIndexArray(ary) { this.inds=ary; this.need_inds_update=true; }
