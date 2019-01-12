@@ -128,7 +128,7 @@ Moyai.render3D = function(layer) {
     var cam=layer.camera;
     if(!cam.camMat) cam.camMat=mat4.create();
     mat4.lookAt(cam.camMat,cam.loc,cam.look_at,cam.look_up);
-    mat4.perspective(layer.projMat, layer.camera.fov, layer.camera.aspect, layer.camera.near, layer.camera.far );
+    mat4.perspective(layer.projMat, cam.fov, cam.aspect, cam.near, cam.far );
     if(!this.viewProjMat)this.viewProjMat=mat4.create();
     mat4.multiply(this.viewProjMat,layer.projMat,cam.camMat);
     if(!this.planes) { this.planes=[]; for(var i=0;i<6;i++) this.planes[i]=new Float32Array(4); }
@@ -267,14 +267,8 @@ Moyai.render2D = function(layer) {
 Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend) {
 //    console.log("draw:",geom,mvMat,projMat,material,gltex,colv,additive_blend);
     var gl=Moyai.gl;
-    if(this.last_material!=material) {
-//        console.log("new material:",material);
-        this.last_material=material;
-        gl.useProgram(material.glprog);
-        gl.uniformMatrix4fv( material.uniformLocations.projectionMatrix, false, projMat ); // TODO: put it out        
-    } else {
-//        console.log("skip uniformMatrix4fv");
-    }
+    gl.useProgram(material.glprog);
+    gl.uniformMatrix4fv( material.uniformLocations.projectionMatrix, false, projMat ); // TODO: put it out        
 
     // pos
     gl.bindBuffer(gl.ARRAY_BUFFER, geom.positionBuffer);
