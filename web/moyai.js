@@ -293,13 +293,11 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend)
         gl.vertexAttribPointer(material.attribLocations.uv, 2, gl.FLOAT, false,0,0 );
         gl.enableVertexAttribArray(material.attribLocations.uv );        
         gl.activeTexture(gl.TEXTURE0);
-        if(this.last_gltex!=gltex) {
-            gl.bindTexture(gl.TEXTURE_2D, gltex);
-            gl.uniform1i(material.uniformLocations.texture,0);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, moyai_tex.min_filter);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, moyai_tex.mag_filter);                            
-            this.last_gltex=gltex;
-        }
+
+        gl.bindTexture(gl.TEXTURE_2D, gltex);
+        gl.uniform1i(material.uniformLocations.texture,0);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, moyai_tex.min_filter);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, moyai_tex.mag_filter);                            
     }
     if(colv) gl.uniform4fv(material.uniformLocations.meshcolor, colv);
 
