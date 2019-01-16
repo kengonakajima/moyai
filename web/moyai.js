@@ -24,6 +24,9 @@ class PerspectiveCamera {
 	    this.look_at=vec3.create();
 	    this.look_up=vec3.create();
         this.loc=vec3.create();
+        this.camMat=mat4.create();
+        this.projMat=mat4.create();
+        this.viewProjMat=mat4.create();    
     }
     setLoc(x,y,z) {
         if(y===undefined) vec3.copy(this.loc,x); else vec3.set(this.loc,x,y,z);
@@ -32,6 +35,14 @@ class PerspectiveCamera {
         vec3.copy(this.look_at,at);
         vec3.copy(this.look_up,up);
     }
+    updateMatrix() {
+        mat4.lookAt(this.camMat,this.loc,this.look_at,this.look_up);
+        mat4.perspective(this.projMat, this.fov, this.aspect, this.near, this.far );
+
+        mat4.multiply(this.viewProjMat,this.projMat,this.camMat);
+        if(!this.planes) { this.planes=[]; for(var i=0;i<6;i++) this.planes[i]=new Float32Array(4); }
+        extractPlanes2(this.planes,this.viewProjMat);
+    }    
 };
 
 
@@ -127,15 +138,8 @@ Moyai.cull_max_loc=vec3.create();
 Moyai.workv0=vec3.create();
 Moyai.workv1=vec3.create();
 Moyai.render3D = function(layer) {
-    if(!layer.projMat) layer.projMat=mat4.create();// TODO: to_cons
     var cam=layer.camera;
-    if(!cam.camMat) cam.camMat=mat4.create();
-    mat4.lookAt(cam.camMat,cam.loc,cam.look_at,cam.look_up);
-    mat4.perspective(layer.projMat, cam.fov, cam.aspect, cam.near, cam.far );
-    if(!this.viewProjMat)this.viewProjMat=mat4.create();
-    mat4.multiply(this.viewProjMat,layer.projMat,cam.camMat);
-    if(!this.planes) { this.planes=[]; for(var i=0;i<6;i++) this.planes[i]=new Float32Array(4); }
-    extractPlanes2(this.planes,this.viewProjMat);
+    cam.updateMatrix();
     
 //    mat4.perspective(layer.projMat, 0.5, 1.3333, 1,1000);
 //    mat4.ortho(layer.projMat, -3, 3, -5, 5, -1, 1000);
@@ -152,8 +156,8 @@ Moyai.render3D = function(layer) {
 //                console.log("cc:", this.workv0, prop.loc, prop.geom.cull_center);
                 var outcnt=0;
                 for(var j=0;j<6;j++) {
-                    var dot=vec3.dot(this.workv0,this.planes[j]);
-                    var distance=dot+this.planes[j][3];
+                    var dot=vec3.dot(this.workv0,cam.planes[j]);
+                    var distance=dot+cam.planes[j][3];
 
                     if(distance<-prop.geom.cull_diameter*prop.geom.cull_diameter) {
                         to_skip=true;
@@ -162,8 +166,8 @@ Moyai.render3D = function(layer) {
                 }
             } else {
                 for(var j=0;j<6;j++) {
-                    var dot=vec3.dot(prop.loc,this.planes[j]);
-                    var distance=dot+this.planes[j][3];
+                    var dot=vec3.dot(prop.loc,cam.planes[j]);
+                    var distance=dot+cam.planes[j][3];
                     if(distance<0) { to_skip=true; break;}
                 }
             }
@@ -177,10 +181,10 @@ Moyai.render3D = function(layer) {
         prop.updateModelViewMatrix();
         prop.geom.bless();
         if(prop.debug) {
-            console.log("debug:",prop, this.viewProjMat);
+            console.log("debug:",prop, cam.viewProjMat);
         }
         
-        this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend);
+        this.draw(prop.geom, prop.mvMat, cam.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend);
         this.draw_count_3d++;
 
         if(prop.children.length>0) {
@@ -189,7 +193,7 @@ Moyai.render3D = function(layer) {
                 if(!chp.visible)continue;
                 chp.updateModelViewMatrix(prop.mvMat);                
                 chp.geom.bless();
-                this.draw(chp.geom, chp.mvMat, this.viewProjMat, chp.material, chp.moyai_tex, chp.color, chp.use_additive_blend);
+                this.draw(chp.geom, chp.mvMat, cam.viewProjMat, chp.material, chp.moyai_tex, chp.color, chp.use_additive_blend);
             }
         }
         
@@ -2158,10 +2162,10 @@ class Prop3D extends Prop {
         }
         if(!this.finloc) this.finloc=vec3.create();// TODO: to_cons
         vec3.set(this.finloc, this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],this.loc[2]+this.draw_offset[2]); 
-        mat4.translate(this.mvMat,this.mvMat,this.finloc); 
+        mat4.translate(this.mvMat,this.mvMat,this.finloc);
         mat4.rotate(this.mvMat,this.mvMat,this.rot[0],Moyai.x_axis);
         mat4.rotate(this.mvMat,this.mvMat,this.rot[1],Moyai.y_axis);
-        mat4.rotate(this.mvMat,this.mvMat,this.rot[2],Moyai.z_axis);
+        mat4.rotate(this.mvMat,this.mvMat,this.rot[2],Moyai.z_axis);            
         mat4.scale(this.mvMat,this.mvMat,this.scl);
     }
     setTexture(moyai_tex) {
