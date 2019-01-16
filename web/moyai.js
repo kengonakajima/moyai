@@ -200,12 +200,8 @@ Moyai.render3D = function(layer) {
     }
 }
 Moyai.render2D = function(layer) {
-    if(!this.relscl) this.relscl=vec2.fromValues(1,1);
-    if(!this.camloc) this.camloc=vec2.create();
     var cam=layer.camera;
     if(!cam)return;
-    layer.viewport.getRelativeScale(this.relscl);
-
     if(!layer.projMat) layer.projMat=mat4.create();
     mat4.ortho(layer.projMat, cam.left, cam.right, cam.bottom, cam.top, cam.near, cam.far );
     if(!cam.camMat) cam.camMat=mat4.create();
