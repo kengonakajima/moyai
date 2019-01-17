@@ -234,9 +234,10 @@ if(1) {
     p.prop3DPoll=function(dt) {
         this.setColor(1,1,1,0.5+Math.cos(this.accum_time)*0.5);
         if(this.poll_count%100==0) {
-            this.setRot(0,0.6,0);
+            this.setEulerRot(0,0.5,0);
+            console.log("rot:",this.quaternion);
         } else if(this.poll_count%100==50){
-            this.setRot(0,0,0);            
+            this.setEulerRot(0,0,0);            
         }
         return true;
     }

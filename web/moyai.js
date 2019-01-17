@@ -45,6 +45,37 @@ class PerspectiveCamera {
     }    
 };
 
+// copied from three math
+mat4.compose = function(out, position, quaternion, scale) {
+	var x = quaternion[0], y = quaternion[1], z = quaternion[2], w = quaternion[3];
+	var x2 = x + x,	y2 = y + y, z2 = z + z;
+	var xx = x * x2, xy = x * y2, xz = x * z2;
+	var yy = y * y2, yz = y * z2, zz = z * z2;
+	var wx = w * x2, wy = w * y2, wz = w * z2;
+	var sx = scale[0], sy = scale[1], sz = scale[2];
+
+	out[ 0 ] = ( 1 - ( yy + zz ) ) * sx;
+	out[ 1 ] = ( xy + wz ) * sx;
+	out[ 2 ] = ( xz - wy ) * sx;
+	out[ 3 ] = 0;
+
+	out[ 4 ] = ( xy - wz ) * sy;
+	out[ 5 ] = ( 1 - ( xx + zz ) ) * sy;
+	out[ 6 ] = ( yz + wx ) * sy;
+	out[ 7 ] = 0;
+
+	out[ 8 ] = ( xz + wy ) * sz;
+	out[ 9 ] = ( yz - wx ) * sz;
+	out[ 10 ] = ( 1 - ( xx + yy ) ) * sz;
+	out[ 11 ] = 0;
+
+	out[ 12 ] = position[0];
+	out[ 13 ] = position[1];
+	out[ 14 ] = position[2];
+	out[ 15 ] = 1;
+	return this;
+}
+
 
 ///////////////
 Moyai ={ initialized:false }
@@ -2128,7 +2159,7 @@ class Prop3D extends Prop {
         super();
         this.scl = vec3.fromValues(1,1,1);
         this.loc = vec3.fromValues(0,0,0);
-        this.rot = vec3.fromValues(0,0,0);
+        this.quaternion = quat.create();
         this.geom=null;
         this.material=null;
         this.color=Color.fromValues(1,1,1,1);
@@ -2141,6 +2172,9 @@ class Prop3D extends Prop {
         this.dimension=3;
         this.visible=true;
         this.enable_frustum_culling=true;
+        this.mvMat=mat4.create();
+        this.localMat=mat4.create();
+        this.finalLoc=vec3.create();
     }
     propPoll(dt) {
         if(this.prop3DPoll && this.prop3DPoll(dt)===false) {
@@ -2150,19 +2184,20 @@ class Prop3D extends Prop {
     }
     setVisible(flg) { this.visible=flg; }
     updateModelViewMatrix(parentMat) {
-        if(!this.mvMat) this.mvMat=mat4.create();//TODO: to_cons
         if(parentMat) {
             mat4.copy(this.mvMat,parentMat);
         } else {
             mat4.identity(this.mvMat);
         }
-        if(!this.finloc) this.finloc=vec3.create();// TODO: to_cons
-        vec3.set(this.finloc, this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],this.loc[2]+this.draw_offset[2]); 
-        mat4.translate(this.mvMat,this.mvMat,this.finloc);
-        mat4.rotate(this.mvMat,this.mvMat,this.rot[0],Moyai.x_axis);
-        mat4.rotate(this.mvMat,this.mvMat,this.rot[1],Moyai.y_axis);
-        mat4.rotate(this.mvMat,this.mvMat,this.rot[2],Moyai.z_axis);            
-        mat4.scale(this.mvMat,this.mvMat,this.scl);
+        vec3.set(this.finalLoc, this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],this.loc[2]+this.draw_offset[2]);        
+        mat4.compose(this.localMat,this.finalLoc,this.quaternion,this.scl);
+        mat4.multiply(this.mvMat,this.mvMat,this.localMat);
+        
+//        mat4.translate(this.mvMat,this.mvMat,this.finloc);
+//        mat4.rotate(this.mvMat,this.mvMat,this.rot[0],Moyai.x_axis);
+//        mat4.rotate(this.mvMat,this.mvMat,this.rot[1],Moyai.y_axis);
+//        mat4.rotate(this.mvMat,this.mvMat,this.rot[2],Moyai.z_axis);            
+//        mat4.scale(this.mvMat,this.mvMat,this.scl);
     }
     setTexture(moyai_tex) {
         this.moyai_tex=moyai_tex;
@@ -2179,8 +2214,8 @@ class Prop3D extends Prop {
     setLoc(x,y,z) {
         if(y===undefined) vec3.copy(this.loc,x); else vec3.set(this.loc,x,y,z);
     }
-    setRot(x,y,z) {
-        if(y===undefined) vec3.copy(this.rot,x); else vec3.set(this.rot,x,y,z); 
+    setEulerRot(x,y,z) {
+        quat.fromEuler(this.quaternion,x/Math.PI*180,y/Math.PI*180,z/Math.PI*180);
     }
     setColor(r,g,b,a) {
         if(Color.exactEqualsToValues(this.color,r,g,b,a)==false) {
