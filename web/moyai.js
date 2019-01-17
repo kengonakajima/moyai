@@ -2175,6 +2175,7 @@ class Prop3D extends Prop {
         this.mvMat=mat4.create();
         this.localMat=mat4.create();
         this.finalLoc=vec3.create();
+        this.rot=vec3.create(); // xyz-euler in radian
     }
     propPoll(dt) {
         if(this.prop3DPoll && this.prop3DPoll(dt)===false) {
@@ -2215,7 +2216,12 @@ class Prop3D extends Prop {
         if(y===undefined) vec3.copy(this.loc,x); else vec3.set(this.loc,x,y,z);
     }
     setEulerRot(x,y,z) {
-        quat.fromEuler(this.quaternion,x/Math.PI*180,y/Math.PI*180,z/Math.PI*180);
+        if(y===undefined) {
+            quat.fromEuler(this.quaternion,x[0]/Math.PI*180,x[1]/Math.PI*180,x[2]/Math.PI*180);            
+        } else {
+            quat.fromEuler(this.quaternion,x/Math.PI*180,y/Math.PI*180,z/Math.PI*180);
+        }
+        vec3.set(this.rot,x,y,z);
     }
     setColor(r,g,b,a) {
         if(Color.exactEqualsToValues(this.color,r,g,b,a)==false) {
