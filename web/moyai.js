@@ -25,8 +25,12 @@ class PerspectiveCamera {
 	    this.look_up=vec3.create();
         this.loc=vec3.create();
         this.camMat=mat4.create();
+        this.invCamMat=mat4.create();
+        this.invCamRotMat=mat4.create();
+        this.invQuat=quat.create();
         this.projMat=mat4.create();
-        this.viewProjMat=mat4.create();    
+        this.viewProjMat=mat4.create();
+        this.billboard=false;
     }
     setLoc(x,y,z) {
         if(y===undefined) vec3.copy(this.loc,x); else vec3.set(this.loc,x,y,z);
@@ -38,6 +42,10 @@ class PerspectiveCamera {
     updateMatrix() {
         mat4.lookAt(this.camMat,this.loc,this.look_at,this.look_up);
         mat4.perspective(this.projMat, this.fov, this.aspect, this.near, this.far );
+        // get quaternion for billboard
+        mat4.invert(this.invCamMat,this.camMat);
+        mat3.fromMat4(this.invCamRotMat,this.invCamMat);
+        quat.fromMat3(this.invQuat,this.invCamRotMat);
 
         mat4.multiply(this.viewProjMat,this.projMat,this.camMat);
         if(!this.planes) { this.planes=[]; for(var i=0;i<6;i++) this.planes[i]=new Float32Array(4); }
@@ -74,6 +82,50 @@ mat4.compose = function(out, position, quaternion, scale) {
 	out[ 14 ] = position[2];
 	out[ 15 ] = 1;
 	return this;
+}
+// from three
+mat4.decompose = function(outpos,outquat,outscl, inmat) {
+    var v=vec3.create();//TODO avoid allocation
+    vec3.set(v, inmat[ 0 ], inmat[ 1 ], inmat[ 2 ] );
+	var sx = vec3.length(v);
+    vec3.set(v, inmat[ 4 ], inmat[ 5 ], inmat[ 6 ] );
+	var sy = vec3.length(v);
+    vec3.set(v, inmat[ 8 ], inmat[ 9 ], inmat[ 10 ] );
+	var sz = vec3.length(v);
+
+	// if determine is negative, we need to invert one scale
+	var det = mat4.determinant(inmat);
+	if ( det < 0 ) sx = - sx;
+
+	outpos[0] = inmat[ 12 ];
+	outpos[1] = inmat[ 13 ];
+	outpos[2] = inmat[ 14 ];
+
+	// scale the rotation part
+    var m=mat3.create(); // TODO avoid allocation
+    mat3.fromMat4(m,inmat);
+    
+	var invSX = 1 / sx;
+	var invSY = 1 / sy;
+	var invSZ = 1 / sz;
+
+	m[ 0 ] *= invSX;
+	m[ 1 ] *= invSX;
+	m[ 2 ] *= invSX;
+
+	m[ 3 ] *= invSY;
+	m[ 4 ] *= invSY;
+	m[ 5 ] *= invSY;
+
+	m[ 6 ] *= invSZ;
+	m[ 7 ] *= invSZ;
+	m[ 8 ] *= invSZ;
+
+	quat.fromMat3(outquat,m);
+
+	outscl[0] = sx;
+	outscl[1] = sy;
+	outscl[2] = sz;
 }
 
 
@@ -209,12 +261,11 @@ Moyai.render3D = function(layer) {
             continue;
         }
         
+        if(prop.billboard) quat.copy(prop.quaternion,cam.invQuat);
+        
         prop.updateModelViewMatrix();
         prop.geom.bless();
-        if(prop.debug) {
-            console.log("debug:",prop, cam.viewProjMat);
-        }
-        
+
         this.draw(prop.geom, prop.mvMat, cam.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend);
         this.draw_count_3d++;
 
@@ -2190,7 +2241,7 @@ class Prop3D extends Prop {
         } else {
             mat4.identity(this.mvMat);
         }
-        vec3.set(this.finalLoc, this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],this.loc[2]+this.draw_offset[2]);        
+        vec3.set(this.finalLoc, this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],this.loc[2]+this.draw_offset[2]);
         mat4.compose(this.localMat,this.finalLoc,this.quaternion,this.scl);
         mat4.multiply(this.mvMat,this.mvMat,this.localMat);
         
