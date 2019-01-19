@@ -465,10 +465,13 @@ class Texture {
             if(moyai_tex.onload) moyai_tex.onload();
             // get pixel data and store
             var canvas=document.createElement("canvas");
+            canvas.width=w;
+            canvas.height=h;
             var ctx=canvas.getContext("2d");
             ctx.drawImage(this,0,0);
             var imgdata=ctx.getImageData(0,0,w,h);
             image.data=imgdata.data;
+            image.canvas=canvas;
         };
         image.src = url;
         this.gltex=texture;
