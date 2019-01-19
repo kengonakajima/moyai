@@ -751,7 +751,10 @@ class Geometry {
         this.colors[vind*4+1]=v4[1];
         this.colors[vind*4+2]=v4[2];
         this.colors[vind*4+3]=v4[3];        
-    }    
+    }
+    fillColor4v(ofs,col,n) {
+        for(var i=ofs;i<ofs+n;i++) this.setColor4v(i,col);
+    }
     bless() {
         var gl=Moyai.gl;
         if(this.need_positions_update) {
