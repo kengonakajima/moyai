@@ -330,11 +330,17 @@ class Layer {
 /////////////////////
 var g_moyai_image_id_gen = 1;
 class MoyaiImage {
-    constructor() {
+    constructor(from_browser_image) {
         this.id = g_moyai_image_id_gen++;
-        this.data = null;
         this.png=null;
-        this.onload=null;
+        this.onload=null;        
+        if(from_browser_image) {
+            this.data=from_browser_image.data;
+            this.width=from_browser_image.width;
+            this.height=from_browser_image.height;
+        } else {
+            this.data = null;            
+        }
     }
     loadPNG(url,w,h) {
         if(w===undefined||h===undefined) console.warn("loadPNG require width and height currently");    

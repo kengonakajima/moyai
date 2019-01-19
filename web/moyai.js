@@ -472,10 +472,12 @@ class Texture {
             var imgdata=ctx.getImageData(0,0,w,h);
             image.data=imgdata.data;
             image.canvas=canvas;
+            moyai_tex.moyai_image=new MoyaiImage(image);            
         };
         image.src = url;
         this.gltex=texture;
         this.image=image;
+
     }    
     getSize(out) {
         return vec2.set(out,this.image.width,this.image.height);
