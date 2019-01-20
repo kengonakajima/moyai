@@ -496,12 +496,16 @@ class Texture {
         image.height=moimg.height;
 
         var gl=Moyai.gl;
+        var texture;
         if(this.gltex) {
-            gl.deleteTexture(this.gltex);
-            this.gltex=null;
+            if(image.width!=moimg.width || image.height!=moimg.height) {
+                console.error("setMoyaiImage: updating image, but size differs! ",moimg.width,moimg.height,image.width,image.height);
+                return;
+            }
+            texture=this.gltex;
+        } else {
+            texture= createGLTextureFromPixels(gl,moimg.width, moimg.height, moimg.data);            
         }
-        var texture= createGLTextureFromPixels(gl,moimg.width, moimg.height, moimg.data);
-
         var moyai_tex=this;
         image.onload = function() {
             setImageToGLTexture(gl,texture,image);

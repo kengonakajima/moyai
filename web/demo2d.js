@@ -125,7 +125,6 @@ if(1) {
     statprimp.setColor(0,0,1,1);
     statprimp.addLine(vec2.fromValues(-1,1),vec2.fromValues(1,-1),Color.fromValues(1,1,1,1), 3);
     statprimp.setLoc(100,-100);
-    statprimp.debug = true;
     g_main_layer.insertProp(statprimp);
 }
 
