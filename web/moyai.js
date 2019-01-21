@@ -230,11 +230,11 @@ Moyai.render3D = function(layer) {
         var prop = layer.props[pi];
         if(!prop.visible)continue;
         if(prop.to_clean)continue;
-        if(!prop.geom)continue;
+
         // view frustum culling http://www.sousakuba.com/Programming/gs_dot_plane_distance.html
         var to_skip=false;
         if(prop.enable_frustum_culling ){
-            if(prop.geom.cull_center) {
+            if(prop.geom && prop.geom.cull_center) {
                 vec3.add(this.workv0, prop.loc, prop.geom.cull_center);
 //                console.log("cc:", this.workv0, prop.loc, prop.geom.cull_center);
                 var outcnt=0;
@@ -278,11 +278,8 @@ Moyai.render3D = function(layer) {
                 chp.geom.bless();
                 this.draw(chp.geom, chp.mvMat, cam.viewProjMat, chp.material, chp.moyai_tex, chp.color, chp.use_additive_blend, chp.cull_face);
                 this.draw_count_3d++;
-                console.log("dddd",chp.geom,chp.mvMat,prop.mvMat);
-                
             }
         }
-        
     }
 }
 Moyai.render2D = function(layer) {
@@ -397,7 +394,7 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,
     } else {
         gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
     }
-    if(cull_face===null) {
+    if(!cull_face) {
         gl.disable(gl.CULL_FACE);
     } else {
         gl.enable(gl.CULL_FACE);
@@ -2250,7 +2247,7 @@ class Prop3D extends Prop {
         this.localMat=mat4.create();
         this.finalLoc=vec3.create();
         this.rot=vec3.create(); // xyz-euler in radian
-        this.cull_face=Moyai.gl.BACK;
+        this.cull_face=Moyai.gl.BACK;        
     }
     propPoll(dt) {
         if(this.prop3DPoll && this.prop3DPoll(dt)===false) {
