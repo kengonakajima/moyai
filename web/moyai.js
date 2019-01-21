@@ -188,8 +188,6 @@ Moyai.render = function() {
     gl.depthFunc(gl.LEQUAL);// 近くにある物体は、遠くにある物体を覆い隠す
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.BACK);
 
     this.draw_count_3d=this.skip_count_3d=0;
     for(var li=0;li<this.layers.length;li++) {
@@ -198,7 +196,9 @@ Moyai.render = function() {
             this.render3D(layer);
         }
     }
-    
+
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);    
     // then 2d            
     for(var li=0;li<this.layers.length;li++) {
         var layer = this.layers[li];
@@ -264,10 +264,11 @@ Moyai.render3D = function(layer) {
         if(prop.billboard) quat.copy(prop.quaternion,cam.invQuat);
         
         prop.updateModelViewMatrix();
-        prop.geom.bless();
-
-        this.draw(prop.geom, prop.mvMat, cam.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend);
-        this.draw_count_3d++;
+        if(prop.geom) {
+            prop.geom.bless();
+            this.draw(prop.geom, prop.mvMat, cam.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend,prop.cull_face);
+            this.draw_count_3d++;
+        }
 
         if(prop.children.length>0) {
             for(var i=0;i<prop.children.length;i++) {
@@ -275,7 +276,10 @@ Moyai.render3D = function(layer) {
                 if(!chp.visible)continue;
                 chp.updateModelViewMatrix(prop.mvMat);                
                 chp.geom.bless();
-                this.draw(chp.geom, chp.mvMat, cam.viewProjMat, chp.material, chp.moyai_tex, chp.color, chp.use_additive_blend);
+                this.draw(chp.geom, chp.mvMat, cam.viewProjMat, chp.material, chp.moyai_tex, chp.color, chp.use_additive_blend, chp.cull_face);
+                this.draw_count_3d++;
+                console.log("dddd",chp.geom,chp.mvMat,prop.mvMat);
+                
             }
         }
         
@@ -348,7 +352,7 @@ Moyai.render2D = function(layer) {
         }            
     }
 }
-Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend) {
+Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,cull_face) {
 //    if(geom.stride_colors==3)  console.warn("draw:",geom,mvMat,projMat,material,moyai_tex,colv,additive_blend);
     var gl=Moyai.gl;
     gl.useProgram(material.glprog);
@@ -393,6 +397,13 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend)
     } else {
         gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
     }
+    if(cull_face===null) {
+        gl.disable(gl.CULL_FACE);
+    } else {
+        gl.enable(gl.CULL_FACE);
+        gl.cullFace(cull_face);
+    }
+    
     if(geom.primtype==gl.TRIANGLES) {
         gl.drawElements(gl.TRIANGLES, indn, gl.UNSIGNED_SHORT, 0);        
     } else if(geom.primtype==gl.LINES) {
@@ -2239,6 +2250,7 @@ class Prop3D extends Prop {
         this.localMat=mat4.create();
         this.finalLoc=vec3.create();
         this.rot=vec3.create(); // xyz-euler in radian
+        this.cull_face=Moyai.gl.BACK;
     }
     propPoll(dt) {
         if(this.prop3DPoll && this.prop3DPoll(dt)===false) {
@@ -2256,12 +2268,6 @@ class Prop3D extends Prop {
         vec3.set(this.finalLoc, this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],this.loc[2]+this.draw_offset[2]);
         mat4.compose(this.localMat,this.finalLoc,this.quaternion,this.scl);
         mat4.multiply(this.mvMat,this.mvMat,this.localMat);
-        
-//        mat4.translate(this.mvMat,this.mvMat,this.finloc);
-//        mat4.rotate(this.mvMat,this.mvMat,this.rot[0],Moyai.x_axis);
-//        mat4.rotate(this.mvMat,this.mvMat,this.rot[1],Moyai.y_axis);
-//        mat4.rotate(this.mvMat,this.mvMat,this.rot[2],Moyai.z_axis);            
-//        mat4.scale(this.mvMat,this.mvMat,this.scl);
     }
     setTexture(moyai_tex) {
         this.moyai_tex=moyai_tex;
@@ -2277,6 +2283,15 @@ class Prop3D extends Prop {
     }
     setLoc(x,y,z) {
         if(y===undefined) vec3.copy(this.loc,x); else vec3.set(this.loc,x,y,z);
+    }
+    addLoc(x,y,z) {
+        if(y===undefined) {
+            vec3.add(this.loc,this.loc,x);
+        } else {
+            this.loc[0]+=x;
+            this.loc[1]+=y;
+            this.loc[2]+=z;            
+        }
     }
     setEulerRot(x,y,z) {
         if(y===undefined) {

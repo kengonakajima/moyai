@@ -457,17 +457,19 @@ class TileDeck {
         outary[2]=u1;
         outary[3]=v1;
     }
-    getUVOfPixel(outary,ind,x_in_cell,y_in_cell) {
+    getUVOfPixel(ind,x_in_cell,y_in_cell) {
         ind=Math.floor(ind);
         var x0=Math.floor(ind%this.tile_width)*this.cell_width;
         var y0=Math.floor(ind/this.tile_width)*this.cell_height;
         var fin_x=x0+x_in_cell, fin_y=y0+y_in_cell;
         var u_per_pixel = 1.0/this.moyai_tex.image.width;
         var v_per_pixel = 1.0/this.moyai_tex.image.height;
+        var outary=new Float32Array(4);
         outary[0]=fin_x*u_per_pixel;
         outary[1]=fin_y*v_per_pixel;
         outary[2]=(fin_x+1)*u_per_pixel;
         outary[3]=(fin_y+1)*v_per_pixel;
+        return outary;
     }
     getUperCell() { return this.cell_width / this.moyai_tex.image.width; }
     getVperCell() { return this.cell_height / this.moyai_tex.image.height; }    
