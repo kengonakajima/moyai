@@ -392,7 +392,7 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,
     if(additive_blend) {
         gl.blendFunc(gl.ONE,gl.ONE);
     } else {
-        gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+        gl.blendFuncSeparate(gl.ONE,gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     }
     if(!cull_face) {
         gl.disable(gl.CULL_FACE);
@@ -1752,7 +1752,7 @@ var fragment_uv_color_glsl =
     "void main()\n"+
     "{\n"+
     "  highp vec4 tc = texture2D(texture,vUv);\n"+
-    "  if(tc.a<0.01) discard; else gl_FragColor = vec4( tc.r * meshcolor.r * vColor.r, tc.g * meshcolor.g * vColor.g, tc.b * meshcolor.b * vColor.b, tc.a * meshcolor.a * vColor.a );\n"+
+    "  if(tc.a<0.01) discard; else gl_FragColor = vec4( tc.r * meshcolor.r * vColor.r, tc.g * meshcolor.g * vColor.g, tc.b * meshcolor.b * vColor.b, tc.a * meshcolor.a * vColor.a);\n"+
     "}\n";
 
 var fragment_replacer_glsl = 

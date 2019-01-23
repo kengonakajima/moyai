@@ -5981,11 +5981,19 @@ function fromEuler(out, x, y, z) {
   var cy = Math.cos(y);
   var sz = Math.sin(z);
   var cz = Math.cos(z);
-
+/*
+  // zyx
   out[0] = sx * cy * cz - cx * sy * sz;
   out[1] = cx * sy * cz + sx * cy * sz;
   out[2] = cx * cy * sz - sx * sy * cz;
   out[3] = cx * cy * cz + sx * sy * sz;
+*/
+
+    // xyz, from three
+    out[0] = sx * cy * cz + cx * sy * sz;
+    out[1] = cx * sy * cz - sx * cy * sz;
+    out[2] = cx * cy * sz + sx * sy * cz;
+    out[3] = cx * cy * cz - sx * sy * sz;
 
   return out;
 }
