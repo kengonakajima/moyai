@@ -1,10 +1,17 @@
 ﻿#define GL_SILENCE_DEPRECATION
 
-
 #include <stdio.h>
+
 #include <assert.h>
 #include <math.h>
 #include <locale.h>
+
+#include <iostream>
+
+#ifdef WIN32
+#include <direct.h>
+#endif
+
 
 #ifndef WIN32
 #include <strings.h>
@@ -18,6 +25,8 @@
 #endif
 
 #include "client.h"
+
+static const int SCRW = 1280, SCRH = 768;
 
 #ifdef USE_GENVID
 #include "genvid.h"
@@ -68,9 +77,17 @@ void GenvidSubscriptionCommandCallback(const GenvidCommandResult * result, void 
 }
 void GenvidSubscriptionCallback(const GenvidEventSummary * summary, void * /*userData*/)
 {
-	print("subscriptioncallback");
-	
+	if (summary->id == sEvent_cheer)
+	{
+		// Handle cube cheering.
+		const char * cubeName = summary->results[0].key.fields[0];
+		print("subscriptioncallback %s", cubeName);
+	}
 }
+
+#define GVSCRW 1280
+#define GVSCRH 768
+unsigned char g_pixels[GVSCRW * GVSCRH * 3];//RGB
 
 
 HRESULT initGenvid() {
@@ -99,6 +116,9 @@ HRESULT initGenvid() {
 		if (GENVID_FAILED(gs))
 			return E_FAIL;
 	}
+	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.useopenglconvention", 1);
+	if (GENVID_FAILED(gs))
+		return E_FAIL;
 
 #if GENVID_USE_DXGISWAPCHAIN
 	// Specify auto-capture video source.
@@ -150,7 +170,57 @@ HRESULT initGenvid() {
 	if (GENVID_FAILED(gs))
 		return E_FAIL;
 
+//	assert(description.Format == DXGI_FORMAT_R8G8B8A8_UNORM);
+	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.pixel_format", GenvidPixelFormat_R8G8B8);
+	assert(gs == GenvidStatus_Success);
+	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.width", GVSCRW); // description.Width);
+	assert(gs == GenvidStatus_Success);
+	gs = Genvid_SetParameterInt(sStream_Video.c_str(), "video.height", GVSCRH); // description.Height);
+	assert(gs == GenvidStatus_Success);
+
 	return S_OK;
+
+}
+
+void updateGenvid() {	
+		static bool init = false;
+		static GLuint pbo_id;
+		size_t pbo_size = SCRW * SCRH * 3;
+		if (!init) {
+			init = true;
+			print("initialize pbo");
+			glGenBuffers(1, &pbo_id);
+			glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo_id);
+			glBufferData(GL_PIXEL_PACK_BUFFER, pbo_size, 0, GL_DYNAMIC_READ);
+			glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+		}
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo_id);
+		glReadPixels(0, 0, SCRW, SCRH, GL_RGB, GL_UNSIGNED_BYTE, 0);
+		GLubyte *ptr = (GLubyte*)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, pbo_size, GL_MAP_READ_BIT);
+#if 1
+		if (ptr) memcpy(g_pixels, ptr, pbo_size); else print("updategenvid ptr null error:%d %s",
+			glGetError(), gluErrorString(glGetError()));
+#else
+		for (int y = 0; y < SCRH; y++) {
+			memcpy(g_pixels + y * SCRW * 3, ptr + (SCRH-1 - y) * SCRW * 3, 1280*3);
+		}
+#endif
+
+		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	
+//	int k = irange(0,256);
+//	for (int i = 0; i < sizeof(g_pixels)/8; i++) g_pixels[i] = (int)(i+k) & 0xff;
+
+//	print("zzzz%f %d", now(),k);
+
+	GenvidStatus gs;
+	GenvidTimecode tc = Genvid_GetCurrentTimecode();
+	gs = Genvid_SubmitVideoData(tc, sStream_Video.c_str(), g_pixels, sizeof(g_pixels));
+
+	if(gs != GenvidStatus_Success) print( "submit error:%s",Genvid_StatusToString(gs) );
 
 }
 
@@ -247,7 +317,9 @@ enum {
 
 // config
 
-static const int SCRW=960, SCRH=544;
+
+
+
 
 class Char : public Prop2D {
 public:
@@ -348,11 +420,12 @@ Explosion *createExplosion(float x, float y, float startScl ){
     assert(g_main_layer);
     Explosion *e = new Explosion(x,y,startScl);
     g_main_layer->insertProp(e);
-    if(range(0,100)>50) {
-        g_explosion_sound->play( range(0.1,1) );
-    } else {
-        g_mem_sound->play();
-    }
+
+    //    if(range(0,100)>50) {
+    //        g_explosion_sound->play( range(0.1,1) );
+    //    } else {
+    //        g_mem_sound->play();
+    //    }
     
     return e;
 }
@@ -367,7 +440,9 @@ public:
     
     Bullet( float x, float y, float aimx, float aimy, int level, bool isBig ) : Enemy( x,y, ATLAS_BULLET0, level ) {
         float vel = 30 + (10*level);
-        if(vel>250)vel=250;
+
+        if(vel>550)vel=550;
+
         aim(aimx, aimy, vel );
 
         setDeck( g_base_deck );
@@ -377,7 +452,7 @@ public:
     }
 
     virtual bool enemyPoll(double dt){
-        if( Vec2(0,0).len( loc) > 300 ) {
+        if( Vec2(0,0).len( loc) > 1000 ) {
             // 一定距離飛んだら消える
             createExplosion(loc.x,loc.y,3);
             return false;
@@ -467,15 +542,6 @@ public:
 
         float c = absolute(::sin( accum_time * 2 ) );
         setColor( Color(c,c,c,1));
-        if(cnt%200==0){
-            Bullet * b = createBullet(loc.x, loc.y, loc.x + range(-100,100), loc.y + range(-100,100), 1, false );
-            //
-            Vec2 aimv = b->v.rot(M_PI/8).normalize(100);
-            createBullet( loc.x, loc.y, loc.x + aimv.x, loc.y + aimv.y, 4, false );
-        }
-        if(g_camera){
-            g_camera->setLoc(loc.x, loc.y);
-        }
         return true;
     }
 };
@@ -537,6 +603,9 @@ void checkJoystick() {
     }
 }
 void gameUpdate(void) {
+#ifdef USE_GENVID
+	Genvid_CheckForEvents();
+#endif
     glfwPollEvents();            
     checkJoystick();
     g_pad->readKeyboard(g_keyboard);
@@ -549,7 +618,6 @@ void gameUpdate(void) {
     double t = now();
     double dt = t - last_t;
     last_t = t;
-    double loop_start_at = t;
     
     frame_counter ++;
     total_frame ++;    
@@ -564,7 +632,12 @@ void gameUpdate(void) {
 
     g_linep->loc.y = sin( now() ) * 200;
 
-
+#ifdef USE_GENVID
+	char datastr[100];
+	snprintf(datastr, sizeof(datastr), "{\"x\":%f,\"y\":%f}", g_linep->loc.x, g_linep->loc.y);
+	GenvidStatus gs=Genvid_SubmitGameData(-1, sStream_GameData.c_str(), datastr, strlen(datastr));
+	if (GENVID_FAILED(gs)) print("submitgamedata fail: %s", Genvid_StatusToString(gs));
+#endif
     
     // update dynamic image
     if( (total_frame % 500 ) == 0 ) {
@@ -580,6 +653,15 @@ void gameUpdate(void) {
     }
     if( ( total_frame % 70 ) == 0 ) {
         Blocks::create();
+    }
+
+    if( g_keyboard->getKey('U') ) {
+        for(int i=0;i<150;i++) {
+   
+			Bullet *b=         createBullet(0, 0,0 + range(-100,100), 0 + range(-100,100), irange(1,8), irange(0,2) );
+			if (range(0, 1) < 0.9) b->setVisible(false);
+        }
+        
     }
 
     if( g_keyboard->getKey('C') ) {
@@ -683,7 +765,8 @@ void gameUpdate(void) {
         frame_counter = 0;
         last_print_at = t;
     }
-    
+ 
+#if 0
     double loop_end_at = now();
     double loop_time = loop_end_at - loop_start_at;
     double ideal_frame_time = 1.0f / 60.0f;
@@ -692,6 +775,7 @@ void gameUpdate(void) {
         int to_sleep_msec = (int) (to_sleep_sec*1000);
         if( to_sleep_msec > 0 ) sleepMilliSec(to_sleep_msec);
     }
+#endif
 }
 
 // direct rendering using callback function
@@ -778,7 +862,7 @@ void optest(){
 void comptestbig() {
     size_t sz=1024*1024;
     char *buf = (char*)MALLOC(sz);
-    for(int i=0;i<sz;i++) buf[i] = irange(0,8);
+    for(unsigned int i=0;i<sz;i++) buf[i] = irange(0,8);
     char *zipped = (char*)MALLOC(sz*2);
     char *inflated = (char*)MALLOC(sz);
     double t0 = now();
@@ -804,7 +888,7 @@ void comptest() {
 
 
 void winclose_callback( GLFWwindow *w ){
-#ifdef USE_GENVID
+#ifdef USE_GENVID    
 	termGenvid();
 #endif    
     exit(0);
@@ -841,7 +925,25 @@ void onRemoteMouseButtonCallback( Client *cl, int btn, int act, int modshift, in
 void onRemoteMouseCursorCallback( Client *cl, int x, int y ) {
     g_mouse->updateCursorPosition(x,y);
 }
+
+void printExeFileName()
+{
+#ifdef USE_GENVID
+	TCHAR path[MAX_PATH + 1] = L"";
+	DWORD len = GetCurrentDirectory(MAX_PATH, path);
+
+	//OutputDebugString(path);
+	std::wcerr << L"path: " << path << '\n';
+#endif
+}
+
+
 void gameInit() {
+#ifdef USE_GENVID    
+	_chdir("C:\\Genvid\\1.19.0\\samples\\tutorial\\app\\moyai\\demowin\\Debug");
+#endif
+	printExeFileName();
+
     print("PacketProp2DSnapshot size:%d",sizeof(PacketProp2DSnapshot));
     qstest();
     optest();
@@ -893,7 +995,8 @@ void gameInit() {
     glfwMakeContextCurrent(g_window);    
     glfwSetWindowCloseCallback( g_window, winclose_callback );
     //    glfwSetInputMode( g_window, GLFW_STICKY_KEYS, GL_TRUE );
-    glfwSwapInterval(0); // set 1 to use vsync. Use 0 for fast screen capturing and headless
+    glfwSwapInterval(1); // set 1 to use vsync. Use 0 for fast screen capturing and headless
+
 #ifdef WIN32
 	glewInit();
 #endif
@@ -1232,18 +1335,54 @@ void gameInit() {
 
 
 void gameRender() {
+    if(!g_camera)return;
+    
 #if 1
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
     g_last_render_cnt = g_moyai_client->render();
-#else    
-    glViewport(0,0,SCRW/2*2,SCRH/2*2);
+#endif
+#if 0
+    // 2 screens
+    glViewport(0,0,SCRW/2*RETINA,SCRH*RETINA);
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
+    g_viewport->setScale2D(SCRW/2,SCRH);    
     g_last_render_cnt = g_moyai_client->render(true,false);
-    glViewport(SCRW/2*2,0,SCRW/2*2,SCRH/2*2);
-    g_last_render_cnt = g_moyai_client->render(false,false);
-    glViewport(SCRW/2*2,SCRH/2*2,SCRW/2*2,SCRH/2*2);
-    g_last_render_cnt = g_moyai_client->render(false,false);
-    glViewport(0,SCRH/2*2,SCRW/2*2,SCRH/2*2);
+    
+    glViewport(SCRW/2*RETINA,0,SCRW/2*RETINA,SCRH*RETINA);
+    g_viewport->setScale2D(SCRW/2,SCRH);
+    g_camera->setLoc(g_pc->loc.x+400, g_pc->loc.y-400);
+            
     g_last_render_cnt = g_moyai_client->render(false,true);
-#endif    
+    
+#endif
+    
+#if 0
+    // 4 screens
+    float orig_sclx=g_viewport->scl.x, orig_scly=g_viewport->scl.y;
+    glViewport(0,0,SCRW/2*RETINA,SCRH/2*RETINA);
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);
+    g_last_render_cnt = g_moyai_client->render(true,false);
+    
+    glViewport(SCRW/2*RETINA,0,SCRW/2*RETINA,SCRH/2*RETINA);
+    g_viewport->setScale2D(orig_sclx*2,orig_scly*2);
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);        
+    g_last_render_cnt = g_moyai_client->render(false,false);
+
+	glViewport(SCRW/2*RETINA,SCRH/2*RETINA,SCRW/2*RETINA,SCRH/2*RETINA);
+    g_viewport->setScale2D(orig_sclx/2,orig_scly/2);
+    g_camera->setLoc(g_pc->loc.x, g_pc->loc.y);    
+    g_last_render_cnt = g_moyai_client->render(false,false);
+
+	glViewport(0,SCRH/2*RETINA,SCRW/2*RETINA,SCRH/2*RETINA);
+	g_viewport->setScale2D(orig_sclx,orig_scly);
+    g_camera->setLoc(g_pc->loc.x+400, g_pc->loc.y-400);            
+    g_last_render_cnt = g_moyai_client->render(false,true);
+#endif
+
+#ifdef USE_GENVID
+	updateGenvid();
+#endif
+
 }
 void gameFinish() {
     glfwTerminate();
@@ -1273,7 +1412,13 @@ int main(int argc, char **argv )
         gameRender();
     }
     gameFinish();
+
+#ifdef USE_GENVID
+	termGenvid();
+#endif
+
     print("program finished");
     return 0;
 }
 #endif
+

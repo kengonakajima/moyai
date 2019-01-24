@@ -1,15 +1,58 @@
-var g_moyai_client;
 
 var g_stop_render=false;
 function stopRender() {
     g_stop_render = true;
 }
 
-var SCRW=800, SCRH=600;
+var g_fullscreen=false;
 
-g_moyai_client = new MoyaiClient(SCRW,SCRH,window.devicePixelRatio);
+function makeFullscreen() {
+    var doc = window.document;
+    var docEl = doc.documentElement;
+    var requestFullScreen = docEl.requestFullscreen || docEl.requestFullScreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+    g_fullscreen=true;
+    var scr=document.getElementById("screen");
+    window.onresize=onResizeWindow;
+    requestFullScreen.call(scr);
+}
+
+function onResizeWindow() {
+    var w=window.innerWidth, h=window.innerHeight;
+    updateWindowSize(w,h);
+}
+
+function updateWindowSize(w,h){
+    window.onresize=null;
+    g_viewport3d.screen_width=w;
+    g_viewport3d.screen_height=h;
+    g_viewport2d.screen_width=w;
+    g_viewport2d.screen_height=h;
+    Moyai.width=w;
+    Moyai.height=h;
+
+//    Moyai.canvas.width=w;
+//    g_moyai_client.renderer.domElement.height=h;
+//    g_moyai_client.renderer.domElement.style="width:"+w+"px;height:"+w+"px;";
+//    g_moyai_client.renderer.setSize(w,h);
+}
+
+
+
+
+
+
+////////////
+var SCRW=window.innerWidth, SCRH=window.innerHeight;
+var pixelRatio = window.devicePixelRatio || 1;
+SCRW*=pixelRatio;
+SCRH*=pixelRatio;
+console.log("Screen size:",SCRW,SCRH);
+Moyai.init(SCRW,SCRH);
+Moyai.clearColor=Color.fromValues(0.5,0.5,0.5,1);
 var screen = document.getElementById("screen");
-screen.appendChild( g_moyai_client.renderer.domElement );
+var canvas=Moyai.getDomElement();
+canvas.style="width:100%; height:100%";
+screen.appendChild(canvas);
 
 
 var g_keyboard = new Keyboard();
@@ -27,32 +70,23 @@ g_viewport2d.setSize(SCRW,SCRH);
 g_viewport2d.setScale2D(SCRW,SCRH);
 
 var g_main_layer = new Layer();
-g_moyai_client.insertLayer(g_main_layer);
+Moyai.insertLayer(g_main_layer);
 g_main_layer.setViewport(g_viewport3d);
 
-var g_main_camera = new Camera();
-g_main_camera.setLoc(-4,4,20);
-g_main_camera.setLookAt(new Vec3(0,0,0), new Vec3(0,1,0));
+var g_main_camera = new PerspectiveCamera( 45*Math.PI/180 , SCRW / SCRH , 0.1, 1000);
+g_main_camera.setLoc(3,5,0);
+g_main_camera.setLookAt(vec3.fromValues(0,0,0), vec3.fromValues(0,1,0));
 g_main_layer.setCamera(g_main_camera);
 
-var g_hud_layer = new Layer();
-g_hud_layer.setViewport(g_viewport2d);
-g_moyai_client.insertLayer(g_hud_layer);
-g_hud_camera = new Camera();
-g_hud_camera.setLoc(0,0);
-g_hud_layer.setCamera( g_hud_camera );
-
 var g_base_tex = new Texture();
-g_base_tex.loadPNGMem( base_png );
+g_base_tex.loadPNG( "./assets/base.png", 256,256 );
+//g_base_tex.min_filter=Moyai.gl.NEAREST_MIPMAP_NEAREST;  almost no perfomance improvement
 var g_base_deck = new TileDeck();
 g_base_deck.setTexture(g_base_tex);
 g_base_deck.setSize(32,32,8,8);
     
 
 
-
-var g_material = createMeshBasicMaterial();
-g_material.ambient =Color(0.3,0.3,0.3,1);
 
 
 
@@ -75,307 +109,337 @@ g_material.ambient =Color(0.3,0.3,0.3,1);
 //  -d,-d,d
 
 
-var geom = new THREE.Geometry();
-function pushCubeVertFace(geom,d) {
-    geom.vertices.push(new THREE.Vector3(-d,-d,d));// A red
-    geom.vertices.push(new THREE.Vector3(d,-d,d) ); // B blue
-    geom.vertices.push(new THREE.Vector3(d,-d,-d) ); // C yellow
-    geom.vertices.push(new THREE.Vector3(-d,-d,-d) ); // D green
-    geom.vertices.push(new THREE.Vector3(-d,d,d) ); // E white
-    geom.vertices.push(new THREE.Vector3(d,d,d) ); // F purple
-    geom.vertices.push(new THREE.Vector3(d,d,-d) ); // G white
-    geom.vertices.push(new THREE.Vector3(-d,d,-d) ); // H white    
-    geom.verticesNeedUpdate=true;
+var sz=0.5;
+var a=vec3.fromValues(-sz,-sz,sz);
+var b=vec3.fromValues(sz,-sz,sz);
+var c=vec3.fromValues(sz,-sz,-sz);
+var d=vec3.fromValues(-sz,-sz,-sz);
+var e=vec3.fromValues(-sz,sz,sz);
+var f=vec3.fromValues(sz,sz,sz);
+var g=vec3.fromValues(sz,sz,-sz);
+var h=vec3.fromValues(-sz,sz,-sz);
 
-    // bottom
-    geom.faces.push(new THREE.Face3(0,3,1)); // ADB
-    geom.faces.push(new THREE.Face3(3,2,1)); // DCB
-    // top
-    geom.faces.push(new THREE.Face3(7,5,6)); // HFG
-    geom.faces.push(new THREE.Face3(4,5,7)); // EFH
-    // left
-    geom.faces.push(new THREE.Face3(4,3,0)); // EDA
-    geom.faces.push(new THREE.Face3(4,7,3)); // EHD
-    // right
-    geom.faces.push(new THREE.Face3(5,1,2)); // FBC
-    geom.faces.push(new THREE.Face3(5,2,6)); // FCG
-    // front
-    geom.faces.push(new THREE.Face3(4,0,1)); // EAB
-    geom.faces.push(new THREE.Face3(4,1,5)); // EBF
-    // rear
-    geom.faces.push(new THREE.Face3(7,2,3)); // HCD
-    geom.faces.push(new THREE.Face3(7,6,2)); // HGC
-
-    for(var i=0;i<12;i++){
-        for(var j=0;j<3;j++){
-            var c=new Color(1,1,1,1);
-            geom.faces[i].vertexColors[j] = c.toTHREEColor();
-        }
-    }
-}
-pushCubeVertFace(geom,0.2);
-
-// 色
-for(var i=0;i<12;i++){
-    for(var j=0;j<3;j++){
-        if(i>6 ) {
-            c=new Color(1,0,0,1);
-            geom.faces[i].vertexColors[j] = c.toTHREEColor();
-        }
-    }
-}
-var mat = createMeshBasicMaterial( { transparent:true,
-                                     vertexColors: THREE.VertexColors,
-                                     blending: THREE.NormalBlending } );
-
-var g_colmesh = new THREE.Mesh(geom,mat);
-
-var geom2 = new THREE.Geometry();
-pushCubeVertFace(geom2,0.2);
-var kk=1.0/256.0*8;
-var uv_lt=new THREE.Vector2(0,0);
-var uv_rt=new THREE.Vector2(kk,0);
-var uv_lb=new THREE.Vector2(0,kk);
-var uv_rb=new THREE.Vector2(kk,kk);
-
-
-geom2.faceVertexUvs[0].push([uv_lb,uv_lt,uv_rb]);// ADB
-geom2.faceVertexUvs[0].push([uv_lt,uv_rt,uv_rb]);// DCB
-geom2.faceVertexUvs[0].push([uv_lt,uv_rb,uv_rt]);// HFG
-geom2.faceVertexUvs[0].push([uv_lb,uv_rb,uv_lt]);// EFH
-geom2.faces[2].vertexColors[0]= new Color(1,0,0,1).toTHREEColor();
-//geom2.faces[2].vertexColors[1]= new Color(1,0,0,1).toTHREEColor();
-//geom2.faces[2].vertexColors[2]= new Color(1,0,0,1).toTHREEColor();
-
-console.log("geom2:",geom2);
-
-geom2.uvsNeedUpdate = true;
-
-
-var g_mat2 = createMeshBasicMaterial( {
-    map: g_base_deck.moyai_tex.three_tex,
-    depthTest: true,
-    transparent:true,
-    vertexColors: THREE.VertexColors,
-    blending: THREE.NormalBlending
-});
-
-var g_texcolmesh = new THREE.Mesh(geom2,g_mat2);
-
-var g_prop_col = new Prop3D();
-g_prop_col.setMesh(g_colmesh);
-g_prop_col.setScl(1,1,1);
-g_prop_col.setLoc(0,0,0);
-g_main_layer.insertProp(g_prop_col);
-
-var g_prop_texcol = new Prop3D();
-g_prop_texcol.setMesh(g_texcolmesh);
-g_prop_texcol.setScl(1,1,1);
-g_prop_texcol.setLoc(1.4,2,2);
-g_main_layer.insertProp(g_prop_texcol);
-
-var AIR=0;
-var STONE=1;
-function createFieldBlockData(sz) {
-    // ex. 16*16*16=4096.
-    // x>z>y 
-    // 0: (0,0,0) 1:(1,0,0)... 16:(0,0,1), ... 256:(0,1,0) 4095:(15,15,15)
-    var out=new Array(sz*sz*sz);
-    for(var y=0;y<sz;y++) {
-        for(var z=0;z<sz;z++) {
-            for(var x=0;x<sz;x++) {
-                var ind=x+z*sz+y*sz*sz;
-                var val=AIR;
-                if(y<8)val=STONE; // 2048vox per chunk
-                // if(y==0)val=STONE; // 256vox per chunk
-                //if(x==z && z==y)val=STONE; // 16vox per chunk
-                out[ind]=val;  
-            }
-        }
-    }
-    return out;
-}
-
-// precalc
-var white=new Color(1,1,1,1).toTHREEColor();
-var dark=new Color(0.8,0.8,0.8,1).toTHREEColor();
-
-var uvrect=g_base_deck.getUVFromIndex(3,0,0,0);
-var uv_lt=new THREE.Vector2(uvrect[0],uvrect[1]);
-var uv_rt=new THREE.Vector2(uvrect[2],uvrect[1]);
-var uv_lb=new THREE.Vector2(uvrect[0],uvrect[3]);
-var uv_rb=new THREE.Vector2(uvrect[2],uvrect[3]);
-var uv_adb=[uv_lb,uv_lt,uv_rb];// ADB
-var uv_dcb=[uv_lt,uv_rt,uv_rb];// DCB
-var uv_hfg=[uv_lt,uv_rb,uv_rt];// HFG
-var uv_efh=[uv_lb,uv_rb,uv_lt];// EFH
-var uv_eda=[uv_rt,uv_lb,uv_rb];//EDA
-var uv_ehd=[uv_rt,uv_lt,uv_lb];//EHD
-var uv_fbc=[uv_lt,uv_lb,uv_rb];//FBC
-var uv_fcg=[uv_lt,uv_rb,uv_rt];//FCG
-var uv_eab=[uv_lt,uv_lb,uv_rb];//EAB
-var uv_ebf=[uv_lt,uv_rb,uv_rt];//EBF
-var uv_hcd=[uv_lt,uv_rb,uv_lb];// HCD
-var uv_hgc=[uv_lt,uv_rt,uv_rb];//HGC
-
-
-function createChunkGeometry(blks,sz) {
-    var l=1.0;
-    var geom = new THREE.Geometry();
-    var vn=0, fn=0;
-    for(var y=0;y<sz;y++) {
-        for(var z=0;z<sz;z++) {
-            for(var x=0;x<sz;x++) {
-                var block_ind=x+z*sz+y*sz*sz;
-                var blk = blks[block_ind];
-                if(blk==AIR)continue;
-                geom.vertices.push(new THREE.Vector3(x,y,z+l));// A red
-                geom.vertices.push(new THREE.Vector3(x+l,y,z+l) ); // B blue
-                geom.vertices.push(new THREE.Vector3(x+l,y,z) ); // C yellow
-                geom.vertices.push(new THREE.Vector3(x,y,z) ); // D green
-                geom.vertices.push(new THREE.Vector3(x,y+l,z+l) ); // E white
-                geom.vertices.push(new THREE.Vector3(x+l,y+l,z+l) ); // F purple
-                geom.vertices.push(new THREE.Vector3(x+l,y+l,z) ); // G white
-                geom.vertices.push(new THREE.Vector3(x,y+l,z) ); // H white
-
-
-                // faces
-                // bottom
-                geom.faces.push(new THREE.Face3(vn+0,vn+3,vn+1)); // ADB
-                geom.faces.push(new THREE.Face3(vn+3,vn+2,vn+1)); // DCB
-                // top
-                geom.faces.push(new THREE.Face3(vn+7,vn+5,vn+6)); // HFG
-                geom.faces.push(new THREE.Face3(vn+4,vn+5,vn+7)); // EFH
-                // left
-                geom.faces.push(new THREE.Face3(vn+4,vn+3,vn+0)); // EDA
-                geom.faces.push(new THREE.Face3(vn+4,vn+7,vn+3)); // EHD
-                // right
-                geom.faces.push(new THREE.Face3(vn+5,vn+1,vn+2)); // FBC
-                geom.faces.push(new THREE.Face3(vn+5,vn+2,vn+6)); // FCG
-                // front
-                geom.faces.push(new THREE.Face3(vn+4,vn+0,vn+1)); // EAB
-                geom.faces.push(new THREE.Face3(vn+4,vn+1,vn+5)); // EBF
-                // rear
-                geom.faces.push(new THREE.Face3(vn+7,vn+2,vn+3)); // HCD
-                geom.faces.push(new THREE.Face3(vn+7,vn+6,vn+2)); // HGC
-
-                // colors
-                var cols=[ dark,dark,dark,  dark,dark,dark, white,white,white, white,white,white, // ADB DCB  HFG EFH
-                           white,dark,dark, white,white,dark, white,dark,dark, white,dark,white, // EDA EHD  FBC  FCG
-                           white,dark,dark, white,dark,white, white,dark,dark, white,white,dark // EAB EBF  HCD HGC
-                         ];
-                for(var i=fn;i<fn+12;i++){
-                    for(var j=0;j<3;j++){
-                        geom.faces[i].vertexColors[j] = cols[j+(i-fn)*3];
-                        
-                    }
-                }
-
-                // uvs
-                geom.faceVertexUvs[0].push(uv_adb);// ADB
-                geom.faceVertexUvs[0].push(uv_dcb);// DCB
-                geom.faceVertexUvs[0].push(uv_hfg);// HFG
-                geom.faceVertexUvs[0].push(uv_efh);// EFH
-                geom.faceVertexUvs[0].push(uv_eda);//EDA
-                geom.faceVertexUvs[0].push(uv_ehd);//EHD
-                geom.faceVertexUvs[0].push(uv_fbc);//FBC
-                geom.faceVertexUvs[0].push(uv_fcg);//FCG
-                geom.faceVertexUvs[0].push(uv_eab);//EAB
-                geom.faceVertexUvs[0].push(uv_ebf);//EBF
-                geom.faceVertexUvs[0].push(uv_hcd);// HCD
-                geom.faceVertexUvs[0].push(uv_hgc);//HGC
-
-                vn+=8;
-                fn+=12;
-                                
-            }
-        }
-    }
-    geom.verticesNeedUpdate=true;
-    geom.uvsNeedUpdate = true;
-    return geom;
-}
-var g_blockdata = createFieldBlockData(16);
-
-var g_chk_sz = 5;
-var g_chk_x = 0, g_chk_y = 0, g_chk_z = 0;
-
-setInterval(function() {
-    if(g_chk_y==g_chk_sz)return;
+if(1) {
+    var geom = new FaceGeometry(8,6*2);
     
-    var chgeom = createChunkGeometry(g_blockdata,16);
-    var chmesh = new THREE.Mesh(chgeom,g_mat2);
-    var chkp = new Prop3D();
-    chkp.setMesh(chmesh);
-    chkp.setScl(1,1,1);
-    chkp.setLoc(g_chk_x*16,g_chk_y*16,g_chk_z*16);
-    g_chk_x++;
-    if(g_chk_x==g_chk_sz) {
-        g_chk_x=0;
-        g_chk_z++;
-        if(g_chk_z==g_chk_sz) {
-            g_chk_y++;
-            g_chk_z=0;
-        }
-    }
-    g_main_layer.insertProp(chkp);    
-}, 20 );
+    geom.setPosition3v(0,a);// A red
+    geom.setPosition3v(1,b); // B blue
+    geom.setPosition3v(2,c); // C yellow
+    geom.setPosition3v(3,d); // D green
+    geom.setPosition3v(4,e); // E white
+    geom.setPosition3v(5,f); // F purple
+    geom.setPosition3v(6,g); // G white
+    geom.setPosition3v(7,h); // H white    
 
-// 1ボクセルあたり12triangle
-// 16voxel x 3000chk = 45fps (2.1GB)  (576000tri/frame)
-// 256voxel x 730chk = 60fps (2GB) (2242560tri/frame)
-// 4096voxel x 64chk = 60fps (1.8GB) (3145728tri/frame)
-// 4096voxel * 128chk = 45fps (2.1GB) (6.2Mtri/frame)
-// 2GB超えるとだめ。 300万tri (1triあたり700byte食うのでメモリがボトルネックになった。)
+    geom.setColor(0, 1,0,0,1);
+    geom.setColor(1, 0,0,1,1);
+    geom.setColor(2, 1,1,0,1);
+    geom.setColor(3, 0,1,0,1);
+    geom.setColor(4, 1,1,1,1);
+    geom.setColor(5, 1,0,1,1);
+    geom.setColor(6, 1,1,1,1);
+    geom.setColor(7, 1,1,1,1);                        
+    
+    // bottom
+    geom.setFaceInds(0, 0,3,1); // ADB
+    geom.setFaceInds(1, 3,2,1); // DCB
+    // top
+    geom.setFaceInds(2, 7,5,6); // HFG
+    geom.setFaceInds(3, 4,5,7); // EFH
+    // left
+    geom.setFaceInds(4, 4,3,0); // EDA
+    geom.setFaceInds(5, 4,7,3); // EHD
+    // right
+    geom.setFaceInds(6, 5,1,2); // FBC
+    geom.setFaceInds(7, 5,2,6); // FCG
+    // front
+    geom.setFaceInds(8, 4,0,1); // EAB
+    geom.setFaceInds(9, 4,1,5); // EBF
+    // rear
+    geom.setFaceInds(10, 7,2,3); // HCD
+    geom.setFaceInds(11, 7,6,2); // HGC
+
+    var p = new Prop3D();
+    p.setGeom(geom);
+    p.setMaterial(new PrimColorShaderMaterial());
+    p.setScl(1,1,1);
+    p.setLoc(0,0,0);
+    p.prop3DPoll=function(dt) {
+//        this.loc[1]+=0.02;//Math.cos(this.accum_time)*3;
+//        this.loc[1]=Math.sin(this.accum_time)*3;
+//        this.rot[0]+=0.1;
+//        this.rot[1]+=0.1;        
+        return true;
+    }
+    g_main_layer.insertProp(p);
+}
+
+function setNinja(geom) {
+    var kk=1.0/256.0*8;
+    var uv_lt=vec2.fromValues(0,0);
+    var uv_rt=vec2.fromValues(kk,0);
+    var uv_lb=vec2.fromValues(0,kk);
+    var uv_rb=vec2.fromValues(kk,kk);
+
+    geom.setPosition3v(0,a); geom.setPosition3v(1,b); geom.setPosition3v(2,c); geom.setPosition3v(3,d);//-y
+    geom.setPosition3v(4,e); geom.setPosition3v(5,f); geom.setPosition3v(6,g); geom.setPosition3v(7,h);//+y
+    geom.setPosition3v(8,a); geom.setPosition3v(9,b); geom.setPosition3v(10,f); geom.setPosition3v(11,e);//+z
+    geom.setPosition3v(12,c); geom.setPosition3v(13,d); geom.setPosition3v(14,h); geom.setPosition3v(15,g);//-z
+    geom.setPosition3v(16,b); geom.setPosition3v(17,c); geom.setPosition3v(18,g); geom.setPosition3v(19,f);//+x
+    geom.setPosition3v(20,d); geom.setPosition3v(21,a); geom.setPosition3v(22,e); geom.setPosition3v(23,h);//-x
+
+    geom.setUV2v(0,uv_lb); geom.setUV2v(1,uv_rb); geom.setUV2v(2,uv_rt); geom.setUV2v(3,uv_lt); // abcd
+    geom.setUV2v(4,uv_lb); geom.setUV2v(5,uv_rb); geom.setUV2v(6,uv_rt); geom.setUV2v(7,uv_lt); // efgh
+    geom.setUV2v(8,uv_lb); geom.setUV2v(9,uv_rb); geom.setUV2v(10,uv_rt); geom.setUV2v(11,uv_lt); // abfe
+    geom.setUV2v(12,uv_lb); geom.setUV2v(13,uv_rb); geom.setUV2v(14,uv_rt); geom.setUV2v(15,uv_lt); // cdhg
+    geom.setUV2v(16,uv_lb); geom.setUV2v(17,uv_rb); geom.setUV2v(18,uv_rt); geom.setUV2v(19,uv_lt); // bcgf
+    geom.setUV2v(20,uv_lb); geom.setUV2v(21,uv_rb); geom.setUV2v(22,uv_rt); geom.setUV2v(23,uv_lt); // daeh
+    
+    for(var i=0;i<24;i++) geom.setColor(i, 1,1,1,1);
+    
+    // bottom
+    geom.setFaceInds(0, 0,3,1); // ADB
+    geom.setFaceInds(1, 3,2,1); // DCB
+    // top
+    geom.setFaceInds(2, 7,5,6); // HFG
+    geom.setFaceInds(3, 4,5,7); // EFH
+    // +z abf, afe
+    geom.setFaceInds(4, 8,9,10); // abf
+    geom.setFaceInds(5, 8,10,11); // afe
+    // -z cdh, chg
+    geom.setFaceInds(6, 12,13,14); // cdh
+    geom.setFaceInds(7, 12,14,15); // chg
+    // front
+    geom.setFaceInds(8, 16,17,18); // EAB
+    geom.setFaceInds(9, 16,18,19); // EBF
+    // rear
+    geom.setFaceInds(10, 20,21,22); // HCD
+    geom.setFaceInds(11, 20,22,23); // HGC    
+}
+        
+if(1) {
+    var geom = new FaceGeometry(6*4,6*2);
+    setNinja(geom);
+    geom.setColor(8, 1,0,0,1);
+    geom.setColor(16, 1,1,1,0.1);    
+    
+    var p = new Prop3D();
+    p.setGeom(geom);
+    p.setMaterial(new DefaultColorShaderMaterial());
+    p.setTexture(g_base_tex);
+    p.setScl(1,1,1);
+    p.setLoc(2,0,0);
+    p.setColor(vec4.fromValues(1,1,1,1));
+    g_main_layer.insertProp(p);
+    p.prop3DPoll=function(dt) {
+        this.setColor(1,1,1,0.5+Math.cos(this.accum_time)*0.5);
+        if(this.poll_count%100==0) {
+            this.setEulerRot(0,0.5,0);
+        } else if(this.poll_count%100==50){
+            this.setEulerRot(0,0,0);            
+        }
+        return true;
+    }
+    if(1) {
+        var chp=new Prop3D();
+        chp.setGeom(geom);
+        chp.setMaterial(new DefaultColorShaderMaterial());
+        chp.setTexture(g_base_tex);
+        chp.setScl(0.3,0.3,0.3);
+        chp.setLoc(1,0,0); // relative to parent
+        chp.setColor(vec4.fromValues(1,1,1,1));
+        p.addChild(chp);
+    }
+}
+
+
+
+if(1) {
+
+    function createNinjaChunk(sz) {
+        var kk=1.0/256.0*8;
+        var uv_lt=vec2.fromValues(0,0);
+        var uv_rt=vec2.fromValues(kk,0);
+        var uv_lb=vec2.fromValues(0,kk);
+        var uv_rb=vec2.fromValues(kk,kk);
+
+        /* need sort to use alpha-transparent tile
+        if(range(0,1)<0.5) {
+            uv_lt=vec2.fromValues(kk*4,0);
+            uv_rt=vec2.fromValues(kk*5,0);
+            uv_lb=vec2.fromValues(kk*4,kk);
+            uv_rb=vec2.fromValues(kk*5,kk);                                    
+        }        */
+        var geom = new FaceGeometry(6*4*sz*sz*sz,6*2*sz*sz*sz);
+
+        var a=vec3.create();
+        var b=vec3.create();
+        var c=vec3.create();
+        var d=vec3.create();
+        var e=vec3.create();
+        var f=vec3.create();
+        var g=vec3.create();
+        var h=vec3.create();
+        
+        var cubei=0;
+        for(var y=0;y<sz;y++) {
+            for(var z=0;z<sz;z++) {
+                for(var x=0;x<sz;x++) {
+                    var vi=cubei*6*4;
+                    var fi=cubei*6*2;
+
+                    var  m=0.4;
+                    vec3.set(a,x-m,-y-m,z+m);
+                    vec3.set(b,x+m,-y-m,z+m);
+                    vec3.set(c,x+m,-y-m,z-m);
+                    vec3.set(d,x-m,-y-m,z-m);
+                    vec3.set(e,x-m,-y+m,z+m);
+                    vec3.set(f,x+m,-y+m,z+m);
+                    vec3.set(g,x+m,-y+m,z-m);
+                    vec3.set(h,x-m,-y+m,z-m);
+
+                    
+                    geom.setPosition3v(vi+0,a); geom.setPosition3v(vi+1,b); geom.setPosition3v(vi+2,c); geom.setPosition3v(vi+3,d);//-y
+                    geom.setPosition3v(vi+4,e); geom.setPosition3v(vi+5,f); geom.setPosition3v(vi+6,g); geom.setPosition3v(vi+7,h);//+y
+                    geom.setPosition3v(vi+8,a); geom.setPosition3v(vi+9,b); geom.setPosition3v(vi+10,f); geom.setPosition3v(vi+11,e);//+z
+                    geom.setPosition3v(vi+12,c); geom.setPosition3v(vi+13,d); geom.setPosition3v(vi+14,h); geom.setPosition3v(vi+15,g);//-z
+                    geom.setPosition3v(vi+16,b); geom.setPosition3v(vi+17,c); geom.setPosition3v(vi+18,g); geom.setPosition3v(vi+19,f);//+x
+                    geom.setPosition3v(vi+20,d); geom.setPosition3v(vi+21,a); geom.setPosition3v(vi+22,e); geom.setPosition3v(vi+23,h);//-x
+                    
+                    geom.setUV2v(vi+0,uv_lb); geom.setUV2v(vi+1,uv_rb); geom.setUV2v(vi+2,uv_rt); geom.setUV2v(vi+3,uv_lt); // abcd
+                    geom.setUV2v(vi+4,uv_lb); geom.setUV2v(vi+5,uv_rb); geom.setUV2v(vi+6,uv_rt); geom.setUV2v(vi+7,uv_lt); // efgh
+                    geom.setUV2v(vi+8,uv_lb); geom.setUV2v(vi+9,uv_rb); geom.setUV2v(vi+10,uv_rt); geom.setUV2v(vi+11,uv_lt); // abfe
+                    geom.setUV2v(vi+12,uv_lb); geom.setUV2v(vi+13,uv_rb); geom.setUV2v(vi+14,uv_rt); geom.setUV2v(vi+15,uv_lt); // cdhg
+                    geom.setUV2v(vi+16,uv_lb); geom.setUV2v(vi+17,uv_rb); geom.setUV2v(vi+18,uv_rt); geom.setUV2v(vi+19,uv_lt); // bcgf
+                    geom.setUV2v(vi+20,uv_lb); geom.setUV2v(vi+21,uv_rb); geom.setUV2v(vi+22,uv_rt); geom.setUV2v(vi+23,uv_lt); // daeh
+
+                    var red=range(0,1), green=range(0,1), blue=range(0,1);
+                    for(var i=0;i<24;i++) geom.setColor(vi+i, red,green,blue,1);
+
+                    // bottom
+                    geom.setFaceInds(fi+0, vi+0,vi+3,vi+1); // ADB
+                    geom.setFaceInds(fi+1, vi+3,vi+2,vi+1); // DCB
+                    // top
+                    geom.setFaceInds(fi+2, vi+7,vi+5,vi+6); // HFG
+                    geom.setFaceInds(fi+3, vi+4,vi+5,vi+7); // EFH
+                    // +z abf, afe
+                    geom.setFaceInds(fi+4, vi+8,vi+9,vi+10); // abf
+                    geom.setFaceInds(fi+5, vi+8,vi+10,vi+11); // afe
+                    // -z cdh, chg
+                    geom.setFaceInds(fi+6, vi+12,vi+13,vi+14); // cdh
+                    geom.setFaceInds(fi+7, vi+12,vi+14,vi+15); // chg
+                    // front
+                    geom.setFaceInds(fi+8, vi+16,vi+17,vi+18); // EAB
+                    geom.setFaceInds(fi+9, vi+16,vi+18,vi+19); // EBF
+                    // rear
+                    geom.setFaceInds(fi+10, vi+20,vi+21,vi+22); // HCD
+                    geom.setFaceInds(fi+11, vi+20,vi+22,vi+23); // HGC    
+
+                    cubei++;
+                }
+            }
+        }
+        geom.setCullSize(vec3.fromValues(sz/2,sz/2,sz/2),sz/2*1.41);
+        return geom;
+    }
+
+    var sz=8;// 8:512 9:729 10:1000
+    var mat=new DefaultColorShaderMaterial();
+    var chunknum=100;
+    for(var i=0;i<chunknum;i++) {
+        var chx=i%8;
+        var chy=Math.floor(i/8)%8;
+        var chz=Math.floor(i/64)%8;
+
+        var p = new Prop3D();
+        var geom = createNinjaChunk(sz);
+        p.setGeom(geom);
+        p.setMaterial(mat);
+        p.setTexture(g_base_tex);
+        p.setScl(1,1,1);
+        var gap=1;
+        p.setLoc(-33+chx*(sz+gap),-chy*(sz+gap),-33+chz*(sz+gap));
+        p.setColor(vec4.fromValues(range(0,1),range(0,1),range(0,1),1));
+        g_main_layer.insertProp(p);        
+    }
+    
+
+    // 8x8x8=512voxel *12tri=6Ktri x 1000chk = 6Mtri/frame
+    // 1ボクセルあたり12triangle
+    // 16voxel x 3000chk = 45fps (2.1GB)  (576000tri/frame)
+    // 256voxel x 730chk = 60fps (2GB) (2242560tri/frame)
+    // 4096voxel x 64chk = 60fps (1.8GB) (3145728tri/frame)
+    // 4096voxel * 128chk = 45fps (2.1GB) (6.2Mtri/frame)
+    // 2GB超えるとだめ。 300万tri (1triあたり700byte食うのでメモリがボトルネックになった。)
+}
+
+tangentMax = function(theta,absmax) {
+    var cs=Math.cos(theta);
+    var sn=Math.sin(theta);
+    if(cs==0) {
+        if(theta>0)return absmax; else return -absmax;
+    } else {
+        return Math.tan(theta);
+    }
+}
 
 
 var last_anim_at = new Date().getTime();
 var last_print_at = new Date().getTime();
 var fps=0;
+var started_at=now();
+var pitch=0, yaw=0;
 function animate() {
     if(!g_stop_render) requestAnimationFrame(animate);
-    if(!g_moyai_client)return;
 
     fps++;
 
-    //    print("propx:%f r:%f", g_prop_0->loc.x, g_prop_0->rot3d.z );
     var now_time = new Date().getTime();
     var dt = (now_time - last_anim_at) / 1000.0;
 
     if(now_time > last_print_at+1000) {
         last_print_at=now_time;
-        document.getElementById("status").innerHTML = "FPS:"+fps+ "props:" + g_main_layer.props.length;
+        document.getElementById("status").innerHTML = "FPS:"+fps+ "props:" + g_main_layer.props.length + "draw3d:" + Moyai.draw_count_3d + " skip3d:" + Moyai.skip_count_3d;
         fps=0;
     }
-    // props
-    if( g_prop_col ){
-        g_prop_col.loc.x += dt/10;
-        g_prop_col.rot.z += dt;
-        g_prop_col.rot.y += dt;
-    }
-    if( g_prop_texcol ){
-        g_prop_texcol.rot.z += dt;
-        g_prop_texcol.rot.y += dt;
-    }
+
     if(g_main_camera) {
-        g_main_camera.loc.y+=0.1;
-        g_main_camera.loc.x+=0.1;
-        g_main_camera.loc.z+=0.1;                
+        var t=now()-started_at;
+        if(0) {
+            g_main_camera.loc[0]=Math.cos(t/3)*8;
+            g_main_camera.loc[1]+=0.01;        
+            g_main_camera.loc[2]=Math.sin(t/3)*8;
+        }
+        if(g_keyboard) {
+            if(g_keyboard.getKey('a')) g_main_camera.loc[0]-=0.3;
+            if(g_keyboard.getKey('d')) g_main_camera.loc[0]+=0.3;
+            if(g_keyboard.getKey('w')) g_main_camera.loc[2]-=0.3;
+            if(g_keyboard.getKey('s')) g_main_camera.loc[2]+=0.3;
+            if(g_keyboard.getKey('k')) g_main_camera.loc[1]+=0.3;
+            if(g_keyboard.getKey('l')) g_main_camera.loc[1]-=0.3;                        
+        }
+        
+        if(g_mouse) {
+            var dx=g_mouse.movement[0];
+            var dy=g_mouse.movement[1];
+            g_mouse.clearMovement();
+            yaw-=dy/250;
+            if(yaw>Math.PI/2) yaw=Math.PI/2;
+            if(yaw<-Math.PI/2) yaw=-Math.PI/2;
+            pitch+=dx/250;
+
+            var nose=vec3.fromValues( g_main_camera.loc[0] + 1.0 * Math.cos(pitch),
+                                      g_main_camera.loc[1] + tangentMax(yaw),
+                                      g_main_camera.loc[2] + 1.0 * Math.sin(this.pitch) );
+
+            g_main_camera.setLookAt(nose, vec3.fromValues(0,1,0));            
+        }
     }
-//    if( g_prop_voxel ){
-//        g_prop_voxel.loc.z -= dt/5;        
-//        g_prop_voxel.rot.z += dt;
-//        g_prop_voxel.rot.y += dt;
-//    }
+    
     
     last_anim_at = now_time;    
-    g_moyai_client.poll(dt);
-    g_moyai_client.render();
-
-
-    //    g_main_camera.setLoc( g_main_camera.loc.x+0.1,0,3);
-    
-    
+    Moyai.poll(dt);
+    Moyai.render();
 }
 
 animate();

@@ -29,12 +29,13 @@ public:
     bool color_changed;
     bool uv_changed;
     int debug;
+    Vec2 rel_scl, rel_loc;
     TrackerGrid *tracker;
     
 	static const int GRID_FLAG_XFLIP = 1;
 	static const int GRID_FLAG_YFLIP = 2;
 	static const int GRID_NOT_USED = -1;
-	Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), visible(true), enfat_epsilon(0), parent_prop(NULL), mesh(NULL), color_changed(false), uv_changed(false), debug(0), tracker(NULL) {
+	Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), visible(true), enfat_epsilon(0), parent_prop(NULL), mesh(NULL), color_changed(false), uv_changed(false), debug(0), rel_scl(1,1), rel_loc(0,0), tracker(NULL) {
         id = idgen++;
 	}
 	~Grid();

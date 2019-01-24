@@ -306,7 +306,6 @@ function initBigBuffers() {
     gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, uv_ary, gl.STATIC_DRAW);
 
-    console.log("pooo:", pos_ary.length);
     return {
         position: positionBuffer,
         color: colorBuffer,
@@ -753,19 +752,19 @@ function start() {
         const zfar=100;
 
 
-                camera[1]+=0.1; // 逆に動くけど、いちおうできてるぞ
-                center[1]+=0.1;        
+        camera[0]=Math.cos(g_t)*8; // 逆に動くけど、いちおうできてるぞ
+        camera[1]        =3;
+        camera[2]=Math.sin(g_t)*8; // 逆に動くけど、いちおうできてるぞ
 
+//                center[1]+=0.01;        
         mat4.lookAt(camMat,camera,center,up);
-        var viewMat=mat4.create();
-        mat4.invert(viewMat,camMat);
         
         // http://ogldev.atspace.co.uk/www/tutorial12/tutorial12.html
         var projMat=mat4.create();
         mat4.perspective(projMat, fov, aspect, znear, zfar );
 
         var viewProjMat=mat4.create();
-        mat4.multiply(viewProjMat,projMat,viewMat);
+        mat4.multiply(viewProjMat,projMat,camMat);
         
         gl.uniformMatrix4fv(
             pg_use.uniformLocations.projectionMatrix,
@@ -804,15 +803,17 @@ function start() {
         }
         var mvMat0=mat4.create();
         mat4.identity(mvMat0);
-        mat4.translate(mvMat0, mvMat0, [Math.sin(g_t)*2,0,-8]);
-        mat4.rotate(mvMat0,mvMat0, g_t, v3_100);
-        mat4.rotate(mvMat0,mvMat0, g_t*0.7, v3_010);
+        //        mat4.translate(mvMat0, mvMat0, [Math.sin(g_t)*2,0,-8]);
+//        mat4.translate(mvMat0, mvMat0, [0,0,0]);
+//        mat4.rotate(mvMat0,mvMat0, g_t, v3_100);
+//        mat4.rotate(mvMat0,mvMat0, g_t*0.7, v3_010);
         drawScene(gl.UNSIGNED_SHORT,buf.vertexCount,use_light, viewProjMat, mvMat0, pg_use,buf,tex, 1.0 );
         var mvMat1=mat4.create();
         mat4.identity(mvMat1);
-        mat4.translate(mvMat1,mvMat1, [0,Math.sin(g_t)*2,-8]);
-        mat4.rotate(mvMat1,mvMat1, g_t*0.7, v3_100);
-        mat4.rotate(mvMat1,mvMat1, g_t, v3_010);
+        //        mat4.translate(mvMat1,mvMat1, [0,Math.sin(g_t)*2,-8]);
+        mat4.translate(mvMat1,mvMat1, [1,1,0]);
+//        mat4.rotate(mvMat1,mvMat1, g_t*0.7, v3_100);
+//        mat4.rotate(mvMat1,mvMat1, g_t, v3_010);
         drawScene(gl.UNSIGNED_SHORT,buf.vertexCount,use_light, viewProjMat, mvMat1, pg_use,buf,tex, 0.2 );
         requestAnimationFrame(render);
         g_t+=1/60;

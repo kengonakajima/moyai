@@ -73,7 +73,6 @@ public:
     LOCSYNCMODE locsync_mode;
     Vec2 remote_vel;
     int target_client_id; // >0 if used
-    
 	Prop2D() : Prop(), Renderable() {
         init();
     }

@@ -1,5 +1,4 @@
 var g_ws;
-var g_moyai_client;
 var g_viewport_pool={};
 var g_camera_pool={};
 var g_layer_pool={};
@@ -44,12 +43,12 @@ function getPacketColor(dv,ofs) {
     var g = dv.getUint8(ofs+1);
     var b = dv.getUint8(ofs+2);
     var a = dv.getUint8(ofs+3);
-    return new Color( r/255.0, g/255.0, b/255.0,a/255.0)
+    return Color.fromValues( r/255.0, g/255.0, b/255.0,a/255.0)
 }
 function getPacketVec2(dv,ofs) {
     var x = dv.getFloat32(ofs,true);
     var y = dv.getFloat32(ofs+4,true);
-    return new Vec2(x,y);
+    return vec2.fromValues(x,y);
 }
 function getPacketPrim(dv,ofs) {
     var prim_id = dv.getUint32(ofs,true);
@@ -69,8 +68,8 @@ function getProp2DSnapshot(dv) {
     out.prop_id = dv.getUint32(4,true);
     out.layer_id = dv.getUint32(8,true);
     out.parent_prop_id = dv.getUint32(12,true);
-    out.loc = new Vec2( dv.getFloat32(16,true), dv.getFloat32(20,true));
-    out.scl = new Vec2( dv.getFloat32(24,true), dv.getFloat32(28,true));
+    out.loc = vec2.fromValues( dv.getFloat32(16,true), dv.getFloat32(20,true));
+    out.scl = vec2.fromValues( dv.getFloat32(24,true), dv.getFloat32(28,true));
     out.index = dv.getInt32(32,true);
     out.tiledeck_id = dv.getUint32(36,true);
     out.debug = dv.getInt32(40,true);
@@ -142,11 +141,9 @@ function onPacket(ws,pkttype,argdata) {
             var w = g_window_width = dv.getUint32(0,true);
             var h = g_window_height = dv.getUint32(4,true);
             console.log("received window_size:",w,h,argdata);
-            if(!g_moyai_client) {
-                g_moyai_client = new MoyaiClient(w,h,window.devicePixelRatio);
-                var screen = document.getElementById("screen");
-                screen.appendChild( g_moyai_client.renderer.domElement );
-            }
+            Moyai.init(w,h);
+            var screen = document.getElementById("screen");
+            screen.appendChild( Moyai.getDomElement() );
         }
         break;
     case PACKETTYPE_S2C_VIEWPORT_CREATE:
@@ -180,7 +177,7 @@ function onPacket(ws,pkttype,argdata) {
             console.log("received cam creat:",id);
             var cam = g_camera_pool[id];
             if(!cam) {
-                cam = new Camera();
+                cam = new OrthographicCamera(-g_window_width/2,g_window_width/2,g_window_height/2,-g_window_height/2);
                 cam.id=id;
                 g_camera_pool[id]=cam;
             }
@@ -209,7 +206,7 @@ function onPacket(ws,pkttype,argdata) {
                 l.id=id;
                 l.priority = prio;
                 g_layer_pool[id]=l;
-                if(g_moyai_client) g_moyai_client.insertLayer(l);
+                Moyai.insertLayer(l);
             }
         }
         break;
@@ -272,11 +269,11 @@ function onPacket(ws,pkttype,argdata) {
             var id = dv.getUint32(0,true);
             var pathstr = getString8FromDataView(dv,4);
             console.log("received image loadpng", id, pathstr);
-            var u8a = g_filedepo.get(pathstr);
+            var file = g_filedepo.get(pathstr);
             var img = g_image_pool[id];
             console.log("img:",img);
-            if(img && u8a) {
-                img.loadPNGMem(u8a);
+            if(img && file) {
+                img.loadPNGMem(file.data);
 //                console.log("loadpng done:", img,u8a);
             }
         }
@@ -333,7 +330,8 @@ function onPacket(ws,pkttype,argdata) {
             var tex = g_texture_pool[tex_id];
             var img = g_image_pool[img_id];
             if(tex&&img) {
-                tex.setImage(img);
+                console.log("TTTT",tex,img);
+                tex.setMoyaiImage(img);
             } else {
                 console.log("tex or img not found?", tex,img);
             }
@@ -382,10 +380,10 @@ function onPacket(ws,pkttype,argdata) {
             var id = dv.getUint32(0,true);
             var path = getString8FromDataView(dv,4);
             console.log("received sound create from file:",id,path);
-            var data_u8a = g_filedepo.get(path);
+            var file = g_filedepo.get(path);
             var snd = g_sound_pool[id];
             if(!snd) {
-                snd = g_sound_system.newSoundFromMemory(data_u8a, "file");
+                snd = g_sound_system.newSoundFromMemory(file.data, "file");
                 snd.id=id;
                 g_sound_pool[id]=snd;
             }
@@ -497,8 +495,8 @@ function onPacket(ws,pkttype,argdata) {
             }
             if(dk) prop.setDeck(dk);
             prop.setIndex(pkt.index);
-            prop.setScl(pkt.scl.x,pkt.scl.y);
-            prop.setLoc(pkt.loc.x, pkt.loc.y);
+            prop.setScl(pkt.scl[0],pkt.scl[1]);
+            prop.setLoc(pkt.loc[0], pkt.loc[1]);
             prop.setRot( pkt.rot );
             prop.setXFlip( getXFlipFromFlipRotBits(pkt.fliprotbits) );
             prop.setYFlip( getYFlipFromFlipRotBits(pkt.fliprotbits) );
@@ -510,11 +508,9 @@ function onPacket(ws,pkttype,argdata) {
                 if(crs) {
                     console.log("prop2d_snapshot: colorreplacershader found", pkt.shader_id);
                     // Must duplicate shader because three.js always share shader uniforms too                    
-                    var newcrs = new ColorReplacerShader();
-                    newcrs.updateUniforms(crs.uniforms.texture.value);                                          
-                    newcrs.updateMaterial();
-                    newcrs.orig_shader_id = pkt.shader_id; // search this when updating uniforms later
-                    prop.setFragmentShader(newcrs);
+                    var newcrsmat = new ColorReplacerShaderMaterial();
+                    newcrsmat.orig_shader_id = pkt.shader_id; // search this when updating uniforms later
+                    prop.setMaterial(newcrsmat);
                 } else {
                     console.log("prop2d_snapshot: colorreplacershader not found", pkt.shader_id);
                 }
@@ -698,10 +694,10 @@ function onPacket(ws,pkttype,argdata) {
             var font_id = dv.getUint32(0,true);
             var pixel_size = dv.getUint32(4,true);
             var pathstr = getString8FromDataView(dv,8);
-            var u8a = g_filedepo.get(pathstr);
+            var file = g_filedepo.get(pathstr);
             var font = g_font_pool[font_id];
             console.log("received font_loadttf loadpng", font_id, pathstr);
-            font.loadFromMemTTF(u8a,null,pixel_size);
+            font.loadFromMemTTF(file.data,null,pixel_size);
         }
         break;        
 
@@ -712,7 +708,7 @@ function onPacket(ws,pkttype,argdata) {
 //            console.log("received colorreplacershader_snapshot", pkt.shader_id );            
             var s = g_crshader_pool[pkt.shader_id];
             if(!s) {
-                s = new ColorReplacerShader();
+                s = new ColorReplacerShaderMaterial();
                 s.id = pkt.shader_id;
                 g_crshader_pool[pkt.shader_id] = s;
             }
@@ -1104,8 +1100,7 @@ var g_last_kbps_print=0;
 var g_last_kbps=0;
 
 function updateDebugStat(now_time) {
-    if(!g_moyai_client) return;
-    
+    if(!g_ws)return;
     var debugstat = document.getElementById("debugstat");
     if( now_time > g_last_kbps_print + 1.0) {
         if( g_ws.total_read_bytes > g_last_total_read_bytes) {
@@ -1136,19 +1131,19 @@ var g_last_ping_sent_at=0;
 
 function animate() {
 	if(!g_stop_render) requestAnimationFrame( animate );
-    if(!g_moyai_client)return;
+
     var now_time = new Date().getTime()/1000.0;
     var dt = now_time - last_anim_at;
     last_anim_at = now_time;
-    g_moyai_client.poll(dt);
+    Moyai.poll(dt);
     g_poll_count++;
-    g_moyai_client.render();
+    Moyai.render();
 
     updateDebugStat(now_time);
 
     if( now_time > g_last_ping_sent_at+1.0) {
         g_last_ping_sent_at = now_time;
-        if(g_ws.readyState==1) {
+        if(g_ws&&g_ws.readyState==1) {
             g_ws.sendUS1UI2( PACKETTYPE_PING, Math.floor(now_time), (now_time - Math.floor(now_time))*1000000 );// seconds,microseconds
         }
     }

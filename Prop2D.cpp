@@ -247,7 +247,9 @@ void Prop2D::render(Camera *cam, DrawBatchList *bl ) {
             FragmentShader *fs = fragment_shader;
             if( grid->fragment_shader ) fs = grid->fragment_shader;
             //            print("appendMesh, tex:%d vn:%d rn:%d", draw_deck->tex->tex, grid->mesh->vb->array_len, grid->mesh->ib->render_len );
-            bl->appendMesh( getViewport(), fs, getBlendType(), draw_deck->tex->tex, loc - Vec2(camx,camy), scl, rot, grid->mesh, copy_mesh_at_draw );
+            Vec2 finloc(loc.x+grid->rel_loc.x, loc.y+grid->rel_loc.y);
+            Vec2 finscl(scl.x*grid->rel_scl.x, scl.y*grid->rel_scl.y);
+            bl->appendMesh( getViewport(), fs, getBlendType(), draw_deck->tex->tex, finloc - Vec2(camx,camy), finscl, rot, grid->mesh, copy_mesh_at_draw );
 		}
 	}
 

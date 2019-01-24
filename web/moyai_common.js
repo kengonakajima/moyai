@@ -155,192 +155,80 @@ lengthf = function(x0,y0,x1,y1) {
 
 //////////////
 
-Vec2 = function(x,y) {
-    this.x = x;
-    this.y = y;
-}
-Vec2.prototype.setWith2args = function(x,y) {
-    if(y==undefined) {
-        if( (typeof x) == "number" ) {
-            this.x=x;
-            this.y=x;
-        } else if( x.__proto__ == Vec2.prototype ) {
-            this.x=x.x;
-            this.y=x.y;            
-        }
-    } else {
-        this.x=x;
-        this.y=y;
-    }
-}
-Vec2.prototype.normalize = function(l) {
-    if(l==undefined)l=1;    
-    var ll = Math.sqrt(this.x*this.x+this.y*this.y);
-    if(ll==0) return new Vec2(0,0);
-    return new Vec2(this.x/ll*l,this.y/ll*l);
-}
-Vec2.prototype.add = function(to_add) {
-    return new Vec2( this.x + to_add.x, this.y + to_add.y );
-}
-Vec2.prototype.mul = function(to_mul) {
-    return new Vec2( this.x * to_mul, this.y * to_mul );
-}
-Vec2.prototype.randomize = function(r) {
-    if(r==undefined)r=1;    
-    return new Vec2( this.x - r + range(0,r*2), this.y - r + range(0,r*2) );
-}
-Vec2.prototype.isEqual = function(v) {
-    return (v.x!=this.x) || (v.y!=this.y);
-}
-
-Vec3 = function(x,y,z) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-}
-Vec3.prototype.setWith3args = function(x,y,z) {
-    if(x.constructor==Vec3){
-        this.x=x.x; this.y=x.y; this.z=x.z;
-    } else {
-        this.x=x; this.y=y;this.z=z;
-    }
-}
-Vec3.prototype.modify = function(v) {
-    this.x += v.x;
-    this.y += v.y;
-    this.z += v.z;
-}
-Vec3.prototype.add = function(to_add) {
-    return new Vec3( this.x + to_add.x, this.y + to_add.y, this.z + to_add.z );
-}
-Vec3.prototype.mul = function(m) {
-    return new Vec3( this.x*m, this.y*m, this.z*m );
-}
-Vec3.prototype.set = function(x,y,z) {
-    this.setWith3args(x,y,z);
-    return this;
-}
-Vec3.prototype.randomize = function(r) {
-    if(r==undefined)r=1;
-    return new Vec3( this.x - r + range(0,r*2), this.y - r + range(0,r*2), this.z - r + range(0,r*2) );
-}
-Vec3.prototype.to_i = function() {
-    return new Vec3( to_i(this.x), to_i(this.y), to_i(this.z) );
-}
-Vec3.prototype.normalize = function(l) {
-    if(l==undefined)l=1;
-    var ll = Math.sqrt(this.x*this.x+this.y*this.y+this.z*this.z);
-    if(ll==0) return new Vec3(0,0,0);
-    return new Vec3(this.x/ll*l,this.y/ll*l,this.z/ll*l);
-}
-Vec3.prototype.to = function(target) {
-    return new Vec3(target.x-this.x, target.y-this.y, target.z-this.z);
-}
-Vec3.prototype.toTHREEVector3 = function() {
-    return new THREE.Vector3(this.x,this.y,this.z);
-}
-Vec3.prototype.lengthf = function() {
-    return Math.sqrt( this.x*this.x + this.y*this.y + this.z*this.z );
-}
-Vec3.prototype.dot = function(v3) {
-    return this.x*v3.x + this.y*v3.y + this.z*v3.z;
-}
 // 0 ~ 1
-Color = function(r,g,b,a) {
-    if(g==undefined || g==null) {
-        var code = r; // color code
-        this.r = ((code & 0xff0000)>>16)/255;
-        this.g = ((code & 0xff00)>>8)/255;
-        this.b = (code & 0xff)/255;
-        this.a = 1.0;        
-    } else {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-        this.a = a;
-    }
+Color={};
+Color.fromValues= function(r,g,b,a) {
+    var out=new Float32Array(4);
+    out[0]=r; out[1]=g; out[2]=b; out[3]=a;
+    return out;
 }
-Color.prototype.toRGBA = function() {
-    return [ Math.floor(this.r*255), Math.floor(this.g*255), Math.floor(this.b*255), Math.floor(this.a*255) ];
+Color.fromCode = function(code) {
+    var r = ((code & 0xff0000)>>16)/255;
+    var g = ((code & 0xff00)>>8)/255;
+    var b = (code & 0xff)/255;
+    var a = 1.0;
+    return Color.fromValues(r,g,b,a);
 }
-Color.prototype.fromRGBA = function(r,g,b,a) {
-    this.r = r/255.0;
-    this.g = g/255.0;
-    this.b = b/255.0;    
-    this.a = a/255.0;
+Color.toRGBA = function(outary,col) {
+    outary[0]=Math.floor(this.r*255);
+    outary[1]=Math.floor(this.g*255);
+    outary[2]=Math.floor(this.b*255);
+    outary[3]=Math.floor(this.a*255);
 }
-    
-Color.prototype.toCode = function() {
-    return ( Math.floor(this.r * 255) << 16 ) + ( Math.floor(this.g * 255) << 8 ) + Math.floor(this.b * 255);
+Color.fromRGBA = function(outary,r,g,b,a) {
+    outary[0] = r/255.0;
+    outary[1] = g/255.0;
+    outary[2] = b/255.0;    
+    outary[3] = a/255.0;
 }
-Color.prototype.toTHREEColor = function() {
-    return new THREE.Color(this.toCode());
+Color.toCode = function(col) {
+    return ( Math.floor( col[0] * 255) << 16 ) + ( Math.floor(col[1] * 255) << 8 ) + Math.floor(col[2] * 255);
 }
-Color.prototype.equals = function(r,g,b,a) {
-    return (this.r==r && this.g==g && this.b==b && this.a==a);
+Color.copy = function(out,input) {
+    out[0]=input[0]; out[1]=input[1]; out[2]=input[2]; out[3]=input[3];
 }
-Color.prototype.adjust = function(v) {
-    var rr = this.r*v;
-    var gg = this.g*v;
-    var bb = this.b*v;
-    if(rr>1)rr=1;
-    if(gg>1)gg=1;
-    if(bb>1)bb=1;
-    return new Color(rr,gg,bb,this.a);
+Color.exactEquals = function(out,input) {
+    return (out[0]===input[0] && out[1]===input[1] && out[2]===input[2] && out[3]===input[3]);
 }
-
+Color.exactEqualsToValues = function(out,r,g,b,a) {
+    return (out[0]===r && out[1]===g && out[2]===b && out[3]===a);    
+}
+Color.set = function(out,r,g,b,a) {
+    out[0]=r; out[1]=g; out[2]=b; out[3]=a;
+}
 ///////////////////
 
-Viewport.prototype.id_gen=1;
-function Viewport() {
-    this.id = this.__proto__.id_gen++;
-    this.screen_width = null;
-    this.screen_height = null;
-    this.near_clip = null;
-    this.far_clip = null;
-    this.dimension = null;
-}
-Viewport.prototype.setSize = function(sw,sh) {
-    this.screen_width = sw;
-    this.screen_height = sh;
-}
-Viewport.prototype.setScale2D = function(sx,sy) {
-    this.scl = new Vec2(sx,sy);
-    this.dimension = 2;
-}
-Viewport.prototype.setClip3D = function(near,far) {
-    this.near_clip = near;
-    this.far_clip = far;
-    this.dimension = 3;
-}
-Viewport.prototype.getMinMax = function() {
-    return [ new Vec2(-this.scl.x/2,-this.scl.y/2), new Vec2(this.scl.x/2,this.scl.y/2) ];
-}
-Viewport.prototype.getRelativeScale = function() {
-    return new Vec2(this.screen_width/this.scl.x,this.screen_height/this.scl.y);
-}
-
-////////////////////
-Camera.prototype.id_gen=1;
-function Camera() {
-    this.id = this.__proto__.id_gen++;
-    this.loc = null; // vec2 or vec3
-    this.dimension=null;    
-}
-Camera.prototype.setLoc = function(x,y,z) {
-    if(x.constructor==Vec3){ this.loc=x; this.dimension=3; }
-    else if(x.constructor==Vec2){ this.loc=x; this.dimension=2; }
-    else if(z==undefined) {
-        this.loc=new Vec2(x,y);
-        this.dimension=2;
-    } else {
-        this.loc = new Vec3(x,y,z);
-        this.dimension=3;
+var g_moyai_viewport_id_gen=1;
+class Viewport {
+    constructor() {
+        this.id = g_moyai_viewport_id_gen++;
+        this.screen_width = null;
+        this.screen_height = null;
+        this.near_clip = null;
+        this.far_clip = null;
+        this.dimension = null;
     }
-}
-Camera.prototype.setLookAt = function(at,up) {
-	this.look_at = at;
-	this.look_up = up;
+    setSize(sw,sh) {
+        this.screen_width = sw;
+        this.screen_height = sh;
+    }
+    setScale2D(sx,sy) {
+        this.scl = vec2.fromValues(sx,sy);
+        this.dimension = 2;
+    }
+    setClip3D(near,far) {
+        this.near_clip = near;
+        this.far_clip = far;
+        this.dimension = 3;
+    }
+    getMinMax(outary) {
+        var x0=-this.scl[0]/2, y0=-this.scl[1]/2, x1=this.scl[0]/2, y1=this.scl[1]/2;
+        vec2.set(outary[0],x0,y0);
+        vec2.set(outary[1],x1,y1);
+    }
+    getRelativeScale(outvec2) {
+        vec2.set(outvec2,this.screen_width/this.scl[0],this.screen_height/this.scl[1]);
+    }
 }
 
 
@@ -349,258 +237,269 @@ g_moyai_z_per_layer = 100000;
 g_moyai_z_per_prop = 1;
 g_moyai_z_per_subprop = 1; // this causes some issue when dense sprites.. but no way to implement correct draw order
 g_moyai_max_z = g_moyai_z_per_layer*100; // use z to confirm render order ( renderOrder dont work for line prims..)
-    
-Layer.prototype.id_gen = 1;
-function Layer() {
-    this.id = this.__proto__.id_gen++;
-    this.props=[];
-    this.priority=null;// update when insert to moyai
-    this.camera=null;
-    this.viewport=null;
-    this.light=null;
-}
-Layer.prototype.setViewport = function(vp) { this.viewport = vp; }
-Layer.prototype.setCamera = function(cam) { this.camera = cam; }
-Layer.prototype.setLight = function(lgt) { this.light = lgt; }
-Layer.prototype.setAmbientLight = function(lgt) { this.ambient_light = lgt; }
-Layer.prototype.insertProp = function(p) {
-    if(p.priority==null) {
-        var highp = this.getHighestPriority();
-        p.priority = highp+1;
-        p.parent_layer=this;
+
+
+g_moyai_layer_id_gen=1;
+class Layer {
+    constructor() {
+        this.id = g_moyai_layer_id_gen++;
+        this.props=[];
+        this.priority=null;// update when insert to moyai
+        this.camera=null;
+        this.viewport=null;
+        this.light=null;
     }
-    this.props.push(p);
-}
-Layer.prototype.hasProp = function(p) {
-    for(var i=0;i<this.props.length;i++) {
-        if(this.props[i].id==p.id) return true;
+    setViewport(vp) { this.viewport = vp; }
+    setCamera(cam) { this.camera = cam; }
+    setLight(lgt) { this.light = lgt; }
+    setAmbientLight(lgt) { this.ambient_light = lgt; }
+    insertProp(p) {
+        if(p.priority==null) {
+            var highp = this.getHighestPriority();
+            p.priority = highp+1;
+            p.parent_layer=this;
+        }
+        this.props.push(p);
     }
-    return false;
-}
-Layer.prototype.delProp = function(p) {
-    for(var i=0;i<this.props.length;i++) {
-        if(this.props[i].id==p.id) {
-            this.props.splice(i,1);
-            return true;
+    hasProp(p) {
+        for(var i=0;i<this.props.length;i++) {
+            if(this.props[i].id==p.id) return true;
+        }
+        return false;
+    }
+    delProp(p) {
+        for(var i=0;i<this.props.length;i++) {
+            if(this.props[i].id==p.id) {
+                this.props.splice(i,1);
+                return true;
+            }
+        }
+        return false;
+    }
+    pollAllProps(dt) {
+        var keep=[];
+        for(var i=0;i<this.props.length;i++) {
+            var prop = this.props[i];
+            var to_keep = prop.basePoll(dt);
+            if(to_keep) {
+                keep.push(prop);
+            } else {
+                if(prop.onDelete) prop.onDelete();
+            }
+        }
+        this.props = keep;
+        return this.props.length;
+    }
+    getHighestPriority() {
+        var highp=0;
+        for(var i=0;i<this.props.length;i++) {
+            if(this.props[i].priority>highp) highp = this.props[i].priority;
+        }
+        return highp;    
+    }
+    getLowesetPriority() {
+        var lowp=0;
+        for(var i=0;i<this.props.length;i++) {
+            if(this.props[i].priority<lowp) lowp = this.props[i].priority;
+        }
+        return lowp;
+    }
+    getPropById(id) {
+        for(var i=0;i<this.props.length;i++) {
+            if( this.props[i].id == id ) return this.props[i];
+        }
+        return null;
+    }
+    findByKey(keyname,val) {
+        for(var i=0;i<this.props.length;i++) {
+            var p = this.props[i];
+            if( p[keyname] == val ) return p;
+        }
+        return null;
+    }
+    scan(cb) {
+        for(var i=0;i<this.props.length;i++) {
+            cb(this.props[i]);
         }
     }
-    return false;
-}
-Layer.prototype.pollAllProps = function(dt) {
-    var keep=[];
-    for(var i=0;i<this.props.length;i++) {
-        var prop = this.props[i];
-        var to_keep = prop.basePoll(dt);
-        if(to_keep) {
-            keep.push(prop);
-        } else {
-            if(prop.onDelete) prop.onDelete();
-        }
+    clean() {
+        this.props=[];
     }
-    this.props = keep;
-    return this.props.length;
-}
-Layer.prototype.getHighestPriority = function() {
-    var highp=0;
-    for(var i=0;i<this.props.length;i++) {
-        if(this.props[i].priority>highp) highp = this.props[i].priority;
-    }
-    return highp;    
-}
-Layer.prototype.getLowesetPriority = function() {
-    var lowp=0;
-    for(var i=0;i<this.props.length;i++) {
-        if(this.props[i].priority<lowp) lowp = this.props[i].priority;
-    }
-    return lowp;
-}
-Layer.prototype.getPropById = function(id) {
-    for(var i=0;i<this.props.length;i++) {
-        if( this.props[i].id == id ) return this.props[i];
-    }
-    return null;
-}
-Layer.prototype.findByKey = function(keyname,val) {
-    for(var i=0;i<this.props.length;i++) {
-        var p = this.props[i];
-        if( p[keyname] == val ) return p;
-    }
-    return null;
-}
-Layer.prototype.scan = function(cb) {
-    for(var i=0;i<this.props.length;i++) {
-        cb(this.props[i]);
-    }
-}
-Layer.prototype.clean = function() {
-    this.props=[];
-}
+};
 
 /////////////////////
-MoyaiImage.prototype.id_gen = 1;
-function MoyaiImage() {
-    this.id = this.__proto__.id_gen++;
-    this.data = null;
-    this.png=null;
-}
-MoyaiImage.prototype.loadPNGMem = function(u8adata) {
-    var b = new Buffer(u8adata);
-    this.png = pngParse(b);
-    this.width = this.png.width;
-    this.height = this.png.height;
-    this.data = this.png.data;
-}
-MoyaiImage.prototype.setSize = function(w,h) {
-    this.width = w;
-    this.height = h;
-    if(!this.data) {
-        this.data = new Uint8Array(w*h*4);
-    }
-}
-MoyaiImage.prototype.getSize = function() {
-    return new Vec2(this.width,this.height);
-}
-MoyaiImage.prototype.getPixelRaw = function(x,y) {
-// int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a ) {
-    var out={};
-    if(x>=0&&y>=0&&x<this.width&&y<this.height){
-        var index = ( x + y * this.width ) * 4;
-        out.r = this.data[index];
-        out.g = this.data[index+1];
-        out.b = this.data[index+2];
-        out.a = this.data[index+3];
-    }
-    return out;
-}
-MoyaiImage.prototype.setPixelRaw = function(x,y,r,g,b,a) {
-    if(x>=0&&y>=0&&x<this.width&&y<this.height){
-        var index = ( x + y * this.width ) * 4;
-        this.data[index] = r;
-        this.data[index+1] = g;
-        this.data[index+2] = b;
-        this.data[index+3] = a;
-    }    
-}
-MoyaiImage.prototype.setPixel = function(x,y,c) {
-    var colary = c.toRGBA();
-    var index = (x+y*this.width)*4;
-    this.setPixelRaw(x,y,colary[0],colary[1],colary[2],colary[3]);
-}
-MoyaiImage.prototype.getBufferSize = function() { return this.width * this.height * 4; }
-MoyaiImage.prototype.setAreaRaw = function(x0,y0,w,h, data_u8a, insz ) {
-    var reqsize = w*h*4;
-    if( insz < reqsize ) {
-        console.log("image.prototype.setAreaRaw input size too small required:",reqsize, "got:",insz);
-        return;
-    }
-    for(var dy=0;dy<h;dy++) {
-        for(var dx=0;dx<w;dx++) {
-            var x = x0+dx;
-            var y = y0+dy;
-            if(x<0||y<0||x>=this.width||y>=this.height)continue;            
-            var out_index = ( x + y * this.width ) * 4;
-            var in_index = ( dx + dy * w ) * 4;
-            this.data[out_index] = data_u8a[in_index]; // r
-            this.data[out_index+1] = data_u8a[in_index+1]; // g
-            this.data[out_index+2] = data_u8a[in_index+2]; // b
-            this.data[out_index+3] = data_u8a[in_index+3]; // a            
+var g_moyai_image_id_gen = 1;
+class MoyaiImage {
+    constructor(from_browser_image) {
+        this.id = g_moyai_image_id_gen++;
+        this.png=null;
+        this.onload=null;        
+        if(from_browser_image) {
+            this.data=from_browser_image.data;
+            this.width=from_browser_image.width;
+            this.height=from_browser_image.height;
+        } else {
+            this.data = null;            
         }
-    }      
-}
+    }
+    loadPNG(url,w,h) {
+        if(w===undefined||h===undefined) console.warn("loadPNG require width and height currently");    
+        var image = new Image();
+        image.width=w;
+        image.height=h;
+        this.width=w;
+        this.height=h;
+        var moyai_img=this;
+        image.onload = function() {
+            //        console.log("loadpng: onload:",texture,image,moyai_tex);
+            var canvas=document.createElement("canvas");
+            var ctx=canvas.getContext("2d");
+            ctx.drawImage(this,0,0);
+            var imgdata=ctx.getImageData(0,0,w,h);
+            console.log("MoyaiImage onload: imgdata",imgdata);
+            moyai_img.data=imgdata.data;
+            if(moyai_img.onload) moyai_img.onload();
+        }
+        image.src=url;
+    }
+    loadPNGMem(u8adata) {
+        var b = new Buffer(u8adata);
+        this.png = pngParse(b);
+        this.width = this.png.width;
+        this.height = this.png.height;
+        this.data = this.png.data;
+    }
+    setSize(w,h) {
+        this.width = w;
+        this.height = h;
+        if(!this.data) {
+            this.data = new Uint8Array(w*h*4);
+        }
+    }
+    getSize(out) {
+        vec2.set(out,this.width,this.height);
+    }
+    getPixelRaw(x,y) {
+        // int x, int y, unsigned char *r, unsigned char *g, unsigned char *b, unsigned char *a ) {
+        var out={};
+        if(x>=0&&y>=0&&x<this.width&&y<this.height){
+            var index = ( x + y * this.width ) * 4;
+            out.r = this.data[index];
+            out.g = this.data[index+1];
+            out.b = this.data[index+2];
+            out.a = this.data[index+3];
+        }
+        return out;
+    }
+    setPixelRaw(x,y,r,g,b,a) {
+        if(x>=0&&y>=0&&x<this.width&&y<this.height){
+            var index = ( x + y * this.width ) * 4;
+            this.data[index] = r;
+            this.data[index+1] = g;
+            this.data[index+2] = b;
+            this.data[index+3] = a;
+        }    
+    }
+    setPixel(x,y,c) {
+        this.setPixelRaw(x,y,Math.floor(c[0]*255),Math.floor(c[1]*255),Math.floor(c[2]*255),Math.floor(c[3]*255));
+    }
+    getBufferSize() { return this.width * this.height * 4; }
+    setAreaRaw(x0,y0,w,h, data_u8a, insz ) {
+        var reqsize = w*h*4;
+        if( insz < reqsize ) {
+            console.log("setAreaRaw input size too small required:",reqsize, "got:",insz);
+            return;
+        }
+        for(var dy=0;dy<h;dy++) {
+            for(var dx=0;dx<w;dx++) {
+                var x = x0+dx;
+                var y = y0+dy;
+                if(x<0||y<0||x>=this.width||y>=this.height)continue;            
+                var out_index = ( x + y * this.width ) * 4;
+                var in_index = ( dx + dy * w ) * 4;
+                this.data[out_index] = data_u8a[in_index]; // r
+                this.data[out_index+1] = data_u8a[in_index+1]; // g
+                this.data[out_index+2] = data_u8a[in_index+2]; // b
+                this.data[out_index+3] = data_u8a[in_index+3]; // a            
+            }
+        }      
+    }
+};
+
 
 
 ///////////////////
-TileDeck.prototype.id_gen = 1;
-function TileDeck() {
-    this.id = this.__proto__.id_gen++;
-}
-TileDeck.prototype.setSize = function(sprw,sprh,cellw,cellh) {
-    this.tile_width = sprw;
-    this.tile_height = sprh;
-    this.cell_width = cellw;
-    this.cell_height = cellh;
-}
-TileDeck.prototype.setTexture = function(tex) {
-    this.moyai_tex = tex;
-}
-TileDeck.prototype.getUVFromIndex = function(ind,uofs,vofs,eps) {
-	var uunit = this.cell_width / this.moyai_tex.image.width;
-	var vunit = this.cell_height / this.moyai_tex.image.height;
-	var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
-	var start_y = this.cell_height * Math.floor( Math.floor(ind) / Math.floor(this.tile_width ) );
-    var u0 = start_x / this.moyai_tex.image.width + eps + uofs * uunit;
-    var v0 = start_y / this.moyai_tex.image.height + eps + vofs * vunit;
-    var u1 = u0 + uunit - eps*2;  // *2 because adding eps once for u0 and v0
-	var v1 = v0 + vunit - eps*2;
-    return [u0,v0,u1,v1];
-}
-TileDeck.prototype.getUVOfPixel = function(ind,x_in_cell,y_in_cell) {
-    ind=Math.floor(ind);
-    var x0=Math.floor(ind%this.tile_width)*this.cell_width;
-    var y0=Math.floor(ind/this.tile_width)*this.cell_height;
-    var fin_x=x0+x_in_cell, fin_y=y0+y_in_cell;
-    var u_per_pixel = 1.0/this.moyai_tex.image.width;
-    var v_per_pixel = 1.0/this.moyai_tex.image.height;
-    return [fin_x*u_per_pixel, fin_y*v_per_pixel, (fin_x+1)*u_per_pixel, (fin_y+1)*v_per_pixel];
-}
-TileDeck.prototype.getUperCell = function() { return this.cell_width / this.moyai_tex.image.width; }
-TileDeck.prototype.getVperCell = function() { return this.cell_height / this.moyai_tex.image.height; }    
-
-TileDeck.prototype.getPixelsFromIndex = function(ind) {
-	var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
-	var start_y = this.cell_height * Math.floor( Math.floor(ind) / Math.floor(this.tile_width ) );
-    var out=[];
-    for(var y=start_y;y<start_y+this.cell_height;y++) {
-        for(var x=start_x;x<start_x+this.cell_width;x++) {
-            var di=x*4+y*(this.cell_width*this.tile_width)*4;
-            for(var i=0;i<4;i++) {
-                out.push(this.moyai_tex.image.data[di+i]);
+var g_moyai_tiledeck_id_gen=1;
+class TileDeck {
+    constructor() {
+        this.id = g_moyai_tiledeck_id_gen++;
+    }
+    setSize(sprw,sprh,cellw,cellh) {
+        this.tile_width = sprw;
+        this.tile_height = sprh;
+        this.cell_width = cellw;
+        this.cell_height = cellh;
+    }
+    setTexture(tex) {
+        this.moyai_tex = tex;
+    }
+    getUVFromIndex(outary, ind,uofs,vofs,eps) {
+	    var uunit = this.cell_width / this.moyai_tex.image.width;
+	    var vunit = this.cell_height / this.moyai_tex.image.height;
+	    var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
+	    var start_y = this.cell_height * Math.floor( Math.floor(ind) / Math.floor(this.tile_width ) );
+        var u0 = start_x / this.moyai_tex.image.width + eps + uofs * uunit;
+        var v0 = start_y / this.moyai_tex.image.height + eps + vofs * vunit;
+        var u1 = u0 + uunit - eps*2;  // *2 because adding eps once for u0 and v0
+	    var v1 = v0 + vunit - eps*2;
+        outary[0]=u0;
+        outary[1]=v0;
+        outary[2]=u1;
+        outary[3]=v1;
+    }
+    getUVOfPixel(ind,x_in_cell,y_in_cell) {
+        ind=Math.floor(ind);
+        var x0=Math.floor(ind%this.tile_width)*this.cell_width;
+        var y0=Math.floor(ind/this.tile_width)*this.cell_height;
+        var fin_x=x0+x_in_cell, fin_y=y0+y_in_cell;
+        var u_per_pixel = 1.0/this.moyai_tex.image.width;
+        var v_per_pixel = 1.0/this.moyai_tex.image.height;
+        var outary=new Float32Array(4);
+        outary[0]=fin_x*u_per_pixel;
+        outary[1]=fin_y*v_per_pixel;
+        outary[2]=(fin_x+1)*u_per_pixel;
+        outary[3]=(fin_y+1)*v_per_pixel;
+        return outary;
+    }
+    getUperCell() { return this.cell_width / this.moyai_tex.image.width; }
+    getVperCell() { return this.cell_height / this.moyai_tex.image.height; }    
+    getPixelsFromIndex(ind) {
+        if(isNaN(ind))console.warn("getPixelsFromIndex:invalid arg:",ind);
+	    var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
+	    var start_y = this.cell_height * Math.floor( Math.floor(ind) / Math.floor(this.tile_width ) );
+        var out=[];
+        for(var y=start_y;y<start_y+this.cell_height;y++) {
+            for(var x=start_x;x<start_x+this.cell_width;x++) {
+                var di=x*4+y*(this.cell_width*this.tile_width)*4;
+                for(var i=0;i<4;i++) {
+                    out.push(this.moyai_tex.image.data[di+i]);
+                }
             }
         }
+        return out;
     }
-    return out;
-}
-
-///////////////////////////
-
-function UVRect(u0,v0,u1,v1) {
-    this.u0=u0;
-    this.u1=u1;
-    this.v0=v0;
-    this.v1=v1;
 };
-PackDeck.prototype.id_gen = 1;
-function PackDeck() {
-    this.id = this.__proto__.id_gen++;
-}
-PackDeck.prototype.setTexture = function(tex) {
-    this.moyai_tex=tex;
-}
-PackDeck.prototype.getUVFromIndex = function(ind,uofs,vofs,eps) {
-    var uvrect = this.rects[ind];
-    if(!uvrect) return [0,0,1,1];
-    return uvrect;
-}
-PackDeck.prototype.getUperCell = function() {
-    return this.rects[0].u1 - this.rects[0].u0;
-}
-PackDeck.prototype.getVperCell = function() {
-    return this.rects[0].v1 - this.rects[0].v0;    
-}
-PackDeck.prototype.setRects = function(uvrects) {
-    this.rects=uvrects;
-}
+
 
 ////////////////////////
 
+// for node
 try {
     if(global) {
         // classes
-        global.Vec2=Vec2;
         global.Color=Color;
-        global.Viewport=Viewport;
-        global.Camera=Camera;
-        global.Image=MoyaiImage;
+        global.Viewport=Viewport;       
+        global.MoyaiImage=MoyaiImage;
         global.TileDeck = TileDeck;
         global.Layer = Layer;
 

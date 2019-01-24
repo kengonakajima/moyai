@@ -349,19 +349,19 @@ bool readFileOffset( const char *path, char *data, size_t *sz, size_t offset ){
 #else
     int fd = open( path, O_RDONLY );
     if(fd<0) {
-        print("readFileOffset: can't open file:'%s' err:'%s'", path, strerror(errno) );
+        //        print("readFileOffset: can't open file:'%s' err:'%s'", path, strerror(errno) );
         return false;
     }
     int rc;
     rc = lseek( fd, offset, SEEK_SET );
     if(rc<0) {
-        print("readFileOffset: lseek failed for file '%s' err:'%s'", path, strerror(errno) );
+        //        print("readFileOffset: lseek failed for file '%s' err:'%s'", path, strerror(errno) );
         close(fd);
         return false;
     }
     ssize_t readret = read( fd, data, toread );
     if(readret<0) {
-        print("readFileOffset: read failed for file '%s' err:'%s'", path, strerror(errno) );
+        //        print("readFileOffset: read failed for file '%s' err:'%s'", path, strerror(errno) );
         close(fd);
         return false;
     }
