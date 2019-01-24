@@ -266,7 +266,7 @@ Moyai.render3D = function(layer) {
         prop.updateModelViewMatrix();
         if(prop.geom) {
             prop.geom.bless();
-            this.draw(prop.geom, prop.mvMat, cam.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend,prop.cull_face);
+            this.draw(prop.geom, prop.mvMat, cam.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend,prop.cull_face,prop.depth_mask);
             this.draw_count_3d++;
         }
 
@@ -276,7 +276,7 @@ Moyai.render3D = function(layer) {
                 if(!chp.visible)continue;
                 chp.updateModelViewMatrix(prop.mvMat);                
                 chp.geom.bless();
-                this.draw(chp.geom, chp.mvMat, cam.viewProjMat, chp.material, chp.moyai_tex, chp.color, chp.use_additive_blend, chp.cull_face);
+                this.draw(chp.geom, chp.mvMat, cam.viewProjMat, chp.material, chp.moyai_tex, chp.color, chp.use_additive_blend, chp.cull_face,chp.depth_mask);
                 this.draw_count_3d++;
             }
         }
@@ -349,7 +349,7 @@ Moyai.render2D = function(layer) {
         }            
     }
 }
-Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,cull_face) {
+Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,cull_face,depth_mask) {
 //    if(geom.stride_colors==3)  console.warn("draw:",geom,mvMat,projMat,material,moyai_tex,colv,additive_blend);
     var gl=Moyai.gl;
     gl.useProgram(material.glprog);
@@ -393,12 +393,18 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,
         gl.blendFunc(gl.ONE,gl.ONE);
     } else {
         gl.blendFuncSeparate(gl.ONE,gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+//        gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
     }
     if(!cull_face) {
         gl.disable(gl.CULL_FACE);
     } else {
         gl.enable(gl.CULL_FACE);
         gl.cullFace(cull_face);
+    }
+    if(depth_mask) {
+        gl.depthMask(true);
+    } else {
+        gl.depthMask(false);
     }
     
     if(geom.primtype==gl.TRIANGLES) {
@@ -951,6 +957,7 @@ class Prop2D extends Prop {
         this.remote_vel=null;
         this.draw_offset=vec2.create();
         this.geom=null;
+        this.depth_mask=true;        
     }
     setVisible(flg) { this.visible=flg; }
     setDeck(dk) { this.deck = dk; }
@@ -2247,7 +2254,8 @@ class Prop3D extends Prop {
         this.localMat=mat4.create();
         this.finalLoc=vec3.create();
         this.rot=vec3.create(); // xyz-euler in radian
-        this.cull_face=Moyai.gl.BACK;        
+        this.cull_face=Moyai.gl.BACK;
+        this.depth_mask=true;
     }
     propPoll(dt) {
         if(this.prop3DPoll && this.prop3DPoll(dt)===false) {
