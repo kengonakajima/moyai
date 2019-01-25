@@ -1759,7 +1759,7 @@ var fragment_uv_color_glsl =
     "void main()\n"+
     "{\n"+
     "  highp vec4 tc = texture2D(texture,vUv);\n"+
-    "  if(tc.a<0.01) discard; else gl_FragColor = vec4( tc.r * meshcolor.r * vColor.r * meshcolor.a, tc.g * meshcolor.g * vColor.g * meshcolor.a, tc.b * meshcolor.b * vColor.b * meshcolor.a, tc.a * meshcolor.a * vColor.a);\n"+
+    "  if(tc.a<0.01) discard; else gl_FragColor = vec4( tc.r * meshcolor.r * vColor.r * tc.a, tc.g * meshcolor.g * vColor.g * tc.a, tc.b * meshcolor.b * vColor.b * tc.a, tc.a * meshcolor.a * vColor.a);\n"+
     "}\n";
 
 var fragment_replacer_glsl = 
