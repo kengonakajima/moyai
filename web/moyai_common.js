@@ -207,13 +207,15 @@ class Viewport {
         this.near_clip = null;
         this.far_clip = null;
         this.dimension = null;
+        this.scl=vec2.fromValues(32,32);
     }
     setSize(sw,sh) {
         this.screen_width = sw;
         this.screen_height = sh;
     }
     setScale2D(sx,sy) {
-        this.scl = vec2.fromValues(sx,sy);
+        this.scl[0]=sx;
+        this.scl[1]=sy;
         this.dimension = 2;
     }
     setClip3D(near,far) {

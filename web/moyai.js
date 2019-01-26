@@ -149,7 +149,6 @@ Moyai.init = function(w,h){
     this.y_axis=vec3.fromValues(0,1,0);
     this.z_axis=vec3.fromValues(0,0,1);
     this.initialized=true;
-    console.log("Moyai:",this);
 }
 Moyai.setSize = function(w,h) {
     this.width=w;
@@ -340,7 +339,9 @@ Moyai.render2D = function(layer) {
         if(prop.prim_drawer) {
             for(var i=0;i<prop.prim_drawer.prims.length;i++) {
                 var prim = prop.prim_drawer.prims[i];
-                prim.updateModelViewMatrix(vec3.fromValues(prop.loc[0],prop.loc[1],0),vec3.fromValues(prop.scl[0],prop.scl[1],1)); // TODO: noalloc
+                vec3.set(Moyai.workv0, prop.loc[0],prop.loc[1],0);
+                vec3.set(Moyai.workv1, prop.scl[0],prop.scl[1],1);
+                prim.updateModelViewMatrix(Moyai.workv0, Moyai.workv1);
                 prim.updateGeom();
                 if(prim.geom) prim.geom.bless();
                 this.draw(prim.geom, prim.mvMat, this.viewProjMat, prim.material, null, null, prim.use_additive_blend);
@@ -977,7 +978,8 @@ class Prop2D extends Prop {
         this.remote_vel=null;
         this.draw_offset=vec2.create();
         this.geom=null;
-        this.depth_mask=true;        
+        this.depth_mask=true;
+        this.mvMat=mat4.create();
     }
     setVisible(flg) { this.visible=flg; }
     setDeck(dk) { this.deck = dk; }
@@ -1068,11 +1070,12 @@ class Prop2D extends Prop {
         return true;
     }
     updateModelViewMatrix() {
-        if(!this.mvMat) this.mvMat=mat4.create(); // TODO to_cons
         mat4.identity(this.mvMat);
-        mat4.translate(this.mvMat,this.mvMat,vec3.fromValues(this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],0)); //TODO:noalloc           
-        mat4.rotate(this.mvMat,this.mvMat,this.rot,vec3.fromValues(0,0,1));//TODO: noalloc
-        mat4.scale(this.mvMat,this.mvMat,vec3.fromValues(this.scl[0],this.scl[1],1));  //TODO: noalloc
+        vec3.set(Moyai.workv0, this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],0);
+        mat4.translate(this.mvMat,this.mvMat,Moyai.workv0);
+        mat4.rotate(this.mvMat,this.mvMat,this.rot,Moyai.z_axis);
+        vec3.set(Moyai.workv0, this.scl[0],this.scl[1],1);
+        mat4.scale(this.mvMat,this.mvMat, Moyai.workv0 );
     }
     clearGeom() {
         this.geom=null;
