@@ -277,7 +277,7 @@ class Layer {
         return false;
     }
     pollAllProps(dt) {
-        var keep=[];
+        var keep=[]; // TODO: no alloc
         for(var i=0;i<this.props.length;i++) {
             var prop = this.props[i];
             var to_keep = prop.basePoll(dt);

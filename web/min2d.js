@@ -12,6 +12,9 @@ Moyai.init(SCRW,SCRH);
 var screen = document.getElementById("screen");
 screen.appendChild( Moyai.getDomElement() );
 
+var g_keyboard = new Keyboard();
+g_keyboard.setupBrowser(window);
+
 var g_viewport = new Viewport();
 g_viewport.setSize(SCRW,SCRH);
 g_viewport.setScale2D(SCRW,SCRH);
@@ -42,7 +45,7 @@ p.setIndex(1);
 p.setScl(48,48);
 p.setLoc(0,0);
 if(0)p.setUVRot(true);
-if(1)p.addRect(vec2.fromValues(0,0), vec2.fromValues(5,5), Color.fromValues(1,1,1,0.5));
+if(1)p.addRect(vec2.fromValues(0,0), vec2.fromValues(5,5), Color.fromValues(1,1,1,0.1));
 if(1)p.addLine(vec2.fromValues(0,0), vec2.fromValues(-5,5), Color.fromValues(1,0,1,0.5));
 g_main_layer.insertProp(p);
 
@@ -90,11 +93,17 @@ if(1) {
     p_grid_over.addGrid(g);
     p_grid_over.setScl(24,24);
     g_main_layer.insertProp(p_grid_over);
+    p_grid_over.prop2DPoll = function(dt) {
+        if(g_keyboard.getKey('z')) {
+            this.to_clean=true;
+        }
+        return true;
+    }
 }
 
 // custom mesh test
 if(1) {
-    var geom = new FaceGeometry();
+    var geom = new FaceGeometry(3,1);
     geom.setPosition(0, 0,0,0);
     geom.setPosition(1, 2,0,0);
     geom.setPosition(2, 0,2,0);
@@ -115,6 +124,9 @@ if(1) {
     p_custom.setScl(200);
     g_main_layer.insertProp(p_custom);    
 }
+
+
+
 ////////////////////
 
 var last_anim_at = new Date().getTime();

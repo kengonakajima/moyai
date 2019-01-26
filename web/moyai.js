@@ -317,6 +317,7 @@ Moyai.render2D = function(layer) {
                 if(grid.geom) grid.geom.bless();
                 var tex;
                 if(grid.deck) tex=grid.deck.moyai_tex; else tex=prop.deck.moyai_tex;
+                if(prop.debug) console.log("debug_moyai_prop_grid:",prop.geom,prop.deck);                
                 this.draw(grid.geom, prop.mvMat, this.viewProjMat, prop.material, tex, prop.color, prop.use_additive_blend);
             }
         }
@@ -327,13 +328,11 @@ Moyai.render2D = function(layer) {
                 chp.updateModelViewMatrix();                
                 chp.updateGeom();
                 if(chp.geom) chp.geom.bless();
+                if(chp.debug) console.log("debug_moyai_childprop:",chp.geom,chp.deck);                
                 this.draw(chp.geom, chp.mvMat, this.viewProjMat, chp.material, chp.deck.moyai_tex, chp.color, chp.use_additive_blend);
             }
         }
-            if(prop.debug) {
-                console.log("debug_moyai_prop:",prop.geom,prop.deck);
-            }        
-        
+        if(prop.debug) console.log("debug_moyai_prop:",prop.geom,prop.deck);
         
         if(prop.geom && prop.deck) {
             this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, prop.deck.moyai_tex, prop.color,prop.use_additive_blend);
@@ -356,22 +355,26 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,
     gl.uniformMatrix4fv( material.uniformLocations.projectionMatrix, false, projMat ); // TODO: put it out        
 
     // pos
+    if(!geom.positionBuffer) console.warn("no posbuf",geom);
     gl.bindBuffer(gl.ARRAY_BUFFER, geom.positionBuffer);
     gl.vertexAttribPointer( material.attribLocations.position, 3, gl.FLOAT, false,0,0);
     gl.enableVertexAttribArray(material.attribLocations.position);
     // color
     if(geom.colorBuffer) {
+        if(!geom.colorBuffer) console.warn("no colbuf",geom);
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.colorBuffer);
         gl.vertexAttribPointer( material.attribLocations.color, geom.stride_colors, gl.FLOAT, false,0,0 );
         gl.enableVertexAttribArray(material.attribLocations.color);
     }
     // ind
+    if(!geom.indexBuffer) console.warn("no indbuf",geom);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geom.indexBuffer);
     // setup shader
     gl.uniformMatrix4fv( material.uniformLocations.modelViewMatrix, false, mvMat);
     if(moyai_tex) {
         var gltex=moyai_tex.gltex;
         // uv
+        if(!geom.uvBuffer) console.warn("no uvbuf",geom);
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.uvBuffer);
         gl.vertexAttribPointer(material.attribLocations.uv, 2, gl.FLOAT, false,0,0 );
         gl.enableVertexAttribArray(material.attribLocations.uv );        
@@ -408,9 +411,24 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,
     }
     
     if(geom.primtype==gl.TRIANGLES) {
-        gl.drawElements(gl.TRIANGLES, indn, gl.UNSIGNED_SHORT, 0);        
+        gl.drawElements(gl.TRIANGLES, indn, gl.UNSIGNED_SHORT, 0);
     } else if(geom.primtype==gl.LINES) {
         gl.drawElements(gl.LINES, indn, gl.UNSIGNED_SHORT, 0);        
+    }
+    if(0) {
+        var e=gl.getError();
+        if(e!=gl.NO_ERROR) {
+            var msg="unknown";
+            switch(e) {
+            case gl.INVALID_ENUM: msg="invalid enum"; break;
+            case gl.INVALID_VALUE: msg="invalid value"; break;
+            case gl.INVALID_OPERATION: msg="invalid operation"; break;
+            case gl.INVALID_FRAMEBUFFER_OPERATION: msg="invalid fb op"; break;
+            case gl.OUT_OF_MEMORY: msg="out of mem"; break;
+            case gl.CONTEXT_LOST_WEBGL: msg="context lost webgl"; break;
+            }
+            console.log("glerror:",e,msg, geom );
+        }
     }
 }
     
@@ -719,27 +737,29 @@ class Geometry {
         this.colors=new Float32Array(vn*4);
         this.stride_colors=4;
         this.inds=new Uint16Array(indn);
-        //TODO: normalbuffer
     }
     dispose() {
         var gl=Moyai.gl;
         if(this.positionBuffer) {
             gl.deleteBuffer(this.positionBuffer);
             this.positionBuffer=null;
+            this.need_positions_update=true;
         }
         if(this.colorBuffer) {
             gl.deleteBuffer(this.colorBuffer);
             this.colorBuffer=null;
+            this.need_colors_update=true;
         }
         if(this.indexBuffer) {
             gl.deleteBuffer(this.indexBuffer);
-            this.indexBuffer=null;
+            this.indexBuffer=null;            
+            this.need_inds_update=true;
         }
         if(this.uvBuffer) {
             gl.deleteBuffer(this.uvBuffer);
             this.uvBuffer=null;
+            this.need_uvs_update=true;
         }
-        //TODO: normalbuffer
     }
     setPositionArray(ary,vn) { this.positions=ary; this.need_positions_update=true; this.vn=vn; }
     setColorArray(ary,stride) {this.colors=ary; this.stride_colors=stride; this.need_colors_update=true;}
@@ -1116,6 +1136,7 @@ class Prop2D extends Prop {
     onDelete() {
         if(this.geom){
             this.geom.dispose();
+            this.geom=null;
         }
     }
 	hit(at,margin) {
@@ -1733,7 +1754,8 @@ var fragment_vcolor_glsl =
     "varying highp vec4 vColor;\n"+        
     "void main()\n"+
     "{\n"+
-    "  gl_FragColor = vColor;//vec4(1,0,1,1);\n"+
+//    "  gl_FragColor = vColor;//vec4(1,0,1,1);\n"+
+    "  gl_FragColor = vec4( vColor.r * vColor.a, vColor.g * vColor.a, vColor.b * vColor.a, vColor.a);\n"+    
     "}\n";
 //    
 var vertex_uv_color_glsl =
