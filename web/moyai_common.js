@@ -277,17 +277,14 @@ class Layer {
         return false;
     }
     pollAllProps(dt) {
-        var keep=[]; // TODO: no alloc
-        for(var i=0;i<this.props.length;i++) {
+        for(var i=this.props.length-1;i>=0;i--) {
             var prop = this.props[i];
             var to_keep = prop.basePoll(dt);
-            if(to_keep) {
-                keep.push(prop);
-            } else {
+            if(!to_keep) {
                 if(prop.onDelete) prop.onDelete();
+                this.props.splice(i,1);
             }
         }
-        this.props = keep;
         return this.props.length;
     }
     getHighestPriority() {

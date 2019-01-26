@@ -137,10 +137,15 @@ THE SOFTWARE. */
  * Common utilities
  * @module glMatrix
  */
-
+    exports.f32_alloc_count=0;
+    
+    function Float32ArrayAllocCounter(n) {
+        exports.f32_alloc_count++;
+        return new Float32Array(n);
+    }
 // Configuration Constants
 var EPSILON = exports.EPSILON = 0.000001;
-var ARRAY_TYPE = exports.ARRAY_TYPE = typeof Float32Array !== 'undefined' ? Float32Array : Array;
+var ARRAY_TYPE = exports.ARRAY_TYPE = typeof Float32Array !== 'undefined' ? Float32ArrayAllocCounter : Array;
 var RANDOM = exports.RANDOM = Math.random;
 
 /**
