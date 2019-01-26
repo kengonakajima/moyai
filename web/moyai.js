@@ -219,6 +219,8 @@ Moyai.cull_min_loc=vec3.create();
 Moyai.cull_max_loc=vec3.create();
 Moyai.workv0=vec3.create();
 Moyai.workv1=vec3.create();
+Moyai.workv2=vec3.create();
+Moyai.workv3=vec3.create();
 Moyai.render3D = function(layer) {
     var cam=layer.camera;
     cam.updateMatrix();
