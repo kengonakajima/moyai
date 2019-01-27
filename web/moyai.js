@@ -39,6 +39,9 @@ class PerspectiveCamera {
         vec3.copy(this.look_at,at);
         vec3.copy(this.look_up,up);
     }
+    getDirection(outv) {
+        vec3.subtract(outv, this.look_at,this.loc);
+    }
     updateMatrix() {
         mat4.lookAt(this.camMat,this.loc,this.look_at,this.look_up);
         mat4.perspective(this.projMat, this.fov, this.aspect, this.near, this.far );
