@@ -371,6 +371,9 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.colorBuffer);
         gl.vertexAttribPointer( material.attribLocations.color, geom.stride_colors, gl.FLOAT, false,0,0 );
         gl.enableVertexAttribArray(material.attribLocations.color);
+        Moyai.last_color_attr_loc=material.attribLocations.color;
+    } else {
+        gl.disableVertexAttribArray(Moyai.last_color_attr_loc);
     }
     // ind
     if(!geom.indexBuffer) console.warn("no indbuf",geom);
@@ -383,13 +386,16 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,
         if(!geom.uvBuffer) console.warn("no uvbuf",geom);
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.uvBuffer);
         gl.vertexAttribPointer(material.attribLocations.uv, 2, gl.FLOAT, false,0,0 );
-        gl.enableVertexAttribArray(material.attribLocations.uv );        
+        gl.enableVertexAttribArray(material.attribLocations.uv );
+        Moyai.last_uv_attr_loc=material.attribLocations.uv;
         gl.activeTexture(gl.TEXTURE0);
 
         gl.bindTexture(gl.TEXTURE_2D, gltex);
         gl.uniform1i(material.uniformLocations.texture,0);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, moyai_tex.min_filter);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, moyai_tex.mag_filter);                            
+    } else {
+        gl.disableVertexAttribArray(Moyai.last_uv_attr_loc);
     }
     if(colv) gl.uniform4fv(material.uniformLocations.meshcolor, colv);
 
