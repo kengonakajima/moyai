@@ -31,11 +31,11 @@ void Sound::play(float vol){
 #endif
 #ifdef USE_UNTZ
         sound->play();
-        sound->setVolume(vol);
+        sound->setVolume(default_volume*vol);
 #endif
 #ifdef USE_OPENAL
         sound->play();
-        sound->setVolume(vol);
+        sound->setVolume(default_volume*vol);
 #endif
     }
     last_play_volume = default_volume * vol;    
