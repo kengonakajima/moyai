@@ -207,13 +207,15 @@ class Viewport {
         this.near_clip = null;
         this.far_clip = null;
         this.dimension = null;
+        this.scl=vec2.fromValues(32,32);
     }
     setSize(sw,sh) {
         this.screen_width = sw;
         this.screen_height = sh;
     }
     setScale2D(sx,sy) {
-        this.scl = vec2.fromValues(sx,sy);
+        this.scl[0]=sx;
+        this.scl[1]=sy;
         this.dimension = 2;
     }
     setClip3D(near,far) {
@@ -277,17 +279,14 @@ class Layer {
         return false;
     }
     pollAllProps(dt) {
-        var keep=[];
-        for(var i=0;i<this.props.length;i++) {
+        for(var i=this.props.length-1;i>=0;i--) {
             var prop = this.props[i];
             var to_keep = prop.basePoll(dt);
-            if(to_keep) {
-                keep.push(prop);
-            } else {
+            if(!to_keep) {
                 if(prop.onDelete) prop.onDelete();
+                this.props.splice(i,1);
             }
         }
-        this.props = keep;
         return this.props.length;
     }
     getHighestPriority() {

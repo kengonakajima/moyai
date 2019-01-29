@@ -262,7 +262,14 @@ if(1) {
         var uv_rt=vec2.fromValues(kk,0);
         var uv_lb=vec2.fromValues(0,kk);
         var uv_rb=vec2.fromValues(kk,kk);
-        
+
+        /* need sort to use alpha-transparent tile
+        if(range(0,1)<0.5) {
+            uv_lt=vec2.fromValues(kk*4,0);
+            uv_rt=vec2.fromValues(kk*5,0);
+            uv_lb=vec2.fromValues(kk*4,kk);
+            uv_rb=vec2.fromValues(kk*5,kk);                                    
+        }        */
         var geom = new FaceGeometry(6*4*sz*sz*sz,6*2*sz*sz*sz);
 
         var a=vec3.create();
@@ -298,7 +305,7 @@ if(1) {
                     geom.setPosition3v(vi+12,c); geom.setPosition3v(vi+13,d); geom.setPosition3v(vi+14,h); geom.setPosition3v(vi+15,g);//-z
                     geom.setPosition3v(vi+16,b); geom.setPosition3v(vi+17,c); geom.setPosition3v(vi+18,g); geom.setPosition3v(vi+19,f);//+x
                     geom.setPosition3v(vi+20,d); geom.setPosition3v(vi+21,a); geom.setPosition3v(vi+22,e); geom.setPosition3v(vi+23,h);//-x
-
+                    
                     geom.setUV2v(vi+0,uv_lb); geom.setUV2v(vi+1,uv_rb); geom.setUV2v(vi+2,uv_rt); geom.setUV2v(vi+3,uv_lt); // abcd
                     geom.setUV2v(vi+4,uv_lb); geom.setUV2v(vi+5,uv_rb); geom.setUV2v(vi+6,uv_rt); geom.setUV2v(vi+7,uv_lt); // efgh
                     geom.setUV2v(vi+8,uv_lb); geom.setUV2v(vi+9,uv_rb); geom.setUV2v(vi+10,uv_rt); geom.setUV2v(vi+11,uv_lt); // abfe

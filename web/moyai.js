@@ -39,6 +39,9 @@ class PerspectiveCamera {
         vec3.copy(this.look_at,at);
         vec3.copy(this.look_up,up);
     }
+    getDirection(outv) {
+        vec3.subtract(outv, this.look_at,this.loc);
+    }
     updateMatrix() {
         mat4.lookAt(this.camMat,this.loc,this.look_at,this.look_up);
         mat4.perspective(this.projMat, this.fov, this.aspect, this.near, this.far );
@@ -149,7 +152,6 @@ Moyai.init = function(w,h){
     this.y_axis=vec3.fromValues(0,1,0);
     this.z_axis=vec3.fromValues(0,0,1);
     this.initialized=true;
-    console.log("Moyai:",this);
 }
 Moyai.setSize = function(w,h) {
     this.width=w;
@@ -220,6 +222,8 @@ Moyai.cull_min_loc=vec3.create();
 Moyai.cull_max_loc=vec3.create();
 Moyai.workv0=vec3.create();
 Moyai.workv1=vec3.create();
+Moyai.workv2=vec3.create();
+Moyai.workv3=vec3.create();
 Moyai.render3D = function(layer) {
     var cam=layer.camera;
     cam.updateMatrix();
@@ -266,7 +270,7 @@ Moyai.render3D = function(layer) {
         prop.updateModelViewMatrix();
         if(prop.geom) {
             prop.geom.bless();
-            this.draw(prop.geom, prop.mvMat, cam.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend,prop.cull_face);
+            this.draw(prop.geom, prop.mvMat, cam.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend,prop.cull_face,prop.depth_mask);
             this.draw_count_3d++;
         }
 
@@ -276,7 +280,7 @@ Moyai.render3D = function(layer) {
                 if(!chp.visible)continue;
                 chp.updateModelViewMatrix(prop.mvMat);                
                 chp.geom.bless();
-                this.draw(chp.geom, chp.mvMat, cam.viewProjMat, chp.material, chp.moyai_tex, chp.color, chp.use_additive_blend, chp.cull_face);
+                this.draw(chp.geom, chp.mvMat, cam.viewProjMat, chp.material, chp.moyai_tex, chp.color, chp.use_additive_blend, chp.cull_face,chp.depth_mask);
                 this.draw_count_3d++;
             }
         }
@@ -317,6 +321,7 @@ Moyai.render2D = function(layer) {
                 if(grid.geom) grid.geom.bless();
                 var tex;
                 if(grid.deck) tex=grid.deck.moyai_tex; else tex=prop.deck.moyai_tex;
+                if(prop.debug) console.log("debug_moyai_prop_grid:",prop.geom,prop.deck);                
                 this.draw(grid.geom, prop.mvMat, this.viewProjMat, prop.material, tex, prop.color, prop.use_additive_blend);
             }
         }
@@ -327,13 +332,11 @@ Moyai.render2D = function(layer) {
                 chp.updateModelViewMatrix();                
                 chp.updateGeom();
                 if(chp.geom) chp.geom.bless();
+                if(chp.debug) console.log("debug_moyai_childprop:",chp.geom,chp.deck);                
                 this.draw(chp.geom, chp.mvMat, this.viewProjMat, chp.material, chp.deck.moyai_tex, chp.color, chp.use_additive_blend);
             }
         }
-            if(prop.debug) {
-                console.log("debug_moyai_prop:",prop.geom,prop.deck);
-            }        
-        
+        if(prop.debug) console.log("debug_moyai_prop:",prop.geom,prop.deck);
         
         if(prop.geom && prop.deck) {
             this.draw(prop.geom, prop.mvMat, this.viewProjMat, prop.material, prop.deck.moyai_tex, prop.color,prop.use_additive_blend);
@@ -341,7 +344,9 @@ Moyai.render2D = function(layer) {
         if(prop.prim_drawer) {
             for(var i=0;i<prop.prim_drawer.prims.length;i++) {
                 var prim = prop.prim_drawer.prims[i];
-                prim.updateModelViewMatrix(vec3.fromValues(prop.loc[0],prop.loc[1],0),vec3.fromValues(prop.scl[0],prop.scl[1],1)); // TODO: noalloc
+                vec3.set(Moyai.workv0, prop.loc[0],prop.loc[1],0);
+                vec3.set(Moyai.workv1, prop.scl[0],prop.scl[1],1);
+                prim.updateModelViewMatrix(Moyai.workv0, Moyai.workv1);
                 prim.updateGeom();
                 if(prim.geom) prim.geom.bless();
                 this.draw(prim.geom, prim.mvMat, this.viewProjMat, prim.material, null, null, prim.use_additive_blend);
@@ -349,38 +354,48 @@ Moyai.render2D = function(layer) {
         }            
     }
 }
-Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,cull_face) {
+Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,cull_face,depth_mask) {
 //    if(geom.stride_colors==3)  console.warn("draw:",geom,mvMat,projMat,material,moyai_tex,colv,additive_blend);
     var gl=Moyai.gl;
     gl.useProgram(material.glprog);
     gl.uniformMatrix4fv( material.uniformLocations.projectionMatrix, false, projMat ); // TODO: put it out        
 
     // pos
+    if(!geom.positionBuffer) console.warn("no posbuf",geom);
     gl.bindBuffer(gl.ARRAY_BUFFER, geom.positionBuffer);
     gl.vertexAttribPointer( material.attribLocations.position, 3, gl.FLOAT, false,0,0);
     gl.enableVertexAttribArray(material.attribLocations.position);
     // color
     if(geom.colorBuffer) {
+        if(!geom.colorBuffer) console.warn("no colbuf",geom);
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.colorBuffer);
         gl.vertexAttribPointer( material.attribLocations.color, geom.stride_colors, gl.FLOAT, false,0,0 );
         gl.enableVertexAttribArray(material.attribLocations.color);
+        Moyai.last_color_attr_loc=material.attribLocations.color;
+    } else {
+        gl.disableVertexAttribArray(Moyai.last_color_attr_loc);
     }
     // ind
+    if(!geom.indexBuffer) console.warn("no indbuf",geom);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geom.indexBuffer);
     // setup shader
     gl.uniformMatrix4fv( material.uniformLocations.modelViewMatrix, false, mvMat);
     if(moyai_tex) {
         var gltex=moyai_tex.gltex;
         // uv
+        if(!geom.uvBuffer) console.warn("no uvbuf",geom);
         gl.bindBuffer(gl.ARRAY_BUFFER, geom.uvBuffer);
         gl.vertexAttribPointer(material.attribLocations.uv, 2, gl.FLOAT, false,0,0 );
-        gl.enableVertexAttribArray(material.attribLocations.uv );        
+        gl.enableVertexAttribArray(material.attribLocations.uv );
+        Moyai.last_uv_attr_loc=material.attribLocations.uv;
         gl.activeTexture(gl.TEXTURE0);
 
         gl.bindTexture(gl.TEXTURE_2D, gltex);
         gl.uniform1i(material.uniformLocations.texture,0);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, moyai_tex.min_filter);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, moyai_tex.mag_filter);                            
+    } else {
+        gl.disableVertexAttribArray(Moyai.last_uv_attr_loc);
     }
     if(colv) gl.uniform4fv(material.uniformLocations.meshcolor, colv);
 
@@ -393,6 +408,7 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,
         gl.blendFunc(gl.ONE,gl.ONE);
     } else {
         gl.blendFuncSeparate(gl.ONE,gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+//        gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
     }
     if(!cull_face) {
         gl.disable(gl.CULL_FACE);
@@ -400,11 +416,31 @@ Moyai.draw = function(geom,mvMat,projMat,material,moyai_tex,colv,additive_blend,
         gl.enable(gl.CULL_FACE);
         gl.cullFace(cull_face);
     }
+    if(depth_mask) {
+        gl.depthMask(true);
+    } else {
+        gl.depthMask(false);
+    }
     
     if(geom.primtype==gl.TRIANGLES) {
-        gl.drawElements(gl.TRIANGLES, indn, gl.UNSIGNED_SHORT, 0);        
+        gl.drawElements(gl.TRIANGLES, indn, gl.UNSIGNED_SHORT, 0);
     } else if(geom.primtype==gl.LINES) {
         gl.drawElements(gl.LINES, indn, gl.UNSIGNED_SHORT, 0);        
+    }
+    if(0) {
+        var e=gl.getError();
+        if(e!=gl.NO_ERROR) {
+            var msg="unknown";
+            switch(e) {
+            case gl.INVALID_ENUM: msg="invalid enum"; break;
+            case gl.INVALID_VALUE: msg="invalid value"; break;
+            case gl.INVALID_OPERATION: msg="invalid operation"; break;
+            case gl.INVALID_FRAMEBUFFER_OPERATION: msg="invalid fb op"; break;
+            case gl.OUT_OF_MEMORY: msg="out of mem"; break;
+            case gl.CONTEXT_LOST_WEBGL: msg="context lost webgl"; break;
+            }
+            console.log("glerror:",e,msg, geom );
+        }
     }
 }
     
@@ -713,27 +749,29 @@ class Geometry {
         this.colors=new Float32Array(vn*4);
         this.stride_colors=4;
         this.inds=new Uint16Array(indn);
-        //TODO: normalbuffer
     }
     dispose() {
         var gl=Moyai.gl;
         if(this.positionBuffer) {
             gl.deleteBuffer(this.positionBuffer);
             this.positionBuffer=null;
+            this.need_positions_update=true;
         }
         if(this.colorBuffer) {
             gl.deleteBuffer(this.colorBuffer);
             this.colorBuffer=null;
+            this.need_colors_update=true;
         }
         if(this.indexBuffer) {
             gl.deleteBuffer(this.indexBuffer);
-            this.indexBuffer=null;
+            this.indexBuffer=null;            
+            this.need_inds_update=true;
         }
         if(this.uvBuffer) {
             gl.deleteBuffer(this.uvBuffer);
             this.uvBuffer=null;
+            this.need_uvs_update=true;
         }
-        //TODO: normalbuffer
     }
     setPositionArray(ary,vn) { this.positions=ary; this.need_positions_update=true; this.vn=vn; }
     setColorArray(ary,stride) {this.colors=ary; this.stride_colors=stride; this.need_colors_update=true;}
@@ -951,6 +989,8 @@ class Prop2D extends Prop {
         this.remote_vel=null;
         this.draw_offset=vec2.create();
         this.geom=null;
+        this.depth_mask=true;
+        this.mvMat=mat4.create();
     }
     setVisible(flg) { this.visible=flg; }
     setDeck(dk) { this.deck = dk; }
@@ -1041,11 +1081,12 @@ class Prop2D extends Prop {
         return true;
     }
     updateModelViewMatrix() {
-        if(!this.mvMat) this.mvMat=mat4.create(); // TODO to_cons
         mat4.identity(this.mvMat);
-        mat4.translate(this.mvMat,this.mvMat,vec3.fromValues(this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],0)); //TODO:noalloc           
-        mat4.rotate(this.mvMat,this.mvMat,this.rot,vec3.fromValues(0,0,1));//TODO: noalloc
-        mat4.scale(this.mvMat,this.mvMat,vec3.fromValues(this.scl[0],this.scl[1],1));  //TODO: noalloc
+        vec3.set(Moyai.workv0, this.loc[0]+this.draw_offset[0],this.loc[1]+this.draw_offset[1],0);
+        mat4.translate(this.mvMat,this.mvMat,Moyai.workv0);
+        mat4.rotate(this.mvMat,this.mvMat,this.rot,Moyai.z_axis);
+        vec3.set(Moyai.workv0, this.scl[0],this.scl[1],1);
+        mat4.scale(this.mvMat,this.mvMat, Moyai.workv0 );
     }
     clearGeom() {
         this.geom=null;
@@ -1109,6 +1150,7 @@ class Prop2D extends Prop {
     onDelete() {
         if(this.geom){
             this.geom.dispose();
+            this.geom=null;
         }
     }
 	hit(at,margin) {
@@ -1726,7 +1768,8 @@ var fragment_vcolor_glsl =
     "varying highp vec4 vColor;\n"+        
     "void main()\n"+
     "{\n"+
-    "  gl_FragColor = vColor;//vec4(1,0,1,1);\n"+
+//    "  gl_FragColor = vColor;//vec4(1,0,1,1);\n"+
+    "  gl_FragColor = vec4( vColor.r * vColor.a, vColor.g * vColor.a, vColor.b * vColor.a, vColor.a);\n"+    
     "}\n";
 //    
 var vertex_uv_color_glsl =
@@ -1752,7 +1795,7 @@ var fragment_uv_color_glsl =
     "void main()\n"+
     "{\n"+
     "  highp vec4 tc = texture2D(texture,vUv);\n"+
-    "  if(tc.a<0.01) discard; else gl_FragColor = vec4( tc.r * meshcolor.r * vColor.r, tc.g * meshcolor.g * vColor.g, tc.b * meshcolor.b * vColor.b, tc.a * meshcolor.a * vColor.a);\n"+
+    "  if(tc.a<0.01) discard; else gl_FragColor = vec4( tc.r * meshcolor.r * vColor.r * tc.a * vColor.a * meshcolor.a, tc.g * meshcolor.g * vColor.g * tc.a * vColor.a * meshcolor.a, tc.b * meshcolor.b * vColor.b * tc.a * vColor.a * meshcolor.a, tc.a * meshcolor.a * vColor.a);\n"+
     "}\n";
 
 var fragment_replacer_glsl = 
@@ -2247,7 +2290,8 @@ class Prop3D extends Prop {
         this.localMat=mat4.create();
         this.finalLoc=vec3.create();
         this.rot=vec3.create(); // xyz-euler in radian
-        this.cull_face=Moyai.gl.BACK;        
+        this.cull_face=Moyai.gl.BACK;
+        this.depth_mask=true;
     }
     propPoll(dt) {
         if(this.prop3DPoll && this.prop3DPoll(dt)===false) {
