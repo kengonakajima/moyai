@@ -415,7 +415,7 @@ bool Image::writePNG(const char *path) {
     const char *cpath = platformCStringPath(path);
     
     assertmsg( buffer!=0 , "image not initialized?" );
-    assertmsg( width <= 2048 && height <= 2048, "image too big" );
+    assertmsg( width <= 4096 && height <= 4096, "image too big:%d,%d",width,height );
     
 
     /*Same as lodepng_encode_file, but always encodes from 32-bit RGBA raw image.*/
