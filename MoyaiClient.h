@@ -27,7 +27,7 @@ public:
 	MoyaiClient(GLFWwindow *win, int w, int h ) : Moyai(), window(win), last_draw_call_count(0), remote_head(0), window_width(w), window_height(h) {
 	}
 	int render(bool clear=true, bool swap_and_flush=true);
-	void capture( Image *img );
+	void capture( Image *img, int stride=1 );
 	void insertLayer( Layer *l ) {
         int hprio = getHighestPriority();
         l->priority = hprio+1;
