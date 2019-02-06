@@ -5,6 +5,8 @@
 #include "FragmentShader.h"
 #include "AnimCurve.h"
 
+FragmentShader *Prop2D::default_fs=NULL;
+
 bool Prop2D::propPoll(double dt) {
 	if( prop2DPoll(dt) == false ) return false;
     if(remote_vel.isZero()==false) { // for cloud syncing
@@ -249,6 +251,7 @@ void Prop2D::render(Camera *cam, DrawBatchList *bl ) {
             //            print("appendMesh, tex:%d vn:%d rn:%d", draw_deck->tex->tex, grid->mesh->vb->array_len, grid->mesh->ib->render_len );
             Vec2 finloc(loc.x+grid->rel_loc.x, loc.y+grid->rel_loc.y);
             Vec2 finscl(scl.x*grid->rel_scl.x, scl.y*grid->rel_scl.y);
+            if(!fs)fs=default_fs;
             bl->appendMesh( getViewport(), fs, getBlendType(), draw_deck->tex->tex, finloc - Vec2(camx,camy), finscl, rot, grid->mesh, copy_mesh_at_draw );
 		}
 	}
@@ -274,6 +277,7 @@ void Prop2D::render(Camera *cam, DrawBatchList *bl ) {
             uv_r = uv_q;
             uv_q = tmp;
         }
+        if(!fragment_shader)fragment_shader=default_fs;
         bl->appendSprite1( getViewport(),
                            fragment_shader,
                            getBlendType(),
