@@ -17,13 +17,15 @@ public:
 		tex = t;
 		tex->getSize( &image_width, &image_height );
 	}
-	void setImage( Image *img, int offset_x=0, int offset_y=0 ) {
+    void setOffset(int xofs, int yofs) {
+        ofs_x=xofs;
+        ofs_y=yofs;        
+    }
+	void setImage( Image *img ) {
 		tex = new Texture();
 		tex->setImage(img);
 		image_width = img->width;
 		image_height = img->height;
-        ofs_x=offset_x;
-        ofs_y=offset_y;
 	}
 	virtual void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
         print("getUVFromIndex:should never called");
@@ -55,8 +57,8 @@ public:
         assert( image_width > 0 && image_height > 0 );
 		float uunit = getUperCell();
 		float vunit = getVperCell();
-		int start_x = cell_width * (int)( ind % tile_width );
-		int start_y = cell_height * (int)( ind / tile_width );
+		int start_x = cell_width * (int)( ind % tile_width ) + ofs_x;
+		int start_y = cell_height * (int)( ind / tile_width ) + ofs_y;
 
 		*u0 = (float) start_x / (float) image_width + eps + uofs * uunit; 
 		*v0 = (float) start_y / (float) image_height + eps + vofs * vunit; 
