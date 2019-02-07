@@ -51,7 +51,7 @@ public:
     static bool debug_batch_cond;
     
     DrawBatch( Viewport *vp, VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew = 1 );
-    DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx, Vec2 translate, Vec2 scale, float r, Mesh *m, bool copy_mesh );
+    DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx, GLuint primtype, Vec2 translate, Vec2 scale, float r, Mesh *m, bool copy_mesh );
     ~DrawBatch() {
         if(vb)delete vb;
         if(ib)delete ib;

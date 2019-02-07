@@ -27,7 +27,7 @@ void DrawBatch::setupVBIB( Mesh *copy_from,VFTYPE vft ) {
         ib->reserve(MAXINDEX);
     }
 }
-DrawBatch::DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx, Vec2 tr, Vec2 scl, float r, Mesh *m, bool copy_mesh ) : vf_type(VFTYPE_INVAL), tex(tx), prim_type(0), f_shader(fs), blend_type(bt), line_width(0), vb(NULL), ib(NULL), vert_used(0), index_used(0), translate(tr), scale(scl), radrot(r), viewport(vp), perform_transform(true) {
+DrawBatch::DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx, GLuint primtype, Vec2 tr, Vec2 scl, float r, Mesh *m, bool copy_mesh ) : vf_type(VFTYPE_INVAL), tex(tx), prim_type(primtype), f_shader(fs), blend_type(bt), line_width(0), vb(NULL), ib(NULL), vert_used(0), index_used(0), translate(tr), scale(scl), radrot(r), viewport(vp), perform_transform(true) {
     if(copy_mesh) {
         setupVBIB(m);
         mesh = NULL;
@@ -37,7 +37,12 @@ DrawBatch::DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx,
 }
 bool DrawBatch::shouldContinue( Viewport *vp, VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew  ) {
     bool can_continue=(viewport==vp && vft==vf_type && texid == tex && primtype == prim_type && f_shader == fs && blend_type == bt && line_width == linew );
-    if(debug_batch_cond && !can_continue) print("shouldcont: v%d t%d(%d,%d) p%d f%d b%d", vft==vf_type,texid==tex,texid,tex,primtype==prim_type,f_shader==fs,blend_type==bt);
+    if(debug_batch_cond && !can_continue) print("shouldcont: v%d t%d(%d,%d) p%d(%d,%d,%d,%d) f%d b%d",
+                                                vft==vf_type,
+                                                texid==tex,texid,tex,
+                                                primtype==prim_type,primtype,prim_type,GL_LINES, GL_TRIANGLES,
+                                                f_shader==fs,blend_type==bt);
+    if(!prim_type) dump();
     return can_continue;
 }
 void DrawBatch::pushVertices( int vnum, Color *colors, Vec3 *coords, int inum, int *inds) {
@@ -216,10 +221,10 @@ void DrawBatch::draw() {
 }
 
 void DrawBatch::dump() {
-    print("DrawBatch vft:%d tex:%d prim_type:%d shader:%p blend_type:%d line_w:%d vert_used:%d index_used:%d tr:%f,%f scl:%f,%f rot:%f",
+    print("DrawBatch vft:%d tex:%d prim_type:%d shader:%p blend_type:%d line_w:%d vert_used:%d index_used:%d tr:%f,%f scl:%f,%f rot:%f vb:%p ib:%p",
           vf_type, tex, prim_type, f_shader, blend_type, line_width, vert_used, index_used, translate.x, translate.y, scale.x, scale.y, radrot );
-    vb->dump(vert_used);
-    ib->dump(index_used);        
+    if(vb) vb->dump(vert_used);
+    if(ib) ib->dump(index_used);        
 }
 
 //////////////////////
@@ -384,7 +389,7 @@ DrawBatch *DrawBatchList::startNextBatch( Viewport *vp, VFTYPE vft, GLuint tex, 
 }
 DrawBatch *DrawBatchList::startNextMeshBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tex, Vec2 tr, Vec2 scl, float radrot, Mesh *mesh, bool copy_mesh ) {
     assertmsg( used<MAXBATCH, "max draw batch (withshader). need tune" );
-    DrawBatch *b = new DrawBatch( vp, fs, bt, tex, tr, scl, radrot, mesh, copy_mesh );
+    DrawBatch *b = new DrawBatch( vp, fs, bt, tex, mesh->prim_type, tr, scl, radrot, mesh, copy_mesh );
     batches[used] = b;
     used++;
     return b;
