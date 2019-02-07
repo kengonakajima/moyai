@@ -3,6 +3,7 @@
 #include "Viewport.h"
 #include "DrawBatch.h"
 
+bool DrawBatch::debug_batch_cond=false;
 
 DrawBatch::DrawBatch( Viewport *vp, VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew ) : vf_type(vft), tex(tx), prim_type(primtype), f_shader(fs), blend_type(bt), line_width(linew), vert_used(0), index_used(0), mesh(NULL), translate(0,0), scale(8,8), radrot(0), viewport(vp), perform_transform(false) {
     setupVBIB(NULL,vft);
@@ -36,7 +37,7 @@ DrawBatch::DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx,
 }
 bool DrawBatch::shouldContinue( Viewport *vp, VFTYPE vft, GLuint texid, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew  ) {
     bool can_continue=(viewport==vp && vft==vf_type && texid == tex && primtype == prim_type && f_shader == fs && blend_type == bt && line_width == linew );
-    //    if(!can_continue) print("shouldcont: v%d t%d(%d,%d) p%d f%d b%d", vft==vf_type,texid==tex,texid,tex,primtype==prim_type,f_shader==fs,blend_type==bt);
+    if(debug_batch_cond && !can_continue) print("shouldcont: v%d t%d(%d,%d) p%d f%d b%d", vft==vf_type,texid==tex,texid,tex,primtype==prim_type,f_shader==fs,blend_type==bt);
     return can_continue;
 }
 void DrawBatch::pushVertices( int vnum, Color *colors, Vec3 *coords, int inum, int *inds) {

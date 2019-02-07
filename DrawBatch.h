@@ -47,6 +47,9 @@ public:
     static const int MAXQUAD = 256;
     static const int MAXVERTEX = MAXQUAD*4;
     static const int MAXINDEX = MAXQUAD*6;
+
+    static bool debug_batch_cond;
+    
     DrawBatch( Viewport *vp, VFTYPE vft, GLuint tx, GLuint primtype, FragmentShader *fs, BLENDTYPE bt, int linew = 1 );
     DrawBatch( Viewport *vp, FragmentShader *fs, BLENDTYPE bt, GLuint tx, Vec2 translate, Vec2 scale, float r, Mesh *m, bool copy_mesh );
     ~DrawBatch() {
