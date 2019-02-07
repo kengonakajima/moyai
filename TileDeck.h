@@ -7,20 +7,23 @@ public:
     static int idgen;
     int id;    
 	int image_width, image_height; // Size of the image in pixels
+    int ofs_x, ofs_y;
 	Texture *tex;
     
-    Deck() : id(idgen++), image_width(0), image_height(0), tex(NULL) {
+    Deck() : id(idgen++), image_width(0), image_height(0), ofs_x(0), ofs_y(0), tex(NULL) {
     }
 	void setTexture( Texture *t ){
 		assertmsg(t->tex!=0, "invalid texture" );
 		tex = t;
 		tex->getSize( &image_width, &image_height );
 	}
-	void setImage( Image *img ) {
+	void setImage( Image *img, int offset_x=0, int offset_y=0 ) {
 		tex = new Texture();
 		tex->setImage(img);
 		image_width = img->width;
 		image_height = img->height;
+        ofs_x=offset_x;
+        ofs_y=offset_y;
 	}
 	virtual void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
         print("getUVFromIndex:should never called");
@@ -50,8 +53,8 @@ public:
     virtual float getVperCell() { return (float) cell_height / (float) image_height; }    
 	virtual void getUVFromIndex( int ind, float *u0, float *v0, float *u1, float *v1, float uofs, float vofs, float eps ) {
         assert( image_width > 0 && image_height > 0 );
-		float uunit = (float) cell_width / (float) image_width;
-		float vunit = (float) cell_height / (float) image_height;
+		float uunit = getUperCell();
+		float vunit = getVperCell();
 		int start_x = cell_width * (int)( ind % tile_width );
 		int start_y = cell_height * (int)( ind / tile_width );
 
