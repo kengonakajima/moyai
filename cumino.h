@@ -220,6 +220,7 @@ bool readFile( const char *path, char *data, size_t *sz );
 bool readFileOffset( const char *path, char *data, size_t *sz, size_t offset );
 int getModifiedTime( const char *path, time_t *out );
 bool deleteFile( const char *path );
+bool makeDirectory(const char *path);
 
 int bytesum(const char *s, size_t l );
 void dump(const char*s, size_t l);

@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/stat.h> //mkdir
 #endif
 
 
@@ -379,6 +380,19 @@ bool deleteFile( const char *path ) {
     int err = ::remove(path);
     return (err==0);    
 }
+bool makeDirectory(const char *path) {
+#ifdef WIN32    
+    if(_mkdir(path)==0) return true;
+#endif
+#if defined(__APPLE__)
+    if(mkdir(path, S_IRWXU)==0) return true;
+#endif    
+#ifdef __linux    
+    if(mkdir(path)==0) return true;
+#endif
+    return false;
+}
+
 int bytesum(const char *s, size_t l ) {
     int total=0;
     for(size_t i=0;i<l;i++){
