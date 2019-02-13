@@ -11,6 +11,9 @@
 #include <sys/stat.h> //mkdir
 #endif
 
+#ifdef WIN32
+#include <direct.h>
+#endif
 
 #include <math.h>
 #include <stdlib.h>
