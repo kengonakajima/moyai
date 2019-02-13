@@ -57,8 +57,6 @@ public:
 	// prop-size cache for fast culling
 	Vec2 max_rt_cache, min_lb_cache;
 
-	float tex_epsilon;
-
 	bool render_children_first;
     bool use_additive_blend;
 
@@ -115,8 +113,6 @@ public:
 		prim_drawer = NULL;
 		max_rt_cache = Vec2(0,0);
 		min_lb_cache = Vec2(0,0);
-
-		tex_epsilon = 0;
 
 		render_children_first = false;
         use_additive_blend = false;
