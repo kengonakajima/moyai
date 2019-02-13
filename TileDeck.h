@@ -39,7 +39,8 @@ public:
 
 	int cell_width, cell_height; // Size in pixels of a single sprite
 	int tile_width, tile_height; // Number of sprites in the atlas
-
+    float left_u_margin, right_u_margin, top_v_margin, bottom_v_margin;
+    
 
 	TileDeck() : Deck(), cell_width(0), cell_height(0), tile_width(0), tile_height(0) {}
 

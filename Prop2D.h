@@ -74,6 +74,8 @@ public:
     Vec2 remote_vel;
     int target_client_id; // >0 if used
 
+    float uv_margin;
+    
     static FragmentShader *default_fs;
     
 	Prop2D() : Prop(), Renderable() {
@@ -126,6 +128,8 @@ public:
         loc_changed=true;
         locsync_mode = LOCSYNCMODE_DEFAULT;
         target_client_id = 0;
+
+        uv_margin=0;
 	}
 	virtual ~Prop2D(){
 		for(int i=0;i<grid_used_num;i++){

@@ -176,7 +176,7 @@ void Prop2D::render(Camera *cam, DrawBatchList *bl ) {
                         
                         Vec2 left_bottom, right_top;
                         float u0,v0,u1,v1;
-                        draw_deck->getUVFromIndex( grid->index_table[ind], &u0,&v0,&u1,&v1,0,0,0);
+                        draw_deck->getUVFromIndex( grid->index_table[ind], &u0,&v0,&u1,&v1,0,0,grid->uv_margin);
                         if(grid->texofs_table) {
                             float u_per_cell = draw_deck->getUperCell();
                             float v_per_cell = draw_deck->getVperCell();
@@ -258,7 +258,7 @@ void Prop2D::render(Camera *cam, DrawBatchList *bl ) {
 
 	if(deck && index >= 0 ){
         float u0,v0,u1,v1;
-        deck->getUVFromIndex( index, &u0,&v0,&u1,&v1,0,0,0);
+        deck->getUVFromIndex( index, &u0,&v0,&u1,&v1,0,0,uv_margin);
         if(xflip) {
             swapf(&u0,&u1);
         }
