@@ -44,7 +44,7 @@
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\libvorbis-1.3.5\include;$(ProjectDir)\..\libogg-1.3.2\include;$(ProjectDir)\..\rtaudio-4.1.2\include;$(ProjectDir)\..\rtaudio-4.1.2;$(ProjectDir)\..\freealut\include;$(ProjectDir)\..\openal-1.1\include;$(ProjectDir)\..\freetype-gl\windows\freetype</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\libvorbis-1.3.5\include;$(ProjectDir)\..\libogg-1.3.2\include;$(ProjectDir)\..\rtaudio-4.1.2;$(ProjectDir)\..\rtaudio-4.1.2\include;$(ProjectDir)\..\openal-1.1\include;$(ProjectDir)\..\freealut\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\libvorbis-1.3.5\include;$(ProjectDir)\..\libogg-1.3.2\include;$(ProjectDir)\..\rtaudio-4.1.2;$(ProjectDir)\..\rtaudio-4.1.2\include;$(ProjectDir)\..\openal-1.1\include;$(ProjectDir)\..\freealut\include;$(ProjectDir)\..\freetype-gl\windows\freetype</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

@@ -44,7 +44,7 @@
     <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-3.2\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-2.4.10\include;$(ProjectDir)..\libuv-1.20.2\include;$(ProjectDir)..\jpeg-8d;$(ProjectDir)..\untz\src;$(ProjectDir)..\untz\include;$(ProjectDir)..\openal-1.1\include;$(ProjectDir)..\freealut\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-3.2\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-gl\windows\freetype;$(ProjectDir)\..\libuv-1.8.0\include;$(ProjectDir)\..\jpeg-8d;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\openal-1.1\include;$(ProjectDir)\..\freealut\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-3.2\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\freetype-gl\windows\freetype;$(ProjectDir)\..\jpeg-8d;$(ProjectDir)\..\untz\src;$(ProjectDir)\..\untz\include;$(ProjectDir)\..\openal-1.1\include;$(ProjectDir)\..\freealut\include;$(ProjectDir)..\libuv-1.20.2\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
