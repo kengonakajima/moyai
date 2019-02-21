@@ -291,7 +291,17 @@ int main(int argc, char **argv )
     moyai_client->insertLayer(l2);
 
 #endif
-    
+
+#if 1
+
+    Prop2D *linecull=new Prop2D();
+    linecull->setDeck(deck);
+    linecull->setIndex(0);
+    l2->insertProp(linecull);
+    linecull->addLine(Vec2(0,0),Vec2(20,10),Color(1,1,1,1), 2);
+
+#endif
+
     // main loop
 
     while( !glfwWindowShouldClose(window) ){
@@ -348,7 +358,7 @@ int main(int argc, char **argv )
         Format fmt("%d", loop_counter);
         tbs[19]->setString(fmt.buf);
 #endif
-        
+
         // fps disp
         static double last_print_at = 0;
         if(last_print_at == 0){
@@ -439,7 +449,12 @@ int main(int argc, char **argv )
                 chp->addChild(dynchp);
             }            
         }
+#endif
+
+#if 1
+        linecull->loc.x-=4;
 #endif        
+        
         glfwPollEvents();
 
         double loop_end_at = now();

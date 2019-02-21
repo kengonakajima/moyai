@@ -376,10 +376,10 @@ void Prop2D::updateMinMaxSizeCache(){
 	if( prim_drawer ){
 		Vec2 minv, maxv;
 		prim_drawer->getMinMax( &minv, &maxv );
-		if( minv.x < min_lb_cache.x ) min_lb_cache.x = minv.x;
-		if( minv.y < min_lb_cache.y ) min_lb_cache.y = minv.y;
-		if( maxv.x > max_rt_cache.x ) max_rt_cache.x = maxv.x;
-		if( maxv.y > max_rt_cache.y ) max_rt_cache.y = maxv.y;
+		if( minv.x*scl.x < min_lb_cache.x ) min_lb_cache.x = minv.x*scl.x;
+		if( minv.y*scl.y < min_lb_cache.y ) min_lb_cache.y = minv.y*scl.y;
+		if( maxv.x*scl.x > max_rt_cache.x ) max_rt_cache.x = maxv.x*scl.x;
+		if( maxv.y*scl.y > max_rt_cache.y ) max_rt_cache.y = maxv.y*scl.y;
 	}
 }
 
