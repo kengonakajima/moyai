@@ -16,7 +16,7 @@ class JPEGCoder {
 public:
     Image *capture_img;
     int capture_pixel_skip; // Adjust sampling density of captures
-    static const size_t MAX_COMPRESSED_SIZE = 1024*1024;
+    static const size_t MAX_COMPRESSED_SIZE = 2*1024*1024;
     unsigned char *compressed;
     size_t compressed_size;
     int orig_w, orig_h;
@@ -25,11 +25,11 @@ public:
     // for libjpeg use
     JSAMPARRAY sampary;
         
-    JPEGCoder( int w, int h, int pixel_skip );
+    JPEGCoder( int w, int h, int pixel_skip);
     ~JPEGCoder();
 
     Image *getImage() { return capture_img; }
-    size_t encode();
+    size_t encode(Image *tgt_image=NULL);
     void setCompressedData( const unsigned char *indata, size_t len );
     void decode();
 };

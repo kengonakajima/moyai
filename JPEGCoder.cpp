@@ -35,15 +35,17 @@ JPEGCoder::~JPEGCoder() {
     FREE(sampary);
     delete capture_img;
 }
-size_t JPEGCoder::encode() {
+size_t JPEGCoder::encode(Image *tgt_image) {
+    Image *input_image = tgt_image;
+    if(!input_image) input_image = capture_img;
     double t0 = now();
     int step_w = orig_w/(capture_pixel_skip+1), step_h = orig_h/(capture_pixel_skip+1); 
     for(int y=0;y<step_h;y++) {
         int img_y = y * (capture_pixel_skip+1);
         for(int x=0;x<step_w;x++) {
             int img_x = x * (capture_pixel_skip+1);
-            unsigned char r,g,b,a;
-            capture_img->getPixelRaw( img_x, img_y, &r,&g,&b,&a);
+            unsigned char r,g,b,a;            
+            input_image->getPixelRaw( img_x, img_y, &r,&g,&b,&a);
             sampary[y][x*3+0] = r;
             sampary[y][x*3+1] = g;
             sampary[y][x*3+2] = b;
@@ -87,21 +89,18 @@ void JPEGCoder::decode() {
     struct jpeg_error_mgr jerr;
     cinfo.err = jpeg_std_error( &jerr );
     jpeg_create_decompress( &cinfo );
-                                                                                                                                       
+
     jpeg_mem_src( &cinfo, compressed, compressed_size );
-                                                                                                                                       
-    jpeg_read_header( &cinfo, true );                                                                                                  
-    jpeg_start_decompress( &cinfo );                                                                                                   
-                                                                                                                                       
-    while( cinfo.output_scanline < cinfo.output_height ) {                                                                             
+    jpeg_read_header( &cinfo, true );
+    jpeg_start_decompress( &cinfo );    
+    while( cinfo.output_scanline < cinfo.output_height ) {
         jpeg_read_scanlines( &cinfo,
                              sampary + cinfo.output_scanline,
                              cinfo.output_height - cinfo.output_scanline
                              );
-    }                                                                                                                                  
-    jpeg_finish_decompress( &cinfo );                                                                                                  
+    }
+    jpeg_finish_decompress( &cinfo );
     jpeg_destroy_decompress( &cinfo );
-
     //
     
     int step_w = orig_w/(capture_pixel_skip+1), step_h = orig_h/(capture_pixel_skip+1); 

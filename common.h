@@ -437,6 +437,7 @@ public:
     bool loadRaw( const char *path );
     bool writePNG(const char *path);    
     bool writePNGMem( unsigned char **out, size_t *outsize );
+    bool writeJPEG(const char *path);
     bool writeRaw( const char *path );
     void ensureBuffer();
     void copyAlpha( int fromx0, int fromy0, int fromx1, int fromy1, int tox0, int toy0 );

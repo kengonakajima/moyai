@@ -23,7 +23,7 @@ DYNCAM2DOBJS=$(DYNCAM2DSRCS:.cpp=.o)
 REPLAYERSRCS=replay.cpp
 REPLAYEROBJS=$(REPLAYERSRCS:.cpp=.o)
 
-JPEG=jpeg-8d
+JPEG=jpeg-9b
 JPEGLIB=$(JPEG)/.libs/libjpeg.a # Don't use -ljpeg, because of macosx older deploy target
 
 LIBUV=libuv-1.20.2
@@ -128,7 +128,7 @@ $(ALUTLIB) : $(ALUTOBJS)
 	ranlib $(ALUTLIB)
 
 $(JPEGLIB) :
-	cd jpeg-8d; $(OSX_TARGET_EXPORT); ./configure; make clean; make
+	cd jpeg-9b; $(OSX_TARGET_EXPORT); sh ./configure; make clean; make
 
 $(LIBUVLIB) :
 	tar zxf $(LIBUV).tar.gz

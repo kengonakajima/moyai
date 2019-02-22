@@ -2,7 +2,7 @@
 #define LODEPNG_COMPILE_DISK
 #define LODEPNG_COMPILE_ERROR_TEXT
 #include "lodepng.h"
-
+#include "JPEGCoder.h"
 #include "Remote.h"
 
 int Prop::idgen = 1;
@@ -426,6 +426,13 @@ bool Image::writePNG(const char *path) {
         return false;
     }
     return true;
+}
+bool Image::writeJPEG(const char *path) {
+    JPEGCoder *jc=new JPEGCoder(width,height,0);
+    size_t outsize=jc->encode(this);
+    bool ret=writeFile(path,(char*)jc->compressed, outsize);
+    delete jc;
+    return ret;
 }
 bool Image::writeRaw( const char *path ) {
     return writeFile( path, (char*) buffer, width*height*4 );

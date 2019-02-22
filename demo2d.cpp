@@ -672,7 +672,10 @@ void gameUpdate(void) {
         double et = now();
         bool ret = img->writePNG("_captured.png");
         double et2 = now();
-        print("screen capture time:%f,%f", et-st,et2-et);
+        print("PNG screen capture time:%f,%f", et-st,et2-et);
+        ret = img->writeJPEG("_captured.png");
+        double et3 = now();
+        print("JPEG screen capture time:%f", et3-et2);
         
 #if !(TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE)
         assert(ret);
