@@ -45,11 +45,11 @@ int gettimeofday(struct timeval *tv, struct timezone *tz);
 int read( int fdesc, char *buf, size_t nbytes );
 void close( SOCKET s );
 #endif
-long random();
+
 
 #define snprintf sprintf_s
 
-void srandom( unsigned int seed );
+
 
 #endif//WIN32
 
@@ -124,9 +124,11 @@ inline int mini( int a, int b ){
 }
 
 
+unsigned long cumino_random();
+void cumino_srandom(unsigned long seed);
 
 inline double range( double a, double b ) {
-    long r = random();
+    long r = cumino_random();
     double rate = (double)r / (double)(0x7fffffff);
     double _a = mind(a,b);
     double _b = maxd(a,b);
@@ -177,7 +179,7 @@ void assertmsg( bool cond, const char *fmt, ... );
 
 
 inline int chooseInt2( int a, int b ) {
-    if( (random()%2) == 0 ) return a; else return b;
+    if( (cumino_random()%2) == 0 ) return a; else return b;
 }
 
 class SorterEntry {

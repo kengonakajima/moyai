@@ -90,15 +90,6 @@ void close( SOCKET s ){
 	closesocket(s);
 }
 
-long random() { 
-	int top = rand();
-	int bottom = rand();
-	long out = ( top << 16 ) | bottom;
-	return out;
-}
-void srandom( unsigned int seed ) {
-    srand(seed);
-}
 
 #endif
 
@@ -697,4 +688,13 @@ void gsubString(char *s, char from, char to ) {
         if(*s == from ) *s = to;
         s++;
     }
+}
+
+#include "mt19937.h"
+
+unsigned long cumino_random() {
+    return genrand_int32();
+}
+void cumino_srandom(unsigned long seed) {
+    init_genrand(seed);
 }
