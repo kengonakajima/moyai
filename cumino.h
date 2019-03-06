@@ -128,8 +128,8 @@ unsigned long cumino_random();
 void cumino_srandom(unsigned long seed);
 
 inline double range( double a, double b ) {
-    long r = cumino_random();
-    double rate = (double)r / (double)(0x7fffffff);
+    unsigned long r = cumino_random();
+    double rate = (double)(r&0x7fffffff) / (double)(0x7fffffff);
     double _a = mind(a,b);
     double _b = maxd(a,b);
     return _a + (_b-_a)*rate;
