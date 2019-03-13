@@ -288,4 +288,6 @@ void gsubString(char *s, char from, char to );
 
 unsigned int crc32(char *p, int len) ;
 
+extern unsigned long long g_cumino_random_count;
+
 #endif

@@ -692,7 +692,9 @@ void gsubString(char *s, char from, char to ) {
 
 #include "mt19937.h"
 
+unsigned long long g_cumino_random_count=0;
 unsigned long cumino_random() {
+    g_cumino_random_count++;
     return genrand_int32();
 }
 void cumino_srandom(unsigned long seed) {
