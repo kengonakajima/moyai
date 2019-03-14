@@ -73,7 +73,12 @@ public:
     inline Vec3 add( float xx, float yy, float zz ){ return Vec3( x+xx, y+yy,z+zz);}
     inline Vec3 add( float xx, float yy ){ return Vec3( x+xx, y+yy,z);}    
     inline Vec3 to( Vec3 v){ return Vec3( v.x - x, v.y - y, v.z - z ); }
-    inline Vec3 randomize(float r){ return Vec3( x + (float)range(-r,r), y + (float)range(-r,r), z + (float)range(-r,r) ); }
+    inline Vec3 randomize(float r){
+        float dx = (float)range(-r,r); // to avoid arg eval order problem
+        float dy = (float)range(-r,r);
+        float dz = (float)range(-r,r);
+        return Vec3(x+dx,y+dy,z+dz);
+    }
     static inline Vec3 angle(float rad){ return Vec3( cos(rad), sin(rad), 0 ); }
     inline void toSign(int*xs,int*ys){ *xs = sign(x); *ys = sign(y); }
     inline void toSign(int*xs,int*ys,int*zs){ *xs = sign(x); *ys = sign(y); *zs = sign(z); }
@@ -189,7 +194,11 @@ public:
     inline Vec2 add( Vec2 v){ return Vec2( x+v.x, y+v.y);}
     inline Vec2 add( float xx, float yy ){ return Vec2( x+xx, y+yy);}
     inline Vec2 to( Vec2 v){ return Vec2( v.x - x, v.y - y); }
-    inline Vec2 randomize(float r){ return Vec2( x + (float)range(-r,r), y + (float)range(-r,r) ); }
+    inline Vec2 randomize(float r){
+        float dx=(float)range(-r,r); // to avoid arg eval order problem
+        float dy=(float)range(-r,r);
+        return Vec2(x+dx,y+dy);
+    }
     static inline Vec2 angle(float rad){ return Vec2( cos(rad), sin(rad) ); }
     inline void toSign(int*xs,int*ys){ *xs = sign(x); *ys = sign(y); }
     inline Vec2 operator+(Vec2 arg){ return Vec2(x+arg.x,y+arg.y); }
