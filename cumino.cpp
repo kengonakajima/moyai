@@ -23,6 +23,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef __APPLE__
+#include <ftw.h>
+#endif
+
+
 #include "snappy/snappy-c.h"
 
 
@@ -782,6 +787,44 @@ unsigned int crc32(char *p, int len) {
 }
 
 
+#ifdef __APPLE__
+int moyai_unlink_cb(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
+    int rv = remove(fpath);
+    if (rv) perror(fpath);
+    return rv;
+}
+int moyai_rm_rf(const char *path) {
+    return nftw(path, moyai_unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
+}
+#else
+int silently_remove_directory(LPCTSTR dir) // Fully qualified name of the directory being deleted, without trailing backslash
+{
+	SHFILEOPSTRUCT file_op = {
+		NULL,
+		FO_DELETE,
+		dir,
+		L"",
+		FOF_NOCONFIRMATION |
+		FOF_NOERRORUI |
+		FOF_SILENT,
+		false,
+		0,
+		L"" };
+	int re=SHFileOperation(&file_op);
+	print("shfileop: ret:%d", re);
+    return re;
+}
 
+#endif
 
-
+bool removeDirectory(const char *path) {
+#ifdef __APPLE__
+    int ret=moyai_rm_rf(path);
+    return ret==0;
+#else
+	wchar_t hoge[1024];
+	mbstowcs(hoge, path, strlen(path));
+	int ret= silently_remove_directory(hoge);
+    return ret==0;
+#endif        
+}
