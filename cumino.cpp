@@ -818,6 +818,7 @@ int silently_remove_directory(LPCTSTR dir) // Fully qualified name of the direct
 #endif
 
 bool removeDirectory(const char *path) {
+	print("removedirectory:%s", path);
 #ifdef __APPLE__
     int ret=moyai_rm_rf(path);
     return ret==0;
