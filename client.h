@@ -1,6 +1,8 @@
 #ifndef _MOYAI_CLIENT_H_
 #define _MOYAI_CLIENT_H_
 
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 #define GLEW_STATIC
 
 #ifdef WIN32
