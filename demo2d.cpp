@@ -1276,12 +1276,13 @@ void gameInit() {
 
     // bitmap font
     Prop2D *scorep = new Prop2D();
-    scorep->setLoc( -SCRW/2+32,SCRH/2-100 );
+    scorep->setLoc( -SCRW/2+32,SCRH/2-150 );
     CharGrid *scoregrid = new CharGrid(12,8);
     scoregrid->setDeck(g_bmpfont_deck );
-    scoregrid->setAsciiOffset(-32);
+    scoregrid->ascii_offset=-32;
     scoregrid->printf( 0,1, Color(1,1,1,1), "SCORE: %d\nLINE2",1234 );
     scoregrid->printf( 0,2, Color(1,1,0,1), "$#!?()[%s]", "hoge" );
+    scoregrid->printf( 0,3, Color(1,1,0,1), u8"あいうアイウ" );    
     scoregrid->setColor( 3,0, Color(0,1,1,1));
     scorep->addGrid(scoregrid);
     g_main_layer->insertProp(scorep);

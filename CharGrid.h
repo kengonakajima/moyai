@@ -5,7 +5,8 @@
 class CharGrid : public Grid {
 public:
 	int ascii_offset;
-	CharGrid(int w, int h ) : Grid(w,h), ascii_offset(0) {}
+    int hiragana_unicode_offset;
+    int katakana_unicode_offset;
+	CharGrid(int w, int h ) : Grid(w,h), ascii_offset(0), hiragana_unicode_offset(128), katakana_unicode_offset(224) {}
 	void printf( int x, int y, Color c, const char *fmt, ...);
-	void setAsciiOffset( int ofs ){ ascii_offset = ofs; }
 };
