@@ -186,6 +186,8 @@ void CharGrid::printf( int x, int y, Color c, const char *fmt, ...) {
             ind = hiragana_unicode_offset + (ind-0x3041);
         } else if(ch>=0x30A1&&ch<=0x30FA) {
             ind = katakana_unicode_offset + (ind-0x30A1);
+        } else if(ch==0x30fc) {
+            ind = kigou_unicode_offset + 28;
         }
         set(x+dx,y+dy,ind);
 		setColor(x+dx,y+dy,c);
