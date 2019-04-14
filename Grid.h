@@ -23,7 +23,6 @@ public:
 	Deck *deck;
 	FragmentShader *fragment_shader;
 	bool visible;
-	float enfat_epsilon;
     void *parent_prop; // Used only when headless server
     Mesh *mesh;
     bool color_changed;
@@ -35,7 +34,7 @@ public:
 	static const int GRID_FLAG_XFLIP = 1;
 	static const int GRID_FLAG_YFLIP = 2;
 	static const int GRID_NOT_USED = -1;
-	Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), visible(true), enfat_epsilon(0), parent_prop(NULL), mesh(NULL), color_changed(false), uv_changed(false), debug(0), rel_scl(1,1), rel_loc(0,0), tracker(NULL), uv_margin(0) {
+	Grid(int w, int h ) : width(w), height(h), index_table(NULL), xflip_table(NULL), yflip_table(NULL), texofs_table(NULL), rot_table(NULL), color_table(NULL), deck(NULL), fragment_shader(NULL), visible(true), parent_prop(NULL), mesh(NULL), color_changed(false), uv_changed(false), debug(0), rel_scl(1,1), rel_loc(0,0), tracker(NULL), uv_margin(0) {
         id = idgen++;
 	}
 	~Grid();
