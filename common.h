@@ -35,6 +35,8 @@
 #undef max
 #endif
 
+#pragma pack(push)
+#pragma pack(1)
 class Vec3 {
 public:
     float x,y,z;
@@ -318,7 +320,7 @@ public:
     inline Color operator==( Color c ) { return (r==c.r && g==c.g && b==c.b && a==c.a); }
     inline Color operator!=( Color c ) { return (r!=c.r || g!=c.g || b!=c.b || a!=c.a); }    
 };
-
+#pragma pack(pop)
 
 class Group;
 

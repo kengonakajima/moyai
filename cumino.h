@@ -192,7 +192,7 @@ public:
 void quickSortF(SorterEntry array[], int left ,int right);
 
 
-typedef enum {
+typedef enum : int8_t {
     DIR4_NONE=-1,    
     DIR4_UP=0,
     DIR4_RIGHT=1,
