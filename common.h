@@ -418,7 +418,14 @@ public:
         }
         return NULL;
     }
-    int countProps();    
+    int countProps();
+    void setCleanFlagAll() {
+        Prop *cur = prop_top;
+        while(cur) {
+            cur->to_clean=true;
+            cur=cur->next;
+        }
+    }
 };
 
 class TrackerImage;
