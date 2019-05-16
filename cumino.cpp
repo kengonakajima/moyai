@@ -811,7 +811,8 @@ int silently_remove_directory(LPCTSTR dir) // Fully qualified name of the direct
 		0,
 		L"" };
 	int re=SHFileOperation(&file_op);
-	print("shfileop: ret:%d", re);
+	print("shfileop: ret:%d %d", re, file_op.fAnyOperationsAborted);
+	OutputDebugString(dir);
     return re;
 }
 
@@ -824,6 +825,7 @@ bool removeDirectory(const char *path) {
     return ret==0;
 #else
 	wchar_t hoge[1024];
+	memset(hoge, 0, sizeof(hoge)); // double-null needed
 	mbstowcs(hoge, path, strlen(path));
 	int ret= silently_remove_directory(hoge);
     return ret==0;
