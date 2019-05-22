@@ -161,14 +161,11 @@ bool Prop::basePoll(double dt){
 
 	while (poll_accum_time >= frame_step_time) {
 		++poll_count;
+        if( propPoll(dt) == false ){
+            return false;
+        }
 		poll_accum_time -= frame_step_time;
-	}
-    
-    if( propPoll(dt) == false ){
-        return false;
-    }
-
-    
+	}    
     return true;
 }
 bool Prop::updateInterval( int timer_ind, double t ) {
