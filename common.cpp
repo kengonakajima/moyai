@@ -160,7 +160,7 @@ bool Prop::basePoll(double dt){
 	poll_accum_time += dt;
 
 	while (poll_accum_time >= frame_step_time) {
-		++poll_count_logical;
+		++poll_count;
 		poll_accum_time -= frame_step_time;
 	}
     ++poll_count_real;

@@ -335,7 +335,7 @@ public:
     bool to_clean;
     double accum_time;
 	double poll_accum_time;
-    unsigned int poll_count_logical;
+    unsigned int poll_count;
     unsigned int poll_count_real;
 
     static const int MAXINTERVAL = 8;
@@ -345,7 +345,7 @@ public:
 
 	static double frame_step_time;
 
-    inline Prop() : id(++idgen), debug_id(0), next(NULL), prev(NULL), to_clean(false), accum_time(0), poll_accum_time(0.0), poll_count_logical(0), poll_count_real(0), parent_group(NULL) {
+    inline Prop() : id(++idgen), debug_id(0), next(NULL), prev(NULL), to_clean(false), accum_time(0), poll_accum_time(0.0), poll_count(0), poll_count_real(0), parent_group(NULL) {
         for(int i=0;i<MAXINTERVAL;i++) last_interval_at[i]=0;
     }
     virtual ~Prop() {
