@@ -155,7 +155,7 @@ void Tracker2D::broadcastDiff( bool force ) {
                 if(target_prop2d->loc_sync_score > parent_rh->linear_sync_score_thres ) {
                     target_prop2d->loc_sync_score=0;
                     target_prop2d->loc_changed=false;
-                } else if( target_prop2d->poll_count>2 ){
+                } else if( target_prop2d->poll_count_logical>2 ){
                     to_send = false;
                 }
                 if(to_send) {
