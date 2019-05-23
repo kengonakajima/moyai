@@ -475,7 +475,6 @@ void Image::drawLine(int x0, int y0, int x1, int y1, Color c ) {
     Vec2 p0(x0,y0), p1(x1,y1);
     float l=p0.to(p1).len();
     int loop=(int)(l+1);
-    print("Image drawline: loop:%d",loop);
     Vec2 v(x1-x0,y1-y0);
     v/=l;
     Vec2 cur=p0;
