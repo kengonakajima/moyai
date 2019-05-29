@@ -305,6 +305,7 @@ Mouse *g_mouse;
 Pad *g_pad;
 
 
+Prop2D *g_gapp;
 
 // game data
 
@@ -768,7 +769,11 @@ void gameUpdate(void) {
         frame_counter = 0;
         last_print_at = t;
     }
- 
+
+    if(g_gapp) {
+        float s = ::sin(g_gapp->accum_time) * 16;
+        g_gapp->setScl(s,s);
+    }
 #if 0
     double loop_end_at = now();
     double loop_time = loop_end_at - loop_start_at;
@@ -1150,6 +1155,20 @@ void gameInit() {
     statprimp->setLoc(100,-100);
     g_main_layer->insertProp(statprimp);
 
+    // gap test
+    g_gapp = new Prop2D();
+    Grid *gapg = new Grid(16,16);
+    gapg->debug=199;
+    for(int y=0;y<16;y++) {
+        for(int x=0;x<16;x++) {
+            gapg->set(x,y,3);
+        }
+    }
+    g_gapp->setDeck(d2);
+    g_gapp->setScl(8);
+    g_gapp->addGrid(gapg);
+    g_main_layer->insertProp(g_gapp);
+    
     // static grids
     {
         Prop2D *p = new Prop2D();
