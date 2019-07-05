@@ -29,13 +29,7 @@ public:
 #endif    
 	SoundSystem();
 
-	Sound * newSE( const char *path ) { return newSE(path,1.0f); }
-	Sound * newSE( const char *path, float vol ) { return newSound(path,vol,false); };
-	Sound * newBGM( const char *path ) { return newBGM(path,1.0f); }
-	Sound * newBGM( const char *path, float vol ) { return newSound(path,vol,true); };
-
-	Sound *newSound( const char *path, float vol, bool use_stream_currently_ignored );
-	Sound *newSound( const char *path );
+	Sound *newSound( const char *path, float vol=1 );
     Sound *newSoundFromMemory( float *sample, int sample_num );
     Sound *newSoundFromMemoryVirtual(float *samples, int samples_num );
     
