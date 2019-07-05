@@ -251,6 +251,12 @@ void Image::getAreaRaw( int x0, int y0, int w, int h, unsigned char *out, size_t
         }
     }
 }
+bool Image::copyFromBuffer(unsigned char *from, int w, int h, size_t insz ) {
+    if(w!=width)return false;
+    if(h!=height)return false;
+    if(insz!=(w*h*4)) return false;
+    memcpy(buffer,from,insz);
+}
 // x0,y0 can be negative, x0+w, y0+h can be out of image. (colors are ignored)
 void Image::setAreaRaw( int x0, int y0, int w, int h, unsigned char *in, size_t insz ) {
     size_t reqsize = w*h*4;
