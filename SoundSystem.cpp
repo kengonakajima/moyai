@@ -38,7 +38,7 @@ SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0) {
     for(int i=0;i<elementof(sounds);i++) sounds[i] = NULL;
 }
 
-Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_currently_ignored ) {
+Sound *SoundSystem::newSound( const char *path, float vol ) {
 #if !defined(__linux__)    
     const char *cpath = platformCStringPath(path);
 #endif
@@ -76,9 +76,6 @@ Sound *SoundSystem::newSound( const char *path, float vol, bool use_stream_curre
 	return out;
 }
 
-Sound *SoundSystem::newSound( const char *path ){
-	return newSound( path, 1.0, false );
-}
 Sound *SoundSystem::newSoundFromMemory( float *samples, int samples_num ) {
     Sound *out = new Sound(this);
 #ifdef USE_FMOD    

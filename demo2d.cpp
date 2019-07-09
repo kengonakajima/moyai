@@ -979,7 +979,7 @@ void gameInit() {
     g_sound_system = new SoundSystem();
     g_explosion_sound = g_sound_system->newSound("./assets/blobloblll.wav" );
     g_explosion_sound->play();
-    g_bgm_sound = g_sound_system->newBGM( "./assets/gymno1short.wav" );
+    g_bgm_sound = g_sound_system->newSound( "./assets/gymno1short.wav" );
     g_bgm_sound->play();
     {
         float samples[44100/4];

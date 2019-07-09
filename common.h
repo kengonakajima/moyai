@@ -451,6 +451,7 @@ public:
     void setPixelRaw( int x, int y, unsigned char r,  unsigned char g,  unsigned char b,  unsigned char a );
     void getAreaRaw( int x, int y, int w, int h, unsigned char *out, size_t outsz );
     void setAreaRaw( int x, int y, int w, int h, unsigned char *in, size_t insz );
+    bool copyFromBuffer(unsigned char *from, int w, int h, size_t insz );
     void drawLine(int x0, int y0, int x1, int y1, Color c );
     bool loadPNG( const char *path, bool multiply_color_by_alpha = true );
     bool loadPNGMem( unsigned char *ptr, size_t sz, bool multiply_color_by_alpha = true );
