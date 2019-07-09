@@ -1484,7 +1484,7 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             }
             char tmppath[1024];
             file->saveInTmpDir( "/tmp", tmppath, sizeof(tmppath) );
-            snd = g_soundsystem->newSound( tmppath );
+            snd = g_soundsystem->newSound( (const char*)tmppath );
             g_sound_pool.set( snd_id, snd );                
         }
         break;
