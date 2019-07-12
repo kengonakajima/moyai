@@ -1693,7 +1693,7 @@ void getModkeyBits(int val, bool *shift, bool *ctrl, bool *alt ) {
 }
 
 ///////////////////
-char sendbuf_work[1024*1024*8];
+char sendbuf_work[1024*1024*16];
 #define SET_RECORD_LEN_AND_US1 \
     assert(totalsize<=sizeof(sendbuf_work));\
     set_u32( sendbuf_work+0, totalsize - 4 ); \
@@ -1910,7 +1910,7 @@ int sendUS1UI1Wstr( Stream *s, uint16_t usval, uint32_t uival, wchar_t *wstr, in
 }
 
 void sendFile( Stream *s, const char *filename ) {
-    const size_t MAXBUFSIZE = 1024*1024*4;
+    const size_t MAXBUFSIZE = 1024*1024*16;
     char *buf = (char*) MALLOC(MAXBUFSIZE);
     assert(buf);
     size_t sz = MAXBUFSIZE;
@@ -2181,17 +2181,17 @@ void Stream::flushSendbuf(size_t unitsize) {
 
 
 // normal headless client
-Client::Client( uv_tcp_t *sk, RemoteHead *rh, bool compress ) : Stream(sk,16*1024*1024,8*1024,compress){
+Client::Client( uv_tcp_t *sk, RemoteHead *rh, bool compress ) : Stream(sk,128*1024*1024,8*1024,compress){
     init();
     parent_rh = rh;
 }
 // clients connecting to reproxy
-Client::Client( uv_tcp_t *sk, ReprecationProxy *reproxy, bool compress ) : Stream(sk,16*1024*1024,8*1024,compress) {
+Client::Client( uv_tcp_t *sk, ReprecationProxy *reproxy, bool compress ) : Stream(sk,128*1024*1024,8*1024,compress) {
     init();
     parent_reproxy = reproxy;
 }
 // reproxies
-Client::Client( uv_tcp_t *sk, Reprecator *repr, bool compress ) : Stream(sk, 32*1024*1024,32*1024,compress){
+Client::Client( uv_tcp_t *sk, Reprecator *repr, bool compress ) : Stream(sk, 128*1024*1024,32*1024,compress){
     init();
     parent_reprecator = repr;
 }
@@ -2213,7 +2213,6 @@ void Client::init() {
     parent_reprecator = NULL;
     target_camera = NULL;
     target_viewport = NULL;
-    recvbuf.ensureMemory(8*1024); // Only receiving keyboard and mouse input events!
     initialized_at = now();
     global_client_id = 0;
     reprecator_stream=NULL;
