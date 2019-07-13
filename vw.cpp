@@ -1286,6 +1286,10 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                 print("tb_layer tb:%d not found", tb_id);
                 break;
             }
+            if(!l) {
+                print("layer %d not found", layer_id);
+                break;
+            }
             //            print("tb_layer tb:%d l:%d par:%p", tb_id, layer_id, tb->getParentLayer() );
             Layer *pl = tb->getParentLayer();
             if( pl ) {

@@ -18,6 +18,7 @@ void TextBox::render(Camera *cam, DrawBatchList *bl ) {
 void TextBox::updateMesh() {
 #if !defined(__linux__)    
     if(!str)return;
+    if(!font)return;
     if(mesh) {
         mesh->deleteBuffers();
         delete mesh;
