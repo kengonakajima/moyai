@@ -224,7 +224,9 @@ int getModifiedTime( const char *path, time_t *out );
 bool deleteFile( const char *path );
 bool makeDirectory(const char *path);
 bool removeDirectory(const char *path);
-    
+int getFileSize( const char *path );
+
+void gsubString(char *s, char from, char to);
 int bytesum(const char *s, size_t l );
 void dump(const char*s, size_t l);
 
@@ -285,7 +287,6 @@ int countChar(const char *s, int ch);
 void sleepMilliSec( int ms );
 const char *platformCStringPath( const char *path );
 
-void gsubString(char *s, char from, char to );
 
 unsigned int crc32(char *p, int len) ;
 

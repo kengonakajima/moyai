@@ -4,7 +4,7 @@ OSX_TARGET_EXPORT=export MACOSX_DEPLOYMENT_TARGET=$(OSX_TARGET)
 
 PATH := /usr/local/bin:$(PATH)
 
-MOYAICLISRCS=Remote.cpp common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Keyboard.cpp JPEGCoder.cpp
+MOYAICLISRCS=Remote.cpp common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Keyboard.cpp JPEGCoder.cpp crc32.cpp
 UTF8SRC=ConvertUTF.c
 UTF8OBJ=ConvertUTF.o
 MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o) $(UTF8OBJ)
@@ -199,6 +199,8 @@ JPEGCoder.o : JPEGCoder.cpp
 	g++ -c $(CFLAGS0X) JPEGCoder.cpp -o JPEGCoder.o
 lodepng.o : lodepng.cpp
 	g++ -c $(CFLAGS0X) lodepng.cpp -o lodepng.o
+crc32.o : crc32.cpp
+	g++ -c $(CFLAGS0X) crc32.cpp -o crc32.o
 
 # freetype-gl
 texture-atlas.o :

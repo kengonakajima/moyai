@@ -124,6 +124,9 @@ typedef enum {
     PACKETTYPE_C2S_TOUCH_END = 106,
     PACKETTYPE_C2S_TOUCH_CANCEL = 107,
 
+    PACKETTYPE_C2S_REQUEST_FILE_LIST = 120, // 1. cl req file, 2. sv send list with hash, 3. cl check and get file
+    PACKETTYPE_C2S_REQUEST_FILE = 121,
+
     // reprecator to server
     PACKETTYPE_R2S_CLIENT_LOGIN = 150, // accepting new client, getting new id number of this client
     PACKETTYPE_R2S_CLIENT_LOGOUT = 151,
@@ -215,6 +218,7 @@ typedef enum {
     PACKETTYPE_S2C_CAPTURED_AUDIO = 710,
     
     PACKETTYPE_S2C_FILE = 800, // send file body and path
+    PACKETTYPE_S2C_FILE_INFO = 801, // send file name, hash, size
 
     PACKETTYPE_S2C_WINDOW_SIZE = 900, // u2
 
@@ -302,6 +306,7 @@ public:
     void setOnMouseCursorCallback( void (*f)(Client*cl,int,int) ) { on_mouse_cursor_cb = f; }
     void heartbeat(double dt);
     void flushBufferToNetwork(double dt);
+    void scanSendFileList( Stream *outstream );
     void scanSendAllPrerequisites( Stream *outstream );
     void scanSendAllProp2DSnapshots( Stream *outstream );
     void notifyProp2DDeleted( Prop2D *prop_deleted );
@@ -350,8 +355,6 @@ public:
     void setSortSyncThres(int thres) { sort_sync_thres = thres; }
     void setLinearSyncScoreThres(float thres) { linear_sync_score_thres = thres; }
     void setNonLinearSyncScoreThres(float thres) { nonlinear_sync_score_thres = thres; }
-    ObjectPool<Deck> prereq_deck_pool;
-    void addPrerequisites(Deck *dk);
 };
 
 
@@ -642,9 +645,11 @@ int sendUS1UI1F4( Stream *out, uint16_t usval, uint32_t uival, float f0, float f
 int sendUS1UI1UC1( Stream *out, uint16_t usval, uint32_t uival, uint8_t ucval );
 int sendUS1UI1Str( Stream *out, uint16_t usval, uint32_t uival, const char *cstr );
 int sendUS1UI2Str( Stream *out, uint16_t usval, uint32_t ui0, uint32_t ui1, const char *cstr );
+int sendUS1Str( Stream *s, uint16_t usval, const char *cstr );
 int sendUS1StrBytes( Stream *out, uint16_t usval, const char *cstr, const char *data, uint32_t datalen );
 int sendUS1UI1Wstr( Stream *out, uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
 int sendUS1F2( Stream *out, uint16_t usval, float f0, float f1 );
+void sendFileInfo( Stream *s, const char *filename );
 void sendFile( Stream *outstream, const char *filename );
 void sendPing( Stream *s );
 void sendWindowSize( Stream *outstream, int w, int h );

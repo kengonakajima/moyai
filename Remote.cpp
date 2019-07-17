@@ -2,7 +2,7 @@
 #include "client.h"
 #include "Remote.h"
 #include "JPEGCoder.h"
-
+#include "crc32.h"
 
 #ifdef USE_UNTZ
 #include "threading/Threading.h" // To implement lock around send buffer inside libuv
@@ -284,6 +284,85 @@ void RemoteHead::track2D() {
     }
     broadcastSortedChangelist();
 }
+
+void RemoteHead::scanSendFileList( Stream *outstream ) {
+    if( window_width==0 || window_height==0) {
+        assertmsg( false, "remotehead: window size not set?");
+    }
+    
+    // Image, Texture, tiledeck
+    std::unordered_map<int,Image*> imgmap;
+    std::unordered_map<int,Texture*> texmap;
+    std::unordered_map<int,Deck*> dkmap;
+    std::unordered_map<int,Font*> fontmap;
+    std::unordered_map<int,ColorReplacerShader*> crsmap;
+
+    
+    for(int i=0;i<Moyai::MAXGROUPS;i++) {
+        Group *grp = target_moyai->getGroupByIndex(i);
+        if(!grp)continue;
+
+        Prop *cur = grp->prop_top;
+        while(cur) {
+            Prop2D *p = (Prop2D*) cur;
+            if(p->deck) {
+                dkmap[p->deck->id] = p->deck;
+                if( p->deck->tex) {
+                    texmap[p->deck->tex->id] = p->deck->tex;
+                    if( p->deck->tex->image ) {
+                        imgmap[p->deck->tex->image->id] = p->deck->tex->image;
+                    }
+                }
+            }
+            if(p->fragment_shader) {
+                ColorReplacerShader *crs = dynamic_cast<ColorReplacerShader*>(p->fragment_shader); // TODO: avoid using dyncast..
+                if(crs) {
+                    crsmap[crs->id] = crs;
+                }                
+            }
+            for(int i=0;i<p->grid_used_num;i++) {
+                Grid *g = p->grids[i];
+                if(g->deck) {
+                    dkmap[g->deck->id] = g->deck;
+                    if( g->deck->tex) {
+                        texmap[g->deck->tex->id] = g->deck->tex;
+                        if( g->deck->tex->image ) {
+                            imgmap[g->deck->tex->image->id] = g->deck->tex->image;
+                        }
+                    }
+                }
+            }
+            TextBox *tb = dynamic_cast<TextBox*>(cur); // TODO: refactor this!
+            if(tb) {
+                if(tb->font) {
+                    fontmap[tb->font->id] = tb->font;
+                }
+            }
+            cur = cur->next;
+        }
+    }
+    // Files
+    for( std::unordered_map<int,Image*>::iterator it = imgmap.begin(); it != imgmap.end(); ++it ) {
+        Image *img = it->second;
+        if( img->last_load_file_path[0] ) {
+            print("sending file path:'%s' in image %d", img->last_load_file_path, img->id );
+            sendFileInfo( outstream, img->last_load_file_path );
+        }
+    }
+    for( std::unordered_map<int,Font*>::iterator it = fontmap.begin(); it != fontmap.end(); ++it ) {
+        Font *f = it->second;
+        sendFileInfo(outstream, f->last_load_file_path );
+    }
+    // TODO: send shader source and status
+
+    // sounds
+    for(int i=0;i<elementof(target_soundsystem->sounds);i++){
+        if(!target_soundsystem)break;
+        Sound *snd = target_soundsystem->sounds[i];
+        if(!snd)continue;
+        if(snd->last_load_file_path[0]) sendFileInfo(outstream, snd->last_load_file_path);
+    }    
+}
 // Send all IDs of tiledecks, layers, textures, fonts, viwports by scanning all props and grids.
 // This occurs only when new player is comming in.
 void RemoteHead::scanSendAllPrerequisites( Stream *outstream ) {
@@ -331,15 +410,6 @@ void RemoteHead::scanSendAllPrerequisites( Stream *outstream ) {
     std::unordered_map<int,Deck*> dkmap;
     std::unordered_map<int,Font*> fontmap;
     std::unordered_map<int,ColorReplacerShader*> crsmap;
-
-    POOL_SCAN(prereq_deck_pool,Deck) {
-        Deck *dk = it->second;
-        dkmap[dk->id] = dk;
-        if( dk->tex) {
-            texmap[dk->tex->id] = dk->tex;
-            if( dk->tex->image ) imgmap[dk->tex->image->id] = dk->tex->image;        
-        }
-    }
     
     for(int i=0;i<Moyai::MAXGROUPS;i++) {
         Group *grp = target_moyai->getGroupByIndex(i);
@@ -569,6 +639,18 @@ static void remotehead_on_packet_callback( Stream *stream, uint16_t funcid, char
             }            
         }
         break;
+    case PACKETTYPE_C2S_REQUEST_FILE_LIST:
+        {
+            print("fflllllllll");
+            cli->parent_rh->scanSendFileList(cli);
+        }
+        break;
+    case PACKETTYPE_C2S_REQUEST_FILE:
+        {
+            
+            assertmsg(false,"to implement");
+        }
+        break;
     default:
         print("unhandled funcid: %d",funcid);
         break;
@@ -621,8 +703,9 @@ static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
         sendWindowSize(cl, cl->parent_rh->window_width, cl->parent_rh->window_height);
 
         if(rh->enable_spritestream) {
-            cl->parent_rh->scanSendAllPrerequisites(cl);
-            cl->parent_rh->scanSendAllProp2DSnapshots(cl);
+            // request this from client!
+            //            cl->parent_rh->scanSendAllPrerequisites(cl);
+            //            cl->parent_rh->scanSendAllProp2DSnapshots(cl);
         }
         if(rh->enable_videostream) {
             JPEGCoder *jc = cl->parent_rh->jc;
@@ -1542,7 +1625,10 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
     case PACKETTYPE_S2C_FILE: return "PACKETTYPE_S2C_FILE";
 
     case PACKETTYPE_S2C_WINDOW_SIZE: return "PACKETTYPE_S2C_WINDOW_SIZE";
-        
+
+    case PACKETTYPE_C2S_REQUEST_FILE: return "PACKETTYPE_C2S_REQUEST_FILE";
+    case PACKETTYPE_C2S_REQUEST_FILE_LIST: return "PACKETTYPE_C2S_REQUEST_FILE_LIST";
+    case PACKETTYPE_S2C_FILE_INFO: return "PACKETTYPE_S2C_FILE_INFO";
     case PACKETTYPE_ERROR: return "PACKETTYPE_ERROR";
 
     case PACKETTYPE_MAX: return "PACKETTYPE_MAX";
@@ -1672,10 +1758,6 @@ void RemoteHead::broadcastSortedChangelist() {
         }
     }
     //    print("broadcastChangelist: tot:%d sent:%d max:%d", changelist_used, sent_n, max_send_num);
-}
-
-void RemoteHead::addPrerequisites(Deck *dk) {
-    prereq_deck_pool.set(dk->id,dk);
 }
 
 ///////////////////
@@ -1857,6 +1939,15 @@ int sendUS1UI2Str( Stream *s, uint16_t usval, uint32_t ui0, uint32_t ui1, const 
     memcpy( sendbuf_work+4+2+4+4+1, cstr, cstrlen );
     return pushDataToStream(s,sendbuf_work,totalsize);
 }
+int sendUS1Str( Stream *s, uint16_t usval, const char *cstr ) {
+    int cstrlen = strlen(cstr);
+    assert( cstrlen <= 255 );
+    size_t totalsize = 4 + 2 + (1+cstrlen);
+    SET_RECORD_LEN_AND_US1;
+    set_u8( sendbuf_work+4+2, (unsigned char) cstrlen );
+    memcpy( sendbuf_work+4+2+1, cstr, cstrlen );
+    return pushDataToStream(s,sendbuf_work,totalsize);    
+}
 // [record-len:16][usval:16][cstr-len:8][cstr-body][data-len:32][data-body]
 int sendUS1StrBytes( Stream *s, uint16_t usval, const char *cstr, const char *data, uint32_t datalen ) {
     int cstrlen = strlen(cstr);
@@ -1909,6 +2000,19 @@ int sendUS1UI1Wstr( Stream *s, uint16_t usval, uint32_t uival, wchar_t *wstr, in
     return ret;    
 }
 
+void sendFileInfo( Stream *s, const char *filename ) {
+    const size_t MAXBUFSIZE = 1024*1024*16;
+    char *buf = (char*) MALLOC(MAXBUFSIZE);
+    assert(buf);
+    size_t sz = MAXBUFSIZE;
+    bool res = readFile( filename, buf, &sz );
+    assertmsg(res, "sendFileInfo: file '%s' read error", filename );
+    uint32_t crc32val = crc32_4bytes(buf,sz,0);
+    int r = sendUS1UI2Str( s, PACKETTYPE_S2C_FILE_INFO, sz,crc32val,filename );
+    assert(r>0);
+    print("sendFileInfo: path:%s len:%d crc32:%x sendres:%d", filename, sz, crc32val, r );
+    FREE(buf);
+}
 void sendFile( Stream *s, const char *filename ) {
     const size_t MAXBUFSIZE = 1024*1024*16;
     char *buf = (char*) MALLOC(MAXBUFSIZE);

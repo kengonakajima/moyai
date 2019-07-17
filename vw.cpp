@@ -5,6 +5,7 @@
 #include "client.h"
 #include "ConvertUTF.h"
 
+#include "crc32.h"
 #include "JPEGCoder.h"
 #include "vw.h"
 
@@ -47,6 +48,7 @@ uint64_t g_second_read_count;
 uint64_t g_total_unzipped_bytes;
 uint64_t g_packet_count;
 
+char *g_cache_dir = (char*)"cached";
 char *g_server_ip_addr = (char*)"127.0.0.1";
 int g_port = HEADLESS_SERVER_PORT;
 int g_window_width = 0;
@@ -308,7 +310,29 @@ void mouseButtonCallback( GLFWwindow *window, int button, int action, int mods )
 void cursorPosCallback( GLFWwindow *window, double x, double y ) {
     if(g_stream) sendUS1F2( g_stream, PACKETTYPE_C2S_CURSOR_POS, x, y );
 }
-
+bool checkHaveLocalCache(char *path, uint32_t sz, uint32_t crc32) {
+    char path_converted[1024];
+    strncpy(path_converted,path,sizeof(path_converted));
+    gsubString(path_converted,'/','_');    
+    char final_path[1024];
+    snprintf(final_path,sizeof(final_path),"%s/%s", g_cache_dir, path_converted);
+    int realsz=getFileSize(final_path);
+    print("file realsize:%d expect:%d for %s",realsz,sz,final_path);
+    if(realsz<0)return false;
+    if(realsz!=(int)sz)return false;
+    if(realsz==(int)sz) {
+        char *buf = (char*)MALLOC(sz);
+        size_t readsz=sz;
+        bool res=readFile( final_path,buf,&readsz);
+        assert(res);
+        assert(readsz==sz);
+        FREE(buf);
+        uint32_t real_crc32 = crc32_4bytes(buf,sz,0);
+        print("CRC real:%u expect:%u for %s", real_crc32,crc32, final_path);
+        if(real_crc32==crc32)return true; else return false;
+    } 
+    return false;  
+}
 
 void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t argdatalen ) {
     g_packet_count++;
@@ -1020,7 +1044,7 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
         break;
     case PACKETTYPE_S2C_TILEDECK_SIZE: 
         {
-            unsigned int dk_id = get_u32(argdata);
+            uint32_t dk_id = get_u32(argdata);
             int sprw = get_u32(argdata+4);
             int sprh = get_u32(argdata+8);
             int cellw = get_u32(argdata+12);
@@ -1042,6 +1066,16 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             
             print("received file. path:'%s' datalen:%d data:%x %x %x %x", cstrpath, datasize, dataptr[0], dataptr[1], dataptr[2], dataptr[3] );
             g_filedepo->ensure( cstrpath, dataptr, datasize );
+        }
+        break;
+    case PACKETTYPE_S2C_FILE_INFO:
+        {
+            uint32_t sz=get_u32(argdata);
+            uint32_t crc32=get_u32(argdata+4);
+            char *path_utf8 = (char*)(argdata+8);
+            if(!checkHaveLocalCache(path_utf8, sz,crc32)) {
+                sendUS1Str(s, PACKETTYPE_C2S_REQUEST_FILE, path_utf8);
+            }
         }
         break;
     case PACKETTYPE_S2C_PROP2D_DELETE:
@@ -1656,7 +1690,7 @@ void on_data( uv_stream_t *s, ssize_t nread, const uv_buf_t *buf) {
     parseRecord( stream, &stream->recvbuf, buf->base, nread, on_packet_callback );
 }
 Stream *createStream(uv_tcp_t *tcp ) {
-    Stream *out = new Stream( (uv_tcp_t*) tcp, 8*1024, 16*1024*1024,false); // no compression to server
+    Stream *out = new Stream( (uv_tcp_t*) tcp, 32*1024, 128*1024*1024,false); // no compression to server
     tcp->data=out;
     return out;
 }
@@ -1669,6 +1703,7 @@ void on_connect( uv_connect_t *connect, int status ) {
         print("uv_read_start: fail:%d",r);
     }
     g_stream = createStream((uv_tcp_t*)connect->handle );
+    sendUS1(g_stream, PACKETTYPE_C2S_REQUEST_FILE_LIST);
 }
 
 
@@ -1710,7 +1745,9 @@ bool parseProgramArgs( int argc, char **argv ) {
         } else if( strcmp( argv[i], "--reprecation" ) == 0 ) {
             g_enable_reprecation = true;
         } else if( strcmp( argv[i], "--log_all" ) == 0 ) {
-            g_enable_log_all_funcs = true;  
+            g_enable_log_all_funcs = true;
+        } else if( strncmp( argv[i], "--cachedir=",strlen("--cachedir=")) == 0 ) {
+            g_cache_dir = argv[i] + strlen("--cachedir=");
         } else if( strncmp( argv[i], save_prefix, strlen(save_prefix)) == 0 ) {
             snprintf( g_savepath, sizeof(g_savepath), "%s", argv[i] + strlen(save_prefix));
         } else if( argv[i][0] != '-' ){
@@ -1721,7 +1758,7 @@ bool parseProgramArgs( int argc, char **argv ) {
         }
 
     }
-    print("viewer config: serverip:'%s' port:%d", g_server_ip_addr, g_port );
+    print("viewer config: serverip:'%s' port:%d cachedir:%s", g_server_ip_addr, g_port, g_cache_dir );
     return true;
 }
 
@@ -1973,6 +2010,8 @@ int main( int argc, char **argv ) {
     if(!argret) {
         return 1;
     }
+
+    makeDirectory(g_cache_dir);
     
     Moyai::globalInitNetwork();
 

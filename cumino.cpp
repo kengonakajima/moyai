@@ -337,7 +337,16 @@ bool appendFile( const char *path, const char *data, size_t sz ) {
     fclose(fp);
     return true;
 }
-
+int getFileSize( const char *path ) {
+#ifdef WIN32
+    aaa;
+#else
+    struct stat s;
+    int r=stat(path,&s);
+    if(r<0)return -1;
+    return s.st_size;
+#endif        
+}
 bool readFileOffset( const char *path, char *data, size_t *sz, size_t offset ){
     size_t toread = *sz;
 #ifdef WIN32    
@@ -407,7 +416,12 @@ void dump(const char*s, size_t l) {
     }
     prt("\n");
 }
-
+void gsubString(char *s, char from, char to) {
+    while(*s) {
+        if(*s==from) *s=to;
+        s++;
+    }
+}
 
 int getModifiedTime( const char *path, time_t *out ) {
     struct stat st;
@@ -686,13 +700,6 @@ const char *platformCStringPath( const char *path ) {
     const char *cpath = path;
 #endif
     return cpath;
-}
-
-void gsubString(char *s, char from, char to ) {
-    while(*s) {
-        if(*s == from ) *s = to;
-        s++;
-    }
 }
 
 #include "mt19937.h"
