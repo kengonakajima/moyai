@@ -115,7 +115,7 @@ typedef enum {
     PACKETTYPE_TIMESTAMP = 2, // sec:u32 usec:u32
     PACKETTYPE_ZIPPED_RECORDS = 8, // snappied content only.
     
-    // client to server 
+    // client to server
     PACKETTYPE_C2S_KEYBOARD = 100,
     PACKETTYPE_C2S_MOUSE_BUTTON = 102,
     PACKETTYPE_C2S_CURSOR_POS = 103,
@@ -126,6 +126,8 @@ typedef enum {
 
     PACKETTYPE_C2S_REQUEST_FILE_LIST = 120, // 1. cl req file, 2. sv send list with hash, 3. cl check and get file
     PACKETTYPE_C2S_REQUEST_FILE = 121,
+
+    PACKETTYPE_C2S_REQUEST_FIRST_SNAPSHOT = 130, // request all prerequisites and prop2d snapshots after file sync
 
     // reprecator to server
     PACKETTYPE_R2S_CLIENT_LOGIN = 150, // accepting new client, getting new id number of this client
@@ -219,7 +221,7 @@ typedef enum {
     
     PACKETTYPE_S2C_FILE = 800, // send file body and path
     PACKETTYPE_S2C_FILE_INFO = 801, // send file name, hash, size
-
+    PACKETTYPE_S2C_FILE_INFO_END = 802, // send file name, hash, size
     PACKETTYPE_S2C_WINDOW_SIZE = 900, // u2
 
 
@@ -258,6 +260,15 @@ public:
     Client *getLogicalClient(uint32_t logclid);
     void heartbeat();
 };
+
+class FileEntry {
+public:
+    uint32_t crc32;
+    uint32_t size;
+    char path[256];
+    FileEntry() : crc32(0), size(0), path{0} {}
+};
+
 class Stream;    
 class RemoteHead {
 public:
@@ -276,6 +287,9 @@ public:
 
     bool enable_compression;
     double send_wait_sec;
+
+    int file_ents_used;
+    FileEntry file_ents[512];
     
     void enableSpriteStream() { enable_spritestream = true; };
     void enableVideoStream( int w, int h, int pixel_skip );
@@ -288,7 +302,7 @@ public:
     void (*on_mouse_button_cb)(Client *cl, int btn, int act, int modshift, int modctrl, int modalt );
     void (*on_mouse_cursor_cb)(Client *cl, int x, int y );
     static const int DEFAULT_PORT = 22222;
-    RemoteHead() : target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_spritestream(0), enable_videostream(0), enable_timestamp(true), jc(NULL), audio_buf_ary(0), reprecator(NULL), enable_compression(true), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0), changelist_used(0), sorted_changelist_max_send_num(20), sort_sync_thres(50), linear_sync_score_thres(50), nonlinear_sync_score_thres(50) {
+    RemoteHead() : target_moyai(0), target_soundsystem(0), window_width(0), window_height(0), enable_spritestream(0), enable_videostream(0), enable_timestamp(true), jc(NULL), audio_buf_ary(0), reprecator(NULL), enable_compression(true), send_wait_sec(0), file_ents_used(0), on_connect_cb(0), on_disconnect_cb(0), on_keyboard_cb(0), on_mouse_button_cb(0), on_mouse_cursor_cb(0), changelist_used(0), sorted_changelist_max_send_num(20), sort_sync_thres(50), linear_sync_score_thres(50), nonlinear_sync_score_thres(50) {
     }
     void addClient(Client*cl);
     void delClient(Client*cl);
@@ -306,7 +320,10 @@ public:
     void setOnMouseCursorCallback( void (*f)(Client*cl,int,int) ) { on_mouse_cursor_cb = f; }
     void heartbeat(double dt);
     void flushBufferToNetwork(double dt);
-    void scanSendFileList( Stream *outstream );
+    void appendFileEntry(const char *path);
+    void scanFiles();
+    bool isPathAllowed(const char *path);
+    void sendScannedFileList( Stream *outstream );
     void scanSendAllPrerequisites( Stream *outstream );
     void scanSendAllProp2DSnapshots( Stream *outstream );
     void notifyProp2DDeleted( Prop2D *prop_deleted );
@@ -649,7 +666,6 @@ int sendUS1Str( Stream *s, uint16_t usval, const char *cstr );
 int sendUS1StrBytes( Stream *out, uint16_t usval, const char *cstr, const char *data, uint32_t datalen );
 int sendUS1UI1Wstr( Stream *out, uint16_t usval, uint32_t uival, wchar_t *wstr, int wstr_num_letters );
 int sendUS1F2( Stream *out, uint16_t usval, float f0, float f1 );
-void sendFileInfo( Stream *s, const char *filename );
 void sendFile( Stream *outstream, const char *filename );
 void sendPing( Stream *s );
 void sendWindowSize( Stream *outstream, int w, int h );

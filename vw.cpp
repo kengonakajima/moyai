@@ -86,8 +86,40 @@ bool g_done=false;
 Buffer g_savebuf;
 char g_savepath[512];
 
-///////////////
 
+bool g_received_file_info_end=false;
+
+///////////////
+struct FileLoadStatus {
+    char path[256];
+    bool loaded;
+};
+FileLoadStatus g_file_load_stats[1024];
+void updateFileLoadState(const char *path, bool loaded) {
+    for(int i=0;i<elementof(g_file_load_stats);i++) {
+        if(strcmp(path, g_file_load_stats[i].path )==0) {
+            g_file_load_stats[i].loaded=loaded; // found
+            return;
+        }
+    }
+    // not found
+    for(int i=0;i<elementof(g_file_load_stats);i++) {
+        if(g_file_load_stats[i].path[0]==0) {
+            strncpy(g_file_load_stats[i].path,path, sizeof(g_file_load_stats[i].path));
+            g_file_load_stats[i].loaded=loaded;
+            return;
+        }
+    }
+}
+bool isAllFileLoaded() {
+    int loading=0;
+    for(int i=0;i<elementof(g_file_load_stats);i++) {
+        if(g_file_load_stats[i].path[0] && !g_file_load_stats[i].loaded ) loading++;
+    }
+    return (loading==0);
+}
+
+//////////////
 // debug funcs
 Prop2D *findProp2DByTexture( uint32_t tex_id ) {
     POOL_SCAN(g_prop2d_pool,Prop2D) {
@@ -137,7 +169,7 @@ File::File( const char *inpath, const char *indata, size_t indata_len ) {
     data = (char*) MALLOC( indata_len );
     memcpy( data, indata, indata_len );
     data_len = indata_len;
-    print("File: init. path:'%s' size:%d data:%x %x %x %x", path, indata_len, indata[0], indata[1], indata[2], indata[3] );
+    //    print("File: init. path:'%s' size:%d data:%x %x %x %x", path, indata_len, indata[0], indata[1], indata[2], indata[3] );
 }
 // save a file in directory 
 bool File::saveInTmpDir( const char *dir_prefix, char *outpath, size_t outpathsize ) {
@@ -150,7 +182,7 @@ bool File::saveInTmpDir( const char *dir_prefix, char *outpath, size_t outpathsi
     }
     return true;
 }
-File *FileDepo::get( char *path ) {
+File *FileDepo::get( const char *path ) {
     for(int i=0;i<elementof(files);i++) {
         if( files[i] && files[i]->comparePath(path) ) {
             return files[i];
@@ -159,12 +191,11 @@ File *FileDepo::get( char *path ) {
     return NULL;
 }
 
-File *FileDepo::ensure( char *path, char *data, size_t datalen ) {
+File *FileDepo::ensure( const char *path, const char *data, size_t datalen ) {
     File *f = get(path);
     if(f) return f;    
     for(int i=0;i<elementof(files);i++) {
         if( files[i] == NULL ) {
-            print("ensure: alloc ind:%d", i );
             files[i] = new File( path, data, datalen );
             return files[i];
         }
@@ -310,14 +341,40 @@ void mouseButtonCallback( GLFWwindow *window, int button, int action, int mods )
 void cursorPosCallback( GLFWwindow *window, double x, double y ) {
     if(g_stream) sendUS1F2( g_stream, PACKETTYPE_C2S_CURSOR_POS, x, y );
 }
-bool checkHaveLocalCache(char *path, uint32_t sz, uint32_t crc32) {
+void getCachePath(char *out, size_t outsize, const char *origpath) {
     char path_converted[1024];
-    strncpy(path_converted,path,sizeof(path_converted));
+    strncpy(path_converted,origpath,sizeof(path_converted));
     gsubString(path_converted,'/','_');    
+    snprintf(out,outsize,"%s/cache_%s", g_cache_dir, path_converted);    
+}
+void saveLocalCache(char *path, const char *data, size_t datalen ) {
     char final_path[1024];
-    snprintf(final_path,sizeof(final_path),"%s/%s", g_cache_dir, path_converted);
+    getCachePath(final_path,sizeof(final_path),path);
+    bool res=writeFile(final_path, data, datalen);
+    print("saveLocalCache: '%s' res:%d",final_path, res);
+}
+void loadLocalCache(const char *path ) {
+    char final_path[1024];
+    getCachePath(final_path,sizeof(final_path),path);
+    size_t maxsz=1024*1024*16;
+    char *buf=(char*)MALLOC(maxsz);
+    size_t readsz=maxsz;
+    bool res = readFile(final_path,buf,&readsz);
+    if(res) {
+        g_filedepo->ensure( path, buf, readsz);
+    } else {
+        print("loadLocalCache: can't read file %s", final_path);
+    }
+    FREE(buf);
+}
+
+
+bool checkHaveLocalCache(char *path, uint32_t sz, uint32_t crc32) {
+    char final_path[1024];
+    getCachePath(final_path,sizeof(final_path),path);
+
     int realsz=getFileSize(final_path);
-    print("file realsize:%d expect:%d for %s",realsz,sz,final_path);
+    //    print("file realsize:%d expect:%d for %s",realsz,sz,final_path);
     if(realsz<0)return false;
     if(realsz!=(int)sz)return false;
     if(realsz==(int)sz) {
@@ -326,9 +383,10 @@ bool checkHaveLocalCache(char *path, uint32_t sz, uint32_t crc32) {
         bool res=readFile( final_path,buf,&readsz);
         assert(res);
         assert(readsz==sz);
-        FREE(buf);
         uint32_t real_crc32 = crc32_4bytes(buf,sz,0);
-        print("CRC real:%u expect:%u for %s", real_crc32,crc32, final_path);
+        //        print("CRC real:%u expect:%u for %s", real_crc32,crc32, final_path);
+        FREE(buf);
+        
         if(real_crc32==crc32)return true; else return false;
     } 
     return false;  
@@ -1065,17 +1123,44 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             parsePacketStrBytes( argdata, cstrpath, &dataptr, &datasize );
             
             print("received file. path:'%s' datalen:%d data:%x %x %x %x", cstrpath, datasize, dataptr[0], dataptr[1], dataptr[2], dataptr[3] );
+            saveLocalCache( cstrpath, dataptr, datasize );
             g_filedepo->ensure( cstrpath, dataptr, datasize );
+            updateFileLoadState(cstrpath, true);
+            if(isAllFileLoaded() && g_received_file_info_end) {
+                sendUS1(s,PACKETTYPE_C2S_REQUEST_FIRST_SNAPSHOT);
+            }
         }
         break;
     case PACKETTYPE_S2C_FILE_INFO:
         {
             uint32_t sz=get_u32(argdata);
             uint32_t crc32=get_u32(argdata+4);
-            char *path_utf8 = (char*)(argdata+8);
-            if(!checkHaveLocalCache(path_utf8, sz,crc32)) {
-                sendUS1Str(s, PACKETTYPE_C2S_REQUEST_FILE, path_utf8);
+            uint8_t cstrlen=get_u8(argdata+4+4);
+            char *path_utf8 = (char*)(argdata+4+4+1);
+            char path[1024];
+            snprintf(path,sizeof(path),"%.*s", cstrlen, path_utf8);
+            if(checkHaveLocalCache(path, sz,crc32)) {
+                //                print("have cache, ensuring filedeporequesting file body: '%s'",path);
+                loadLocalCache(path);
+                updateFileLoadState(path,true);
+                if(isAllFileLoaded() && g_received_file_info_end) {
+                    sendUS1(s,PACKETTYPE_C2S_REQUEST_FIRST_SNAPSHOT);
+                }
+            } else {
+                print("requesting file body: '%s'",path);
+                sendUS1Str(s, PACKETTYPE_C2S_REQUEST_FILE, path);
+                updateFileLoadState(path,false);
             }
+        }
+        break;
+    case PACKETTYPE_S2C_FILE_INFO_END:
+        {
+            print("file_info_end. isAllFileLoaded:%d",isAllFileLoaded());
+            if(isAllFileLoaded()) {
+                print("requesting first snapshot");
+                sendUS1(s,PACKETTYPE_C2S_REQUEST_FIRST_SNAPSHOT);
+            }
+            g_received_file_info_end=true;
         }
         break;
     case PACKETTYPE_S2C_PROP2D_DELETE:
@@ -1124,7 +1209,11 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
                     //                    print("grid_deck: td:%d found. %d,%d,%d,%d",deck_id, td->cell_width, td->cell_height, td->tile_width, td->tile_height );
                     g->setDeck(td);
                 } else {
-                    print("grid_deck: can't find td:%d", deck_id);
+                    static int cnt=0;
+                    if(cnt<10) {
+                        print("grid_deck: can't find td:%d", deck_id);
+                        cnt++;
+                    }
                 }                
             } else {
                 print("can't find grid id:%d",grid_id);
@@ -1141,7 +1230,11 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             if( g && p ) {
                 p->setGrid(g);                
             } else {
-                print("grid_prop2d: grid:%p or prop:%p not found", g,p);
+                static int cnt=0;
+                if(cnt<10) {
+                    print("grid_prop2d: grid:%p or prop:%p not found", g,p);
+                    cnt++;
+                }
             }
         }
         break;
@@ -1251,7 +1344,6 @@ void on_packet_callback( Stream *s, uint16_t funcid, char *argdata, uint32_t arg
             assert(tmpbuf);
             memcpy(tmpbuf, str_utf8, bufsz );
             tmpbuf[bufsz] = '\0';
-            //            print("tb_str. tb:%d bufsz:%d s:'%s'", tb_id, bufsz, tmpbuf );
             tb->setString(tmpbuf);
         }
         break;

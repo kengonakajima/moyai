@@ -15,7 +15,7 @@ public:
     Mesh *mesh;
     TrackerTextBox *tracker;
     bool skip_meshing; // true for repreproxy    
-	TextBox() : str(NULL), len_str(0), mesh(NULL), tracker(0), skip_meshing(false) {
+	TextBox() : str(NULL), font(0), len_str(0), mesh(NULL), tracker(0), skip_meshing(false) {
 		setScl(1,1);
 	}
     ~TextBox() {

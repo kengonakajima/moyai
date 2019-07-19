@@ -285,7 +285,37 @@ void RemoteHead::track2D() {
     broadcastSortedChangelist();
 }
 
-void RemoteHead::scanSendFileList( Stream *outstream ) {
+uint32_t getFileCRC32(const char *path) {
+    const size_t MAXBUFSIZE = 1024*1024*16;
+    char *buf = (char*) MALLOC(MAXBUFSIZE);
+    assert(buf);
+    size_t sz = MAXBUFSIZE;
+    bool res = readFile( path, buf, &sz );
+    assertmsg(res, "getFileCRC32: file '%s' read error", path );
+    uint32_t crc32val = crc32_4bytes(buf,sz,0);
+    FREE(buf);
+    print("getFileCRC32: path:%s len:%d crc32:%x", path, sz, crc32val );
+    return crc32val;
+}
+void RemoteHead::appendFileEntry(const char *path) {
+    assert(file_ents_used<elementof(file_ents) );
+    FileEntry *fe=&file_ents[file_ents_used];
+    fe->crc32 = getFileCRC32(path);
+    fe->size=getFileSize(path);
+    strncpy(fe->path,path,sizeof(fe->path));
+    file_ents_used++;
+    print("appendFileEntry: path:%s", path);
+}
+bool RemoteHead::isPathAllowed(const char *path ) {
+    for(int i=0;i<file_ents_used;i++) {
+        FileEntry *fe=&file_ents[i];
+        if(fe->size>0 && strcmp(fe->path,path)==0) {
+            return true;
+        }
+    }
+    return false;
+}
+void RemoteHead::scanFiles() {
     if( window_width==0 || window_height==0) {
         assertmsg( false, "remotehead: window size not set?");
     }
@@ -346,12 +376,12 @@ void RemoteHead::scanSendFileList( Stream *outstream ) {
         Image *img = it->second;
         if( img->last_load_file_path[0] ) {
             print("sending file path:'%s' in image %d", img->last_load_file_path, img->id );
-            sendFileInfo( outstream, img->last_load_file_path );
+            appendFileEntry(img->last_load_file_path);
         }
     }
     for( std::unordered_map<int,Font*>::iterator it = fontmap.begin(); it != fontmap.end(); ++it ) {
         Font *f = it->second;
-        sendFileInfo(outstream, f->last_load_file_path );
+        appendFileEntry(f->last_load_file_path);
     }
     // TODO: send shader source and status
 
@@ -360,8 +390,15 @@ void RemoteHead::scanSendFileList( Stream *outstream ) {
         if(!target_soundsystem)break;
         Sound *snd = target_soundsystem->sounds[i];
         if(!snd)continue;
-        if(snd->last_load_file_path[0]) sendFileInfo(outstream, snd->last_load_file_path);
+        if(snd->last_load_file_path[0]) appendFileEntry(snd->last_load_file_path);
     }    
+}
+void RemoteHead::sendScannedFileList(Stream *outstream) {
+    for(int i=0;i<file_ents_used;i++) {
+        FileEntry *fe=&file_ents[i];
+        sendUS1UI2Str( outstream, PACKETTYPE_S2C_FILE_INFO, fe->size, fe->crc32, fe->path );
+    }
+    sendUS1(outstream,PACKETTYPE_S2C_FILE_INFO_END);
 }
 // Send all IDs of tiledecks, layers, textures, fonts, viwports by scanning all props and grids.
 // This occurs only when new player is comming in.
@@ -455,6 +492,7 @@ void RemoteHead::scanSendAllPrerequisites( Stream *outstream ) {
         }
     }
     // Files
+#if 0    
     for( std::unordered_map<int,Image*>::iterator it = imgmap.begin(); it != imgmap.end(); ++it ) {
         Image *img = it->second;
         if( img->last_load_file_path[0] ) {
@@ -462,6 +500,7 @@ void RemoteHead::scanSendAllPrerequisites( Stream *outstream ) {
             sendFile( outstream, img->last_load_file_path );
         }
     }
+#endif    
     for( std::unordered_map<int,Image*>::iterator it = imgmap.begin(); it != imgmap.end(); ++it ) {
         Image *img = it->second;
         sendImageSetup(outstream,img);
@@ -641,14 +680,32 @@ static void remotehead_on_packet_callback( Stream *stream, uint16_t funcid, char
         break;
     case PACKETTYPE_C2S_REQUEST_FILE_LIST:
         {
-            print("fflllllllll");
-            cli->parent_rh->scanSendFileList(cli);
+            if(cli->parent_rh->file_ents_used==0) {
+                cli->parent_rh->scanFiles();
+            }
+            cli->parent_rh->sendScannedFileList(cli);
         }
         break;
     case PACKETTYPE_C2S_REQUEST_FILE:
         {
-            
-            assertmsg(false,"to implement");
+            uint8_t cstrlen=get_u8(argdata);
+            char *path_utf8 = (char*)(argdata+1);
+            char path[256];
+            snprintf(path,sizeof(path),"%.*s", cstrlen,path_utf8);
+            print("requestfile: '%s'",path);
+            if(!cli->parent_rh->isPathAllowed(path)) {
+                print("path '%s' is not allowed", path);
+                break;
+            }
+            print("sending file %s",path);
+            sendFile(cli,path);
+        }
+        break;
+    case PACKETTYPE_C2S_REQUEST_FIRST_SNAPSHOT:
+        {
+            print("request_first_snapshot");
+            cli->parent_rh->scanSendAllPrerequisites(cli);
+            cli->parent_rh->scanSendAllProp2DSnapshots(cli);
         }
         break;
     default:
@@ -702,11 +759,6 @@ static void remotehead_on_accept_callback( uv_stream_t *listener, int status ) {
 
         sendWindowSize(cl, cl->parent_rh->window_width, cl->parent_rh->window_height);
 
-        if(rh->enable_spritestream) {
-            // request this from client!
-            //            cl->parent_rh->scanSendAllPrerequisites(cl);
-            //            cl->parent_rh->scanSendAllProp2DSnapshots(cl);
-        }
         if(rh->enable_videostream) {
             JPEGCoder *jc = cl->parent_rh->jc;
             assert(jc);
@@ -1628,7 +1680,9 @@ const char *RemoteHead::funcidToString(PACKETTYPE pkt) {
 
     case PACKETTYPE_C2S_REQUEST_FILE: return "PACKETTYPE_C2S_REQUEST_FILE";
     case PACKETTYPE_C2S_REQUEST_FILE_LIST: return "PACKETTYPE_C2S_REQUEST_FILE_LIST";
+    case PACKETTYPE_C2S_REQUEST_FIRST_SNAPSHOT: return "PACKETTYPE_C2S_REQUEST_FIRST_SNAPSHOT";
     case PACKETTYPE_S2C_FILE_INFO: return "PACKETTYPE_S2C_FILE_INFO";
+    case PACKETTYPE_S2C_FILE_INFO_END: return "PACKETTYPE_S2C_FILE_INFO_END";
     case PACKETTYPE_ERROR: return "PACKETTYPE_ERROR";
 
     case PACKETTYPE_MAX: return "PACKETTYPE_MAX";
@@ -2000,19 +2054,6 @@ int sendUS1UI1Wstr( Stream *s, uint16_t usval, uint32_t uival, wchar_t *wstr, in
     return ret;    
 }
 
-void sendFileInfo( Stream *s, const char *filename ) {
-    const size_t MAXBUFSIZE = 1024*1024*16;
-    char *buf = (char*) MALLOC(MAXBUFSIZE);
-    assert(buf);
-    size_t sz = MAXBUFSIZE;
-    bool res = readFile( filename, buf, &sz );
-    assertmsg(res, "sendFileInfo: file '%s' read error", filename );
-    uint32_t crc32val = crc32_4bytes(buf,sz,0);
-    int r = sendUS1UI2Str( s, PACKETTYPE_S2C_FILE_INFO, sz,crc32val,filename );
-    assert(r>0);
-    print("sendFileInfo: path:%s len:%d crc32:%x sendres:%d", filename, sz, crc32val, r );
-    FREE(buf);
-}
 void sendFile( Stream *s, const char *filename ) {
     const size_t MAXBUFSIZE = 1024*1024*16;
     char *buf = (char*) MALLOC(MAXBUFSIZE);
@@ -2082,7 +2123,7 @@ void sendFontSetupWithFile( Stream *outstream, Font *f ) {
     sendUS1UI1( outstream, PACKETTYPE_S2C_FONT_CREATE, f->id );
     // utf32toutf8
     sendUS1UI1Wstr( outstream, PACKETTYPE_S2C_FONT_CHARCODES, f->id, f->charcode_table, f->charcode_table_used_num );
-    sendFile( outstream, f->last_load_file_path );
+    //    sendFile( outstream, f->last_load_file_path );
     sendUS1UI2Str( outstream, PACKETTYPE_S2C_FONT_LOADTTF, f->id, f->pixel_size, f->last_load_file_path );
 }
 void sendColorReplacerShaderSetup( Stream *outstream, ColorReplacerShader *crs ) {
@@ -2093,7 +2134,7 @@ void sendColorReplacerShaderSetup( Stream *outstream, ColorReplacerShader *crs )
 }
 void sendSoundSetup( Stream *outstream, Sound *snd ) {
     if( snd->last_load_file_path[0] ) {
-        sendFile( outstream, snd->last_load_file_path );
+        //        sendFile( outstream, snd->last_load_file_path );
         print("sending sound load file: %d, '%s'", snd->id, snd->last_load_file_path );
         sendUS1UI1Str( outstream, PACKETTYPE_S2C_SOUND_CREATE_FROM_FILE, snd->id, snd->last_load_file_path );
     } else if( snd->last_samples ){

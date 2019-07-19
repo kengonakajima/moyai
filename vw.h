@@ -20,8 +20,8 @@ public:
     FileDepo() {
         for(int i=0;i<MAX_FILES;i++) files[i] = NULL;
     };
-    File* get( char *path );
-    File *ensure( char *path, char *data, size_t datalen );
+    File* get( const char *path );
+    File *ensure( const char *path, const char *data, size_t datalen );
     File *getByIndex(int ind);    
 };
 

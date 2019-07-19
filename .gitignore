@@ -136,3 +136,4 @@ libsnappy.a
 glfw-3.2/src/libglfw3.a
 demo2d.dSYM
 libalut.a
+cached
