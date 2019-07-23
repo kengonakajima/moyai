@@ -649,6 +649,7 @@ int sendUS1( Stream *out, uint16_t usval );
 int sendUS1RawArgs( Stream *s, uint16_t usval, const char *data, uint32_t datalen );
 int sendUS1Bytes( Stream *out, uint16_t usval, const char *buf, uint16_t datalen );
 int sendUS1UI1Bytes( Stream *out, uint16_t usval, uint32_t uival, const char *buf, uint32_t datalen );
+int sendUS1UI2Bytes( Stream *s, uint16_t usval, uint32_t uival0, uint32_t uival1, const char *bytes, uint32_t byteslen );
 int sendUS1UI1( Stream *out, uint16_t usval, uint32_t ui0 );
 int sendUS1UI2( Stream *out, uint16_t usval, uint32_t ui0, uint32_t ui1 );    
 int sendUS1UI3( Stream *out, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t ui2 );

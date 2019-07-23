@@ -1873,6 +1873,15 @@ int sendUS1UI1Bytes( Stream *s, uint16_t usval, uint32_t uival, const char *byte
     memcpy( sendbuf_work+4+2+4+4, bytes, byteslen );
     return pushDataToStream(s,sendbuf_work,totalsize);
 }
+int sendUS1UI2Bytes( Stream *s, uint16_t usval, uint32_t uival0, uint32_t uival1, const char *bytes, uint32_t byteslen ) {
+    size_t totalsize = 4 + 2 + 4 + 4+ (4+byteslen);
+    SET_RECORD_LEN_AND_US1;
+    set_u32( sendbuf_work+4+2, uival0 );
+    set_u32( sendbuf_work+4+2+4, uival1 );    
+    set_u32( sendbuf_work+4+2+4+4, byteslen );
+    memcpy( sendbuf_work+4+2+4+4+4, bytes, byteslen );
+    return pushDataToStream(s,sendbuf_work,totalsize);
+}
 int sendUS1UI1( Stream *s, uint16_t usval, uint32_t uival ) {
     size_t totalsize = 4 + 2 + 4;
     SET_RECORD_LEN_AND_US1;
