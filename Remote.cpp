@@ -1922,6 +1922,19 @@ int sendUS1UI5( Stream *s, uint16_t usval, uint32_t ui0, uint32_t ui1, uint32_t 
     set_u32( sendbuf_work+4+2+4+4+4+4, ui4 );
     return pushDataToStream(s,sendbuf_work,totalsize);
 }
+// not an array
+int sendUS1UIn( Stream *s, uint16_t usval, uint32_t *ui, size_t ui_n ) {
+    size_t totalsize = 4 + 2 + 4*ui_n;
+    SET_RECORD_LEN_AND_US1;
+    for(int i=0;i<ui_n;i++) set_u32( sendbuf_work+4+2+i*4, ui[i]);
+    return pushDataToStream(s,sendbuf_work,totalsize);
+}
+int sendUS1USn( Stream *s, uint16_t usval, uint16_t *us, size_t us_n ) {
+    size_t totalsize = 4 + 2 + 2*us_n;
+    SET_RECORD_LEN_AND_US1;
+    for(int i=0;i<us_n;i++) set_u16( sendbuf_work+4+2+i*2, us[i]);
+    return pushDataToStream(s,sendbuf_work,totalsize);
+}
 int sendUS1UI1F1( Stream *s, uint16_t usval, uint32_t uival, float f0 ) {
     size_t totalsize = 4 + 2 + 4+4;
     SET_RECORD_LEN_AND_US1;
