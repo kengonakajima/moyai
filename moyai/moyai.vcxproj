@@ -95,6 +95,7 @@
     <ClCompile Include="..\common.cpp" />
     <ClCompile Include="..\Camera.cpp" />
     <ClCompile Include="..\ConvertUTF.c" />
+    <ClCompile Include="..\crc32.cpp" />
     <ClCompile Include="..\DrawBatch.cpp" />
     <ClCompile Include="..\Font.cpp" />
     <ClCompile Include="..\FragmentShader.cpp" />
