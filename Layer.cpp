@@ -147,7 +147,7 @@ int Layer::renderAllProps( DrawBatchList *bl ){
 
 			assert( cur2d->dimension == viewport->dimension );
 
-			if(cur2d->isInView(&minv,&maxv,camera)) {
+			if( (cur2d->last_in_view=cur2d->isInView(&minv,&maxv,camera)) ) {
 				tosort[cnt].val = cur2d->priority;
 				tosort[cnt].ptr = cur2d;
 				cnt++;

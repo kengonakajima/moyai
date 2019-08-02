@@ -73,6 +73,8 @@ public:
     int target_client_id; // >0 if used
 
     float uv_margin;
+
+    bool last_in_view;
     
     static FragmentShader *default_fs;
     
@@ -126,6 +128,8 @@ public:
         target_client_id = 0;
 
         uv_margin=0;
+
+        last_in_view=false;
 	}
 	virtual ~Prop2D(){
 		for(int i=0;i<grid_used_num;i++){
