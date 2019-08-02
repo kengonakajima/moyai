@@ -339,7 +339,10 @@ bool appendFile( const char *path, const char *data, size_t sz ) {
 }
 int getFileSize( const char *path ) {
 #ifdef WIN32
-    aaa;
+	struct stat s;
+	int r = stat(path, &s);
+	if (r < 0)return -1;
+	return s.st_size;
 #else
     struct stat s;
     int r=stat(path,&s);
