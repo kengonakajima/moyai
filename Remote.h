@@ -569,7 +569,7 @@ public:
     uv_tcp_t *tcp;
     bool use_compression;
     Stream( uv_tcp_t *sk, size_t sendbufsize, size_t recvbufsize, bool compress );
-    void flushSendbuf(size_t unitsize);    
+    size_t flushSendbuf(size_t unitsize);    
 };
 
 class Client : public Stream {
@@ -604,7 +604,7 @@ public:
         if(this->tcp) return this; else return this->reprecator_stream;
     }
     bool isLogical() { return reprecator_stream; }
-    void flushSendbufToNetwork();
+    size_t flushSendbufToNetwork();
     bool updateSendTimer(double dt) {
         accum_time+=dt;
         if(send_wait==0)return true;

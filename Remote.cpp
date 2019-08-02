@@ -2301,7 +2301,7 @@ static void on_write_end( uv_write_t *req, int status ) {
     FREE(req);
 }
 
-void Stream::flushSendbuf(size_t unitsize) {
+size_t Stream::flushSendbuf(size_t unitsize) {
     if(uv_is_writable((uv_stream_t*)tcp) && sendbuf.used > 0 ) {
         size_t partsize = sendbuf.used;
         if(partsize>unitsize) partsize = unitsize;
@@ -2323,9 +2323,11 @@ void Stream::flushSendbuf(size_t unitsize) {
             int r = uv_write( write_req, (uv_stream_t*)tcp, &buf, 1, on_write_end );
             if(r) {
                 print("uv_write fail. %d",r);
+                return 0;
             } else {
                 //                print("uv_write ok, partsz:%d used:%d", partsize, sendbuf.used );
                 sendbuf.shift(partsize);
+                return partsize;
             }
         } else {
             //            print("nocompress used:%d", sendbuf.used );
@@ -2335,12 +2337,15 @@ void Stream::flushSendbuf(size_t unitsize) {
             int r = uv_write( write_req, (uv_stream_t*)tcp, &buf, 1, on_write_end );
             if(r) {
                 print("uv_write fail. %d",r);
+                return 0;
             } else {
                 //                print("uv_write ok, partsz:%d used:%d", partsize, sendbuf.used );
                 sendbuf.shift(partsize);
-            }            
+                return partsize;
+            }
         }
     }
+    return 0;
 }        
 
 
@@ -2399,8 +2404,8 @@ Client::~Client() {
         }
     }
 }
-void Client::flushSendbufToNetwork() {        
-    getStream()->flushSendbuf(256*1024);
+size_t Client::flushSendbufToNetwork() {        
+    return getStream()->flushSendbuf(256*1024);
 }
 
 
