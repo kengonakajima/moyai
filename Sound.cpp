@@ -40,6 +40,7 @@ void Sound::play(float vol){
     }
     last_play_volume = default_volume * vol;    
     if(parent->remote_head) parent->remote_head->notifySoundPlay( this, last_play_volume );
+    if(this->parent->soundPlayCallback) this->parent->soundPlayCallback(this, default_volume, vol );
 }
 
 void Sound::playDistance(float mindist, float maxdist, float dist, float relvol) {
@@ -68,6 +69,7 @@ void Sound::stop() {
     sound->stop();
 #endif        
     if(this->parent->remote_head) this->parent->remote_head->notifySoundStop(this);
+    if(this->parent->soundStopCallback) this->parent->soundStopCallback(this);
 }
 
 bool Sound::isPlaying() {

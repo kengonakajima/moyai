@@ -8,7 +8,7 @@
 #include "ALSound.h"
 #endif
 
-SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0) {
+SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0), soundPlayCallback(0), soundStopCallback(0) {
 #ifdef USE_FMOD    
 	FMOD_RESULT r;
 	r = FMOD_System_Create(&sys);

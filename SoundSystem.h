@@ -38,4 +38,6 @@ public:
 
     void setRemoteHead(RemoteHead*rh);
     void setVolume(float v);
+    void (*soundPlayCallback)(Sound *sound, float defvol, float vol );
+    void (*soundStopCallback)(Sound *sound);
 };
