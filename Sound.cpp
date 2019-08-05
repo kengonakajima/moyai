@@ -9,7 +9,7 @@
 #endif
 bool Sound::g_no_real_sound = false;
 
-Sound::Sound( SoundSystem *s) : parent(s), sound(0), ch(0), default_volume(1), external_id(0), last_samples(0), last_samples_num(0), last_play_volume(0) {
+Sound::Sound( SoundSystem *s) : parent(s), sound(0), ch(0), default_volume(1), temp_volume(1), external_id(0), last_samples(0), last_samples_num(0), last_play_volume(0) {
     last_load_file_path[0] = '\0';
 }
 void Sound::play(){
@@ -27,20 +27,20 @@ void Sound::play(float vol){
             r = FMOD_System_PlaySound( parent->sys, FMOD_CHANNEL_REUSE, sound, 0, & this->ch );            
         }
         FMOD_ERRCHECK(r);
-        FMOD_Channel_SetVolume(ch, default_volume * vol );
+        FMOD_Channel_SetVolume(ch, default_volume * vol * temp_volume );
 #endif
 #ifdef USE_UNTZ
         sound->play();
-        sound->setVolume(default_volume*vol);
+        sound->setVolume(default_volume*vol*temp_volume);
 #endif
 #ifdef USE_OPENAL
         sound->play();
-        sound->setVolume(default_volume*vol);
+        sound->setVolume(default_volume*vol*temp_volume);
 #endif
     }
-    last_play_volume = default_volume * vol;    
+    last_play_volume = default_volume * vol * temp_volume;    
     if(parent->remote_head) parent->remote_head->notifySoundPlay( this, last_play_volume );
-    if(this->parent->soundPlayCallback) this->parent->soundPlayCallback(this, default_volume, vol );
+    if(this->parent->soundPlayCallback) this->parent->soundPlayCallback(this, default_volume, vol*temp_volume );
 }
 
 void Sound::playDistance(float mindist, float maxdist, float dist, float relvol) {

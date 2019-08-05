@@ -30,6 +30,7 @@ public:
     void *ch;
 #endif    
 	float default_volume;
+    float temp_volume;
     int external_id; // for app use
 
     char last_load_file_path[256]; // for headless
