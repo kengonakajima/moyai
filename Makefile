@@ -269,9 +269,6 @@ $(LIBPNGLIB):
 $(GLFWLIB):
 	cd $(GLFW); $(OSX_TARGET_EXPORT); cmake .; make
 
-$(UNTZLIB):
-	make -C untz
-
 linux:
 	make -f Makefile.linux
 
@@ -284,7 +281,7 @@ clean:
 	rm -rf $(FREETYPE) $(LIBUV) $(BZ2) $(ZLIB) $(LIBPNG) $(ALUTLIB) $(JPEGLIB) $(LIBUVLIB)
 	rm -f deps.make $(VIEWER) $(DEMO2D) $(MIN2D) $(DEMO3D) $(DYNCAM2D) $(REPLAYER) $(OUTCLILIB) $(OUTSVLIB) *.o *.a */*.o $(SNAPPYOBJS)
 
-depend: $(GLFWLIB) $(UNTZLIB)
+depend: $(GLFWLIB)
 	$(CC) $(CFLAGS) -MM $(TESTSRCS) $(MOYAICLISRCS) $(DEMO2DSRCS) $(DEMO3DSRCS) $(MIN2DSRCS) $(DYNCAM2DSRCS) $(REPLAYERSRCS) $(VIEWERSRCS) > deps.make
 
 
