@@ -25,13 +25,14 @@ public:
 		deck = d;
 	}
 	inline void setTexture( Texture *t ){
-		assert(t->tex!=0);        
-		TileDeck *d = new TileDeck(); // TODO: d leaks
-		d->setTexture(t);
-		int w,h;
-		t->getSize(&w,&h);
-		d->setSize( 1,1, w, h );
-		deck = d;
+		assert(t->tex!=0);
+        if(!deck) {
+            deck = new TileDeck();
+            int w,h;
+            t->getSize(&w,&h);
+            ((TileDeck*)deck)->setSize( 1,1, w, h );            
+        }
+		deck->setTexture(t);
 		index = 0;
 	}
     inline void setWireframe(bool flg) { wireframe=flg; }
