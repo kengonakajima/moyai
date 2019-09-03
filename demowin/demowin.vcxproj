@@ -42,12 +42,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-3.2\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\libuv-1.20.2\include;C:\Genvid\Genvid Technologies SDK 1.19.5\api\native\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2017;$(ProjectDir)\..\fmodwin\api\lib;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\libuv-1.20.2\debug\lib;$(ProjectDir)\..\libvorbis-1.3.5\lib\vs2013\Release;$(ProjectDir)\..\libogg-1.3.2\lib\vs2013\Release;$(ProjectDir)\..\openal-1.1\libs\Win32;$(ProjectDir)\..\jpeg-9b\Release;C:\Genvid\Genvid Technologies SDK 1.19.5\api\native\win32;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-3.2\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\libuv-1.20.2\include;C:\Genvid\Genvid Technologies SDK 1.20.1.71\api\native\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2017;$(ProjectDir)\..\fmodwin\api\lib;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\libuv-1.20.2\debug\lib;$(ProjectDir)\..\libvorbis-1.3.5\lib\vs2013\Release;$(ProjectDir)\..\libogg-1.3.2\lib\vs2013\Release;$(ProjectDir)\..\openal-1.1\libs\Win32;$(ProjectDir)\..\jpeg-9b\Release;C:\Genvid\Genvid Technologies SDK 1.20.1.71\api\native\win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-3.2\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\libuv-1.20.2\include;C:\Genvid\Genvid Technologies SDK 1.19.5\api\native\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\zlib-1.2.7;$(ProjectDir)\..\libpng-1.5.13;$(ProjectDir)\..\glfw-3.2\include;$(ProjectDir)\..\glew-1.10.0\include;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\libuv-1.20.2\include;C:\Genvid\Genvid Technologies SDK 1.20.1.71\api\native\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)\..\windeps_compiled\vs2017;$(ProjectDir)\..\fmodwin\api\lib;$(ProjectDir)\..\glut-3.7.6-bin;$(ProjectDir)\..\libuv-1.20.2\release\lib;$(ProjectDir)\..\libvorbis-1.3.5\lib\vs2013\Release;$(ProjectDir)\..\libogg-1.3.2\lib\vs2013\Release;$(ProjectDir)\..\openal-1.1\libs\Win32;$(ProjectDir)\..\jpeg-9b\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
