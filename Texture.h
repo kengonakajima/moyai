@@ -20,7 +20,9 @@ public:
     }
 	bool load( const char *path, bool multiply_color_by_alpha = true );
 	void setLinearMagFilter();
-	void setLinearMinFilter();    
+	void setLinearMinFilter();
+    int getWidth() { return image->width; }
+    int getHeight() { return image->height; }
 	void getSize( int *w, int *h){
         assertmsg(image,"Texture::getSize: no image");
         *w = image->width;

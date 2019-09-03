@@ -24,17 +24,6 @@ public:
 	inline void setDeck( Deck *d ){
 		deck = d;
 	}
-	inline void setTexture( Texture *t ){
-		assert(t->tex!=0);
-        if(!deck) {
-            deck = new TileDeck();
-            int w,h;
-            t->getSize(&w,&h);
-            ((TileDeck*)deck)->setSize( 1,1, w, h );            
-        }
-		deck->setTexture(t);
-		index = 0;
-	}
     inline void setWireframe(bool flg) { wireframe=flg; }
 	inline void setVisible(bool flg){ visible = flg; }
 	inline bool getVisible() { return visible; }

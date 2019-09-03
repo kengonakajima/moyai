@@ -19,6 +19,7 @@ Camera *g_hud_camera;
 Camera *g_main_camera;
 
 Texture *g_wood_tex;
+TileDeck *g_wood_deck;
 Texture *g_sol_tex;
 
 Mesh *g_colmesh;
@@ -368,8 +369,13 @@ void setupCube() {
 
     g_wood_tex = new Texture();
     g_wood_tex->load( "assets/wood256.png" );
+    g_wood_deck = new TileDeck();
+    g_wood_deck->setTexture(g_wood_tex);
+    g_wood_deck->setSize(1,1,256,256);
+        
     g_sol_tex = new Texture();
-    g_sol_tex->load( "assets/dragon8.png" );    
+    g_sol_tex->load( "assets/dragon8.png" );
+    
     
 
     g_prop_col = new Prop3D();
@@ -383,7 +389,7 @@ void setupCube() {
     g_prop_texnorm->setMesh(g_texnormmesh);
     g_prop_texnorm->setScl(Vec3(1,1,1));
     g_prop_texnorm->setLoc(Vec3(0,0,0));
-    g_prop_texnorm->setTexture( g_wood_tex);
+    g_prop_texnorm->setDeck( g_wood_deck);
     g_prop_texnorm->setMaterial(g_material);
     g_main_layer->insertProp(g_prop_texnorm);
 
@@ -391,7 +397,7 @@ void setupCube() {
     g_prop_texcol->setMesh(g_texcolmesh );
     g_prop_texcol->setScl(Vec3(1,1,1));
     g_prop_texcol->setLoc(Vec3(0,0,0));
-    g_prop_texcol->setTexture(g_wood_tex);
+    g_prop_texcol->setDeck(g_wood_deck);
     g_main_layer->insertProp(g_prop_texcol);
 
 
@@ -405,12 +411,12 @@ void setupCube() {
         g_children[1]->setMesh( g_texmesh );
         g_children[1]->setScl( Vec3(0.2,0.2,0.2) );
         g_children[1]->setLoc( Vec3(0,0,1) );
-        g_children[1]->setTexture( g_wood_tex );
+        g_children[1]->setDeck( g_wood_deck );
         g_children[2] = new Prop3D();
         g_children[2]->setMesh( g_texcolmesh );
         g_children[2]->setScl( Vec3(0.2,0.2,0.2) );
         g_children[2]->setLoc( Vec3(1,0,0) );
-        g_children[2]->setTexture( g_wood_tex );
+        g_children[2]->setDeck( g_wood_deck );
 
         g_prop_with_children = new Prop3D();
         g_prop_with_children->reserveChildren(3);

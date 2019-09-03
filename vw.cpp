@@ -71,6 +71,7 @@ JPEGCoder *g_jc;
 
 Prop2D *g_video_prop;
 Texture *g_video_tex;
+TileDeck *g_video_deck;
 
 unsigned int g_recv_counts[PACKETTYPE_MAX];
 unsigned int g_recv_totalcounts[PACKETTYPE_MAX];
@@ -144,10 +145,13 @@ void setupVideoViewer( int imgw, int imgh ) {
     if(!g_video_tex) {
         g_video_tex = new Texture();
         g_video_tex->setImage(g_jc->capture_img);
+        g_video_deck = new TileDeck();
+        g_video_deck->setTexture(g_video_tex);
+        g_video_deck->setSize(1,1,g_video_tex->getWidth(),g_video_tex->getHeight());
     }
     if(!g_video_prop) {
         g_video_prop = new Prop2D();
-        g_video_prop->setTexture(g_video_tex);
+        g_video_prop->setDeck(g_video_deck);
         g_video_prop->setLoc(0,0);
         g_video_prop->setScl(imgw*RETINA,imgh*RETINA);
         g_video_layer->insertProp(g_video_prop);
@@ -159,7 +163,7 @@ void updateVideoViewer() {
     g_jc->capture_img->writePNG("decoded.png");
 #endif    
     //    g_video_prop->setTexture(g_hogetex);
-    g_video_prop->setTexture(g_video_tex);
+    g_video_deck->setTexture(g_video_tex);
 }
 
 ///////////////

@@ -1204,10 +1204,14 @@ void gameInit() {
 
     Texture *dragontex = new Texture();
     dragontex->load( "./assets/dragon8.png");
+    TileDeck *dragondeck = new TileDeck();
+    dragondeck->setTexture(dragontex);
+    dragondeck->setSize(1,1,8,8);
     for(int j=0;j<2;j++) {
         for(int i=0;i<6;i++) {
             Prop2D *p = new Prop2D();
-            p->setTexture(dragontex);
+            p->setDeck(dragondeck);
+            p->setIndex(0);
             p->setScl(32,32);
             p->setColor(1,1,1,0.3);
             p->setLoc(-SCRW/2+50 + i * 10,-SCRH/2+70 + (i%2)*10 + j*80);
@@ -1276,19 +1280,27 @@ void gameInit() {
 
     Texture *dragontex0 = new Texture();
     dragontex0->setImage( dragonimg );
+    TileDeck *dtd0 = new TileDeck();
+    dtd0->setTexture(dragontex0);
+    dtd0->setSize(1,1,8,8);
     
     Texture *dragontex1 = new Texture();
     dragontex1->load( "assets/dragon8.png" );
+    TileDeck *dtd1 = new TileDeck();
+    dtd1->setTexture(dragontex1);
+    dtd1->setSize(1,1,8,8);
 
     Prop2D *dragonp1 = new Prop2D();
+    dragonp1->setIndex(0);
     dragonp1->setLoc( SCRW/2-80, 0);
-    dragonp1->setTexture(dragontex1);
+    dragonp1->setDeck(dtd1);
     dragonp1->setScl(32);
     g_main_layer->insertProp(dragonp1);    
     
     Prop2D *dragonp0 = new Prop2D();
+    dragonp0->setIndex(0);
     dragonp0->setLoc( SCRW/2-40, 0);
-    dragonp0->setTexture( dragontex0 );
+    dragonp0->setDeck( dtd0);
     dragonp0->setScl(32);
     g_main_layer->insertProp(dragonp0);
     
