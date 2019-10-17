@@ -74,7 +74,7 @@ public:
 
     float uv_margin;
 
-    bool last_in_view;
+    int render_count;
     
     static FragmentShader *default_fs;
     
@@ -129,7 +129,7 @@ public:
 
         uv_margin=0;
 
-        last_in_view=false;
+        render_count=0;
 	}
 	virtual ~Prop2D(){
 		for(int i=0;i<grid_used_num;i++){
