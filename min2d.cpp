@@ -5,11 +5,16 @@
 #include <math.h>
 #include <locale.h>
 
+
 #ifndef WIN32
 #include <strings.h>
 #endif
 
 #include "client.h"
+#include "ALSound.h"
+
+
+
 
 
 Keyboard *g_keyboard;
@@ -302,9 +307,38 @@ int main(int argc, char **argv )
 
 #endif
 
+#if 0 // microphone capture
+    const ALCchar *captname=alcGetString(NULL, ALC_CAPTURE_DEVICE_SPECIFIER);
+    fprintf(stderr, "captname: %s\n",captname);
+    const ALCchar *outname=alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+    fprintf(stderr, "outname: %s\n",outname); 
+
+    ALCdevice *device = alcCaptureOpenDevice(outname, 48000, AL_FORMAT_STEREO16, 1024);
+    if (alGetError() != AL_NO_ERROR) {
+        return 0;
+    }
+    alcCaptureStart(device);
+    //    alcCaptureStop(device);
+    //     alcCaptureCloseDevice(device);
+#endif
+
     // main loop
 
     while( !glfwWindowShouldClose(window) ){
+#if 0         // microphone capture
+        ALshort buffer[24000];
+        ALint num_sample;
+
+        alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &num_sample);
+        alcCaptureSamples(device, (ALCvoid *)buffer, num_sample);
+        int sndn= abs(buffer[0]) / 1500;
+        fprintf(stderr, "got samples: %d [%d]", num_sample, abs(buffer[0]) );
+        for(int i=0;i<sndn;i++) fprintf(stderr,"*");
+        fprintf(stderr,"\n");
+#endif
+        
+
+        
         static int frame_counter = 0;
         static int loop_counter = 0;
 
