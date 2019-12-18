@@ -57,4 +57,7 @@ public:
     static MoyaiALSound *create( const char *cpath ) ;
     static MoyaiALSound *create( int sampleRate, int numChannels, int numFrames, bool loop, float *samples );    
 };
+
+void startMoyaiAL();
+
 #endif

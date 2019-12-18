@@ -184,7 +184,7 @@ PrimDrawer.o : PrimDrawer.cpp
 Sound.o : Sound.cpp
 	g++ -c $(CFLAGS0X) Sound.cpp -o Sound.o
 MoyaiALSound.o : MoyaiALSound.cpp
-	g++ -c $(CFLAGS0X) MoyaiALSound.cpp -o MoyaiALSound.o
+	g++ -c $(CFLAGS0X) MoyaiALSound.cpp -o MoyaiALSound.o -Wno-deprecated-declarations
 SoundSystem.o : SoundSystem.cpp
 	g++ -c $(CFLAGS0X) SoundSystem.cpp -o SoundSystem.o
 VertexFormat.o : VertexFormat.cpp

@@ -30,7 +30,7 @@ SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0), soundPlayCallba
 #ifdef USE_UNTZ
 	UNTZ::System::initialize( 44100, 512, 0 );
 #endif
-#ifdef USE_OPENAL || USE_MOYAIAL
+#ifdef USE_OPENAL 
     if(alutInit(0,NULL)==AL_FALSE) {
         print("alutInit failed! error:%s", alutGetErrorString(alutGetError()));
         assert(false);
@@ -38,6 +38,18 @@ SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0), soundPlayCallba
         print("alutInit success!");
     }
 #endif
+#ifdef USE_MOYAIAL 
+    if(alutInit(0,NULL)==AL_FALSE) {
+        print("alutInit failed! error:%s", alutGetErrorString(alutGetError()));
+        assert(false);
+    } else {
+        print("alutInit success!");
+    }
+#endif    
+
+#ifdef USE_MOYAIAL
+    startMoyaiAL();
+#endif    
     
     for(int i=0;i<elementof(sounds);i++) sounds[i] = NULL;
 }

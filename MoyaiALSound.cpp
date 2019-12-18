@@ -1,5 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
+#include <unistd.h>
+
 #include "common.h"
 #include "MoyaiALSound.h"
 
@@ -84,4 +86,109 @@ MoyaiALSound *MoyaiALSound::create( int sampleRate, int numChannels, int numFram
         out->samples[i]=samples[i];
     }
     return out;
+}
+
+#ifdef WIN32
+HANDLE g_hMutex;
+#else
+pthread_mutex_t g_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
+static bool getLock() {
+#ifdef WIN32
+	DWORD r = WaitForSingleObject(g_hMutex, INFINITE);
+	if (r == WAIT_OBJECT_0) {
+		return true;
+	} else {
+		return false;
+	}
+#else
+	int r = pthread_mutex_lock(&g_mutex);
+	if (r != 0) {
+		print("pth lock fail");
+		return false;
+	} else {
+        return true;
+    }
+#endif
+}
+static bool putLock() {
+#ifdef WIN32
+	if (ReleaseMutex(g_hMutex)) return false; else return true;
+#else
+	int r = pthread_mutex_unlock(&g_mutex);
+	if (r != 0) {
+		print("pth unlock fail");
+		return false; 
+    } else {
+		return true;
+	}
+#endif
+}
+
+static const int FREQ = 48000;
+static float *g_samples[FREQ*1];
+static const int ABUFNUM = 4, ABUFLEN = 1024; // bufnum増やすと遅れが増えるが、ずれてるだけかなあ
+static int16_t g_pcmdata[ABUFNUM][ABUFLEN*2]; // stereo
+static ALuint g_alsource;
+static ALuint g_albuffer[ABUFNUM];
+
+static void *moyaiALThreadFunc(void *arg) {
+    
+    alGenBuffers(ABUFNUM,g_albuffer);
+    fprintf(stderr,"algenbuffers: %d\n",alGetError());    
+    alGenSources(1,&g_alsource);
+    fprintf(stderr,"algensources: %d\n",alGetError());
+    double t=0,dt=0;
+    for(int j=0;j<ABUFNUM;j++) {
+        for(int i=0;i<ABUFLEN;i++) {
+            t+=0.01+dt;
+            dt+=0.000001;
+            g_pcmdata[j][i*2+0] = sin(t)*30000;
+            g_pcmdata[j][i*2+1] = random()%10000;
+        }
+    }
+    for(int i=0;i<ABUFNUM;i++) {
+        alBufferData(g_albuffer[i], AL_FORMAT_STEREO16, g_pcmdata[i], ABUFLEN*sizeof(int16_t)*2, FREQ);
+        alSourceQueueBuffers(g_alsource,1,&g_albuffer[i]);
+        fprintf(stderr,"alsourcequeuebuffers: %d\n",alGetError());
+    }
+    alSourcePlay(g_alsource);
+	fprintf(stderr,"alsourceplay done:%d\n",alGetError());
+
+    static int play_head=0;
+    while(true) {
+        ALint proced;
+        alGetSourcei(g_alsource,AL_BUFFERS_PROCESSED,&proced);
+        //        fprintf(stderr,"proced:%d\n",proced);
+        if(proced>0) {
+            for(int proci=0;proci<proced;proci++) {
+                int bufind =  play_head % ABUFNUM;
+                alSourceUnqueueBuffers(g_alsource,1,&g_albuffer[bufind]);
+                for(int i=0;i<ABUFLEN;i++) {
+                    t+=0.01+dt;
+                    dt+=0.000001;
+                    g_pcmdata[bufind][i*2+0] = sin(t)*30000;
+                    g_pcmdata[bufind][i*2+1] = random()%10000;
+                }
+                alBufferData(g_albuffer[bufind], AL_FORMAT_STEREO16, g_pcmdata[bufind], ABUFLEN*sizeof(int16_t)*2,FREQ);
+                alSourceQueueBuffers(g_alsource,1,&g_albuffer[bufind]);
+                play_head++;
+                
+            }
+        }
+        usleep(1*1000);
+    }
+}
+void startMoyaiAL() {
+#ifdef WIN32    
+	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)moyaiALThreadFunc, url, 0, NULL);
+#else
+    pthread_t tid;
+    int err = pthread_create(&tid,NULL,moyaiALThreadFunc,NULL);
+    if(err) {
+        print("moyaiALThreadFunc: pthread_create failed:%d",err);
+        return;
+    }
+#endif    
 }
