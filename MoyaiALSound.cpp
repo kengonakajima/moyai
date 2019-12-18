@@ -10,6 +10,16 @@
 //    return (int16_t)((1-2*signbit(inValue)) * atanf(fabs(inValue) * 2.0f) * ((2.0f / 3.14f) * 32767));
 //}
 
+static MoyaiALSound *g_moyaial_sounds[1024];
+static int g_moyaial_sounds_used=0;
+
+static void appendSound(MoyaiALSound *snd) {
+    assert(g_moyaial_sounds_used<=elementof(g_moyaial_sounds));
+    g_moyaial_sounds[g_moyaial_sounds_used]=snd;
+    g_moyaial_sounds_used++;
+    fprintf(stderr,"appendSound: used:%d\n",g_moyaial_sounds_used);
+}
+
 
 MoyaiALSound *MoyaiALSound::create( const char *cpath ) {
     ALenum fmt;
@@ -69,6 +79,7 @@ MoyaiALSound *MoyaiALSound::create( const char *cpath ) {
             }
         }
     }
+    appendSound(out);
     return out;
 }
 
@@ -85,13 +96,14 @@ MoyaiALSound *MoyaiALSound::create( int sampleRate, int numChannels, int numFram
     for(int i=0;i<numFrames * numChannels;i++) {
         out->samples[i]=samples[i];
     }
+    appendSound(out);    
     return out;
 }
 
 #ifdef WIN32
-HANDLE g_hMutex;
+static HANDLE g_hMutex;
 #else
-pthread_mutex_t g_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t g_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
 static bool getLock() {
@@ -128,10 +140,62 @@ static bool putLock() {
 
 static const int FREQ = 48000;
 static float *g_samples[FREQ*1];
-static const int ABUFNUM = 4, ABUFLEN = 1024; // bufnum増やすと遅れが増えるが、ずれてるだけかなあ
+static const int ABUFNUM = 4, ABUFLEN = 512; // bufnum増やすと遅れが増えるが、ずれてるだけかなあ
 static int16_t g_pcmdata[ABUFNUM][ABUFLEN*2]; // stereo
 static ALuint g_alsource;
 static ALuint g_albuffer[ABUFNUM];
+static double t=0,dt=0;
+
+static void mixFill(int bufind) {
+#if 1 // debug sound filler
+    for(int i=0;i<ABUFLEN;i++) {
+        t+=0.01+dt;
+        dt+=0.0000002;
+        g_pcmdata[bufind][i*2+0] = sin(t)*1000;
+        g_pcmdata[bufind][i*2+1] = random()%200;
+    }
+#endif
+
+    for(int i=0;i<g_moyaial_sounds_used;i++) {
+        MoyaiALSound *snd = g_moyaial_sounds[i];        
+        char volstr[30]={};
+        float s = snd->samples[snd->posFrame*snd->numChannels];
+        int sn = s * 100;
+        for(int k=0;k<sn && k <29;k++) volstr[k]='*';
+        volstr[29]=0;
+        
+
+        if(snd->state == MoyaiALSound::PLAYING) {
+            fprintf(stderr, "Playing:[%d] ch:%d nf:%d posF:%d(%f)%s sr:%d v:%f st:%d loop:%d\n",
+                    i, snd->numChannels, snd->numFrames, snd->posFrame,
+                    s,
+                    volstr,
+                    snd->sampleRate, snd->volume, snd->state, snd->loop );
+        }
+        for(int i=0;i<ABUFLEN;i++) {
+            float left_sample = snd->samples[snd->posFrame*snd->numChannels+0] * snd->volume;
+            if(left_sample<-1)left_sample=-1;
+            else if(left_sample>1)left_sample=1;
+            g_pcmdata[bufind][i*2+0] += (short)(left_sample*32767);
+            float right_sample = left_sample;             
+            if(snd->numChannels==2) {
+                right_sample = snd->samples[snd->posFrame*snd->numChannels+1] * snd->volume;
+                if(right_sample<-1)right_sample=-1;
+                else if(right_sample>1)right_sample=1;
+            }
+            g_pcmdata[bufind][i*2+1] = (short)(right_sample*32767);
+            
+            snd->posFrame++;
+            if(snd->posFrame > snd->numFrames) {
+                snd->posFrame = 0;
+                if(!snd->loop) {
+                    snd->state = MoyaiALSound::STOPPED;
+                    break;
+                }
+            }
+        }
+    }    
+}
 
 static void *moyaiALThreadFunc(void *arg) {
     
@@ -139,13 +203,12 @@ static void *moyaiALThreadFunc(void *arg) {
     fprintf(stderr,"algenbuffers: %d\n",alGetError());    
     alGenSources(1,&g_alsource);
     fprintf(stderr,"algensources: %d\n",alGetError());
-    double t=0,dt=0;
     for(int j=0;j<ABUFNUM;j++) {
         for(int i=0;i<ABUFLEN;i++) {
             t+=0.01+dt;
-            dt+=0.000001;
-            g_pcmdata[j][i*2+0] = sin(t)*30000;
-            g_pcmdata[j][i*2+1] = random()%10000;
+            dt+=0.0000002;
+            g_pcmdata[j][i*2+0] = sin(t)*1000;
+            g_pcmdata[j][i*2+1] = random()%200;
         }
     }
     for(int i=0;i<ABUFNUM;i++) {
@@ -165,12 +228,7 @@ static void *moyaiALThreadFunc(void *arg) {
             for(int proci=0;proci<proced;proci++) {
                 int bufind =  play_head % ABUFNUM;
                 alSourceUnqueueBuffers(g_alsource,1,&g_albuffer[bufind]);
-                for(int i=0;i<ABUFLEN;i++) {
-                    t+=0.01+dt;
-                    dt+=0.000001;
-                    g_pcmdata[bufind][i*2+0] = sin(t)*30000;
-                    g_pcmdata[bufind][i*2+1] = random()%10000;
-                }
+                mixFill(bufind);
                 alBufferData(g_albuffer[bufind], AL_FORMAT_STEREO16, g_pcmdata[bufind], ABUFLEN*sizeof(int16_t)*2,FREQ);
                 alSourceQueueBuffers(g_alsource,1,&g_albuffer[bufind]);
                 play_head++;
@@ -181,6 +239,10 @@ static void *moyaiALThreadFunc(void *arg) {
     }
 }
 void startMoyaiAL() {
+    static bool init=false;
+    if(init) return;
+    init=true;
+    
 #ifdef WIN32    
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)moyaiALThreadFunc, url, 0, NULL);
 #else
