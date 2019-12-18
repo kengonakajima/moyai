@@ -4,7 +4,7 @@ OSX_TARGET_EXPORT=export MACOSX_DEPLOYMENT_TARGET=$(OSX_TARGET)
 
 PATH := /usr/local/bin:$(PATH)
 
-MOYAICLISRCS=Remote.cpp common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Keyboard.cpp JPEGCoder.cpp crc32.cpp
+MOYAICLISRCS=Remote.cpp common.cpp cumino.cpp  lodepng.cpp Prop2D.cpp Prop3D.cpp ColorReplacerShader.cpp Font.cpp FragmentShader.cpp IndexBuffer.cpp Layer.cpp MoyaiClient.cpp TextBox.cpp Prim.cpp Texture.cpp VertexBuffer.cpp Viewport.cpp DrawBatch.cpp Camera.cpp CharGrid.cpp Grid.cpp Mesh.cpp Pad.cpp PerformanceCounter.cpp PrimDrawer.cpp Sound.cpp MoyaiALSound.cpp SoundSystem.cpp VertexFormat.cpp TileDeck.cpp Keyboard.cpp JPEGCoder.cpp crc32.cpp
 UTF8SRC=ConvertUTF.c
 UTF8OBJ=ConvertUTF.o
 MOYAICLIOBJS=$(MOYAICLISRCS:.cpp=.o) $(UTF8OBJ)
@@ -183,6 +183,8 @@ PrimDrawer.o : PrimDrawer.cpp
 	g++ -c $(CFLAGS0X) PrimDrawer.cpp -o PrimDrawer.o
 Sound.o : Sound.cpp
 	g++ -c $(CFLAGS0X) Sound.cpp -o Sound.o
+MoyaiALSound.o : MoyaiALSound.cpp
+	g++ -c $(CFLAGS0X) MoyaiALSound.cpp -o MoyaiALSound.o
 SoundSystem.o : SoundSystem.cpp
 	g++ -c $(CFLAGS0X) SoundSystem.cpp -o SoundSystem.o
 VertexFormat.o : VertexFormat.cpp

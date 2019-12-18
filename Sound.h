@@ -9,6 +9,9 @@
 #ifdef USE_OPENAL
 class ALSound;
 #endif
+#ifdef USE_MOYAIAL
+class MoyaiALSound;
+#endif
 
 class SoundSystem;
 
@@ -25,6 +28,9 @@ public:
 #elif defined(USE_OPENAL)
     ALSound *sound;
     void *ch;
+#elif defined(USE_MOYAIAL)
+    MoyaiALSound *sound;
+    void *ch;    
 #else
     void *sound;
     void *ch;

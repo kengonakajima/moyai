@@ -7,6 +7,9 @@
 #ifdef USE_OPENAL
 #include "ALSound.h"
 #endif
+#ifdef USE_MOYAIAL
+#include "MoyaiALSound.h"
+#endif
 
 SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0), soundPlayCallback(0), soundStopCallback(0) {
 #ifdef USE_FMOD    
@@ -27,14 +30,15 @@ SoundSystem::SoundSystem()  : id_gen(1), remote_head(0), sys(0), soundPlayCallba
 #ifdef USE_UNTZ
 	UNTZ::System::initialize( 44100, 512, 0 );
 #endif
-#ifdef USE_OPENAL
+#ifdef USE_OPENAL || USE_MOYAIAL
     if(alutInit(0,NULL)==AL_FALSE) {
         print("alutInit failed! error:%s", alutGetErrorString(alutGetError()));
         assert(false);
     } else {
         print("alutInit success!");
     }
-#endif    
+#endif
+    
     for(int i=0;i<elementof(sounds);i++) sounds[i] = NULL;
 }
 
@@ -59,6 +63,9 @@ Sound *SoundSystem::newSound( const char *path, float vol ) {
 #ifdef USE_OPENAL
     ALSound *s = ALSound::create( cpath );
 #endif
+#ifdef USE_MOYAIAL
+    MoyaiALSound *s = MoyaiALSound::create( cpath );
+#endif    
 #ifdef __linux__
     void *s = this; // TODO: implement virtual sound
 #endif    
@@ -110,6 +117,9 @@ Sound *SoundSystem::newSoundFromMemory( float *samples, int samples_num ) {
     info.mChannels = 1;
     info.mTotalFrames = samples_num / 1;
     ALSound *s = ALSound::create( info, samples );
+#endif
+#ifdef USE_MOYAIAL
+    MoyaiALSound *s = MoyaiALSound::create( 44100,1, samples_num,false, samples );
 #endif
 #ifdef __linux__
     void *s = this; // TODO: implement virtual sound

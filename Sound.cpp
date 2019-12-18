@@ -7,6 +7,12 @@
 #ifdef USE_OPENAL
 #include "ALSound.h" // Thin wrapper of OpenAL
 #endif
+
+#ifdef USE_MOYAIAL
+#include "MoyaiALSound.h" // Original simple sound mixing over OpenAL
+#endif
+
+
 bool Sound::g_no_real_sound = false;
 
 Sound::Sound( SoundSystem *s) : parent(s), sound(0), ch(0), default_volume(1), temp_volume(1), external_id(0), last_samples(0), last_samples_num(0), last_play_volume(0) {
@@ -37,6 +43,10 @@ void Sound::play(float vol){
         sound->play();
         sound->setVolume(default_volume*vol*temp_volume);
 #endif
+#ifdef USE_MOYAIAL
+        sound->play();
+        sound->setVolume(default_volume*vol*temp_volume);
+#endif        
     }
     last_play_volume = default_volume * vol * temp_volume;    
     if(parent->remote_head) parent->remote_head->notifySoundPlay( this, last_play_volume );
@@ -67,7 +77,10 @@ void Sound::stop() {
 #endif
 #ifdef USE_OPENAL
     sound->stop();
-#endif        
+#endif
+#ifdef USE_MOYAIAL
+    sound->stop();
+#endif    
     if(this->parent->remote_head) this->parent->remote_head->notifySoundStop(this);
     if(this->parent->soundStopCallback) this->parent->soundStopCallback(this);
 }
@@ -86,6 +99,9 @@ bool Sound::isPlaying() {
 #elif defined(USE_OPENAL)
     if(!sound)return false;    
     return sound->isPlaying();
+#elif defined(USE_MOYAIAL)
+    if(!sound)return false;    
+    return sound->isPlaying();    
 #else
     return false; // TODO: implement linux virtual sound
 #endif
@@ -100,7 +116,10 @@ void Sound::setVolume( float v ) {
 #endif
 #ifdef USE_OPENAL
     sound->setVolume(v);
-#endif    
+#endif
+#ifdef USE_MOYAIAL
+    sound->setVolume(v);
+#endif
 }
 float Sound::getVolume() {
 #ifdef USE_FMOD    
@@ -111,6 +130,8 @@ float Sound::getVolume() {
     return sound->getVolume();
 #elif defined(USE_OPENAL)
     return sound->getVolume();
+#elif defined(USE_MOYAIAL)
+    return sound->getVolume();    
 #else
     return 1; // TODO: implement linux virtual sound
 #endif
@@ -128,6 +149,9 @@ void Sound::setLoop( bool flag ) {
     sound->setLooping(flag);
 #endif
 #ifdef USE_OPENAL
+    sound->setLooping(flag);
+#endif
+#ifdef USE_MOYAIAL
     sound->setLooping(flag);
 #endif    
 }
@@ -155,8 +179,10 @@ float Sound::getTimePositionSec() {
     return (float) sound->getPosition();
 #elif defined(USE_OPENAL)
     return (float) sound->getPosition();
+#elif defined(USE_MOYAIAL)
+    return (float) sound->getPosition();    
 #else
-    return 0; // TODO: implement linux virtual sound
+    return 0; 
 #endif    
 }
 void Sound::setTimePositionSec( float sec ) {
@@ -172,6 +198,9 @@ void Sound::setTimePositionSec( float sec ) {
     sound->setPosition(sec);
 #endif
 #ifdef USE_OPENAL
+    sound->setPosition(sec);
+#endif
+#ifdef USE_MOYAIAL
     sound->setPosition(sec);
 #endif    
 }

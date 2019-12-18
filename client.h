@@ -7,12 +7,12 @@
 
 #ifdef WIN32
 #include "GL/glew.h"
-#define USE_OPENAL 1
+#define USE_MOYAIAL 1
 #define ALUT_BUILD_LIBRARY
 #endif
 
 #if defined(__APPLE__)
-#define USE_OPENAL 1
+#define USE_MOYAIAL 1
 #include "TargetConditionals.h"
 #if TARGET_IPHONE_SIMULATOR
 #include "OpenGLES/ES1/gl.h"
