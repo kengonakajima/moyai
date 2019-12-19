@@ -3,12 +3,24 @@
 #include <unistd.h>
 
 #include "common.h"
+#include "client.h"
 #include "MoyaiALSound.h"
 
+#ifdef USE_MOYAIAL
+extern "C" {
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
+#include "libavutil/opt.h"
+#include "libswresample/swresample.h"
+//#include "libswscale/swscale.h"
+};
+#endif
 
 //static inline int16_t limit_float_conv_int16(float inValue) {
 //    return (int16_t)((1-2*signbit(inValue)) * atanf(fabs(inValue) * 2.0f) * ((2.0f / 3.14f) * 32767));
 //}
+
+static const int FREQ = 48000;
 
 static MoyaiALSound *g_moyaial_sounds[1024];
 static int g_moyaial_sounds_used=0;
@@ -62,7 +74,6 @@ MoyaiALSound *MoyaiALSound::create( const char *cpath ) {
 
 
     out->samples = (float*)MALLOC(out->numFrames*out->numChannels*sizeof(float));
-    
     assert(out->samples);
     for(int i=0;i<out->numFrames;i++) {
         if(sampleSize==1) {
@@ -79,10 +90,48 @@ MoyaiALSound *MoyaiALSound::create( const char *cpath ) {
             }
         }
     }
+    out->resample();    
     appendSound(out);
     return out;
 }
+void MoyaiALSound::resample() {
+    if(sampleRate==FREQ) return;
 
+#if USE_MOYAIAL
+
+    // https://github.com/illuusio/ffmpeg-example/blob/master/example2.c
+    SwrContext *swr = swr_alloc_set_opts( NULL,
+                                          // out
+                                          AV_CH_LAYOUT_MONO,
+                                          AV_SAMPLE_FMT_FLT,
+                                          FREQ,
+                                          // in
+                                          AV_CH_LAYOUT_MONO,
+                                          AV_SAMPLE_FMT_FLT,
+                                          44100,
+                                          0,
+                                          NULL);
+                                          
+    int ret = swr_init(swr);
+    assert(ret>=0);
+    const uint8_t *input = (uint8_t*)samples;
+    float sec = (float)numFrames / (float)sampleRate;
+    int needNumFrames = (int)( (float)sec * FREQ);
+    uint8_t *output = (uint8_t*)MALLOC( needNumFrames * numChannels * sizeof(float));
+    ret = swr_convert(swr, &output, needNumFrames, &input, numFrames );
+    fprintf(stderr, "swr_convert: ret:%d\n",ret);
+    if(ret<0) {
+        fprintf(stderr, "swr_convert failed: %d\n",ret);
+        FREE(output);
+        return;
+    } 
+    float *to_free = samples;
+    samples = (float*)output;
+    FREE(to_free);
+    numFrames = ret;
+    sampleRate = FREQ;
+#endif    
+}
 MoyaiALSound *MoyaiALSound::create( int sampleRate, int numChannels, int numFrames, bool loop,  float *samples ) {
     MoyaiALSound *out = new MoyaiALSound();
     out->sampleRate = sampleRate;
@@ -96,50 +145,11 @@ MoyaiALSound *MoyaiALSound::create( int sampleRate, int numChannels, int numFram
     for(int i=0;i<numFrames * numChannels;i++) {
         out->samples[i]=samples[i];
     }
+    out->resample();
     appendSound(out);    
     return out;
 }
 
-#ifdef WIN32
-static HANDLE g_hMutex;
-#else
-static pthread_mutex_t g_mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif
-
-static bool getLock() {
-#ifdef WIN32
-	DWORD r = WaitForSingleObject(g_hMutex, INFINITE);
-	if (r == WAIT_OBJECT_0) {
-		return true;
-	} else {
-		return false;
-	}
-#else
-	int r = pthread_mutex_lock(&g_mutex);
-	if (r != 0) {
-		print("pth lock fail");
-		return false;
-	} else {
-        return true;
-    }
-#endif
-}
-static bool putLock() {
-#ifdef WIN32
-	if (ReleaseMutex(g_hMutex)) return false; else return true;
-#else
-	int r = pthread_mutex_unlock(&g_mutex);
-	if (r != 0) {
-		print("pth unlock fail");
-		return false; 
-    } else {
-		return true;
-	}
-#endif
-}
-
-static const int FREQ = 48000;
-static float *g_samples[FREQ*1];
 static const int ABUFNUM = 4, ABUFLEN = 512; // bufnum増やすと遅れが増えるが、ずれてるだけかなあ
 static int16_t g_pcmdata[ABUFNUM][ABUFLEN*2]; // stereo
 static ALuint g_alsource;
@@ -147,17 +157,23 @@ static ALuint g_albuffer[ABUFNUM];
 static double t=0,dt=0;
 
 static void mixFill(int bufind) {
-#if 1 // debug sound filler
+#if 0 // debug sound filler
     for(int i=0;i<ABUFLEN;i++) {
         t+=0.01+dt;
         dt+=0.0000002;
         g_pcmdata[bufind][i*2+0] = sin(t)*1000;
         g_pcmdata[bufind][i*2+1] = random()%200;
     }
+#else
+    for(int i=0;i<ABUFLEN;i++) {
+        g_pcmdata[bufind][i*2+0] = 0;
+        g_pcmdata[bufind][i*2+1] = 0;
+    }
 #endif
-
+    
     for(int i=0;i<g_moyaial_sounds_used;i++) {
-        MoyaiALSound *snd = g_moyaial_sounds[i];        
+        MoyaiALSound *snd = g_moyaial_sounds[i];
+        assert(snd->sampleRate == FREQ);
         char volstr[30]={};
         float s = snd->samples[snd->posFrame*snd->numChannels];
         int sn = s * 100;

@@ -53,9 +53,11 @@ UNTZLIB=untz/libuntz.a
 UNTZDEPENDLIB=-framework AudioToolbox /usr/local/lib/libvorbis.a /usr/local/lib/libvorbisfile.a /usr/local/lib/libogg.a
 ALUTLIB=libalut.a
 
+FFMPEG=/usr/local/Cellar/ffmpeg/4.2.1_2/lib
+
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB) $(ALUTLIB) $(JPEGLIB) $(LIBUVLIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(GLFWLIB)
-CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64 -L/usr/local/lib -framework OpenAL $(OSX_TARGET_FLAG)
+CLILIBFLAGS=-framework Cocoa -framework IOKit -framework OpenGL -framework CoreFoundation -framework CoreVideo -m64 -L/usr/local/lib -framework OpenAL $(OSX_TARGET_FLAG) $(FFMPEG)/libswresample.a $(FFMPEG)/libavcodec.a $(FFMPEG)/libavutil.a  -lsoxr
 
 OSX_C_FLAGS =  -mmacosx-version-min=10.14
 
