@@ -174,19 +174,14 @@ static void mixFill(int bufind) {
     for(int i=0;i<g_moyaial_sounds_used;i++) {
         MoyaiALSound *snd = g_moyaial_sounds[i];
         assert(snd->sampleRate == FREQ);
-        char volstr[30]={};
         float s = snd->samples[snd->posFrame*snd->numChannels];
-        int sn = s * 100;
-        for(int k=0;k<sn && k <29;k++) volstr[k]='*';
-        volstr[29]=0;
-        
-
         if(snd->state == MoyaiALSound::PLAYING) {
-            fprintf(stderr, "Playing:[%d] ch:%d nf:%d posF:%d(%f)%s sr:%d v:%f st:%d loop:%d\n",
+            fprintf(stderr, "Playing:[%d] ch:%d nf:%d posF:%d(%f) sr:%d v:%f st:%d loop:%d\n",
                     i, snd->numChannels, snd->numFrames, snd->posFrame,
                     s,
-                    volstr,
                     snd->sampleRate, snd->volume, snd->state, snd->loop );
+        } else {
+            continue;
         }
         for(int i=0;i<ABUFLEN;i++) {
             float left_sample = snd->samples[snd->posFrame*snd->numChannels+0] * snd->volume;

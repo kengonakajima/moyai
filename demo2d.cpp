@@ -421,13 +421,6 @@ Explosion *createExplosion(float x, float y, float startScl ){
     assert(g_main_layer);
     Explosion *e = new Explosion(x,y,startScl);
     g_main_layer->insertProp(e);
-
-    //    if(range(0,100)>50) {
-    //        g_explosion_sound->play( range(0.1,1) );
-    //    } else {
-    //        g_mem_sound->play();
-    //    }
-    
     return e;
 }
 
@@ -656,6 +649,18 @@ void gameUpdate(void) {
         Blocks::create();
     }
 
+    static bool k7=false;
+    if(g_keyboard->getKey('7')) {
+        if(!k7) {
+            if(range(0,100)>50) {
+                g_explosion_sound->play( range(0.1,1) );
+            } else {
+                g_mem_sound->play();
+            }
+        }
+    }
+    k7=g_keyboard->getKey('7');
+    
     if( g_keyboard->getKey('U') ) {
         for(int i=0;i<150;i++) {
    
@@ -981,11 +986,13 @@ void gameInit() {
     g_explosion_sound->play();
     g_bgm_sound = g_sound_system->newSound( "./assets/gymno1short.wav" );
     g_bgm_sound->play();
+#if 1    
     {
         float samples[44100/4];
-        for(int i=0;i<elementof(samples);i++) samples[i] = cos( (float)(i) / 20.0f );
+        for(int i=0;i<elementof(samples);i++) samples[i] = cos( (float)(i) / 20.0f ) * 0.5;
         g_mem_sound = g_sound_system->newSoundFromMemory( samples, elementof(samples) );
     }
+#endif
     
     // glfw
     if( !glfwInit() ) {
