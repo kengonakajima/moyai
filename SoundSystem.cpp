@@ -206,3 +206,12 @@ void SoundSystem::setVolume(float v ) {
     assertmsg(false, "not implemented");
 #endif    
 }
+
+void SoundSystem::setOnMixDoneCallback( void (*cb)(int16_t *samples, int numFrames, int numChannels, int freq) ) {
+#ifdef USE_MOYAIAL
+    setMoyaiALOnMixDone(cb);
+#else
+    assertmsg(false, "setOnMixDoneCallback: only implemented in USE_MOYAIAL");
+#endif    
+    
+}

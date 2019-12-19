@@ -150,12 +150,16 @@ MoyaiALSound *MoyaiALSound::create( int sampleRate, int numChannels, int numFram
     return out;
 }
 
-static const int ABUFNUM = 4, ABUFLEN = 512; // bufnum増やすと遅れが増えるが、ずれてるだけかなあ
+static const int ABUFNUM = 4, ABUFLEN = 512; // 256 not working
 static int16_t g_pcmdata[ABUFNUM][ABUFLEN*2]; // stereo
 static ALuint g_alsource;
 static ALuint g_albuffer[ABUFNUM];
 static double t=0,dt=0;
 
+static void (*g_on_mix_done)(int16_t *samples, int numFrames, int numChannels, int freq ) = nullptr;
+void setMoyaiALOnMixDone( void (*cb)( int16_t *samples, int numFrames, int numChannels, int freq ) ) {
+    g_on_mix_done = cb;
+}
 static void mixFill(int bufind) {
 #if 0 // debug sound filler
     for(int i=0;i<ABUFLEN;i++) {
@@ -207,7 +211,10 @@ static void mixFill(int bufind) {
                 }
             }
         }
-    }    
+    }
+    if(g_on_mix_done) {
+        g_on_mix_done(g_pcmdata[bufind], ABUFLEN, 2, FREQ );
+    }
 }
 
 static void *moyaiALThreadFunc(void *arg) {

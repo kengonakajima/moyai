@@ -58,6 +58,10 @@ void kbdCallback( GLFWwindow *window, int keycode, int scancode, int action, int
 void onRemoteKeyboardCallback( Client *cl, int kc, int act, int modshift, int modctrl, int modalt ) {
     g_keyboard->update(kc,act,modshift,modctrl,modalt);
 }
+
+void onMixDoneCallback( int16_t *samples, int numFrames, int numChannels, int freq ) {
+    print("onMixDoneCallback: %d", samples[0]);
+}
 //
 
 int main(int argc, char **argv )
@@ -103,6 +107,7 @@ int main(int argc, char **argv )
     glClearColor(0.2,0.2,0.2,1);
 
     SoundSystem *ss = new SoundSystem();
+    SoundSystem::setOnMixDoneCallback( onMixDoneCallback );
     Sound *bgm = ss->newSound( "assets/gymno1short.wav" );
     bgm->play();
 

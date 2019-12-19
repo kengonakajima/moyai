@@ -40,4 +40,6 @@ public:
     void setVolume(float v);
     void (*soundPlayCallback)(Sound *sound, float defvol, float vol );
     void (*soundStopCallback)(Sound *sound);
+
+    static void setOnMixDoneCallback( void (*cb)(int16_t *samples, int numFrames, int numChannels, int freq ) );
 };
