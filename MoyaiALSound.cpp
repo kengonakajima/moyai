@@ -98,7 +98,6 @@ void MoyaiALSound::resample() {
     if(sampleRate==FREQ) return;
 
 #if USE_MOYAIAL
-
     // https://github.com/illuusio/ffmpeg-example/blob/master/example2.c
     SwrContext *swr = swr_alloc_set_opts( NULL,
                                           // out
@@ -111,7 +110,6 @@ void MoyaiALSound::resample() {
                                           44100,
                                           0,
                                           NULL);
-                                          
     int ret = swr_init(swr);
     assert(ret>=0);
     const uint8_t *input = (uint8_t*)samples;
@@ -218,11 +216,9 @@ static void mixFill(int bufind) {
 }
 
 static void *moyaiALThreadFunc(void *arg) {
-    
     alGenBuffers(ABUFNUM,g_albuffer);
-    fprintf(stderr,"algenbuffers: %d\n",alGetError());    
     alGenSources(1,&g_alsource);
-    fprintf(stderr,"algensources: %d\n",alGetError());
+    fprintf(stderr,"moyaiALsrc:%d\n",g_alsource);
     for(int j=0;j<ABUFNUM;j++) {
         for(int i=0;i<ABUFLEN;i++) {
             t+=0.01+dt;
