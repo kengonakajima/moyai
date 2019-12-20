@@ -60,8 +60,14 @@ void onRemoteKeyboardCallback( Client *cl, int kc, int act, int modshift, int mo
 }
 
 void onMixDoneCallback( int16_t *samples, int numFrames, int numChannels, int freq ) {
-    print("onMixDoneCallback: %d", samples[0]);
+    //    print("onMixDoneCallback: %d", samples[0]);
 }
+
+void onBeforeMixCallback( int16_t *samples, int numFrames, int numChannels, int freq ) {
+    //    print("onBeforeMixCallback: %d", samples[0]);
+    //    for(int i=0;i<numFrames*numChannels;i++) samples[i] = irange(-5000,5000);
+}
+    
 //
 
 int main(int argc, char **argv )
@@ -108,6 +114,7 @@ int main(int argc, char **argv )
 
     SoundSystem *ss = new SoundSystem();
     SoundSystem::setOnMixDoneCallback( onMixDoneCallback );
+    SoundSystem::setOnBeforeMixCallback( onBeforeMixCallback );    
     Sound *bgm = ss->newSound( "assets/gymno1short.wav" );
     bgm->play();
 

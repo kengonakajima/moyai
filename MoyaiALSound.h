@@ -61,5 +61,6 @@ public:
 
 void startMoyaiAL();
 void setMoyaiALOnMixDone( void (*cb)( int16_t *samples, int numFrames, int numChannels, int freq ) ) ;
+void setMoyaiALOnBeforeMix( void (*cb)( int16_t *samples, int numFrames, int numChannels, int freq ) ) ;
 
 #endif

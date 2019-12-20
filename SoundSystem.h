@@ -42,4 +42,5 @@ public:
     void (*soundStopCallback)(Sound *sound);
 
     static void setOnMixDoneCallback( void (*cb)(int16_t *samples, int numFrames, int numChannels, int freq ) );
+    static void setOnBeforeMixCallback( void (*cb)(int16_t *samples, int numFrames, int numChannels, int freq ) );    
 };

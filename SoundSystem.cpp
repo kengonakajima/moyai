@@ -212,6 +212,12 @@ void SoundSystem::setOnMixDoneCallback( void (*cb)(int16_t *samples, int numFram
     setMoyaiALOnMixDone(cb);
 #else
     assertmsg(false, "setOnMixDoneCallback: only implemented in USE_MOYAIAL");
-#endif    
-    
+#endif        
+}
+void SoundSystem::setOnBeforeMixCallback( void (*cb)(int16_t *samples, int numFrames, int numChannels, int freq) ) {
+#ifdef USE_MOYAIAL
+    setMoyaiALOnBeforeMix(cb);
+#else
+    assertmsg(false, "setOnBeforeMixCallback: only implemented in USE_MOYAIAL");
+#endif        
 }

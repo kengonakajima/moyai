@@ -154,9 +154,13 @@ static ALuint g_alsource;
 static ALuint g_albuffer[ABUFNUM];
 static double t=0,dt=0;
 
+static void (*g_on_before_mix)(int16_t *samples, int numFrames, int numChannels, int freq ) = nullptr;
 static void (*g_on_mix_done)(int16_t *samples, int numFrames, int numChannels, int freq ) = nullptr;
 void setMoyaiALOnMixDone( void (*cb)( int16_t *samples, int numFrames, int numChannels, int freq ) ) {
     g_on_mix_done = cb;
+}
+void setMoyaiALOnBeforeMix( void (*cb)( int16_t *samples, int numFrames, int numChannels, int freq ) ) {
+    g_on_before_mix = cb;
 }
 static void mixFill(int bufind) {
 #if 0 // debug sound filler
@@ -172,6 +176,7 @@ static void mixFill(int bufind) {
         g_pcmdata[bufind][i*2+1] = 0;
     }
 #endif
+    if(g_on_before_mix) g_on_before_mix( g_pcmdata[bufind], ABUFLEN, 2, FREQ );
     
     for(int i=0;i<g_moyaial_sounds_used;i++) {
         MoyaiALSound *snd = g_moyaial_sounds[i];
