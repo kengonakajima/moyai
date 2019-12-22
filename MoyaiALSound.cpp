@@ -96,25 +96,32 @@ MoyaiALSound *MoyaiALSound::create( const char *cpath ) {
 }
 void MoyaiALSound::resample() {
     if(sampleRate==FREQ) return;
-
+    
 #if USE_MOYAIAL
+    int layout;
+    if(numChannels==1) {
+        layout = AV_CH_LAYOUT_MONO;
+    } else {
+        layout = AV_CH_LAYOUT_STEREO;
+    }
     // https://github.com/illuusio/ffmpeg-example/blob/master/example2.c
     SwrContext *swr = swr_alloc_set_opts( NULL,
                                           // out
-                                          AV_CH_LAYOUT_MONO,
+                                          layout,
                                           AV_SAMPLE_FMT_FLT,
                                           FREQ,
                                           // in
-                                          AV_CH_LAYOUT_MONO,
+                                          layout,
                                           AV_SAMPLE_FMT_FLT,
-                                          44100,
+                                          sampleRate,
                                           0,
-                                          NULL);
+                                         NULL);
     int ret = swr_init(swr);
     assert(ret>=0);
     const uint8_t *input = (uint8_t*)samples;
     float sec = (float)numFrames / (float)sampleRate;
     int needNumFrames = (int)( (float)sec * FREQ);
+    fprintf(stderr," sec:%f needNumFrames:%d\n", sec,needNumFrames);
     uint8_t *output = (uint8_t*)MALLOC( needNumFrames * numChannels * sizeof(float));
     ret = swr_convert(swr, &output, needNumFrames, &input, numFrames );
     fprintf(stderr, "swr_convert: ret:%d\n",ret);
@@ -122,7 +129,7 @@ void MoyaiALSound::resample() {
         fprintf(stderr, "swr_convert failed: %d\n",ret);
         FREE(output);
         return;
-    } 
+    }
     float *to_free = samples;
     samples = (float*)output;
     FREE(to_free);

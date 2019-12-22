@@ -116,6 +116,7 @@ int main(int argc, char **argv )
     SoundSystem::setOnMixDoneCallback( onMixDoneCallback );
     SoundSystem::setOnBeforeMixCallback( onBeforeMixCallback );    
     Sound *bgm = ss->newSound( "assets/gymno1short.wav" );
+    bgm->setLoop(true);
     bgm->play();
 
     g_keyboard = new Keyboard();
