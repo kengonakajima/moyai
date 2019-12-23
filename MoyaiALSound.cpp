@@ -210,7 +210,7 @@ static void mixFill(int bufind) {
                 if(right_sample<-1)right_sample=-1;
                 else if(right_sample>1)right_sample=1;
             }
-            g_pcmdata[bufind][i*2+1] = (short)(right_sample*32767);
+            g_pcmdata[bufind][i*2+1] += (short)(right_sample*32767);
             
             snd->posFrame++;
             if(snd->posFrame > snd->numFrames) {
