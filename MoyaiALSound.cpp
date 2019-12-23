@@ -90,9 +90,27 @@ MoyaiALSound *MoyaiALSound::create( const char *cpath ) {
             }
         }
     }
-    out->resample();    
+    out->resample();
+    out->normalize();
     appendSound(out);
     return out;
+}
+void MoyaiALSound::normalize() {
+    float maxv=0,minv=0;
+    for(int i=0;i<numFrames*numChannels;i++) {
+        float v=samples[i];
+        if(v<minv)minv=v;
+        if(v>maxv)maxv=v;
+    }
+    if(minv<0)minv*=-1;
+    float absmax = maxv > minv ? maxv : minv;
+    float factor=1;
+    if(absmax>0.5) factor=0.8;
+    if(absmax>0.7) factor=0.6;
+    if(absmax>0.9) factor=0.4;
+    for(int i=0;i<numFrames*numChannels;i++) {
+        samples[i]=samples[i]*factor;
+    }
 }
 void MoyaiALSound::resample() {
     if(sampleRate==FREQ) return;
@@ -151,6 +169,7 @@ MoyaiALSound *MoyaiALSound::create( int sampleRate, int numChannels, int numFram
         out->samples[i]=samples[i];
     }
     out->resample();
+    out->normalize();
     appendSound(out);    
     return out;
 }
