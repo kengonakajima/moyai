@@ -223,7 +223,7 @@ if(1) {
     p.setGeom(geom);
     var shm = new DefaultColorLitShaderMaterial();
     shm.setAmbientColor(vec3.fromValues(0.2,0.2,0.2));
-    shm.setLightDirection(vec3.fromValues(0.5,0.5,1));
+    shm.setLightDirection(vec3.fromValues(0,1,0));
     shm.setLightColor(vec3.fromValues(1,1,1));
     p.setMaterial(shm);
     p.setTexture(g_base_tex);    

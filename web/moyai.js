@@ -372,7 +372,7 @@ Moyai.draw = function(geom,mvMat,normalMat,projMat,material,moyai_tex,colv,addit
         gl.enableVertexAttribArray(material.attribLocations.color);
         Moyai.last_color_attr_loc=material.attribLocations.color;
     } else {
-        gl.disableVertexAttribArray(Moyai.last_color_attr_loc);
+        if(Moyai.last_color_attr_loc) gl.disableVertexAttribArray(Moyai.last_color_attr_loc);
     }
     // normal
     if(geom.normalBuffer) {
@@ -381,7 +381,7 @@ Moyai.draw = function(geom,mvMat,normalMat,projMat,material,moyai_tex,colv,addit
         gl.enableVertexAttribArray(material.attribLocations.normal);
         Moyai.last_normal_attr_loc=material.attribLocations.normal;
     } else {
-        gl.disableVertexAttribArray(Moyai.last_normal_attr_loc);
+        if(Moyai.last_normal_attr_loc) gl.disableVertexAttribArray(Moyai.last_normal_attr_loc);
     }
     
     // ind
@@ -2020,7 +2020,7 @@ class DefaultColorLitShaderMaterial extends ShaderMaterial {
         };
         this.amb_color=vec3.fromValues(0.1,0.1,0.1);
         this.lt_color=vec3.fromValues(1,1,1);
-        this.lt_dir=vec3.fromValues(0.8,0.7,0.6);
+        this.lt_dir=vec3.fromValues(0,1,0);
     }
     setAmbientColor(col) {
         vec3.copy(this.amb_color,col);
