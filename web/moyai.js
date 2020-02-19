@@ -1849,15 +1849,18 @@ var vertex_uv_color_lit_glsl =
     "uniform mat4 modelViewMatrix;\n"+
     "uniform mat4 projectionMatrix;\n"+
     "uniform mat4 normalMatrix;\n"+ // convert normal with different matrix
+    "uniform vec3 ambientLight;\n"+
+    "uniform vec3 directionalLightColor;\n"+
+    "uniform vec3 directionalVector;\n"+
     "void main()\n"+
     "{\n"+
     "  vUv = uv;\n"+
     "  vColor = color;\n"+
     "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n"+
     "  gl_Position = projectionMatrix * mvPosition;\n"+
-    "  highp vec3 ambientLight=vec3(0.1,0.1,0.1);\n"+ 
-    "  highp vec3 directionalLightColor=vec3(1,1,1);\n"+
-    "  highp vec3 directionalVector=normalize(vec3(0.85,0.8,0.75));\n"+
+//    "  highp vec3 ambientLight=vec3(0.1,0.1,0.1);\n"+ 
+//    "  highp vec3 directionalLightColor=vec3(1,1,1);\n"+
+//    "  highp vec3 directionalVector=normalize(vec3(0.85,0.8,0.75));\n"+
     "  highp vec4 transformedNormal=normalMatrix * vec4(normal,1.0);\n"+
     "  highp float directional=max(dot(transformedNormal.xyz,directionalVector),0.0);\n"+
     "  vLighting=ambientLight+(directionalLightColor*directional);\n"+
@@ -2011,8 +2014,30 @@ class DefaultColorLitShaderMaterial extends ShaderMaterial {
             normalMatrix: gl.getUniformLocation(this.glprog,"normalMatrix"),
             texture: gl.getUniformLocation(this.glprog, "texture"),
             meshcolor: gl.getUniformLocation(this.glprog,"meshcolor"),
+            ambientLight: gl.getUniformLocation(this.glprog,"ambientLight"),
+            directionalLightColor: gl.getUniformLocation(this.glprog,"directionalLightColor"),
+            directionalVector: gl.getUniformLocation(this.glprog,"directionalVector"),
         };
+        this.amb_color=vec3.fromValues(0.1,0.1,0.1);
+        this.lt_color=vec3.fromValues(1,1,1);
+        this.lt_dir=vec3.fromValues(0.8,0.7,0.6);
     }
+    setAmbientColor(col) {
+        vec3.copy(this.amb_color,col);
+    }
+    setLightDirection(d) {
+        vec3.copy(this.lt_dir,d);
+        vec3.normalize(this.lt_dir,this.lt_dir);
+    }
+    setLightColor(c) {
+        vec3.copy(this.lt_color,c);
+    }
+    applyUniforms() {
+        Moyai.gl.uniform3fv(this.uniformLocations.ambientLight,this.amb_color);
+        Moyai.gl.uniform3fv(this.uniformLocations.directionalLightColor, this.lt_color);
+        Moyai.gl.uniform3fv(this.uniformLocations.directionalVector, this.lt_dir);
+    }
+    
 };
 
 var g_moyai_default_color_shader_material;

@@ -221,14 +221,19 @@ if(1) {
     
     var p = new Prop3D();
     p.setGeom(geom);
-    p.setMaterial(new DefaultColorLitShaderMaterial());
+    var shm = new DefaultColorLitShaderMaterial();
+    shm.setAmbientColor(vec3.fromValues(0.2,0.2,0.2));
+    shm.setLightDirection(vec3.fromValues(0.5,0.5,1));
+    shm.setLightColor(vec3.fromValues(1,1,1));
+    p.setMaterial(shm);
     p.setTexture(g_base_tex);    
     p.setScl(1,1,1);
     p.setLoc(1,2,0);
     p.t=0;
     p.prop3DPoll=function(dt) {
         this.t+=dt;
-        this.setEulerRot(this.t,this.t/2,this.t/7);        
+        this.setEulerRot(this.t,this.t/2,this.t/7);
+        shm.setLightColor(vec3.fromValues(1,0.5+Math.sin(this.t)*0.5,0.5+Math.sin(this.t)*0.5));
         return true;
     }
     g_main_layer.insertProp(p);
