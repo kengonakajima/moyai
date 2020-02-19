@@ -869,7 +869,6 @@ class Geometry {
             this.need_uvs_update=false;
         }
         if(this.need_normals_update) {
-            console.log("need_normals_update!");
             if(!this.normals) console.warn("bless: need normals!");
             if(!this.normalBuffer)this.normalBuffer=gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
