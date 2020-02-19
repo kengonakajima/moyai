@@ -443,6 +443,7 @@ class TileDeck {
         this.moyai_tex = tex;
     }
     getUVFromIndex(outary, ind,uofs,vofs,eps) {
+        if(isNaN(ind)||isNaN(uofs)||isNaN(vofs)||isNaN(eps)) console.error("invalid arg:",ind,uofs,vofs,eps);
 	    var uunit = this.cell_width / this.moyai_tex.image.width;
 	    var vunit = this.cell_height / this.moyai_tex.image.height;
 	    var start_x = this.cell_width * Math.floor( Math.floor(ind) % Math.floor(this.tile_width) );
@@ -455,6 +456,7 @@ class TileDeck {
         outary[1]=v0;
         outary[2]=u1;
         outary[3]=v1;
+//        if(isNaN(u0)||isNaN(v0)||isNaN(u1)||isNaN(v1)) console.error("invalid arg?", ind,uofs,vofs,eps);
     }
     getUVOfPixel(ind,x_in_cell,y_in_cell) {
         ind=Math.floor(ind);
