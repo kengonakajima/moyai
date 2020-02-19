@@ -699,7 +699,7 @@ function start() {
 
     console.log("gl init ok");
 
-    const use_light=false;
+    const use_light=true;//false;
     var programInfoLight=initLightShaders();
     var programInfoNolight=initNolightShaders();
 

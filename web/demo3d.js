@@ -74,7 +74,7 @@ Moyai.insertLayer(g_main_layer);
 g_main_layer.setViewport(g_viewport3d);
 
 var g_main_camera = new PerspectiveCamera( 45*Math.PI/180 , SCRW / SCRH , 0.1, 1000);
-g_main_camera.setLoc(3,5,0);
+g_main_camera.setLoc(-6,4,-3);
 g_main_camera.setLookAt(vec3.fromValues(0,0,0), vec3.fromValues(0,1,0));
 g_main_layer.setCamera(g_main_camera);
 
@@ -174,6 +174,79 @@ if(1) {
     g_main_layer.insertProp(p);
 }
 
+if(1) {
+    var geom = new FaceGeometry(6*6,6*2);
+    var positions=[a,d,b, d,c,b, // bottom
+                   h,f,g, e,f,h, // top
+                   e,d,a, e,h,d, // left -x
+                   f,b,c, f,c,g, // right
+                   e,a,b, e,b,f, // front  +z
+                   h,c,d, h,g,c, // rear
+                  ];
+    for(var i=0;i<36;i++) {
+        geom.setPosition3v(i,positions[i]);
+        //        geom.setColor(i,range(0,1),range(0,1),range(0,1),1);
+        geom.setColor(i,1,1,1,1);
+    }
+    for(var i=0;i<12;i++) geom.setFaceInds(i,i*3,i*3+1,i*3+2);
+    
+    
+    for(var i=0;i<6;i++) geom.setNormal(i,0,-1,0);
+    for(var i=6;i<12;i++) geom.setNormal(i,0,1,0);
+    for(var i=12;i<18;i++) geom.setNormal(i,-1,0,0);
+    for(var i=18;i<24;i++) geom.setNormal(i,1,0,0);
+    for(var i=24;i<30;i++) geom.setNormal(i,0,0,1);
+    for(var i=30;i<36;i++) geom.setNormal(i,0,0,-1);
+
+    var kk=1.0/256.0*8;
+    var uv_lt=vec2.fromValues(0,0);
+    var uv_rt=vec2.fromValues(kk,0);
+    var uv_lb=vec2.fromValues(0,kk);
+    var uv_rb=vec2.fromValues(kk,kk);
+    
+    var uvs = [ uv_lb, uv_lt, uv_rb, // adb
+                uv_lt, uv_rt, uv_rb, // dcb
+                uv_lt, uv_rb, uv_rt, // hfg
+                uv_lb, uv_rb, uv_lt, // efh
+                uv_rt, uv_lb, uv_rb, // eda
+                uv_rt, uv_lt, uv_lb, // ehd
+                uv_lt, uv_lb, uv_rb, // fbc
+                uv_lt, uv_rb, uv_rt, // fcg
+                uv_lt, uv_lb, uv_rb, // eab
+                uv_lt, uv_rb, uv_rt, // ebf
+                uv_rt, uv_lb, uv_rb, // hcd
+                uv_rt, uv_lt, uv_lb, // hgc
+              ];
+    for(var i=0;i<uvs.length;i++) geom.setUV2v(i,uvs[i]);
+    
+
+/*
+    geom.setUV2v(0,uv_lb); geom.setUV2v(1,uv_rb); geom.setUV2v(2,uv_rt); geom.setUV2v(3,uv_lt); // abcd
+    geom.setUV2v(4,uv_lb); geom.setUV2v(5,uv_rb); geom.setUV2v(6,uv_rt); geom.setUV2v(7,uv_lt); // efgh
+    geom.setUV2v(8,uv_lb); geom.setUV2v(9,uv_rb); geom.setUV2v(10,uv_rt); geom.setUV2v(11,uv_lt); // abfe
+    geom.setUV2v(12,uv_lb); geom.setUV2v(13,uv_rb); geom.setUV2v(14,uv_rt); geom.setUV2v(15,uv_lt); // cdhg
+    geom.setUV2v(16,uv_lb); geom.setUV2v(17,uv_rb); geom.setUV2v(18,uv_rt); geom.setUV2v(19,uv_lt); // bcgf
+    geom.setUV2v(20,uv_lb); geom.setUV2v(21,uv_rb); geom.setUV2v(22,uv_rt); geom.setUV2v(23,uv_lt); // daeh
+*/
+    
+    var p = new Prop3D();
+    p.setGeom(geom);
+    p.setMaterial(new DefaultColorLitShaderMaterial());
+    p.setTexture(g_base_tex);    
+    p.setScl(1,1,1);
+    p.setLoc(1,2,0); 
+    p.prop3DPoll=function(dt) {
+//        this.loc[1]+=0.02;//Math.cos(this.accum_time)*3;
+//        this.loc[1]=Math.sin(this.accum_time)*3;
+//        this.rot[0]+=0.1;
+        //        this.rot[1]+=0.1;
+        return true;
+    }
+    console.log("g",geom);
+    g_main_layer.insertProp(p);
+}
+
+
 function setNinja(geom) {
     var kk=1.0/256.0*8;
     var uv_lt=vec2.fromValues(0,0);
@@ -250,8 +323,8 @@ if(1) {
         chp.setColor(vec4.fromValues(1,1,1,1));
         p.addChild(chp);
     }
+    
 }
-
 
 
 if(1) {
