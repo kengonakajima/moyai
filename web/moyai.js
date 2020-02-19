@@ -183,7 +183,7 @@ Moyai.render = function() {
     if(!this.initialized)return;
     var gl=this.gl;
     if(this.enable_clear) {
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearColor( this.clearColor[0], this.clearColor[1], this.clearColor[2], 1.0);
         gl.clearDepth(1.0);        
     }
     gl.enable(gl.DEPTH_TEST);
