@@ -2417,7 +2417,6 @@ class Prop3D extends Prop {
         mat4.multiply(this.mvMat,this.mvMat,this.localMat);
 
         if(this.geom.normalBuffer || this.geom.need_normals_update) {
-            console.log("updateModelViewMatrix: updating normal matrix too!");
             this.normalMat = mat4.create();
             mat4.invert(this.normalMat,this.mvMat);
             mat4.transpose(this.normalMat, this.normalMat);            

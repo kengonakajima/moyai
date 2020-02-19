@@ -219,30 +219,18 @@ if(1) {
               ];
     for(var i=0;i<uvs.length;i++) geom.setUV2v(i,uvs[i]);
     
-
-/*
-    geom.setUV2v(0,uv_lb); geom.setUV2v(1,uv_rb); geom.setUV2v(2,uv_rt); geom.setUV2v(3,uv_lt); // abcd
-    geom.setUV2v(4,uv_lb); geom.setUV2v(5,uv_rb); geom.setUV2v(6,uv_rt); geom.setUV2v(7,uv_lt); // efgh
-    geom.setUV2v(8,uv_lb); geom.setUV2v(9,uv_rb); geom.setUV2v(10,uv_rt); geom.setUV2v(11,uv_lt); // abfe
-    geom.setUV2v(12,uv_lb); geom.setUV2v(13,uv_rb); geom.setUV2v(14,uv_rt); geom.setUV2v(15,uv_lt); // cdhg
-    geom.setUV2v(16,uv_lb); geom.setUV2v(17,uv_rb); geom.setUV2v(18,uv_rt); geom.setUV2v(19,uv_lt); // bcgf
-    geom.setUV2v(20,uv_lb); geom.setUV2v(21,uv_rb); geom.setUV2v(22,uv_rt); geom.setUV2v(23,uv_lt); // daeh
-*/
-    
     var p = new Prop3D();
     p.setGeom(geom);
     p.setMaterial(new DefaultColorLitShaderMaterial());
     p.setTexture(g_base_tex);    
     p.setScl(1,1,1);
-    p.setLoc(1,2,0); 
+    p.setLoc(1,2,0);
+    p.t=0;
     p.prop3DPoll=function(dt) {
-//        this.loc[1]+=0.02;//Math.cos(this.accum_time)*3;
-//        this.loc[1]=Math.sin(this.accum_time)*3;
-//        this.rot[0]+=0.1;
-        //        this.rot[1]+=0.1;
+        this.t+=dt;
+        this.setEulerRot(this.t,this.t/2,this.t/7);        
         return true;
     }
-    console.log("g",geom);
     g_main_layer.insertProp(p);
 }
 
