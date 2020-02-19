@@ -352,6 +352,8 @@ class MoyaiImage {
         image.onload = function() {
             //        console.log("loadpng: onload:",texture,image,moyai_tex);
             var canvas=document.createElement("canvas");
+            canvas.width=w;
+            canvas.height=h;
             var ctx=canvas.getContext("2d");
             ctx.drawImage(this,0,0);
             var imgdata=ctx.getImageData(0,0,w,h);
