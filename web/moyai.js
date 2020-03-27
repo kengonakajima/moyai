@@ -140,9 +140,9 @@ Moyai.init = function(w,h){
     this.canvas=document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
     this.canvas.width=w;
     this.canvas.height=h;
-    this.gl=this.canvas.getContext("webgl",{antialias: false});
+    this.gl=this.canvas.getContext("webgl2",{antialias: false});
     if(!this.gl) {
-        console.warn("no WebGL support");
+        console.warn("no WebGL2 support");
         this.gl = null;
     }
     this.clearColor=Color.fromValues(0.1,0.1,0.1,1);    
@@ -436,9 +436,9 @@ Moyai.draw = function(geom,mvMat,normalMat,projMat,material,moyai_tex,colv,addit
     }
     
     if(geom.primtype==gl.TRIANGLES) {
-        gl.drawElements(gl.TRIANGLES, indn, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLES, indn, gl.UNSIGNED_INT, 0);
     } else if(geom.primtype==gl.LINES) {
-        gl.drawElements(gl.LINES, indn, gl.UNSIGNED_SHORT, 0);        
+        gl.drawElements(gl.LINES, indn, gl.UNSIGNED_INT, 0);        
     }
     if(0) {
         var e=gl.getError();
@@ -761,7 +761,7 @@ class Geometry {
         this.positions=new Float32Array(vn*3);
         this.colors=new Float32Array(vn*4);
         this.stride_colors=4;
-        this.inds=new Uint16Array(indn);
+        this.inds=new Uint32Array(indn);
         this.normals=new Float32Array(vn*3);
     }
     dispose() {
@@ -948,7 +948,7 @@ class BoxGeometry extends Geometry {
                                           0.5, -0.5, -0.5,
                                           -0.5, -0.5, -0.5,
                                         ]);
-        this.inds=new Uint16Array([
+        this.inds=new Uint32Array([
             0, 2, 1, // xp
             2, 3, 1,
             4, 6, 5, // xn
