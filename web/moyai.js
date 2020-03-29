@@ -416,7 +416,6 @@ Moyai.draw = function(geom,mvMat,normalMat,projMat,material,moyai_tex,colv,addit
     // draw
     var indn=geom.indn_used;
     if(indn===undefined) indn=geom.indn;
-    //    console.log("draw:",geom,mvMat,projMat,material,gltex,colv,fn);
     if(additive_blend) {
         gl.blendFunc(gl.ONE,gl.ONE);
     } else {
@@ -795,7 +794,7 @@ class Geometry {
     setPositionArray(ary,vn) { this.positions=ary; this.need_positions_update=true; this.vn=vn; }
     setColorArray(ary,stride) {this.colors=ary; this.stride_colors=stride; this.need_colors_update=true;}
     setUVArray(ary) { this.uvs=ary; this.need_uvs_update=true; }
-    setIndexArray(ary) { this.inds=ary; this.indn=ary.length; this.need_inds_update=true; }
+    setIndexArray(ary,indn) { this.inds=ary; this.indn=indn; this.need_inds_update=true; }
     setNormalArray(ary,vn) { this.normals=ary; this.need_normals_update=true; }
     setPosition3v(vind,p) {
         this.positions[vind*3]=p[0];
@@ -873,7 +872,7 @@ class Geometry {
             if(!this.normalBuffer)this.normalBuffer=gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, this.normals, gl.STATIC_DRAW);
-            this.need_normals_update=false;            
+            this.need_normals_update=false;
         }
     }
     setCullSize(center,diameter) {
