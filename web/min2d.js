@@ -105,23 +105,23 @@ if(1) {
 if(1) {
     var geom = new FaceGeometry(3,1);
     geom.setPosition(0, 0,0,0);
-    geom.setPosition(1, 2,0,0);
-    geom.setPosition(2, 0,2,0);
+    geom.setPosition(1, 1,0,0);
+    geom.setPosition(2, 0,1,0);
     geom.setFaceInds(0, 0,1,2);
-    geom.setColor(0, Color.fromValues(1,1,1,1));
-    geom.setColor(1, Color.fromValues(1,1,0,1));
-    geom.setColor(2, Color.fromValues(0,1,1,1));
-    geom.setUV(0, 0,0);
-    geom.setUV(1, 0.1,0);
-    geom.setUV(2, 0,0.1);
+    geom.setColor(0, 0,1,0,1);
+    geom.setColor(1, 0,1,1,1);
+    geom.setColor(2, 1,1,1,1);
+    geom.setUV(0, 0,1/32.0);
+    geom.setUV(1, 1/32.0,1/32.0);
+    geom.setUV(2, 0,0);
 
     var p_custom = new Prop2D();
     var mat = new DefaultColorShaderMaterial();
     p_custom.setMaterial(mat);
     p_custom.setTexture(g_base_atlas);
-    p_custom.setLoc(200,-130);
-    p_custom.setRot(0.3);
+    p_custom.setLoc(200,-200);
     p_custom.setScl(200);
+    p_custom.setGeom(geom);
     g_main_layer.insertProp(p_custom);    
 }
 
