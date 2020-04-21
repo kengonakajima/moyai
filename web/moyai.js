@@ -240,13 +240,11 @@ Moyai.render3D = function(layer) {
         if(prop.enable_frustum_culling ){
             if(prop.geom && prop.geom.cull_center) {
                 vec3.add(this.workv0, prop.loc, prop.geom.cull_center);
-//                console.log("cc:", this.workv0, prop.loc, prop.geom.cull_center);
                 var outcnt=0;
                 for(var j=0;j<6;j++) {
                     var dot=vec3.dot(this.workv0,cam.planes[j]);
                     var distance=dot+cam.planes[j][3];
-
-                    if(distance<-prop.geom.cull_diameter*prop.geom.cull_diameter) {
+                    if(distance<-prop.geom.cull_diameter) {
                         to_skip=true;
                         break;
                     }

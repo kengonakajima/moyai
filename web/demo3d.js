@@ -405,7 +405,7 @@ if(1) {
                 }
             }
         }
-        geom.setCullSize(vec3.fromValues(sz/2,sz/2,sz/2),sz/2*1.41);
+        geom.setCullSize(vec3.fromValues(sz/2,sz/2,sz/2),sz*2);
         return geom;
     }
 
