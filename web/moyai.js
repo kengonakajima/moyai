@@ -1992,10 +1992,10 @@ class DefaultColorShaderMaterial extends ShaderMaterial {
     }
 };
 class DefaultColorLitShaderMaterial extends ShaderMaterial {
-    constructor() {
+    constructor(fsh_opt) {
         super();
         var gl=Moyai.gl;
-        this.fsh_src = fragment_uv_color_lit_glsl;
+        this.fsh_src = fsh_opt ? fsh_opt : fragment_uv_color_lit_glsl;        
         this.vsh_src = vertex_uv_color_lit_glsl;
         this.compileAndLink();
         this.attribLocations = {
@@ -2032,8 +2032,7 @@ class DefaultColorLitShaderMaterial extends ShaderMaterial {
         Moyai.gl.uniform3fv(this.uniformLocations.ambientLight,this.amb_color);
         Moyai.gl.uniform3fv(this.uniformLocations.directionalLightColor, this.lt_color);
         Moyai.gl.uniform3fv(this.uniformLocations.directionalVector, this.lt_dir);
-    }
-    
+    }    
 };
 
 var g_moyai_default_color_shader_material;
