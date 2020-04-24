@@ -246,6 +246,7 @@ Moyai.render3D = function(layer) {
                     var distance=dot+cam.planes[j][3];
                     if(distance<-prop.geom.cull_diameter) {
                         to_skip=true;
+                        if(prop.frustum_culling_log) console.log("culled. plane:",j,"distance:",distance,"diameter:",prop.geom.cull_diameter);
                         break;
                     }
                 }
