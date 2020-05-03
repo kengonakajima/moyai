@@ -2407,7 +2407,6 @@ class Prop3D extends Prop {
         this.sort_center = vec3.fromValues(0,0,0);
 	    this.depth_mask=true;
         this.alpha_test=false;
-        this.cull_back_face=true;
         this.draw_offset = vec3.fromValues(0,0,0);
         this.priority=this.id;
         this.dimension=3;
