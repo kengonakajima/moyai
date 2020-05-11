@@ -265,14 +265,12 @@ Moyai.render3D = function(layer) {
         }
         
         if(prop.billboard) quat.copy(prop.quaternion,cam.invQuat);
-        
+
+        prop.updateModelViewMatrix();
         if(prop.geom) {
-            prop.updateModelViewMatrix();
             prop.geom.bless();
             this.draw(prop.geom, prop.mvMat, prop.normalMat, cam.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend,prop.cull_face,prop.depth_mask);
             this.draw_count_3d++;
-        } else {
-            console.log("no geometry:",prop,layer);
         }
 
         if(prop.children.length>0) {
@@ -2438,10 +2436,12 @@ class Prop3D extends Prop {
         mat4.compose(this.localMat,this.finalLoc,this.quaternion,this.scl);
         mat4.multiply(this.mvMat,this.mvMat,this.localMat);
 
-        if(this.geom.normalBuffer || this.geom.need_normals_update) {
-            this.normalMat = mat4.create();
-            mat4.invert(this.normalMat,this.mvMat);
-            mat4.transpose(this.normalMat, this.normalMat);            
+        if(this.geom) {
+            if(this.geom.normalBuffer || this.geom.need_normals_update) {
+                this.normalMat = mat4.create();
+                mat4.invert(this.normalMat,this.mvMat);
+                mat4.transpose(this.normalMat, this.normalMat);            
+            }
         }
     }
     setTexture(moyai_tex) {
