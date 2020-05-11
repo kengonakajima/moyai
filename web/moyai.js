@@ -266,11 +266,13 @@ Moyai.render3D = function(layer) {
         
         if(prop.billboard) quat.copy(prop.quaternion,cam.invQuat);
         
-        prop.updateModelViewMatrix();
         if(prop.geom) {
+            prop.updateModelViewMatrix();
             prop.geom.bless();
             this.draw(prop.geom, prop.mvMat, prop.normalMat, cam.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend,prop.cull_face,prop.depth_mask);
             this.draw_count_3d++;
+        } else {
+            console.log("no geometry:",prop,layer);
         }
 
         if(prop.children.length>0) {
