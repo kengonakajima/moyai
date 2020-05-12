@@ -269,7 +269,7 @@ Moyai.render3D = function(layer) {
         prop.updateModelViewMatrix();
         if(prop.geom) {
             prop.geom.bless();
-            this.draw(prop.geom, prop.mvMat, prop.normalMat, cam.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend,prop.cull_face,prop.depth_mask);
+            this.draw(prop.geom, prop.mvMat, prop.normalMat, cam.viewProjMat, prop.material, prop.moyai_tex, prop.color, prop.use_additive_blend,prop.cull_face,prop.depth_mask, prop.debug);
             this.draw_count_3d++;
         }
 
@@ -353,7 +353,7 @@ Moyai.render2D = function(layer) {
         }            
     }
 }
-Moyai.draw = function(geom,mvMat,normalMat,projMat,material,moyai_tex,colv,additive_blend,cull_face,depth_mask) {
+Moyai.draw = function(geom,mvMat,normalMat,projMat,material,moyai_tex,colv,additive_blend,cull_face,depth_mask,debug) {
 //    if(geom.stride_colors==3)  console.warn("draw:",geom,mvMat,projMat,material,moyai_tex,colv,additive_blend);
     var gl=Moyai.gl;
     gl.useProgram(material.glprog);
@@ -415,6 +415,7 @@ Moyai.draw = function(geom,mvMat,normalMat,projMat,material,moyai_tex,colv,addit
     // draw
     var indn=geom.indn_used;
     if(indn===undefined) indn=geom.indn;
+
     if(additive_blend) {
         gl.blendFunc(gl.ONE,gl.ONE);
     } else {
@@ -790,10 +791,18 @@ class Geometry {
             this.need_normals_update=true;
         }
     }
-    setPositionArray(ary,vn) { this.positions=ary; this.need_positions_update=true; this.vn=vn; }
+    setPositionArray(ary,vn) {
+        this.positions=ary;
+        if(vn===undefined) this.vn=ary.length; else this.vn=vn;
+        this.need_positions_update=true; 
+    }
     setColorArray(ary,stride) {this.colors=ary; this.stride_colors=stride; this.need_colors_update=true;}
     setUVArray(ary) { this.uvs=ary; this.need_uvs_update=true; }
-    setIndexArray(ary,indn) { this.inds=ary; this.indn=indn; this.need_inds_update=true; }
+    setIndexArray(ary,indn) {
+        this.inds=ary;
+        if(indn===undefined) this.indn=ary.length; else this.indn=indn;
+        this.need_inds_update=true;
+    }
     setNormalArray(ary,vn) { this.normals=ary; this.need_normals_update=true; }
     setPosition3v(vind,p) {
         this.positions[vind*3]=p[0];
