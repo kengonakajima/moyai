@@ -539,39 +539,48 @@ class Texture {
         return vec2.set(out,this.image.width,this.image.height);
     }
     setMoyaiImage(moimg) {
-        var canvas = document.createElement('canvas'),
-        ctx = canvas.getContext('2d');
-        canvas.width = moimg.width;
-        canvas.height = moimg.height;
-        var imgdata = ctx.createImageData(moimg.width,moimg.height);
-        imgdata.data.set(moimg.data);
-        ctx.putImageData(imgdata,0,0);
-        var datauri=canvas.toDataURL();
-        var image=new Image();
-        image.width=moimg.width;
-        image.height=moimg.height;
-
         var gl=Moyai.gl;
-        var texture;
-        if(this.gltex) {
-            if(image.width!=moimg.width || image.height!=moimg.height) {
-                console.error("setMoyaiImage: updating image, but size differs! ",moimg.width,moimg.height,image.width,image.height);
-                return;
-            }
-            texture=this.gltex;
+        
+        if(this.gltex && this.moyai_image.width == moimg.width && this.moyai_image.height == moimg.height) {
+            // just update
+            gl.bindTexture(gl.TEXTURE_2D,this.gltex);
+            gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,moimg.width,moimg.height,0,gl.RGBA,gl.UNSIGNED_BYTE,moimg.data);
         } else {
-            texture= createGLTextureFromPixels(gl,moimg.width, moimg.height, moimg.data);            
+            // replace
+            var canvas = document.createElement('canvas'),
+            ctx = canvas.getContext('2d');
+            canvas.width = moimg.width;
+            canvas.height = moimg.height;
+            var imgdata = ctx.createImageData(moimg.width,moimg.height);
+            imgdata.data.set(moimg.data);
+            ctx.putImageData(imgdata,0,0);
+            var datauri=canvas.toDataURL();
+            var image=new Image();
+            image.width=moimg.width;
+            image.height=moimg.height;
+
+
+            var texture;
+            if(this.gltex) {
+                if(image.width!=moimg.width || image.height!=moimg.height) {
+                    console.error("setMoyaiImage: updating image, but size differs! ",moimg.width,moimg.height,image.width,image.height);
+                    return;
+                }
+                texture=this.gltex;
+            } else {
+                texture= createGLTextureFromPixels(gl,moimg.width, moimg.height, moimg.data);            
+            }
+            var moyai_tex=this;
+            image.onload = function() {
+                setImageToGLTexture(gl,texture,image);
+                console.log("IIII",image);
+                if(moyai_tex.onload) moyai_tex.onload();
+            }
+            image.src=datauri;
+            this.image=image;
+            this.moyai_image=moimg;
+            this.gltex=texture;
         }
-        var moyai_tex=this;
-        image.onload = function() {
-            setImageToGLTexture(gl,texture,image);
-            //        console.log("loadpng: onload:",texture,image,moyai_tex);
-            if(moyai_tex.onload) moyai_tex.onload();
-        }
-        image.src=datauri;
-        this.image=image;
-        this.moyai_image=moimg;
-        this.gltex=texture;
     }
 };
 

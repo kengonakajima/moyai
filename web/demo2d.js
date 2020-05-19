@@ -378,12 +378,10 @@ if(1) {
     g_main_layer.insertProp(p);
 
     p.prop2DPoll = function(dt) {
-        if((this.poll_count % 100)==0) {
-            for(var i=0;i<1000;i++){
-                g_img.setPixel( irange(0,256), irange(0,256), Color.fromValues( range(0,1), range(0,1), range(0,1),1 ));
-            }
-            g_dyn_texture.setMoyaiImage(g_img);
+        for(var i=0;i<1000;i++){
+            g_img.setPixel( irange(0,256), irange(0,256), Color.fromValues( range(0,1), range(0,1), range(0,1),1 ));
         }
+        g_dyn_texture.setMoyaiImage(g_img);
         return true;
     }
 }
