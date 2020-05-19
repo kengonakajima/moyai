@@ -573,7 +573,6 @@ class Texture {
             var moyai_tex=this;
             image.onload = function() {
                 setImageToGLTexture(gl,texture,image);
-                console.log("IIII",image);
                 if(moyai_tex.onload) moyai_tex.onload();
             }
             image.src=datauri;
