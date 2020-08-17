@@ -227,7 +227,12 @@ Moyai.workv3=vec3.create();
 Moyai.render3D = function(layer) {
     var cam=layer.camera;
     cam.updateMatrix();
-    
+
+    if(layer.enable_sort) {
+        layer.props.sort(function(a,b) {
+            return a.priority - b.priority;
+        });
+    }
 //    mat4.perspective(layer.projMat, 0.5, 1.3333, 1,1000);
 //    mat4.ortho(layer.projMat, -3, 3, -5, 5, -1, 1000);
     for(var pi=0;pi<layer.props.length;pi++ ) {                    
