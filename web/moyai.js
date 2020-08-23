@@ -440,6 +440,14 @@ Moyai.draw = function(geom,mvMat,normalMat,projMat,material,moyai_tex,colv,addit
     }
     
     if(geom.primtype==gl.TRIANGLES) {
+        if(geom.debug_attributes) {
+            var n=gl.getProgramParameter(material.glprog,gl.ACTIVE_ATTRIBUTES);
+            for (let ii = 0; ii < n; ++ii) {
+                const attribInfo = gl.getActiveAttrib(material.glprog, ii);
+                const index = gl.getAttribLocation(material.glprog, attribInfo.name);
+                console.log(index, attribInfo.name);
+            }
+        }
         gl.drawElements(gl.TRIANGLES, indn, gl.UNSIGNED_INT, 0);
     } else if(geom.primtype==gl.LINES) {
         gl.drawElements(gl.LINES, indn, gl.UNSIGNED_INT, 0);        
@@ -775,6 +783,7 @@ class Geometry {
         this.stride_colors=4;
         this.inds=new Uint32Array(indn);
         this.normals=new Float32Array(vn*3);
+        this.uvs=new Float32Array(vn*2);
     }
     dispose() {
         var gl=Moyai.gl;
