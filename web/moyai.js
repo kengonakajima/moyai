@@ -2205,7 +2205,13 @@ class Mouse {
             vec2.set(_this.cursor_pos,x,y);
             _this.movement[0]+=e.movementX;
             _this.movement[1]+=e.movementY;
-        },false);    
+        },false);
+        w.addEventListener("dblclick", function(e) {
+            var rect = dom.getBoundingClientRect();
+            var x = Math.floor(e.clientX - rect.left);
+            var y = Math.floor(e.clientY - rect.top);
+            _this.dblclick_pos=[x,y];            
+        })
     }
     readButtonEvent(e,pressed) {
         if(pressed) {
@@ -2224,6 +2230,12 @@ class Mouse {
     }
     clearToggled(btn_ind) {
         this.toggled[btn_ind] = false;        
+    }
+    getDoubleClickPos() {
+        return this.dblclick_pos;
+    }
+    clearDoubleClickPos() {
+        this.dblclick_pos=null;
     }
     getCursorPos() { return this.cursor_pos; }
 };
