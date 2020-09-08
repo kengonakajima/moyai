@@ -870,7 +870,7 @@ class Geometry {
         var gl=Moyai.gl;
         if(this.need_positions_update) {
             if(this.debug) console.log("bless position:", this );
-            if(!this.positions) console.warn("bless: need positions!");
+            if(!this.positions) console.warn("bless: need positions!", this);
             if(!this.positionBuffer) this.positionBuffer=gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER,this.positions, gl.STATIC_DRAW);
