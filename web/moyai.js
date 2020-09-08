@@ -2203,7 +2203,8 @@ class Mouse {
             var y = Math.floor(e.clientY - rect.top);
             //        e.preventDefault();
             vec2.set(_this.cursor_pos,x,y);
-            vec2.set(_this.movement,e.movementX, e.movementY);
+            _this.movement[0]+=e.movementX;
+            _this.movement[1]+=e.movementY;
         },false);    
     }
     readButtonEvent(e,pressed) {
