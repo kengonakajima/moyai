@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
-	<head>
+  <head>
+
 		<meta charset="utf-8">
 		<title>My first three.js app</title>
 		<style>
@@ -8,15 +9,241 @@
 		</style>
 	</head>
 	<body>
+      <div id="screen"></div>    
+      
+    </body>
+        <script type="text/javascript" src="modbundle.js">  </script>
+        <script type="text/javascript" src="gl-matrix.js">  </script>  
+        <script type="text/javascript" src="moyai_common.js">  </script>
+        <script type="text/javascript" src="moyai.js">  </script>  
+      
 		<script src="three.js"></script>
 		<script>
-		  // Our Javascript will go here.
+          tangentMax = function(theta,absmax) {
+              var cs=Math.cos(theta);
+              var sn=Math.sin(theta);
+              if(cs==0) {
+                  if(theta>0)return absmax; else return -absmax;
+              } else {
+                  return Math.tan(theta);
+              }
+          }
+          
+		  // moyai
+          const w = window.innerWidth, h = window.innerHeight/2;
+          Moyai.init(w,h);
+          Moyai.clearColor=Color.fromValues(0.2,0.2,0.2,1);
+          var screen = document.getElementById("screen");
+          var canvas=Moyai.getDomElement();
+          canvas.style="width:100%; height:100%";
+          screen.appendChild(canvas);
+          var viewport = new Viewport();
+          viewport.setSize(w,h);
+          viewport.setClip3D( 0.01, 100 );
+          var main_layer = new Layer();
+          Moyai.insertLayer(main_layer);
+          main_layer.setViewport(viewport);
 
+          var main_camera = new PerspectiveCamera( 45*Math.PI/180 , w / h , 0.1, 1000);
+          main_camera.setLoc(-6,4,-3);
+          main_camera.setLookAt(vec3.fromValues(0,0,0), vec3.fromValues(0,1,0));
+          main_layer.setCamera(main_camera);
+          var base_tex = new Texture();
+          base_tex.loadPNG( "./assets/base.png", 256,256 );
+          var base_deck = new TileDeck();
+          base_deck.setTexture(base_tex);
+          base_deck.setSize(32,32,8,8);
+
+          var keyboard = new Keyboard();
+          keyboard.setupBrowser(window);
+          var mouse = new Mouse();
+          mouse.setupBrowser(window,screen);
+
+
+          if(1) {
+              var sz=0.5;
+              
+              var a=vec3.fromValues(-sz,-sz,sz);
+              var b=vec3.fromValues(sz,-sz,sz);
+              var c=vec3.fromValues(sz,-sz,-sz);
+              var d=vec3.fromValues(-sz,-sz,-sz);
+              var e=vec3.fromValues(-sz,sz,sz);
+              var f=vec3.fromValues(sz,sz,sz);
+              var g=vec3.fromValues(sz,sz,-sz);
+              var _h=vec3.fromValues(-sz,sz,-sz);
+
+          
+              var geom = new FaceGeometry(8,6*2);
+              
+              geom.setPosition3v(0,a);// A red
+              geom.setPosition3v(1,b); // B blue
+              geom.setPosition3v(2,c); // C yellow
+              geom.setPosition3v(3,d); // D green
+              geom.setPosition3v(4,e); // E white
+              geom.setPosition3v(5,f); // F purple
+              geom.setPosition3v(6,g); // G white
+              geom.setPosition3v(7,_h); // H white    
+
+              geom.setColor(0, 1,0,0,1);
+              geom.setColor(1, 0,0,1,1);
+              geom.setColor(2, 1,1,0,1);
+              geom.setColor(3, 0,1,0,1);
+              geom.setColor(4, 1,1,1,1);
+              geom.setColor(5, 1,0,1,1);
+              geom.setColor(6, 1,1,1,1);
+              geom.setColor(7, 1,1,1,1);                        
+              
+              // bottom
+              geom.setFaceInds(0, 0,3,1); // ADB
+              geom.setFaceInds(1, 3,2,1); // DCB
+              // top
+              geom.setFaceInds(2, 7,5,6); // HFG
+              geom.setFaceInds(3, 4,5,7); // EFH
+              // left
+              geom.setFaceInds(4, 4,3,0); // EDA
+              geom.setFaceInds(5, 4,7,3); // EHD
+              // right
+              geom.setFaceInds(6, 5,1,2); // FBC
+              geom.setFaceInds(7, 5,2,6); // FCG
+              // front
+              geom.setFaceInds(8, 4,0,1); // EAB
+              geom.setFaceInds(9, 4,1,5); // EBF
+              // rear
+              geom.setFaceInds(10, 7,2,3); // HCD
+              geom.setFaceInds(11, 7,6,2); // HGC
+
+              var p = new Prop3D();
+              p.setGeom(geom);
+              p.setMaterial(new PrimColorShaderMaterial());
+              p.setScl(1,1,1);
+              p.setLoc(0,0,0);
+              p.enable_frustum_culling=false;
+              p.t=0;
+              p.prop3DPoll=function(dt) {
+                  this.t+=dt;
+                  this.setEulerRot(this.t,this.t/2,this.t/7);                  
+                  return true;
+              }
+              main_layer.insertProp(p);
+              console.log("p:",p);
+          }
+
+          if(1) {
+              var geom = new FaceGeometry(6*6,6*2);
+              var positions=[a,d,b, d,c,b, // bottom
+                             h,f,g, e,f,h, // top
+                             e,d,a, e,h,d, // left -x
+                             f,b,c, f,c,g, // right
+                             e,a,b, e,b,f, // front  +z
+                             h,c,d, h,g,c, // rear
+                            ];
+              for(var i=0;i<36;i++) {
+                  geom.setPosition3v(i,positions[i]);
+                  //        geom.setColor(i,range(0,1),range(0,1),range(0,1),1);
+                  geom.setColor(i,1,1,1,1);
+              }
+              for(var i=0;i<12;i++) geom.setFaceInds(i,i*3,i*3+1,i*3+2);
+              
+              
+              for(var i=0;i<6;i++) geom.setNormal(i,0,-1,0);
+              for(var i=6;i<12;i++) geom.setNormal(i,0,1,0);
+              for(var i=12;i<18;i++) geom.setNormal(i,-1,0,0);
+              for(var i=18;i<24;i++) geom.setNormal(i,1,0,0);
+              for(var i=24;i<30;i++) geom.setNormal(i,0,0,1);
+              for(var i=30;i<36;i++) geom.setNormal(i,0,0,-1);
+
+              var kk=1.0/256.0*8;
+              var uv_lt=vec2.fromValues(0,0);
+              var uv_rt=vec2.fromValues(kk,0);
+              var uv_lb=vec2.fromValues(0,kk);
+              var uv_rb=vec2.fromValues(kk,kk);
+              
+              var uvs = [ uv_lb, uv_lt, uv_rb, // adb
+                          uv_lt, uv_rt, uv_rb, // dcb
+                          uv_lt, uv_rb, uv_rt, // hfg
+                          uv_lb, uv_rb, uv_lt, // efh
+                          uv_rt, uv_lb, uv_rb, // eda
+                          uv_rt, uv_lt, uv_lb, // ehd
+                          uv_lt, uv_lb, uv_rb, // fbc
+                          uv_lt, uv_rb, uv_rt, // fcg
+                          uv_lt, uv_lb, uv_rb, // eab
+                          uv_lt, uv_rb, uv_rt, // ebf
+                          uv_rt, uv_lb, uv_rb, // hcd
+                          uv_rt, uv_lt, uv_lb, // hgc
+                        ];
+              for(var i=0;i<uvs.length;i++) geom.setUV2v(i,uvs[i]);
+              
+              var p = new Prop3D();
+              p.setGeom(geom);
+              var shm = new DefaultColorLitShaderMaterial();
+              shm.setAmbientColor(vec3.fromValues(0.2,0.2,0.2));
+              shm.setLightDirection(vec3.fromValues(0,1,0));
+              shm.setLightColor(vec3.fromValues(1,1,1));
+              p.setMaterial(shm);
+              p.setTexture(base_tex);    
+              p.setScl(1,1,1);
+              p.setLoc(1,2,0);
+              p.t=0;
+              p.prop3DPoll=function(dt) {
+                  this.t+=dt;
+                  this.setEulerRot(this.t,this.t/2,this.t/7);
+                  shm.setLightColor(vec3.fromValues(1,0.5+Math.sin(this.t)*0.5,0.5+Math.sin(this.t)*0.5));
+                  return true;
+              }
+              main_layer.insertProp(p);
+          }
+          
+          var last_anim_at = new Date().getTime();
+          var last_print_at = new Date().getTime();
+          var started_at=now();
+          var pitch=0, yaw=0;
+          function moyaiRender() {
+              var now_time = new Date().getTime();
+              var dt = (now_time - last_anim_at) / 1000.0;
+              if(!main_camera) return;
+              
+              var t=now()-started_at;
+              if(0) {
+                  main_camera.loc[0]=Math.cos(t/3)*8;
+                  main_camera.loc[1]+=0.01;        
+                  main_camera.loc[2]=Math.sin(t/3)*8;
+              }
+              if(keyboard) {
+                  if(keyboard.getKey('a')) main_camera.loc[0]-=0.3;
+                  if(keyboard.getKey('d')) main_camera.loc[0]+=0.3;
+                  if(keyboard.getKey('w')) main_camera.loc[2]-=0.3;
+                  if(keyboard.getKey('s')) main_camera.loc[2]+=0.3;
+                  if(keyboard.getKey('k')) main_camera.loc[1]+=0.3;
+                  if(keyboard.getKey('l')) main_camera.loc[1]-=0.3;                        
+              }
+              
+              if(mouse) {
+                  var dx=mouse.movement[0];
+                  var dy=mouse.movement[1];
+                  mouse.clearMovement();
+                  yaw-=dy/250;
+                  if(yaw>Math.PI/2) yaw=Math.PI/2;
+                  if(yaw<-Math.PI/2) yaw=-Math.PI/2;
+                  pitch+=dx/250;
+
+                  var nose=vec3.fromValues( main_camera.loc[0] + 1.0 * Math.cos(pitch),
+                                            main_camera.loc[1] + tangentMax(yaw),
+                                            main_camera.loc[2] + 1.0 * Math.sin(this.pitch) );
+   //               main_camera.setLookAt(nose, vec3.fromValues(0,1,0));            
+              }
+              
+              
+              last_anim_at = now_time;    
+              Moyai.poll(dt);
+              Moyai.render();
+          }
+
+          // three
           const scene = new THREE.Scene();
-          const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+          const camera = new THREE.PerspectiveCamera( 75, w/h, 0.1, 1000 );
 
           const renderer = new THREE.WebGLRenderer();
-          renderer.setSize( window.innerWidth, window.innerHeight );
+          renderer.setSize(w,h);
           document.body.appendChild( renderer.domElement );
           const geometry = new THREE.BoxGeometry();
           const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
@@ -25,11 +252,17 @@
 
           camera.position.z = 5;
 
-          function animate() {
-	          requestAnimationFrame( animate );
+          function threeRender() {
               cube.rotation.x += 0.01;
               cube.rotation.y += 0.01;
-	          renderer.render( scene, camera );
+              //cube.position.x = Math.random();
+	          renderer.render( scene, camera );              
+          }
+
+          function animate() {
+	          requestAnimationFrame( animate );
+              threeRender();
+              moyaiRender();
           }
           animate();
 		</script>
