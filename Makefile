@@ -53,7 +53,7 @@ UNTZLIB=untz/libuntz.a
 UNTZDEPENDLIB=-framework AudioToolbox /usr/local/lib/libvorbis.a /usr/local/lib/libvorbisfile.a /usr/local/lib/libogg.a
 ALUTLIB=libalut.a
 
-FFMPEG=/usr/local/Cellar/ffmpeg/4.2.2_2/lib
+FFMPEG=/usr/local/Cellar/ffmpeg/4.3.1_6/lib
 
 EXTCOMMONLIBS= $(ZLIBLIB) $(BZ2LIB) $(LIBPNGLIB) $(SNAPPYLIB) $(ALUTLIB) $(JPEGLIB) $(LIBUVLIB)
 EXTCLILIBS = $(EXTCOMMONLIBS) $(FREETYPELIB) $(FTGLLIB) $(GLFWLIB)
