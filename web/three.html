@@ -3,7 +3,7 @@
   <head>
 
 		<meta charset="utf-8">
-		<title>My first three.js app</title>
+		<title>moyaithree</title>
 		<style>
 			body { margin: 0; }
 		</style>
@@ -241,8 +241,12 @@
           // three
           const scene = new THREE.Scene();
           const camera = new THREE.PerspectiveCamera( 75, w/h, 0.1, 1000 );
-
-          const renderer = new THREE.WebGLRenderer();
+          // canvasを設定できるはずなんだけどうまくいかん。WebGLのcanvasなんか喧嘩する
+          // シェーダーのエラーになる。
+          const renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true/*, canvas: canvas*/ });
+          console.log("ren:",renderer);
+          renderer.autoClearColor = false;
+          renderer.autoClearDepth = false;
           renderer.setSize(w,h);
           document.body.appendChild( renderer.domElement );
           const geometry = new THREE.BoxGeometry();
